@@ -17,14 +17,14 @@ const TESTIMONIALS = [
   {initials:'PM',name:'Pierre Moreau',country:'🇫🇷 France',text:'We manage our association with ease. The reports save us hours every month.',bg:'#4A7C59',img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'},
 ];
 
-// Photos communautés — toutes nations, personnes noires, blanches, asiatiques, latinos
+// Photos — adultes professionnels, entrepreneurs, agriculteurs, femmes d affaires noires
 const COMMUNITY_IMGS = [
   'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1573497019236-17f8177b81e8?w=700&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1531844251246-9a1bfaae09fc?w=700&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=700&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=700&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=700&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=700&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1488161628813-04466f872be2?w=700&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1496440737103-cd596325d314?w=700&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1611432579699-484f7990b127?w=700&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=700&h=400&fit=crop',
 ];
 
 const AUTO_FEATURES = [
@@ -100,7 +100,7 @@ export default function HomePage() {
         borderBottom:'1px solid #D9C0CC'
       }}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <div className="logo-icon" style={{width:'40px',height:'40px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',cursor:'pointer',color:'#D4AF7A'}}>✦</div>
+          <div className="logo-icon" style={{width:'40px',height:'40px',background:'#4A1F38',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',cursor:'pointer',color:'#D4AF7A'}}>✦</div>
           <div>
             <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px'}}>TARSYN</div>
             <div style={{color:'#C4748E',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
@@ -118,7 +118,7 @@ export default function HomePage() {
 
       {/* HERO — fond bordeaux #6B2D4E (échangé avec la navbar) */}
       <div style={{
-        background:'linear-gradient(160deg,#6B2D4E 0%,#7D3459 50%,#5A2240 100%)',
+        background:'linear-gradient(160deg,#4A1F38 0%,#5A2848 50%,#3A1830 100%)',
         padding:'90px 32px 70px',
         textAlign:'center',
         position:'relative',
@@ -129,7 +129,6 @@ export default function HomePage() {
         <div style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}} className="floating">💰</div>
         <div style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}} className="floating">🌍</div>
         <div style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}} className="floating">⭐</div>
-Copy-Item "C:\Users\mglau\Downloads\page.tsx" "C:\Users\mglau\tarsyn-app\src\app\page.tsx" -Force
 
         <div style={{position:'relative',zIndex:1}}>
           <div style={{display:'inline-block',background:'rgba(212,175,122,0.15)',border:'1px solid rgba(212,175,122,0.3)',borderRadius:'20px',padding:'6px 18px',marginBottom:'24px'}}>
@@ -193,17 +192,17 @@ Copy-Item "C:\Users\mglau\Downloads\page.tsx" "C:\Users\mglau\tarsyn-app\src\app
           <div className="mode-card"
             onMouseEnter={()=>setHoverMode('expert')}
             onMouseLeave={()=>setHoverMode(null)}
-            style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='expert'?'0 20px 48px rgba(212,175,122,0.25)':'0 4px 20px rgba(0,0,0,0.15)',border:`2px solid ${hoverMode==='expert'?'#D4AF7A':'#3D2030'}`}}>
-            <div style={{background:'linear-gradient(135deg,#2C1A24,#4A2040)',padding:'32px 24px 24px',textAlign:'center'}}>
+            style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='expert'?'0 20px 48px rgba(212,175,122,0.25)':'0 4px 20px rgba(0,0,0,0.15)',border:`2px solid ${hoverMode==='expert'?'#6B2D4E':'#E8D5DF'}`}}>
+            <div style={{background:'linear-gradient(135deg,#6B2D4E,#8B3D62)',padding:'32px 24px 24px',textAlign:'center'}}>
               <div style={{fontSize:'44px',marginBottom:'14px'}}>⚡</div>
               <div style={{color:'#D4AF7A',fontSize:'22px',fontWeight:'800',letterSpacing:'2px'}}>EXPERT MODE</div>
               <div style={{color:'#FAF0E6',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>FULL CONTROL — FOR ADMINS</div>
             </div>
-            <div style={{padding:'24px',background:'#1A0F16'}}>
+            <div style={{padding:'24px',background:'white'}}>
               {EXPERT_FEATURES.map((f,i)=>(
                 <div key={i} className="feature-row" style={{display:'flex',alignItems:'center',gap:'14px',padding:'11px 0',borderBottom:i<EXPERT_FEATURES.length-1?'1px solid rgba(212,175,122,0.12)':'none'}}>
                   <span style={{fontSize:'20px'}}>{f.icon}</span>
-                  <span style={{color:'#FAF0E6',fontSize:'14px',fontWeight:'500'}}>{f.text}</span>
+                  <span style={{color:'#4A2040',fontSize:'14px',fontWeight:'500'}}>{f.text}</span>
                 </div>
               ))}
               <a href="/register" style={{display:'block',marginTop:'28px',padding:'15px',background:'#D4AF7A',borderRadius:'12px',color:'#6B2D4E',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s ease'}}>
@@ -264,7 +263,7 @@ Copy-Item "C:\Users\mglau\Downloads\page.tsx" "C:\Users\mglau\tarsyn-app\src\app
       </div>
 
       {/* TESTIMONIALS */}
-      <div style={{background:'#6B2D4E',padding:'64px 32px',textAlign:'center'}}>
+      <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#5A2848 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FAF0E6',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
         <p style={{color:'rgba(250,240,230,0.6)',marginBottom:'44px',fontSize:'14px'}}>Real stories from real communities worldwide</p>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
