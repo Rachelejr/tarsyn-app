@@ -129,6 +129,7 @@ export default function HomePage() {
         <div style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}} className="floating">💰</div>
         <div style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}} className="floating">🌍</div>
         <div style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}} className="floating">⭐</div>
+Copy-Item "C:\Users\mglau\Downloads\page.tsx" "C:\Users\mglau\tarsyn-app\src\app\page.tsx" -Force
 
         <div style={{position:'relative',zIndex:1}}>
           <div style={{display:'inline-block',background:'rgba(212,175,122,0.15)',border:'1px solid rgba(212,175,122,0.3)',borderRadius:'20px',padding:'6px 18px',marginBottom:'24px'}}>
