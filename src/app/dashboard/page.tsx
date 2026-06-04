@@ -85,14 +85,25 @@ export default function DashboardPage() {
   const [alertSettings, setAlertSettings] = useState({daily:true,weekly:true,biweekly:true,monthly:true,days14:true,days7:true,days3:true,sms:false});
   const [uploadedFile, setUploadedFile] = useState<string|null>(null);
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) { window.location.href = '/login'; return; }
-      setUser(u);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
+ const ADMIN_EMAILS = [
+  'rachelejr779@gmail.com',
+  // ajoute ici les emails des autres organisateurs autorisés
+];
+
+useEffect(() => {
+  const unsub = onAuthStateChanged(auth, (u) => {
+    if (!u) { window.location.href = '/login'; return; }
+    // Vérifier si c'est un admin/organisateur
+    if (!ADMIN_EMAILS.includes(u.email || '')) {
+      // Membre normal → rediriger vers son espace
+      window.location.href = '/member';
+      return;
+    }
+    setUser(u);
+    setLoading(false);
+  });
+  return () => unsub();
+}, []);
 
   if (loading) return (
     <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',alignItems:'center',justifyContent:'center'}}>
