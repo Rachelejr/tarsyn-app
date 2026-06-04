@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function LoginPage() {
   const [step, setStep]           = useState<'login'|'2fa'>('login');
@@ -14,7 +15,15 @@ export default function LoginPage() {
   const [loading, setLoading]     = useState(false);
   const [sending, setSending]     = useState(false);
   const [resendMsg, setResendMsg] = useState('');
-
+const redirectByRole = async (uid: string) => {
+  const snap = await getDoc(doc(db, 'users', uid));
+  const role = snap.data()?.role;
+  if (role === 'superadmin' || role === 'organizer') {
+    await redirectByRole(auth.currentUser!.uid);
+  } else {
+  await redirectByRole(result.user.uid);
+  }
+};
   const generate2FACode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
   const sendCode = async (toEmail: string, otp: string) => {
