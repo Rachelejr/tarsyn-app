@@ -2,6 +2,12 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import emailjs from '@emailjs/browser';
+
+// ── EmailJS Config ──
+const EMAILJS_SERVICE_ID  = 'service_12hfo1h';
+const EMAILJS_TEMPLATE_ID = 'dnxr2wp';
+const EMAILJS_PUBLIC_KEY  = 'oAIZsGRJsvaXHIfyX';
 
 export default function LoginPage() {
   const [step, setStep]         = useState<'login'|'2fa'>('login');
@@ -12,10 +18,30 @@ export default function LoginPage() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const [sending, setSending]   = useState(false);
   const [resendMsg, setResendMsg] = useState('');
 
-  // Génère un code 6 chiffres
   const generate2FACode = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+  const sendCode = async (toEmail: string, otp: string) => {
+    setSending(true);
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          email:      toEmail,
+          passcode:   otp,
+          time:       '10 minutes',
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+    } catch (e) {
+      console.error('EmailJS error:', e);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +50,6 @@ export default function LoginPage() {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
 
-      // Vérification email
       if (!result.user.emailVerified) {
         await sendEmailVerification(result.user);
         setError('Please verify your email first. A new verification email has been sent.');
@@ -32,10 +57,9 @@ export default function LoginPage() {
         return;
       }
 
-      // Génère et envoie le code 2FA (simulé — en prod utiliser EmailJS ou Firebase Functions)
       const otp = generate2FACode();
       setGeneratedCode(otp);
-      console.log(`2FA Code for ${email}: ${otp}`); // En prod → envoyer par email
+      await sendCode(email, otp);
       setStep('2fa');
 
     } catch {
@@ -51,15 +75,16 @@ export default function LoginPage() {
       window.location.href = '/dashboard';
     } else {
       setError('Incorrect code. Please try again.');
+      setCode('');
     }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     const otp = generate2FACode();
     setGeneratedCode(otp);
-    console.log(`New 2FA Code: ${otp}`);
+    await sendCode(email, otp);
     setResendMsg('New code sent to your email!');
-    setTimeout(() => setResendMsg(''), 3000);
+    setTimeout(() => setResendMsg(''), 4000);
   };
 
   const handleGoogle = async () => {
@@ -88,9 +113,9 @@ export default function LoginPage() {
           <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
             <div style={{textAlign:'center',marginBottom:'28px'}}>
               <div style={{fontSize:'48px',marginBottom:'12px'}}>🔐</div>
-              <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'8px'}}>Two-Factor Authentication</h2>
+              <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'8px'}}>Check your email!</h2>
               <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.6'}}>
-                A 6-digit code has been sent to<br/>
+                {sending ? '⏳ Sending code...' : 'A 6-digit code was sent to'}<br/>
                 <strong style={{color:'#6B2D4E'}}>{email}</strong>
               </p>
             </div>
@@ -106,7 +131,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Code input — 6 cases séparées */}
+            {/* 6 cases OTP */}
             <div style={{marginBottom:'24px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'12px',textAlign:'center'}}>
                 Enter your 6-digit code
@@ -115,6 +140,7 @@ export default function LoginPage() {
                 {[...Array(6)].map((_, i) => (
                   <input
                     key={i}
+                    id={`otp-${i}`}
                     type="text"
                     maxLength={1}
                     value={code[i] || ''}
@@ -124,30 +150,26 @@ export default function LoginPage() {
                       arr[i] = val;
                       const newCode = arr.join('').slice(0, 6);
                       setCode(newCode);
-                      // Auto-focus next
                       if (val && i < 5) {
-                        const next = document.getElementById(`otp-${i+1}`);
-                        next?.focus();
+                        document.getElementById(`otp-${i+1}`)?.focus();
                       }
                     }}
                     onKeyDown={e => {
                       if (e.key === 'Backspace' && !code[i] && i > 0) {
-                        const prev = document.getElementById(`otp-${i-1}`);
-                        prev?.focus();
+                        document.getElementById(`otp-${i-1}`)?.focus();
                         const arr = code.split('');
                         arr[i-1] = '';
                         setCode(arr.join(''));
                       }
                     }}
-                    id={`otp-${i}`}
                     style={{
-                      width: '48px', height: '56px',
-                      border: `2px solid ${code[i] ? '#6B2D4E' : '#D9C0CC'}`,
-                      borderRadius: '10px', fontSize: '22px',
-                      fontWeight: '700', textAlign: 'center',
-                      background: code[i] ? '#EDD9E5' : '#FAF0E6',
-                      color: '#6B2D4E', outline: 'none',
-                      transition: 'all 0.2s',
+                      width:'48px', height:'56px',
+                      border:`2px solid ${code[i]?'#6B2D4E':'#D9C0CC'}`,
+                      borderRadius:'10px', fontSize:'22px',
+                      fontWeight:'700', textAlign:'center',
+                      background:code[i]?'#EDD9E5':'#FAF0E6',
+                      color:'#6B2D4E', outline:'none',
+                      transition:'all 0.2s',
                     }}
                   />
                 ))}
@@ -162,18 +184,14 @@ export default function LoginPage() {
             </button>
 
             <div style={{textAlign:'center',display:'flex',flexDirection:'column',gap:'10px'}}>
-              <button onClick={handleResend} style={{background:'none',border:'none',color:'#C4748E',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
+              <button onClick={handleResend} disabled={sending}
+                style={{background:'none',border:'none',color:'#C4748E',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
                 🔄 Resend code
               </button>
-              <button onClick={()=>{setStep('login');setCode('');setError('');}} style={{background:'none',border:'none',color:'#7A5068',fontSize:'13px',cursor:'pointer'}}>
+              <button onClick={()=>{setStep('login');setCode('');setError('');}}
+                style={{background:'none',border:'none',color:'#7A5068',fontSize:'13px',cursor:'pointer'}}>
                 ← Back to login
               </button>
-            </div>
-
-            {/* DEV MODE — affiche le code en développement */}
-            <div style={{marginTop:'20px',background:'#fff3cd',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#856404',textAlign:'center'}}>
-              🔧 Dev mode — Code: <strong>{generatedCode}</strong><br/>
-              <span style={{fontSize:'11px',opacity:0.8}}>(Remove this in production)</span>
             </div>
           </div>
         </div>
@@ -194,12 +212,11 @@ export default function LoginPage() {
             <p style={{color:'#7A5068',fontSize:'14px'}}>Sign in to your <strong style={{color:'#D4AF7A'}}>TARSYN</strong> account</p>
           </div>
 
-          {/* Badge 2FA */}
           <div style={{background:'#EDD9E5',borderRadius:'10px',padding:'10px 14px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'#6B2D4E'}}>
             <span style={{fontSize:'20px'}}>🔐</span>
             <div>
               <div style={{fontWeight:'700'}}>2-Factor Authentication enabled</div>
-              <div style={{fontSize:'11px',color:'#7A5068'}}>A verification code will be sent to your email after login</div>
+              <div style={{fontSize:'11px',color:'#7A5068'}}>A verification code will be sent to your email</div>
             </div>
           </div>
 
@@ -253,7 +270,6 @@ export default function LoginPage() {
   );
 }
 
-// ── Composants partagés ────────────────────────────────────
 function Nav() {
   return (
     <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
