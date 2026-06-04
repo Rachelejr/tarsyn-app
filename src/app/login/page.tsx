@@ -2,23 +2,17 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import emailjs from '@emailjs/browser';
-
-// ── EmailJS Config ──
-const EMAILJS_SERVICE_ID  = 'service_12hfo1h';
-const EMAILJS_TEMPLATE_ID = 'dnxr2wp';
-const EMAILJS_PUBLIC_KEY  = 'oAIZsGRJsvaXHIfyX';
 
 export default function LoginPage() {
-  const [step, setStep]         = useState<'login'|'2fa'>('login');
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [code, setCode]         = useState('');
+  const [step, setStep]           = useState<'login'|'2fa'>('login');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [showPass, setShowPass]   = useState(false);
+  const [code, setCode]           = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [sending, setSending]   = useState(false);
+  const [error, setError]         = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [sending, setSending]     = useState(false);
   const [resendMsg, setResendMsg] = useState('');
 
   const generate2FACode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -26,18 +20,14 @@ export default function LoginPage() {
   const sendCode = async (toEmail: string, otp: string) => {
     setSending(true);
     try {
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        {
-          email:      toEmail,
-          passcode:   otp,
-          time:       '10 minutes',
-        },
-        EMAILJS_PUBLIC_KEY
-      );
+      const res = await fetch('/api/send-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: toEmail, code: otp }),
+      });
+      if (!res.ok) throw new Error('Failed to send');
     } catch (e) {
-      console.error('EmailJS error:', e);
+      console.error('Send error:', e);
     } finally {
       setSending(false);
     }
@@ -176,9 +166,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button
-              onClick={handleVerify2FA}
-              disabled={code.length !== 6}
+            <button onClick={handleVerify2FA} disabled={code.length !== 6}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:code.length!==6?0.6:1}}>
               ✅ Verify & Sign In
             </button>
