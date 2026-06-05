@@ -21,16 +21,14 @@ const redirectByRole = async (uid: string) => {
   if (role === 'superadmin' || role === 'organizer') {
     await redirectByRole(auth.currentUser!.uid);
   } else {
-  await redirectByRole(result.user.uid);
-  }
+  await redirectByRole(auth.currentUser!.uid);
 };
   const generate2FACode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
   const sendCode = async (toEmail: string, otp: string) => {
     setSending(true);
     try {
-      const res = await fetch('/api/send-2fa', {
-        method: 'POST',
+      const res = await fetch('/api/auth/send-2fa', {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: toEmail, code: otp }),
       });
