@@ -1,7 +1,9 @@
-﻿import type { NextConfig } from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  turbopack: undefined,
+  experimental: {
+    turbo: undefined,
+  },
 };
 
 export default nextConfig;
