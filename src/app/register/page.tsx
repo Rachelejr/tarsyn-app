@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';import { auth, db } from '@/lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const PAYS = ['Canada','France','Haiti','United States','Belgium','Switzerland','Morocco','Senegal','Ivory Coast','Cameroon','Congo','Madagascar','Tunisia','Algeria','Mali','Burkina Faso','Guinea','Benin','Togo','Niger','Rwanda','Burundi','Gabon','Martinique','Guadeloupe','French Guiana','Reunion','Other'];
 const LANGUAGES = ['English','Français','Kreyòl ayisyen','Kreyòl Antiyè','Español','Português','العربية','Wolof','Bambara','Lingala','Kiswahili','Other'];
@@ -38,12 +39,29 @@ export default function RegisterPage() {
         'auth/invalid-email': 'Invalid email.',
         'auth/weak-password': 'Password too weak.',
       };
-      setError(msgs[err.code] || 'Error. Please try again.');
+      setError(msgs[err.code] || 'Error. Please try again.');await setDoc(doc(db, 'users', result.user.uid), {
+  email: result.user.email,
+  name: name,
+  country: pays,
+  language: langue,
+  role: 'member',
+  createdAt: new Date().toISOString(),
+});
     } finally {
       setLoading(false);
     }
   };
-
+const userRef = doc(db, 'users', result.user.uid);
+const snap = await getDoc(userRef);
+if (!snap.exists()) {
+  await setDoc(userRef, {
+    email: result.user.email,
+    name: result.user.displayName,
+    role: 'member',
+    createdAt: new Date().toISOString(),
+  });
+}
+window.location.href = '/member';
   const handleGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
