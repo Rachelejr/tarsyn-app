@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
-import { auth } from '@/lib/firebase';import { doc, getDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function LoginPage() {
@@ -15,20 +16,24 @@ export default function LoginPage() {
   const [loading, setLoading]     = useState(false);
   const [sending, setSending]     = useState(false);
   const [resendMsg, setResendMsg] = useState('');
-const redirectByRole = async (uid: string) => {
-  const snap = await getDoc(doc(db, 'users', uid));
-  const role = snap.data()?.role;
-  if (role === 'superadmin' || role === 'organizer') {
-    await redirectByRole(auth.currentUser!.uid);
-  } else {
-  await redirectByRole(auth.currentUser!.uid);
-};
+
+  const redirectByRole = async (uid: string) => {
+    const snap = await getDoc(doc(db, 'users', uid));
+    const role = snap.data()?.role;
+    if (role === 'superadmin' || role === 'organizer') {
+      window.location.href = '/dashboard';
+    } else {
+      window.location.href = '/member';
+    }
+  };
+
   const generate2FACode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
   const sendCode = async (toEmail: string, otp: string) => {
     setSending(true);
     try {
       const res = await fetch('/api/auth/send-2fa', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: toEmail, code: otp }),
       });
@@ -46,19 +51,16 @@ const redirectByRole = async (uid: string) => {
     setError('');
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-
       if (!result.user.emailVerified) {
         await sendEmailVerification(result.user);
         setError('Please verify your email first. A new verification email has been sent.');
         setLoading(false);
         return;
       }
-
       const otp = generate2FACode();
       setGeneratedCode(otp);
       await sendCode(email, otp);
       setStep('2fa');
-
     } catch {
       setError('Invalid email or password.');
     } finally {
@@ -66,10 +68,10 @@ const redirectByRole = async (uid: string) => {
     }
   };
 
-  const handleVerify2FA = () => {
+  const handleVerify2FA = async () => {
     setError('');
     if (code === generatedCode) {
-      window.location.href = '/dashboard';
+      await redirectByRole(auth.currentUser!.uid);
     } else {
       setError('Incorrect code. Please try again.');
       setCode('');
@@ -87,8 +89,8 @@ const redirectByRole = async (uid: string) => {
   const handleGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      window.location.href = '/dashboard';
+      const result = await signInWithPopup(auth, provider);
+      await redirectByRole(result.user.uid);
     } catch {
       setError('Google error. Please try again.');
     }
@@ -101,7 +103,6 @@ const redirectByRole = async (uid: string) => {
     outline: 'none', color: '#2C1A24', boxSizing: 'border-box',
   };
 
-  // ── ÉTAPE 2FA ──────────────────────────────────────────────
   if (step === '2fa') {
     return (
       <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
@@ -116,7 +117,6 @@ const redirectByRole = async (uid: string) => {
                 <strong style={{color:'#6B2D4E'}}>{email}</strong>
               </p>
             </div>
-
             {error && (
               <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
                 ⚠️ {error}
@@ -127,8 +127,6 @@ const redirectByRole = async (uid: string) => {
                 ✅ {resendMsg}
               </div>
             )}
-
-            {/* 6 cases OTP */}
             <div style={{marginBottom:'24px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'12px',textAlign:'center'}}>
                 Enter your 6-digit code
@@ -172,12 +170,10 @@ const redirectByRole = async (uid: string) => {
                 ))}
               </div>
             </div>
-
             <button onClick={handleVerify2FA} disabled={code.length !== 6}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:code.length!==6?0.6:1}}>
               ✅ Verify & Sign In
             </button>
-
             <div style={{textAlign:'center',display:'flex',flexDirection:'column',gap:'10px'}}>
               <button onClick={handleResend} disabled={sending}
                 style={{background:'none',border:'none',color:'#C4748E',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
@@ -195,7 +191,6 @@ const redirectByRole = async (uid: string) => {
     );
   }
 
-  // ── ÉTAPE LOGIN ────────────────────────────────────────────
   return (
     <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
       <Nav/>
@@ -206,7 +201,6 @@ const redirectByRole = async (uid: string) => {
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Welcome Back</h1>
             <p style={{color:'#7A5068',fontSize:'14px'}}>Sign in to your <strong style={{color:'#D4AF7A'}}>TARSYN</strong> account</p>
           </div>
-
           <div style={{background:'#EDD9E5',borderRadius:'10px',padding:'10px 14px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'#6B2D4E'}}>
             <span style={{fontSize:'20px'}}>🔐</span>
             <div>
@@ -214,13 +208,11 @@ const redirectByRole = async (uid: string) => {
               <div style={{fontSize:'11px',color:'#7A5068'}}>A verification code will be sent to your email</div>
             </div>
           </div>
-
           {error && (
             <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
               ⚠️ {error}
             </div>
           )}
-
           <form onSubmit={handleLogin}>
             <div style={{marginBottom:'18px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Email Address</label>
@@ -237,24 +229,21 @@ const redirectByRole = async (uid: string) => {
               </div>
             </div>
             <div style={{textAlign:'right',marginBottom:'24px'}}>
-              <a href="#" style={{fontSize:'12px',color:'#C4748E',textDecoration:'none'}}>Forgot password?</a>
+              <a href="/forgot-password" style={{fontSize:'12px',color:'#C4748E',textDecoration:'none'}}>Forgot password?</a>
             </div>
             <button type="submit" disabled={loading}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
               {loading ? '⏳ Signing in...' : '🔐 Sign In & Get Code'}
             </button>
           </form>
-
           <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#7A5068',fontSize:'12px'}}>
             <div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>or continue with<div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>
           </div>
-
           <button onClick={handleGoogle}
             style={{width:'100%',padding:'13px',background:'white',border:'1.5px solid #D9C0CC',borderRadius:'10px',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',color:'#2C1A24',fontWeight:'500'}}>
             <GoogleIcon/>
             Continue with Google
           </button>
-
           <p style={{textAlign:'center',marginTop:'28px',fontSize:'13px',color:'#7A5068'}}>
             No account? <a href="/register" style={{color:'#C4748E',fontWeight:'700',textDecoration:'none'}}>Create one free</a>
           </p>
@@ -294,5 +283,4 @@ function GoogleIcon() {
       <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
     </svg>
   );
-}
 }
