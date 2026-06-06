@@ -5,14 +5,15 @@ import { auth, db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
 export default function RegisterPage() {
-  const [name, setName]         = useState('');
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm]   = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [success, setSuccess]   = useState(false);
+  const [name, setName]             = useState('');
+  const [email, setEmail]           = useState('');
+  const [password, setPassword]     = useState('');
+  const [confirm, setConfirm]       = useState('');
+  const [showPass, setShowPass]     = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError]           = useState('');
+  const [loading, setLoading]       = useState(false);
+  const [success, setSuccess]       = useState(false);
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '13px 16px',
@@ -133,7 +134,13 @@ export default function RegisterPage() {
             </div>
             <div style={{marginBottom:'24px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Confirm Password</label>
-              <input type="password" required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="••••••••" style={inp}/>
+              <div style={{position:'relative'}}>
+                <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="••••••••" style={{...inp,paddingRight:'44px'}}/>
+                <button type="button" onClick={()=>setShowConfirm(!showConfirm)}
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#7A5068'}}>
+                  {showConfirm?'🙈':'👁️'}
+                </button>
+              </div>
             </div>
             <button type="submit" disabled={loading}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
