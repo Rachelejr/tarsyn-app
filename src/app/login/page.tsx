@@ -70,11 +70,24 @@ export default function LoginPage() {
 
   const handleVerify2FA = async () => {
     setError('');
-    if (code === generatedCode) {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Verification failed.');
+        setCode('');
+        return;
+      }
       await redirectByRole(auth.currentUser!.uid);
-    } else {
-      setError('Incorrect code. Please try again.');
-      setCode('');
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
