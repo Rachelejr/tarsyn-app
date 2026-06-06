@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { SignJWT } from 'jose';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'tarsyn-secret-key');
 
 export async function POST(req: NextRequest) {
   try {
     const { email, code } = await req.json();
+
+    const token = await new SignJWT({ email, code })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('10m')
+      .sign(secret);
 
     await resend.emails.send({
       from: 'TARSYN <noreply@tarsyn-app.com>',
@@ -24,7 +31,14 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    return NextResponse.json({ success: true });
+    const res = NextResponse.json({ success: true });
+    res.cookies.set('otp_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 600,
+    });
+    return res;
   } catch (error) {
     console.error('Send 2FA error:', error);
     return NextResponse.json({ error: 'Failed to send code' }, { status: 500 });
