@@ -150,11 +150,13 @@ export default function MemberPage() {
   const handleSaveProfile = async () => {
     try {
       await updateProfile(user, { displayName: profileData.name });
+      await setDoc(doc(db, 'users', user.uid), {
         phone: profileData.phone, country: profileData.country, bio: profileData.bio,
       }, { merge: true });
       setProfileSaved(true); setEditingProfile(false);
       setTimeout(() => setProfileSaved(false), 3000);
     } catch (e) { console.error(e); }
+  };
   };
     if (!contactSubject || !contactMessage) return;
     try {
