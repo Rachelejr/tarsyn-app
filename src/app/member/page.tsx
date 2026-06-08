@@ -160,9 +160,9 @@ export default function MemberPage() {
     }, { merge: true });
     setProfileSaved(true);
     setEditingProfile(false);
-      setTimeout(() => setProfileSaved(false), 3000);
-    } catch (e) { console.error(e); }
-  };
+    setTimeout(() => setProfileSaved(false), 3000);
+  } catch (e) { console.error(e); }
+};
   };
     if (!contactSubject || !contactMessage) return;
     try {
