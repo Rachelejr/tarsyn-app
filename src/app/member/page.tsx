@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 // ============ STATIC DATA (to be replaced with Firestore) ============
 const MEMBER_DATA = {
