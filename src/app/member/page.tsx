@@ -151,7 +151,6 @@ export default function MemberPage() {
     try {
       await updateProfile(user, { displayName: profileData.name });
       await setDoc(doc(db, 'users', user.uid), {
-        phone: profileData.phone, country: profileData.country, bio: profileData.bio,
       }, { merge: true });
       setProfileSaved(true); setEditingProfile(false);
       setTimeout(() => setProfileSaved(false), 3000);
@@ -853,4 +852,5 @@ export default function MemberPage() {
     </div>
   );
 }
+
 
