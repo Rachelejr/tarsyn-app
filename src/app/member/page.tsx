@@ -150,7 +150,7 @@ export default function MemberPage() {
   const handleSaveProfile = async () => {
     try {
       await updateProfile(user, { displayName: profileData.name });
-      await setDoc(doc(db, 'users', user.uid), {
+      Select-String -Pattern "merge" src/app/member/page.tsx
         phone: profileData.phone, country: profileData.country, bio: profileData.bio,
       }, { merge: true });
       setProfileSaved(true); setEditingProfile(false);
