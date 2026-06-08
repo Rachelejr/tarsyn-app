@@ -148,11 +148,18 @@ export default function MemberPage() {
   const paidCycles = PAYMENT_HISTORY.filter(p => p.status === 'Paid').length;
 
   const handleSaveProfile = async () => {
-    try {
-      await updateProfile(user, { displayName: profileData.name });
-      await setDoc(doc(db, 'users', user.uid), {
-      }, { merge: true });
-      setProfileSaved(true); setEditingProfile(false);
+   try {
+    await updateProfile(user, { displayName: profileData.name });
+    await setDoc(doc(db, 'users', user.uid), {
+      displayName: profileData.name,
+      phone: profileData.phone,
+      country: profileData.country,
+      bio: profileData.bio,
+      language: profileData.language,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+    setProfileSaved(true);
+    setEditingProfile(false);
       setTimeout(() => setProfileSaved(false), 3000);
     } catch (e) { console.error(e); }
   };
