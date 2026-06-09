@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 // ============ STATIC DATA (to be replaced with Firestore) ============
 const MEMBER_DATA = {
@@ -62,7 +62,7 @@ const LANGUAGES = [
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
   { code: 'ht', label: 'Kreyòl Ayisyen', flag: '🇭🇹' },
 ];
-SSS
+
 export default function MemberPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -148,22 +148,22 @@ export default function MemberPage() {
   const paidCycles = PAYMENT_HISTORY.filter(p => p.status === 'Paid').length;
 
   const handleSaveProfile = async () => {
-   try {
-    await updateProfile(user, { displayName: profileData.name });
-    await setDoc(doc(db, 'users', user.uid), {
-      displayName: profileData.name,
-      phone: profileData.phone,
-      country: profileData.country,
-      bio: profileData.bio,
-      language: profileData.language,
-      updatedAt: new Date().toISOString(),
-    }, { merge: true });
-    setProfileSaved(true);
-    setEditingProfile(false);
-    setTimeout(() => setProfileSaved(false), 3000);
-  } catch (e) { console.error(e); }
-};
+    try {
+      await updateProfile(user, { displayName: profileData.name });
+      await updateDoc(doc(db, 'users', user.uid), {
+        phone: profileData.phone,
+        country: profileData.country,
+        bio: profileData.bio,
+      });
+      setProfileSaved(true);
+      setEditingProfile(false);
+      setTimeout(() => setProfileSaved(false), 3000);
+    } catch (e) {
+      console.error(e);
+    }
   };
+
+  const handleSendContact = async () => {
     if (!contactSubject || !contactMessage) return;
     try {
       await addDoc(collection(db, 'messages'), {
@@ -859,5 +859,4 @@ export default function MemberPage() {
     </div>
   );
 }
-
 
