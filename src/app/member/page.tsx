@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 // ============ STATIC DATA (to be replaced with Firestore) ============
 const MEMBER_DATA = {
@@ -62,7 +62,6 @@ const LANGUAGES = [
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
   { code: 'ht', label: 'Kreyòl Ayisyen', flag: '🇭🇹' },
 ];
-
 export default function MemberPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -148,22 +147,23 @@ export default function MemberPage() {
   const paidCycles = PAYMENT_HISTORY.filter(p => p.status === 'Paid').length;
 
   const handleSaveProfile = async () => {
-    try {
-      await updateProfile(user, { displayName: profileData.name });
-      await updateDoc(doc(db, 'users', user.uid), {
-        phone: profileData.phone,
-        country: profileData.country,
-        bio: profileData.bio,
-      });
-      setProfileSaved(true);
-      setEditingProfile(false);
-      setTimeout(() => setProfileSaved(false), 3000);
-    } catch (e) {
-      console.error(e);
-    }
+   try {
+    await updateProfile(user, { displayName: profileData.name });
+    await setDoc(doc(db, 'users', user.uid), {
+      displayName: profileData.name,
+      phone: profileData.phone,
+      country: profileData.country,
+      bio: profileData.bio,
+      language: profileData.language,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+    setProfileSaved(true);
+    setEditingProfile(false);
+    setTimeout(() => setProfileSaved(false), 3000);
+  } catch (e) { console.error(e); }
+};
   };
-
-  const handleSendContact = async () => {
+    if (!contactSubject || !contactMessage) return;
     try {
       await addDoc(collection(db, 'messages'), {
         from: user.uid,
@@ -253,7 +253,7 @@ export default function MemberPage() {
 
       {/* SIDEBAR */}
       <aside style={{ width: '230px', background: '#6B2D4E', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 50, overflowY: 'auto' }}>
-        <div onClick={() => window.location.href = "/"} style={{ cursor: "pointer", padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+        <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>✦</div>
             <div>
