@@ -164,7 +164,6 @@ export default function MemberPage() {
   };
 
   const handleSendContact = async () => {
-    if (!contactSubject || !contactMessage) return;
     try {
       await addDoc(collection(db, 'messages'), {
         from: user.uid,
