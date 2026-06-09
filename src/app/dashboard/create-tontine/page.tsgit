@@ -82,12 +82,11 @@ const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual',
 const COMMISSIONS = ['0.5%', '1%', '1.5%', '2%'];
 
 const LANGUAGES = [
-  'Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe','Arménien',
-  'Azerbaïdjanais','Basque','Bengali','Biélorusse','Birman','Bosniaque','Bulgare',
-  'Catalan','Cebuano','Chichewa','Chinois (Mandarin)','Chinois (Cantonais)',
-  'Coréen','Créole Haïtien','Croate','Danois','Dari','Espagnol','Estonien',
-  'Filipino / Tagalog','Finnois','Français','Géorgien','Grec','Guarani','Gujarati',
-  'Haoussa','Hébreu','Hindi','Hmong','Hongrois','Igbo','Indonésien','Italien',
+  'Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe',
+  'Arménien','Bengali','Birman','Bosniaque','Bulgare','Catalan','Chinois (Mandarin)',
+  'Chinois (Cantonais)','Coréen','Créole Haïtien','Croate','Danois','Espagnol',
+  'Estonien','Filipino / Tagalog','Finnois','Français','Géorgien','Grec',
+  'Gujarati','Haoussa','Hébreu','Hindi','Hongrois','Igbo','Indonésien','Italien',
   'Japonais','Kannada','Kazakh','Khmer','Kinyarwanda','Kurde','Laotien','Letton',
   'Lituanien','Macédonien','Malaisien','Malayalam','Malgache','Maltais','Marathi',
   'Mongol','Népalais','Néerlandais','Norvégien','Ourdou','Ouzbek','Panjabi',
@@ -187,95 +186,79 @@ export default function CreateTontinePage() {
     }
   };
 
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '10px 14px',
+    border: `1.5px solid ${C.roseMoyen}`,
+    borderRadius: '8px', fontSize: '14px',
+    color: C.texteFonce, background: C.creme,
+    boxSizing: 'border-box',
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 16px' }}>
       <div style={{ background: '#fff', borderRadius: '16px', boxShadow: '0 4px 32px rgba(107,45,78,0.12)', padding: '40px', width: '100%', maxWidth: '700px', border: `1px solid ${C.roseMoyen}` }}>
 
         {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <button onClick={() => router.push('/dashboard')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', fontWeight: '600', marginBottom: '12px', padding: 0 }}>
-            ← Retour au Dashboard
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '48px', height: '48px', background: C.bordeaux, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>✨</div>
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '700', color: C.texteFonce, margin: 0 }}>Créer une Tontine</h1>
-              <p style={{ color: C.texteGris, margin: '4px 0 0', fontSize: '14px' }}>Lancez votre groupe d'épargne communautaire</p>
-            </div>
-          </div>
-          <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore})`, borderRadius: '2px', marginTop: '20px' }} />
-        </div>
+        <button onClick={() => router.push('/dashboard')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', fontWeight: '600', marginBottom: '12px', padding: 0, display: 'block' }}>
+          ← Retour au Dashboard
+        </button>
+        <h1 style={{ fontSize: '24px', fontWeight: '700', color: C.texteFonce, margin: '0 0 4px' }}>✨ Créer une Tontine</h1>
+        <p style={{ color: C.texteGris, margin: '0 0 8px', fontSize: '14px' }}>Lancez votre groupe d'épargne communautaire</p>
+        <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore})`, borderRadius: '2px', marginBottom: '28px' }} />
 
         {/* Région */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>
-            🌍 Région / Pays <span style={{ color: '#DC2626' }}>*</span>
-          </label>
-          <select name="region" value={form.region} onChange={handleChange}
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>🌍 Région / Pays <span style={{ color: 'red' }}>*</span></label>
+          <select name="region" value={form.region} onChange={handleChange} style={inp}>
             <option value="">— Sélectionner un pays ou une région —</option>
-            {REGIONS.map(r => (
-              <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>
-            ))}
+            {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
           </select>
-          {selectedRegion && (
-            <p style={{ marginTop: '6px', fontSize: '13px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '6px', display: 'inline-block' }}>
-              {selectedRegion.flag} Nom régional : <strong>{selectedRegion.name}</strong>
-            </p>
-          )}
+          {selectedRegion && <p style={{ marginTop: '6px', fontSize: '13px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '6px', display: 'inline-block' }}>{selectedRegion.flag} Nom régional : <strong>{selectedRegion.name}</strong></p>}
         </div>
 
         {/* Nom personnalisé */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>✏️ Nom personnalisé (optionnel)</label>
-          <input type="text" name="customName" value={form.customName} onChange={handleChange}
-            placeholder={selectedRegion?.name || 'ex: Mon Sol 2026'}
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }} />
-          {tontineName && <p style={{ marginTop: '6px', fontSize: '13px', color: C.bordeaux }}>Nom final : <strong>{tontineName}</strong></p>}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>✏️ Nom personnalisé (optionnel)</label>
+          <input type="text" name="customName" value={form.customName} onChange={handleChange} placeholder={selectedRegion?.name || 'ex: Mon Sol 2026'} style={inp} />
+          {tontineName && <p style={{ marginTop: '4px', fontSize: '13px', color: C.bordeaux }}>Nom final : <strong>{tontineName}</strong></p>}
         </div>
 
         {/* Langue */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>🌐 Langue du groupe</label>
-          <select name="language" value={form.language} onChange={handleChange}
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>🌐 Langue du groupe</label>
+          <select name="language" value={form.language} onChange={handleChange} style={inp}>
             {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
         </div>
 
         {/* Nombre de membres */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>👥 Nombre de membres <span style={{ color: '#DC2626' }}>*</span></label>
-          <input type="number" name="numMembers" value={form.numMembers} onChange={handleChange}
-            min={2} placeholder="ex: 12"
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }} />
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>👥 Nombre de membres <span style={{ color: 'red' }}>*</span></label>
+          <input type="number" name="numMembers" value={form.numMembers} onChange={handleChange} min={2} placeholder="ex: 12" style={inp} />
         </div>
 
         {/* Contribution + Devise */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '22px' }}>
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>💰 Contribution <span style={{ color: '#DC2626' }}>*</span></label>
-            <input type="number" name="contribution" value={form.contribution} onChange={handleChange}
-              min={1} placeholder="ex: 200"
-              style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }} />
+            <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>💰 Contribution <span style={{ color: 'red' }}>*</span></label>
+            <input type="number" name="contribution" value={form.contribution} onChange={handleChange} min={1} placeholder="ex: 200" style={inp} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>Devise</label>
-            <select name="currency" value={form.currency} onChange={handleChange}
-              style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }}>
+            <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>Devise</label>
+            <select name="currency" value={form.currency} onChange={handleChange} style={inp}>
               {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
             </select>
           </div>
         </div>
 
         {/* Fréquence */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>🔄 Fréquence de paiement</label>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>🔄 Fréquence de paiement</label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {FREQUENCIES.map(f => (
               <button key={f} onClick={() => setForm(p => ({ ...p, frequency: f }))}
-                style={{ padding: '8px 18px', borderRadius: '20px', border: '2px solid', borderColor: form.frequency === f ? C.bordeaux : C.roseMoyen, background: form.frequency === f ? C.bordeaux : '#fff', color: form.frequency === f ? '#fff' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
+                style={{ padding: '8px 18px', borderRadius: '20px', border: `2px solid ${form.frequency === f ? C.bordeaux : C.roseMoyen}`, background: form.frequency === f ? C.bordeaux : '#fff', color: form.frequency === f ? '#fff' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
                 {f}
               </button>
             ))}
@@ -283,19 +266,18 @@ export default function CreateTontinePage() {
         </div>
 
         {/* Date de début */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>📅 Date de début <span style={{ color: '#DC2626' }}>*</span></label>
-          <input type="date" name="startDate" value={form.startDate} onChange={handleChange}
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }} />
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>📅 Date de début <span style={{ color: 'red' }}>*</span></label>
+          <input type="date" name="startDate" value={form.startDate} onChange={handleChange} style={inp} />
         </div>
 
         {/* Commission */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>💼 Commission organisateur</label>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>💼 Commission organisateur</label>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             {COMMISSIONS.map(c => (
               <button key={c} onClick={() => setForm(p => ({ ...p, commission: c }))}
-                style={{ padding: '8px 18px', borderRadius: '20px', border: '2px solid', borderColor: form.commission === c ? C.bordeaux : C.roseMoyen, background: form.commission === c ? C.bordeaux : '#fff', color: form.commission === c ? '#fff' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
+                style={{ padding: '8px 18px', borderRadius: '20px', border: `2px solid ${form.commission === c ? C.bordeaux : C.roseMoyen}`, background: form.commission === c ? C.bordeaux : '#fff', color: form.commission === c ? '#fff' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
                 {c}
               </button>
             ))}
@@ -303,15 +285,15 @@ export default function CreateTontinePage() {
         </div>
 
         {/* Règles */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>📜 Règles du groupe</label>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>📜 Règles du groupe</label>
           <textarea name="rules" value={form.rules} onChange={handleChange} rows={4}
             placeholder="ex: Paiement avant le 5 du mois. Pénalité de 10$ par retard..."
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
         </div>
 
         {/* Mode confidentiel */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '22px', padding: '14px 16px', background: C.roseClair, borderRadius: '10px', border: `1px solid ${C.roseMoyen}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', padding: '14px 16px', background: C.roseClair, borderRadius: '10px', border: `1px solid ${C.roseMoyen}` }}>
           <input type="checkbox" name="confidential" id="confidential" checked={form.confidential} onChange={handleChange}
             style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: C.bordeaux }} />
           <label htmlFor="confidential" style={{ fontSize: '14px', color: C.texteFonce, cursor: 'pointer', fontWeight: '500' }}>
@@ -320,37 +302,26 @@ export default function CreateTontinePage() {
         </div>
 
         {/* Inviter membres */}
-        <div style={{ marginBottom: '22px' }}>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>📧 Inviter des membres par email</label>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>📧 Inviter des membres par email</label>
           <input type="text" name="inviteEmails" value={form.inviteEmails} onChange={handleChange}
-            placeholder="email1@gmail.com, email2@yahoo.com, ..."
-            style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '8px', fontSize: '14px', color: C.texteFonce, background: C.creme, boxSizing: 'border-box' }} />
+            placeholder="email1@gmail.com, email2@yahoo.com, ..." style={inp} />
           <p style={{ fontSize: '12px', color: C.texteGris, margin: '4px 0 0' }}>Séparez les emails par des virgules</p>
         </div>
 
         {/* Erreur */}
-        {error && (
-          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>⚠️ {error}</div>}
 
         {/* Succès */}
-        {saved && (
-          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '12px 16px', color: '#16A34A', fontSize: '14px', marginBottom: '20px' }}>
-            ✅ Tontine créée et invitations envoyées ! Redirection...
-          </div>
-        )}
+        {saved && <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '12px 16px', color: '#16A34A', fontSize: '14px', marginBottom: '20px' }}>✅ Tontine créée ! Redirection...</div>}
 
         {/* Bouton */}
         <button onClick={handleSubmit} disabled={saving || saved}
-          style={{ width: '100%', padding: '15px', background: saving || saved ? C.roseMoyen : `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, color: saving || saved ? C.texteGris : '#fff', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '700', cursor: saving || saved ? 'not-allowed' : 'pointer', boxShadow: saving || saved ? 'none' : `0 4px 16px rgba(107,45,78,0.35)` }}>
+          style={{ width: '100%', padding: '15px', background: saving || saved ? C.roseMoyen : `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, color: saving || saved ? C.texteGris : '#fff', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '700', cursor: saving || saved ? 'not-allowed' : 'pointer', boxShadow: `0 4px 16px rgba(107,45,78,0.3)` }}>
           {saving ? '⏳ Création en cours...' : saved ? '✅ Créée !' : '🚀 Créer la Tontine'}
         </button>
 
-        <p style={{ textAlign: 'center', fontSize: '12px', color: C.texteGris, marginTop: '16px' }}>
-          TARSYN — Your Community. Your Power. 🌍
-        </p>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: C.texteGris, marginTop: '16px' }}>TARSYN — Your Community. Your Power. 🌍</p>
       </div>
     </div>
   );
