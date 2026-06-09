@@ -62,7 +62,7 @@ const LANGUAGES = [
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
   { code: 'ht', label: 'Kreyòl Ayisyen', flag: '🇭🇹' },
 ];
-
+SSS
 export default function MemberPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
