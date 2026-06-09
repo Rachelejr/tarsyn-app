@@ -253,7 +253,7 @@ export default function MemberPage() {
 
       {/* SIDEBAR */}
       <aside style={{ width: '230px', background: '#6B2D4E', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 50, overflowY: 'auto' }}>
-        <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div onClick={() => window.location.href = "/"} style={{ cursor: "pointer", padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>✦</div>
             <div>
@@ -858,4 +858,5 @@ export default function MemberPage() {
     </div>
   );
 }
+
 
