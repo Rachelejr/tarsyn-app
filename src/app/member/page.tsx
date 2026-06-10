@@ -8,7 +8,7 @@ const MEMBER_DATA = {
   tynId: 'TYN-000003',
   groupName: 'Tontine 2026',
   contributionAmount: 200,
-  currency: { code: 'USD', symbol: '$', flag: '🇺🇸' },
+  currency: { code: 'USD', symbol: '$', flag: 'US' },
   frequency: 'Monthly',
   totalMembers: 8,
   position: 3,
@@ -16,7 +16,6 @@ const MEMBER_DATA = {
   joinedDate: 'Apr 1, 2026',
   score: 60,
   status: 'Unpaid',
-  organizerEmail: 'organizer@tarsyn-app.com',
 };
 
 const PAYMENT_HISTORY = [
@@ -36,30 +35,30 @@ const CYCLE_VIEW = [
 ];
 
 const NOTIFICATIONS = [
-  { id: 1, type: 'warning', text: 'Payment due in 5 days — Jun 1, 2026', time: '2 hours ago', read: false },
-  { id: 2, type: 'success', text: 'Receipt REC-001 generated for your payment', time: 'May 1, 2026', read: true },
-  { id: 3, type: 'info', text: 'Cycle 3 starts on Jun 1, 2026 — your turn!', time: 'Apr 28, 2026', read: true },
+  { id: 1, type: 'warning', text: 'Payment due in 5 days - Jun 1, 2026', time: '2 hours ago', read: false },
+  { id: 2, type: 'success', text: 'Receipt REC-001 generated', time: 'May 1, 2026', read: true },
+  { id: 3, type: 'info', text: 'Cycle 3 starts Jun 1, 2026 - your turn!', time: 'Apr 28, 2026', read: true },
 ];
 
 const DOCUMENTS = [
-  { id: 'DOC-001', name: 'Receipt REC-001 — May 2026', type: 'receipt', date: 'May 1, 2026', size: '245 KB', icon: '🧾' },
-  { id: 'DOC-002', name: 'Receipt REC-000 — Apr 2026', type: 'receipt', date: 'Apr 1, 2026', size: '238 KB', icon: '🧾' },
-  { id: 'DOC-003', name: 'Group Contract — Tontine 2026', type: 'contract', date: 'Apr 1, 2026', size: '1.2 MB', icon: '📄' },
+  { id: 'DOC-001', name: 'Receipt REC-001 - May 2026', type: 'receipt', date: 'May 1, 2026', size: '245 KB' },
+  { id: 'DOC-002', name: 'Receipt REC-000 - Apr 2026', type: 'receipt', date: 'Apr 1, 2026', size: '238 KB' },
+  { id: 'DOC-003', name: 'Group Contract - Tontine 2026', type: 'contract', date: 'Apr 1, 2026', size: '1.2 MB' },
 ];
 
 const FAQ = [
   { q: 'How does a tontine work?', a: 'Each member contributes a fixed amount every cycle. One member receives the full pot each cycle, rotating until everyone has received.' },
   { q: 'How is my TYN-ID used?', a: 'Your TYN-ID is your anonymous identifier. Other members only see your TYN-ID, not your personal information.' },
-  { q: 'What happens if I miss a payment?', a: 'Late payments affect your reputation score. You may receive a penalty and your turn could be delayed. Contact your organizer immediately.' },
-  { q: 'How do I receive my payout?', a: 'When it\'s your turn, the organizer will contact you to arrange the payout. Make sure your contact information is up to date.' },
-  { q: 'Can I change my position in the cycle?', a: 'Position changes require agreement from the organizer and all affected members. Contact your organizer to request a change.' },
-  { q: 'How is my reputation score calculated?', a: 'Your score is based on on-time payments, participation, and overall reliability. Pay on time to maintain a high score.' },
+  { q: 'What happens if I miss a payment?', a: 'Late payments affect your reputation score. Contact your organizer immediately.' },
+  { q: 'How do I receive my payout?', a: 'When it is your turn, the organizer will contact you to arrange the payout.' },
+  { q: 'Can I change my position?', a: 'Position changes require agreement from the organizer and all affected members.' },
+  { q: 'How is my reputation score calculated?', a: 'Your score is based on on-time payments, participation, and overall reliability.' },
 ];
 
 const LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'ht', label: 'Kreyòl Ayisyen', flag: '🇭🇹' },
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Francais' },
+  { code: 'ht', label: 'Kreyol Ayisyen' },
 ];
 
 export default function MemberPage() {
@@ -77,8 +76,8 @@ export default function MemberPage() {
   const [comment, setComment] = useState('');
   const [commentSent, setCommentSent] = useState(false);
   const [comments, setComments] = useState([
-    { id: 1, text: 'Great experience so far! The system is very transparent.', date: 'May 15, 2026', author: 'TYN-000001' },
-    { id: 2, text: 'Love the confidentiality feature. Very professional.', date: 'May 10, 2026', author: 'TYN-000002' },
+    { id: 1, text: 'Great experience so far!', date: 'May 15, 2026', author: 'TYN-000001' },
+    { id: 2, text: 'Love the confidentiality feature.', date: 'May 10, 2026', author: 'TYN-000002' },
   ]);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -118,7 +117,7 @@ export default function MemberPage() {
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ width: '56px', height: '56px', background: '#6B2D4E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px', color: '#D4AF7A' }}>✦</div>
+        <div style={{ width: '56px', height: '56px', background: '#6B2D4E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px', color: '#D4AF7A' }}>T</div>
         <p style={{ color: '#6B2D4E', fontWeight: '600' }}>Loading TARSYN...</p>
       </div>
     </div>
@@ -165,7 +164,7 @@ export default function MemberPage() {
 
   const handleSendComment = async () => {
     if (!comment.trim()) return;
-    const newComment = { id: Date.now(), text: comment, date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), author: MEMBER_DATA.tynId };
+    const newComment = { id: Date.now(), text: comment, date: new Date().toLocaleDateString(), author: MEMBER_DATA.tynId };
     setComments([newComment, ...comments]);
     try {
       await addDoc(collection(db, 'comments'), { tynId: MEMBER_DATA.tynId, text: comment, createdAt: serverTimestamp() });
@@ -189,21 +188,21 @@ export default function MemberPage() {
   };
 
   const navItems = [
-    { id: 'home', icon: '🏠', label: 'My Space' },
-    { id: 'payments', icon: '💰', label: 'My Payments' },
-    { id: 'documents', icon: '📁', label: 'My Documents' },
-    { id: 'cycles', icon: '🔄', label: 'Cycles' },
-    { id: 'stats', icon: '📊', label: 'My Statistics' },
-    { id: 'profile', icon: '👤', label: 'My Profile' },
-    { id: 'contact', icon: '📧', label: 'Contact' },
-    { id: 'comments', icon: '💬', label: 'Comments' },
-    { id: 'rating', icon: '⭐', label: 'Rate Service' },
-    { id: 'notifications', icon: '🔔', label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
-    { id: 'rules', icon: '📜', label: 'Group Rules' },
-    { id: 'faq', icon: '❓', label: 'Help / FAQ' },
-    { id: 'privacy', icon: '🔒', label: 'Privacy' },
-    { id: 'invite', icon: '📱', label: 'Invite a Friend' },
-    { id: 'language', icon: '🌍', label: 'Language' },
+    { id: 'home', label: 'My Space' },
+    { id: 'payments', label: 'My Payments' },
+    { id: 'documents', label: 'My Documents' },
+    { id: 'cycles', label: 'Cycles' },
+    { id: 'stats', label: 'My Statistics' },
+    { id: 'profile', label: 'My Profile' },
+    { id: 'contact', label: 'Contact' },
+    { id: 'comments', label: 'Comments' },
+    { id: 'rating', label: 'Rate Service' },
+    { id: 'notifications', label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
+    { id: 'rules', label: 'Group Rules' },
+    { id: 'faq', label: 'Help / FAQ' },
+    { id: 'privacy', label: 'Privacy' },
+    { id: 'invite', label: 'Invite a Friend' },
+    { id: 'language', label: 'Language' },
   ];
 
   const inp: React.CSSProperties = {
@@ -225,7 +224,7 @@ export default function MemberPage() {
       <aside style={{ width: '230px', background: '#6B2D4E', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 50, overflowY: 'auto' }}>
         <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>✦</div>
+            <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>T</div>
             <div>
               <div style={{ color: '#FAF0E6', fontSize: '16px', fontWeight: '700', letterSpacing: '2px' }}>TARSYN</div>
               <div style={{ color: '#D4AF7A', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
@@ -237,7 +236,7 @@ export default function MemberPage() {
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', color: '#6B2D4E' }}>{initials}</div>
             <div>
               <div style={{ color: '#FAF0E6', fontSize: '12px', fontWeight: '600' }}>{name}</div>
-              <div style={{ color: '#D4AF7A', fontSize: '9px', letterSpacing: '1px' }}>MEMBER • {MEMBER_DATA.tynId}</div>
+              <div style={{ color: '#D4AF7A', fontSize: '9px', letterSpacing: '1px' }}>MEMBER - {MEMBER_DATA.tynId}</div>
             </div>
           </div>
         </div>
@@ -245,7 +244,6 @@ export default function MemberPage() {
           {navItems.map(item => (
             <div key={item.id} onClick={() => setActivePage(item.id)}
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 20px', cursor: 'pointer', background: activePage === item.id ? 'rgba(212,175,122,0.2)' : 'transparent', borderLeft: activePage === item.id ? '3px solid #D4AF7A' : '3px solid transparent' }}>
-              <span style={{ fontSize: '14px' }}>{item.icon}</span>
               <span style={{ fontSize: '12px', fontWeight: activePage === item.id ? '700' : '400', color: activePage === item.id ? '#D4AF7A' : 'rgba(250,240,230,0.8)' }}>{item.label}</span>
             </div>
           ))}
@@ -253,7 +251,7 @@ export default function MemberPage() {
         <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <button onClick={() => signOut(auth).then(() => window.location.href = '/login')}
             style={{ width: '100%', padding: '9px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#FAF0E6', fontSize: '13px', cursor: 'pointer' }}>
-            🚪 Sign Out
+            Sign Out
           </button>
         </div>
       </aside>
@@ -265,7 +263,7 @@ export default function MemberPage() {
             <span style={{ fontSize: '12px', color: '#7A5068' }}>{MEMBER_DATA.tynId}</span>
             {unreadCount > 0 && (
               <span onClick={() => setActivePage('notifications')} style={{ fontSize: '11px', fontWeight: '700', background: '#C0392B', color: 'white', padding: '4px 10px', borderRadius: '20px', cursor: 'pointer' }}>
-                🔔 {unreadCount}
+                {unreadCount} new
               </span>
             )}
             <span style={{ fontSize: '11px', fontWeight: '700', background: '#EDD9E5', color: '#6B2D4E', padding: '4px 12px', borderRadius: '20px' }}>MEMBER</span>
@@ -277,44 +275,42 @@ export default function MemberPage() {
           {activePage === 'home' && (
             <>
               <div style={{ background: 'linear-gradient(135deg,#6B2D4E,#8B3D62)', borderRadius: '14px', padding: '24px 28px', marginBottom: '24px' }}>
-                <h2 style={{ color: '#FAF0E6', fontSize: '20px', marginBottom: '4px' }}>Welcome, <span style={{ color: '#D4AF7A' }}>{name}</span> 👋</h2>
-                <p style={{ color: 'rgba(250,240,230,0.7)', fontSize: '13px' }}>{MEMBER_DATA.groupName} • Position #{MEMBER_DATA.position} • {MEMBER_DATA.frequency}</p>
+                <h2 style={{ color: '#FAF0E6', fontSize: '20px', marginBottom: '4px' }}>Welcome, <span style={{ color: '#D4AF7A' }}>{name}</span></h2>
+                <p style={{ color: 'rgba(250,240,230,0.7)', fontSize: '13px' }}>{MEMBER_DATA.groupName} - Position #{MEMBER_DATA.position} - {MEMBER_DATA.frequency}</p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '14px', marginBottom: '24px' }}>
                 {[
-                  { label: 'MY TYN-ID', value: MEMBER_DATA.tynId, sub: 'Anonymous ID', icon: '🪪' },
-                  { label: 'MY POSITION', value: `#${MEMBER_DATA.position}`, sub: `of ${MEMBER_DATA.totalMembers}`, icon: '📍' },
-                  { label: 'CONTRIBUTION', value: `${sym}${MEMBER_DATA.contributionAmount}`, sub: MEMBER_DATA.frequency, icon: '💰' },
-                  { label: 'REPUTATION', value: `${MEMBER_DATA.score} pts`, sub: MEMBER_DATA.score >= 80 ? '🏆 Excellent' : '🥈 Good', icon: '⭐' },
+                  { label: 'MY TYN-ID', value: MEMBER_DATA.tynId, sub: 'Anonymous ID' },
+                  { label: 'MY POSITION', value: `#${MEMBER_DATA.position}`, sub: `of ${MEMBER_DATA.totalMembers}` },
+                  { label: 'CONTRIBUTION', value: `${sym}${MEMBER_DATA.contributionAmount}`, sub: MEMBER_DATA.frequency },
+                  { label: 'REPUTATION', value: `${MEMBER_DATA.score} pts`, sub: MEMBER_DATA.score >= 80 ? 'Excellent' : 'Good' },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '16px 18px' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5068', marginBottom: '6px', fontWeight: '600' }}>{s.icon} {s.label}</div>
+                    <div style={{ fontSize: '11px', color: '#7A5068', marginBottom: '6px', fontWeight: '600' }}>{s.label}</div>
                     <div style={{ fontSize: '20px', fontWeight: '800', color: '#6B2D4E' }}>{s.value}</div>
                     <div style={{ fontSize: '11px', color: '#C4748E', marginTop: '4px', fontWeight: '600' }}>{s.sub}</div>
                   </div>
                 ))}
               </div>
               <div style={{ background: '#fff3cd', border: '1px solid #ffeeba', borderRadius: '10px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '24px' }}>⚠️</span>
                 <div>
-                  <div style={{ fontWeight: '700', color: '#856404', fontSize: '14px' }}>Payment due — {MEMBER_DATA.myPaymentDate}</div>
-                  <div style={{ fontSize: '12px', color: '#7A5068', marginTop: '2px' }}>Amount: {sym}{MEMBER_DATA.contributionAmount} • Contact your organizer to record payment</div>
+                  <div style={{ fontWeight: '700', color: '#856404', fontSize: '14px' }}>Payment due - {MEMBER_DATA.myPaymentDate}</div>
+                  <div style={{ fontSize: '12px', color: '#7A5068', marginTop: '2px' }}>Amount: {sym}{MEMBER_DATA.contributionAmount} - Contact your organizer to record payment</div>
                 </div>
               </div>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>🚀 Quick Actions</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>Quick Actions</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '10px' }}>
                   {[
-                    { icon: '💰', label: 'My Payments', page: 'payments' },
-                    { icon: '📁', label: 'Documents', page: 'documents' },
-                    { icon: '📧', label: 'Contact', page: 'contact' },
-                    { icon: '💬', label: 'Comments', page: 'comments' },
-                    { icon: '⭐', label: 'Rate Service', page: 'rating' },
-                    { icon: '🔔', label: 'Notifications', page: 'notifications' },
+                    { label: 'My Payments', page: 'payments' },
+                    { label: 'Documents', page: 'documents' },
+                    { label: 'Contact', page: 'contact' },
+                    { label: 'Comments', page: 'comments' },
+                    { label: 'Rate Service', page: 'rating' },
+                    { label: 'Notifications', page: 'notifications' },
                   ].map(a => (
                     <button key={a.label} onClick={() => setActivePage(a.page)}
                       style={{ background: '#FAF0E6', border: '1.5px solid #D9C0CC', borderRadius: '12px', padding: '14px 10px', cursor: 'pointer', textAlign: 'center' }}>
-                      <div style={{ fontSize: '22px', marginBottom: '5px' }}>{a.icon}</div>
                       <div style={{ fontSize: '11px', fontWeight: '600', color: '#6B2D4E' }}>{a.label}</div>
                     </button>
                   ))}
@@ -327,7 +323,7 @@ export default function MemberPage() {
             <>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', marginBottom: '24px' }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC' }}>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>💰 My Payment History</span>
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>My Payment History</span>
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
@@ -345,60 +341,35 @@ export default function MemberPage() {
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '700', color: '#6B2D4E' }}>{sym}{p.amount}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#7A5068' }}>Cycle {p.cycle}</td>
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#d4edda', color: '#155724' }}>✅ {p.status}</span>
+                          <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#d4edda', color: '#155724' }}>{p.status}</span>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => alert(`Downloading ${p.receipt}...`)} style={{ padding: '4px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '11px', color: '#6B2D4E', fontWeight: '600' }}>📥 Download</button>
-                            <button onClick={() => alert(`Printing ${p.receipt}...`)} style={{ padding: '4px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '11px', color: '#6B2D4E', fontWeight: '600' }}>🖨️ Print</button>
-                          </div>
+                          <button onClick={() => alert(`Downloading ${p.receipt}...`)} style={{ padding: '4px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '11px', color: '#6B2D4E', fontWeight: '600' }}>Download</button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div style={{ background: '#EDD9E5', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>ℹ️ How to pay?</div>
-                <div style={{ fontSize: '13px', color: '#7A5068', lineHeight: '1.8' }}>
-                  1. Pay your contribution to your group organizer<br />
-                  2. The organizer records your payment in the system<br />
-                  3. You receive a receipt with QR Code by email<br />
-                  4. Your status updates automatically
-                </div>
-              </div>
             </>
           )}
 
           {activePage === 'documents' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', marginBottom: '20px', padding: '20px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '14px' }}>📁 My Documents</div>
-              <div style={{ border: '2px dashed #D9C0CC', borderRadius: '10px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: '#FAF0E6', marginBottom: '16px' }}
-                onClick={() => { const newDoc = { id: `DOC-00${uploadedDocs.length + 1}`, name: `Uploaded Document ${uploadedDocs.length + 1}`, type: 'personal', date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), size: '500 KB', icon: '📎' }; setUploadedDocs([...uploadedDocs, newDoc]); alert('✅ Document uploaded!'); }}>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📎</div>
-                <div style={{ color: '#6B2D4E', fontWeight: '600', fontSize: '14px' }}>Click to Upload Document</div>
-                <div style={{ color: '#7A5068', fontSize: '12px', marginTop: '4px' }}>PDF, Word, Excel, JPG, PNG — max 10MB</div>
-              </div>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '14px' }}>My Documents</div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
                 {['All', 'Receipts', 'Contracts', 'Personal'].map(f => (
                   <button key={f} onClick={() => setDocFilter(f)}
                     style={{ padding: '6px 14px', borderRadius: '20px', border: '1.5px solid #D9C0CC', background: docFilter === f ? '#6B2D4E' : 'white', color: docFilter === f ? 'white' : '#6B2D4E', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{f}</button>
                 ))}
               </div>
-              {uploadedDocs.filter(d => docFilter === 'All' || d.type === docFilter.toLowerCase().slice(0, -1)).map(d => (
+              {uploadedDocs.map(d => (
                 <div key={d.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid #D9C0CC', borderRadius: '10px', marginBottom: '8px', background: 'white' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '24px' }}>{d.icon}</span>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: '#2C1A24' }}>{d.name}</div>
-                      <div style={{ fontSize: '11px', color: '#7A5068' }}>{d.id} • {d.date} • {d.size}</div>
-                    </div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#2C1A24' }}>{d.name}</div>
+                    <div style={{ fontSize: '11px', color: '#7A5068' }}>{d.id} - {d.date} - {d.size}</div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => alert(`Downloading ${d.name}...`)} style={{ padding: '6px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '12px' }}>📥</button>
-                    <button onClick={() => alert(`Printing ${d.name}...`)} style={{ padding: '6px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '12px' }}>🖨️</button>
-                    <button onClick={() => setUploadedDocs(uploadedDocs.filter(x => x.id !== d.id))} style={{ padding: '6px 10px', border: '1px solid #f5c6cb', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '12px', color: '#C0392B' }}>🗑️</button>
-                  </div>
+                  <button onClick={() => alert(`Downloading ${d.name}...`)} style={{ padding: '6px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '12px' }}>Download</button>
                 </div>
               ))}
             </div>
@@ -407,21 +378,18 @@ export default function MemberPage() {
           {activePage === 'cycles' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>🔄 Cycle Rotation</span>
+                <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>Cycle Rotation</span>
               </div>
-              <div style={{ padding: '16px 20px', background: '#EDD9E5', margin: '16px', borderRadius: '8px', fontSize: '13px', color: '#6B2D4E' }}>
-                🔒 Confidential mode — Only dates and positions are shown.
-              </div>
-              <div style={{ padding: '0 20px 20px' }}>
+              <div style={{ padding: '0 20px 20px', marginTop: '16px' }}>
                 {CYCLE_VIEW.map(c => (
                   <div key={c.position} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: `2px solid ${c.position === MEMBER_DATA.position ? '#6B2D4E' : '#EDD9E5'}`, borderRadius: '10px', marginBottom: '8px', background: c.position === MEMBER_DATA.position ? '#EDD9E5' : 'white' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', minWidth: '30px' }}>#{c.position}</span>
                       <span style={{ fontSize: '13px', color: '#7A5068' }}>{c.date}</span>
-                      {c.position === MEMBER_DATA.position && <span style={{ fontSize: '11px', fontWeight: '700', background: '#6B2D4E', color: '#D4AF7A', padding: '2px 8px', borderRadius: '20px' }}>← YOU</span>}
+                      {c.position === MEMBER_DATA.position && <span style={{ fontSize: '11px', fontWeight: '700', background: '#6B2D4E', color: '#D4AF7A', padding: '2px 8px', borderRadius: '20px' }}>YOU</span>}
                     </div>
                     <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: c.status === 'Received' ? '#d4edda' : '#EDD9E5', color: c.status === 'Received' ? '#155724' : '#7A5068' }}>
-                      {c.status === 'Received' ? '✅ Received' : '⏳ Upcoming'}
+                      {c.status}
                     </span>
                   </div>
                 ))}
@@ -433,28 +401,16 @@ export default function MemberPage() {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '14px', marginBottom: '24px' }}>
                 {[
-                  { label: 'TOTAL PAID', value: `${sym}${paidCycles * MEMBER_DATA.contributionAmount}`, icon: '💰' },
-                  { label: 'ON-TIME PAYMENTS', value: `${paidCycles}/${PAYMENT_HISTORY.length}`, icon: '✅' },
-                  { label: 'CYCLES COMPLETED', value: paidCycles.toString(), icon: '🔄' },
-                  { label: 'REPUTATION', value: `${MEMBER_DATA.score}/100`, icon: '⭐' },
+                  { label: 'TOTAL PAID', value: `${sym}${paidCycles * MEMBER_DATA.contributionAmount}` },
+                  { label: 'ON-TIME PAYMENTS', value: `${paidCycles}/${PAYMENT_HISTORY.length}` },
+                  { label: 'CYCLES COMPLETED', value: paidCycles.toString() },
+                  { label: 'REPUTATION', value: `${MEMBER_DATA.score}/100` },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '16px 18px' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5068', marginBottom: '6px', fontWeight: '600' }}>{s.icon} {s.label}</div>
+                    <div style={{ fontSize: '11px', color: '#7A5068', marginBottom: '6px', fontWeight: '600' }}>{s.label}</div>
                     <div style={{ fontSize: '22px', fontWeight: '800', color: '#6B2D4E' }}>{s.value}</div>
                   </div>
                 ))}
-              </div>
-              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>⭐ Reputation Score</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ fontSize: '48px', fontWeight: '800', color: '#856404' }}>{MEMBER_DATA.score}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ background: '#EDD9E5', borderRadius: '8px', height: '12px', marginBottom: '8px' }}>
-                      <div style={{ background: '#D4AF7A', borderRadius: '8px', height: '12px', width: `${MEMBER_DATA.score}%` }}></div>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#7A5068' }}>🥈 Good — Pay on time to improve</div>
-                  </div>
-                </div>
               </div>
             </>
           )}
@@ -462,20 +418,12 @@ export default function MemberPage() {
           {activePage === 'profile' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E' }}>👤 My Profile</div>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E' }}>My Profile</div>
                 <button onClick={() => setEditingProfile(!editingProfile)} style={btn()}>
-                  {editingProfile ? '✕ Cancel' : '✏️ Edit Profile'}
+                  {editingProfile ? 'Cancel' : 'Edit Profile'}
                 </button>
               </div>
-              {profileSaved && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>✅ Profile saved!</div>}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px', padding: '20px', background: '#FAF0E6', borderRadius: '12px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#6B2D4E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: '700', color: '#D4AF7A' }}>{initials}</div>
-                <div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#2C1A24' }}>{name}</div>
-                  <div style={{ fontSize: '13px', color: '#7A5068' }}>{user?.email}</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#6B2D4E', marginTop: '4px' }}>{MEMBER_DATA.tynId} • {MEMBER_DATA.groupName}</div>
-                </div>
-              </div>
+              {profileSaved && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>Profile saved!</div>}
               {editingProfile ? (
                 <div>
                   {[
@@ -492,7 +440,7 @@ export default function MemberPage() {
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Bio</label>
                     <textarea value={profileData.bio} onChange={e => setProfileData({ ...profileData, bio: e.target.value })} placeholder="A few words about yourself..." rows={3} style={{ ...inp, resize: 'vertical' }} />
                   </div>
-                  <button onClick={handleSaveProfile} style={btn({ width: '100%', padding: '12px' })}>💾 Save Profile</button>
+                  <button onClick={handleSaveProfile} style={btn({ width: '100%', padding: '12px' })}>Save Profile</button>
                 </div>
               ) : (
                 <>
@@ -501,9 +449,9 @@ export default function MemberPage() {
                     { label: 'Group', value: MEMBER_DATA.groupName },
                     { label: 'Position', value: `#${MEMBER_DATA.position} of ${MEMBER_DATA.totalMembers}` },
                     { label: 'Contribution', value: `${sym}${MEMBER_DATA.contributionAmount} / ${MEMBER_DATA.frequency}` },
-                    { label: 'Phone', value: profileData.phone || '—' },
-                    { label: 'Country', value: profileData.country || '—' },
-                    { label: 'Bio', value: profileData.bio || '—' },
+                    { label: 'Phone', value: profileData.phone || '-' },
+                    { label: 'Country', value: profileData.country || '-' },
+                    { label: 'Bio', value: profileData.bio || '-' },
                     { label: 'Member Since', value: MEMBER_DATA.joinedDate },
                     { label: 'Reputation Score', value: `${MEMBER_DATA.score} pts` },
                   ].map(f => (
@@ -519,12 +467,12 @@ export default function MemberPage() {
 
           {activePage === 'contact' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📧 Contact Organizer</div>
-              {contactSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>✅ Message sent!</div>}
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Contact Organizer</div>
+              {contactSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>Message sent!</div>}
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Subject</label>
                 <select value={contactSubject} onChange={e => setContactSubject(e.target.value)} style={inp}>
-                  <option value="">— Select a subject —</option>
+                  <option value="">Select a subject</option>
                   <option>Payment question</option>
                   <option>Request position change</option>
                   <option>Technical issue</option>
@@ -539,7 +487,7 @@ export default function MemberPage() {
               </div>
               <button onClick={handleSendContact} disabled={!contactSubject || !contactMessage}
                 style={btn({ width: '100%', padding: '12px', opacity: !contactSubject || !contactMessage ? 0.6 : 1 })}>
-                📤 Send Message
+                Send Message
               </button>
             </div>
           )}
@@ -547,17 +495,17 @@ export default function MemberPage() {
           {activePage === 'comments' && (
             <>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>💬 Leave a Comment</div>
-                {commentSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>✅ Comment posted!</div>}
+                <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>Leave a Comment</div>
+                {commentSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>Comment posted!</div>}
                 <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience..." rows={4} style={{ ...inp, marginBottom: '14px', resize: 'vertical' }} />
-                <button onClick={handleSendComment} disabled={!comment.trim()} style={btn({ opacity: !comment.trim() ? 0.6 : 1 })}>💬 Post Comment</button>
+                <button onClick={handleSendComment} disabled={!comment.trim()} style={btn({ opacity: !comment.trim() ? 0.6 : 1 })}>Post Comment</button>
               </div>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '24px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>💬 All Comments</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>All Comments</div>
                 {comments.map(c => (
                   <div key={c.id} style={{ padding: '14px', background: '#FAF0E6', borderRadius: '10px', marginBottom: '10px' }}>
                     <div style={{ fontSize: '13px', color: '#2C1A24', marginBottom: '8px' }}>{c.text}</div>
-                    <div style={{ fontSize: '11px', color: '#7A5068' }}>{c.author} • {c.date}</div>
+                    <div style={{ fontSize: '11px', color: '#7A5068' }}>{c.author} - {c.date}</div>
                   </div>
                 ))}
               </div>
@@ -566,10 +514,9 @@ export default function MemberPage() {
 
           {activePage === 'rating' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>⭐ Rate TARSYN Service</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>Rate TARSYN Service</div>
               {ratingSent ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
                   <div style={{ fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>Thank you for your rating!</div>
                 </div>
               ) : (
@@ -578,13 +525,13 @@ export default function MemberPage() {
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                       {[1, 2, 3, 4, 5].map(star => (
                         <span key={star} onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)}
-                          style={{ fontSize: '40px', cursor: 'pointer', filter: (hoverRating || rating) >= star ? 'none' : 'grayscale(1)' }}>⭐</span>
+                          style={{ fontSize: '40px', cursor: 'pointer', filter: (hoverRating || rating) >= star ? 'none' : 'grayscale(1)' }}>*</span>
                       ))}
                     </div>
-                    {rating > 0 && <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E' }}>{rating === 5 ? 'Excellent!' : rating === 4 ? 'Very Good' : rating === 3 ? 'Good' : rating === 2 ? 'Fair' : 'Poor'} ({rating}/5)</div>}
+                    {rating > 0 && <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E' }}>{rating}/5</div>}
                   </div>
                   <textarea value={ratingComment} onChange={e => setRatingComment(e.target.value)} placeholder="Tell us how we can improve..." rows={4} style={{ ...inp, marginBottom: '20px', resize: 'vertical' }} />
-                  <button onClick={handleSendRating} disabled={!rating} style={btn({ width: '100%', padding: '12px', opacity: !rating ? 0.6 : 1 })}>⭐ Submit Rating</button>
+                  <button onClick={handleSendRating} disabled={!rating} style={btn({ width: '100%', padding: '12px', opacity: !rating ? 0.6 : 1 })}>Submit Rating</button>
                 </>
               )}
             </div>
@@ -593,12 +540,11 @@ export default function MemberPage() {
           {activePage === 'notifications' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>🔔 Notifications</span>
+                <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>Notifications</span>
                 {unreadCount > 0 && <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#C4748E', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Mark all as read</button>}
               </div>
               {notifications.map(n => (
                 <div key={n.id} style={{ padding: '14px 20px', borderBottom: '1px solid #F5EAF0', background: n.read ? 'white' : '#FAF0E6', display: 'flex', gap: '12px' }}>
-                  <span style={{ fontSize: '20px' }}>{n.type === 'warning' ? '⚠️' : n.type === 'success' ? '✅' : 'ℹ️'}</span>
                   <div>
                     <div style={{ fontSize: '13px', color: '#2C1A24', fontWeight: n.read ? '400' : '600' }}>{n.text}</div>
                     <div style={{ fontSize: '11px', color: '#7A5068', marginTop: '4px' }}>{n.time}</div>
@@ -610,7 +556,7 @@ export default function MemberPage() {
 
           {activePage === 'rules' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📜 Group Rules</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Group Rules</div>
               {[
                 { title: '1. Contribution', text: `Each member must contribute ${sym}${MEMBER_DATA.contributionAmount} every ${MEMBER_DATA.frequency.toLowerCase()}.` },
                 { title: '2. Rotation Order', text: 'The rotation order is determined at the start and cannot be changed without organizer agreement.' },
@@ -629,7 +575,7 @@ export default function MemberPage() {
 
           {activePage === 'faq' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>❓ Help & FAQ</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Help and FAQ</div>
               {FAQ.map((f, i) => (
                 <details key={i} style={{ marginBottom: '12px', border: '1px solid #D9C0CC', borderRadius: '10px', overflow: 'hidden' }}>
                   <summary style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E', cursor: 'pointer', background: '#FAF0E6' }}>{f.q}</summary>
@@ -641,7 +587,7 @@ export default function MemberPage() {
 
           {activePage === 'privacy' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>🔒 Privacy Settings</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Privacy Settings</div>
               {[
                 { label: 'Show email to organizer', key: 'showEmail' },
                 { label: 'Show country in profile', key: 'showCountry' },
@@ -662,13 +608,13 @@ export default function MemberPage() {
 
           {activePage === 'invite' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📱 Invite a Friend</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Invite a Friend</div>
               <div style={{ background: '#EDD9E5', borderRadius: '10px', padding: '16px', marginBottom: '20px', textAlign: 'center' }}>
                 <div style={{ fontSize: '13px', fontWeight: '700', color: '#6B2D4E', background: 'white', padding: '10px', borderRadius: '8px' }}>
                   https://tarsyn-app.com/register?ref={MEMBER_DATA.tynId}
                 </div>
-                <button onClick={() => { navigator.clipboard.writeText(`https://tarsyn-app.com/register?ref=${MEMBER_DATA.tynId}`); alert('✅ Link copied!'); }} style={{ ...btn(), marginTop: '12px' }}>
-                  📋 Copy Link
+                <button onClick={() => { navigator.clipboard.writeText(`https://tarsyn-app.com/register?ref=${MEMBER_DATA.tynId}`); alert('Link copied!'); }} style={{ ...btn(), marginTop: '12px' }}>
+                  Copy Link
                 </button>
               </div>
             </div>
@@ -676,14 +622,13 @@ export default function MemberPage() {
 
           {activePage === 'language' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>🌍 Language</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Language</div>
               <div style={{ display: 'grid', gap: '10px' }}>
                 {LANGUAGES.map(l => (
                   <div key={l.code} onClick={() => setLanguage(l.code)}
                     style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px', border: `2px solid ${language === l.code ? '#6B2D4E' : '#D9C0CC'}`, borderRadius: '12px', cursor: 'pointer', background: language === l.code ? '#EDD9E5' : 'white' }}>
-                    <span style={{ fontSize: '28px' }}>{l.flag}</span>
                     <span style={{ fontSize: '16px', fontWeight: '600', color: '#2C1A24' }}>{l.label}</span>
-                    {language === l.code && <span style={{ marginLeft: 'auto', color: '#6B2D4E', fontWeight: '700' }}>✓</span>}
+                    {language === l.code && <span style={{ marginLeft: 'auto', color: '#6B2D4E', fontWeight: '700' }}>Selected</span>}
                   </div>
                 ))}
               </div>
