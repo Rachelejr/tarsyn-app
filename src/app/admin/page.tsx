@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -62,7 +62,7 @@ export default function AdminPage() {
     return (
       <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',alignItems:'center',justifyContent:'center'}}>
         <div style={{textAlign:'center'}}>
-          <div style={{fontSize:'48px',marginBottom:'16px'}}>⏳</div>
+          <div style={{fontSize:'48px',marginBottom:'16px'}}></div>
           <p style={{color:'#6B2D4E',fontSize:'16px'}}>Loading Admin Panel...</p>
         </div>
       </div>
@@ -70,11 +70,11 @@ export default function AdminPage() {
   }
 
   const navItems = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'groups', label: 'Groups', icon: '👥' },
-    { id: 'members', label: 'Members', icon: '👤' },
-    { id: 'payments', label: 'Payments', icon: '💰' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+    { id: 'overview', label: 'Overview', icon: '' },
+    { id: 'groups', label: 'Groups', icon: '' },
+    { id: 'members', label: 'Members', icon: '' },
+    { id: 'payments', label: 'Payments', icon: '' },
+    { id: 'settings', label: 'Settings', icon: '' },
   ];
 
   return (
@@ -82,7 +82,7 @@ export default function AdminPage() {
       {/* Header */}
       <div style={{background:'#2C1020',borderBottom:'1px solid #4A1030',padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <div style={{width:'40px',height:'40px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>✦</div>
+          <div style={{width:'40px',height:'40px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}></div>
           <div>
             <div style={{color:'#D4AF7A',fontSize:'18px',fontWeight:'800',letterSpacing:'2px'}}>TARSYN</div>
             <div style={{color:'rgba(212,175,122,0.6)',fontSize:'10px',letterSpacing:'2px'}}>SUPER ADMIN PANEL</div>
@@ -90,14 +90,14 @@ export default function AdminPage() {
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
           <div style={{background:'#4A1030',borderRadius:'20px',padding:'6px 14px',fontSize:'12px',color:'#D4AF7A'}}>
-            🔐 {user?.email}
+             {user?.email}
           </div>
           <button onClick={()=>signOut(auth).then(()=>window.location.href='/login')}
             style={{background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'8px',padding:'8px 16px',fontSize:'13px',cursor:'pointer'}}>
             Sign Out
           </button>
           <a href="/dashboard" style={{background:'#D4AF7A',color:'#1A0A12',border:'none',borderRadius:'8px',padding:'8px 16px',fontSize:'13px',cursor:'pointer',textDecoration:'none',fontWeight:'700'}}>
-            → Dashboard
+             Dashboard
           </a>
         </div>
       </div>
@@ -126,10 +126,10 @@ export default function AdminPage() {
               {/* Stats Cards */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'20px',marginBottom:'32px'}}>
                 {[
-                  { label: 'Total Groups', value: groups.length, icon: '👥', color: '#6B2D4E' },
-                  { label: 'Total Members', value: members.length, icon: '👤', color: '#4A7C59' },
-                  { label: 'Total Payments', value: payments.length, icon: '💳', color: '#D4AF7A' },
-                  { label: 'TARSYN Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: '💰', color: '#C4748E' },
+                  { label: 'Total Groups', value: groups.length, icon: '', color: '#6B2D4E' },
+                  { label: 'Total Members', value: members.length, icon: '', color: '#4A7C59' },
+                  { label: 'Total Payments', value: payments.length, icon: '', color: '#D4AF7A' },
+                  { label: 'TARSYN Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: '', color: '#C4748E' },
                 ].map((stat, i) => (
                   <div key={i} style={{background:'#2C1020',border:`1px solid ${stat.color}`,borderRadius:'16px',padding:'24px'}}>
                     <div style={{fontSize:'32px',marginBottom:'8px'}}>{stat.icon}</div>
@@ -162,7 +162,7 @@ export default function AdminPage() {
               <h1 style={{color:'#D4AF7A',fontSize:'24px',fontWeight:'800',marginBottom:'24px'}}>All Groups ({groups.length})</h1>
               {groups.length === 0 ? (
                 <div style={{background:'#2C1020',border:'1px solid #4A1030',borderRadius:'16px',padding:'40px',textAlign:'center'}}>
-                  <div style={{fontSize:'48px',marginBottom:'16px'}}>👥</div>
+                  <div style={{fontSize:'48px',marginBottom:'16px'}}></div>
                   <p style={{color:'rgba(250,240,230,0.5)'}}>No groups created yet.</p>
                 </div>
               ) : (
@@ -185,7 +185,7 @@ export default function AdminPage() {
               <h1 style={{color:'#D4AF7A',fontSize:'24px',fontWeight:'800',marginBottom:'24px'}}>All Members ({members.length})</h1>
               {members.length === 0 ? (
                 <div style={{background:'#2C1020',border:'1px solid #4A1030',borderRadius:'16px',padding:'40px',textAlign:'center'}}>
-                  <div style={{fontSize:'48px',marginBottom:'16px'}}>👤</div>
+                  <div style={{fontSize:'48px',marginBottom:'16px'}}></div>
                   <p style={{color:'rgba(250,240,230,0.5)'}}>No members yet.</p>
                 </div>
               ) : (
@@ -208,7 +208,7 @@ export default function AdminPage() {
               <h1 style={{color:'#D4AF7A',fontSize:'24px',fontWeight:'800',marginBottom:'24px'}}>All Payments ({payments.length})</h1>
               {payments.length === 0 ? (
                 <div style={{background:'#2C1020',border:'1px solid #4A1030',borderRadius:'16px',padding:'40px',textAlign:'center'}}>
-                  <div style={{fontSize:'48px',marginBottom:'16px'}}>💰</div>
+                  <div style={{fontSize:'48px',marginBottom:'16px'}}></div>
                   <p style={{color:'rgba(250,240,230,0.5)'}}>No payments yet.</p>
                 </div>
               ) : (
@@ -255,3 +255,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

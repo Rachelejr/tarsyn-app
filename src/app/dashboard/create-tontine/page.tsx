@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -16,72 +16,72 @@ const C = {
 };
 
 const REGIONS = [
-  { region: 'United States',        flag: '🇺🇸', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'Canada',               flag: '🇨🇦', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'United Kingdom',       flag: '🇬🇧', name: 'Pardner' },
-  { region: 'France',               flag: '🇫🇷', name: 'Tontine' },
-  { region: 'Belgium',              flag: '🇧🇪', name: 'Tontine' },
-  { region: 'Switzerland',          flag: '🇨🇭', name: 'Tontine' },
-  { region: 'West Africa',          flag: '🌍', name: 'Tontine' },
-  { region: 'Cameroon',             flag: '🇨🇲', name: 'Njangi' },
-  { region: 'Congo (DRC)',          flag: '🇨🇩', name: 'Likelemba' },
-  { region: 'Ghana',                flag: '🇬🇭', name: 'Susu' },
-  { region: 'Nigeria',              flag: '🇳🇬', name: 'Ajo / Esusu' },
-  { region: 'Senegal',              flag: '🇸🇳', name: 'Tontine' },
-  { region: 'Ivory Coast',          flag: '🇨🇮', name: 'Tontine' },
-  { region: 'Kenya',                flag: '🇰🇪', name: 'Chama' },
-  { region: 'Ethiopia',             flag: '🇪🇹', name: 'Iqub' },
-  { region: 'Haiti',                flag: '🇭🇹', name: 'Sol' },
-  { region: 'Dominican Republic',   flag: '🇩🇴', name: 'San / Mutualidad' },
-  { region: 'Jamaica',              flag: '🇯🇲', name: 'Partner' },
-  { region: 'Trinidad & Tobago',    flag: '🇹🇹', name: 'Sou-Sou' },
-  { region: 'Barbados',             flag: '🇧🇧', name: 'Meeting Turn' },
-  { region: 'Guyana',               flag: '🇬🇾', name: 'Box Hand' },
-  { region: 'Suriname',             flag: '🇸🇷', name: 'Kasmoni' },
-  { region: 'Cuba',                 flag: '🇨🇺', name: 'Cundina' },
-  { region: 'Puerto Rico',          flag: '🇵🇷', name: 'Cundina' },
-  { region: 'Guadeloupe',           flag: '🇬🇵', name: 'Sou-Sou' },
-  { region: 'Martinique',           flag: '🇲🇶', name: 'Sou-Sou' },
-  { region: 'French Guiana',        flag: '🇬🇫', name: 'Sou-Sou' },
-  { region: 'Saint Lucia',          flag: '🇱🇨', name: 'Sou-Sou' },
-  { region: 'Saint Vincent',        flag: '🇻🇨', name: 'Sou-Sou' },
-  { region: 'Antigua & Barbuda',    flag: '🇦🇬', name: 'Meeting Turn' },
-  { region: 'Mexico',               flag: '🇲🇽', name: 'Tanda' },
-  { region: 'Guatemala',            flag: '🇬🇹', name: 'Cundina' },
-  { region: 'Honduras',             flag: '🇭🇳', name: 'Cundina' },
-  { region: 'El Salvador',          flag: '🇸🇻', name: 'Cundina' },
-  { region: 'Colombia',             flag: '🇨🇴', name: 'Natillera' },
-  { region: 'Peru',                 flag: '🇵🇪', name: 'Pandero' },
-  { region: 'Bolivia',              flag: '🇧🇴', name: 'Pasanaku' },
-  { region: 'Ecuador',              flag: '🇪🇨', name: 'Pandero' },
-  { region: 'India',                flag: '🇮🇳', name: 'Chit Fund' },
-  { region: 'Philippines',          flag: '🇵🇭', name: 'Paluwagan' },
-  { region: 'Vietnam',              flag: '🇻🇳', name: 'Hui' },
-  { region: 'China',                flag: '🇨🇳', name: 'Hui' },
-  { region: 'South Korea',          flag: '🇰🇷', name: 'Gye' },
-  { region: 'Japan',                flag: '🇯🇵', name: 'Ko' },
-  { region: 'Other / General',      flag: '🌍', name: 'Rotating Savings' },
+  { region: 'United States',        flag: '', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'Canada',               flag: '', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'United Kingdom',       flag: '', name: 'Pardner' },
+  { region: 'France',               flag: '', name: 'Tontine' },
+  { region: 'Belgium',              flag: '', name: 'Tontine' },
+  { region: 'Switzerland',          flag: '', name: 'Tontine' },
+  { region: 'West Africa',          flag: '', name: 'Tontine' },
+  { region: 'Cameroon',             flag: '', name: 'Njangi' },
+  { region: 'Congo (DRC)',          flag: '', name: 'Likelemba' },
+  { region: 'Ghana',                flag: '', name: 'Susu' },
+  { region: 'Nigeria',              flag: '', name: 'Ajo / Esusu' },
+  { region: 'Senegal',              flag: '', name: 'Tontine' },
+  { region: 'Ivory Coast',          flag: '', name: 'Tontine' },
+  { region: 'Kenya',                flag: '', name: 'Chama' },
+  { region: 'Ethiopia',             flag: '', name: 'Iqub' },
+  { region: 'Haiti',                flag: '', name: 'Sol' },
+  { region: 'Dominican Republic',   flag: '', name: 'San / Mutualidad' },
+  { region: 'Jamaica',              flag: '', name: 'Partner' },
+  { region: 'Trinidad & Tobago',    flag: '', name: 'Sou-Sou' },
+  { region: 'Barbados',             flag: '', name: 'Meeting Turn' },
+  { region: 'Guyana',               flag: '', name: 'Box Hand' },
+  { region: 'Suriname',             flag: '', name: 'Kasmoni' },
+  { region: 'Cuba',                 flag: '', name: 'Cundina' },
+  { region: 'Puerto Rico',          flag: '', name: 'Cundina' },
+  { region: 'Guadeloupe',           flag: '', name: 'Sou-Sou' },
+  { region: 'Martinique',           flag: '', name: 'Sou-Sou' },
+  { region: 'French Guiana',        flag: '', name: 'Sou-Sou' },
+  { region: 'Saint Lucia',          flag: '', name: 'Sou-Sou' },
+  { region: 'Saint Vincent',        flag: '', name: 'Sou-Sou' },
+  { region: 'Antigua & Barbuda',    flag: '', name: 'Meeting Turn' },
+  { region: 'Mexico',               flag: '', name: 'Tanda' },
+  { region: 'Guatemala',            flag: '', name: 'Cundina' },
+  { region: 'Honduras',             flag: '', name: 'Cundina' },
+  { region: 'El Salvador',          flag: '', name: 'Cundina' },
+  { region: 'Colombia',             flag: '', name: 'Natillera' },
+  { region: 'Peru',                 flag: '', name: 'Pandero' },
+  { region: 'Bolivia',              flag: '', name: 'Pasanaku' },
+  { region: 'Ecuador',              flag: '', name: 'Pandero' },
+  { region: 'India',                flag: '', name: 'Chit Fund' },
+  { region: 'Philippines',          flag: '', name: 'Paluwagan' },
+  { region: 'Vietnam',              flag: '', name: 'Hui' },
+  { region: 'China',                flag: '', name: 'Hui' },
+  { region: 'South Korea',          flag: '', name: 'Gye' },
+  { region: 'Japan',                flag: '', name: 'Ko' },
+  { region: 'Other / General',      flag: '', name: 'Rotating Savings' },
 ];
 
 const CURRENCIES = [
-  { code: 'USD',  label: 'USD — US Dollar' },
-  { code: 'HTG',  label: 'HTG — Haitian Gourde' },
-  { code: 'EUR',  label: 'EUR — Euro' },
-  { code: 'CAD',  label: 'CAD — Canadian Dollar' },
-  { code: 'GBP',  label: 'GBP — British Pound' },
-  { code: 'XOF',  label: 'XOF — CFA Franc' },
-  { code: 'NGN',  label: 'NGN — Nigerian Naira' },
-  { code: 'GHS',  label: 'GHS — Ghanaian Cedi' },
-  { code: 'INR',  label: 'INR — Indian Rupee' },
-  { code: 'MXN',  label: 'MXN — Mexican Peso' },
-  { code: 'PHP',  label: 'PHP — Philippine Peso' },
-  { code: 'DOP',  label: 'DOP — Dominican Peso' },
-  { code: 'TTD',  label: 'TTD — T&T Dollar' },
-  { code: 'JMD',  label: 'JMD — Jamaican Dollar' },
-  { code: 'BTC',  label: 'BTC — Bitcoin' },
-  { code: 'ETH',  label: 'ETH — Ethereum' },
-  { code: 'USDT', label: 'USDT — Tether' },
-  { code: 'USDC', label: 'USDC — USD Coin' },
+  { code: 'USD',  label: 'USD  US Dollar' },
+  { code: 'HTG',  label: 'HTG  Haitian Gourde' },
+  { code: 'EUR',  label: 'EUR  Euro' },
+  { code: 'CAD',  label: 'CAD  Canadian Dollar' },
+  { code: 'GBP',  label: 'GBP  British Pound' },
+  { code: 'XOF',  label: 'XOF  CFA Franc' },
+  { code: 'NGN',  label: 'NGN  Nigerian Naira' },
+  { code: 'GHS',  label: 'GHS  Ghanaian Cedi' },
+  { code: 'INR',  label: 'INR  Indian Rupee' },
+  { code: 'MXN',  label: 'MXN  Mexican Peso' },
+  { code: 'PHP',  label: 'PHP  Philippine Peso' },
+  { code: 'DOP',  label: 'DOP  Dominican Peso' },
+  { code: 'TTD',  label: 'TTD  T&T Dollar' },
+  { code: 'JMD',  label: 'JMD  Jamaican Dollar' },
+  { code: 'BTC',  label: 'BTC  Bitcoin' },
+  { code: 'ETH',  label: 'ETH  Ethereum' },
+  { code: 'USDT', label: 'USDT  Tether' },
+  { code: 'USDC', label: 'USDC  USD Coin' },
 ];
 
 const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual', 'Annual'];
@@ -102,7 +102,7 @@ const LANGUAGES = [
   'Wolof','Xhosa','Yoruba','Zulu',
 ].sort();
 
-// ── Styles ───────────────────────────────────────────────────────────────────
+//  Styles 
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
   border: `1.5px solid ${C.roseMoyen}`, borderRadius: '10px',
@@ -110,7 +110,7 @@ const inp: React.CSSProperties = {
   boxSizing: 'border-box', outline: 'none',
 };
 
-// ── Sub-components OUTSIDE main component (fixes re-render/focus bug) ────────
+//  Sub-components OUTSIDE main component (fixes re-render/focus bug) 
 function SectionTitle({ icon, text }: { icon: string; text: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', marginTop: '8px' }}>
@@ -129,7 +129,7 @@ function FieldLabel({ icon, label, required }: { icon: string; label: string; re
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+//  Main Component 
 export default function CreateTontinePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -175,7 +175,7 @@ export default function CreateTontinePage() {
     try {
       const docRef = await addDoc(collection(db, 'tontines'), {
         region,
-        regionFlag:   selectedRegion?.flag || '🌍',
+        regionFlag:   selectedRegion?.flag || '',
         regionalName: selectedRegion?.name || 'Rotating Savings',
         name:         customName || selectedRegion?.name || 'Tontine',
         numMembers:   parseInt(numMembers),
@@ -193,7 +193,7 @@ export default function CreateTontinePage() {
           body: JSON.stringify({
             emails: emailList,
             tontineName:  customName || selectedRegion?.name,
-            region, regionFlag: selectedRegion?.flag || '🌍',
+            region, regionFlag: selectedRegion?.flag || '',
             contribution, currency, frequency, startDate,
             tontineId: docRef.id,
           }),
@@ -222,9 +222,9 @@ export default function CreateTontinePage() {
           <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '32px 40px' }}>
             <button onClick={() => router.push('/dashboard')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '16px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              ← Back to Dashboard
+               Back to Dashboard
             </button>
-            <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', margin: '0 0 6px' }}>✨ Create a Tontine</h1>
+            <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', margin: '0 0 6px' }}> Create a Tontine</h1>
             <p style={{ color: C.roseClair, fontSize: '14px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
           </div>
 
@@ -246,13 +246,13 @@ export default function CreateTontinePage() {
           {/* Form */}
           <div style={{ padding: '32px 40px' }}>
 
-            <SectionTitle icon="🌍" text="Region & Identity" />
+            <SectionTitle icon="" text="Region & Identity" />
 
             <div style={{ marginBottom: '18px' }}>
-              <FieldLabel icon="📍" label="Region / Country" required />
+              <FieldLabel icon="" label="Region / Country" required />
               <select value={region} onChange={e => setRegion(e.target.value)} style={inp}>
-                <option value="">— Select a country or region —</option>
-                {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
+                <option value=""> Select a country or region </option>
+                {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region}  {r.name}</option>)}
               </select>
               {selectedRegion && (
                 <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '6px', display: 'inline-block' }}>
@@ -263,30 +263,30 @@ export default function CreateTontinePage() {
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="✏️" label="Tontine Name (optional)" />
+                <FieldLabel icon="" label="Tontine Name (optional)" />
                 <input type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="e.g. My Sol 2026" style={inp} />
               </div>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="🌐" label="Group Language" />
+                <FieldLabel icon="" label="Group Language" />
                 <select value={language} onChange={e => setLanguage(e.target.value)} style={inp}>
                   {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
             </div>
 
-            <SectionTitle icon="💰" text="Financial Settings" />
+            <SectionTitle icon="" text="Financial Settings" />
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="👥" label="Number of Members" required />
+                <FieldLabel icon="" label="Number of Members" required />
                 <input type="number" value={numMembers} onChange={e => setNumMembers(e.target.value)} min={2} placeholder="e.g. 12" style={inp} />
               </div>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="💵" label="Contribution Amount" required />
+                <FieldLabel icon="" label="Contribution Amount" required />
                 <input type="number" value={contribution} onChange={e => setContribution(e.target.value)} min={1} placeholder="e.g. 200" style={inp} />
               </div>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="🏦" label="Currency" />
+                <FieldLabel icon="" label="Currency" />
                 <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
                   {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
                 </select>
@@ -294,7 +294,7 @@ export default function CreateTontinePage() {
             </div>
 
             <div style={{ marginBottom: '18px' }}>
-              <FieldLabel icon="🔄" label="Payment Frequency" />
+              <FieldLabel icon="" label="Payment Frequency" />
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {FREQUENCIES.map(f => (
                   <button key={f} onClick={() => setFrequency(f)}
@@ -307,11 +307,11 @@ export default function CreateTontinePage() {
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="📅" label="Start Date" required />
+                <FieldLabel icon="" label="Start Date" required />
                 <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inp} />
               </div>
               <div style={{ flex: 1 }}>
-                <FieldLabel icon="💼" label="Organizer Commission" />
+                <FieldLabel icon="" label="Organizer Commission" />
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {COMMISSIONS.map(c => (
                     <button key={c} onClick={() => setCommission(c)}
@@ -324,34 +324,34 @@ export default function CreateTontinePage() {
             </div>
 
             <div style={{ marginBottom: '18px' }}>
-              <FieldLabel icon="📜" label="Group Rules" />
+              <FieldLabel icon="" label="Group Rules" />
               <textarea value={rules} onChange={e => setRules(e.target.value)} rows={3}
                 placeholder="e.g. Payment before the 5th of the month. $10 penalty per late payment..."
                 style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
             </div>
 
-            <SectionTitle icon="👥" text="Members & Privacy" />
+            <SectionTitle icon="" text="Members & Privacy" />
 
             <div onClick={() => setConfidential(p => !p)}
               style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', marginBottom: '20px', cursor: 'pointer' }}>
               <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', flexShrink: 0 }}>
-                {confidential ? '✓' : ''}
+                {confidential ? '' : ''}
               </div>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: C.texteFonce }}>🔒 Confidential Mode</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: C.texteFonce }}> Confidential Mode</div>
                 <div style={{ fontSize: '12px', color: C.texteGris, marginTop: '2px' }}>Members only see their TYN-ID, not each other's names</div>
               </div>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <FieldLabel icon="📧" label="Invite Members by Email" />
+              <FieldLabel icon="" label="Invite Members by Email" />
               <div style={{ background: C.creme, border: `1.5px dashed ${C.roseMoyen}`, borderRadius: '12px', padding: '16px' }}>
                 {emailList.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
                     {emailList.map(email => (
                       <span key={email} style={{ background: C.roseClair, color: C.bordeaux, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {email}
-                        <button onClick={() => removeEmail(email)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', padding: 0, lineHeight: 1 }}>×</button>
+                        <button onClick={() => removeEmail(email)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', padding: 0, lineHeight: 1 }}></button>
                       </span>
                     ))}
                   </div>
@@ -366,19 +366,19 @@ export default function CreateTontinePage() {
                     + Add
                   </button>
                 </div>
-                <p style={{ fontSize: '12px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add — each member receives a personalized invitation</p>
+                <p style={{ fontSize: '12px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add  each member receives a personalized invitation</p>
               </div>
             </div>
 
             {error && (
               <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>
-                ⚠️ {error}
+                 {error}
               </div>
             )}
 
             {saved && (
               <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', padding: '12px 16px', color: '#16A34A', fontSize: '14px', marginBottom: '20px' }}>
-                ✅ Tontine created! Invitations sent. Redirecting...
+                 Tontine created! Invitations sent. Redirecting...
               </div>
             )}
 
@@ -393,11 +393,11 @@ export default function CreateTontinePage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                 boxShadow: saving || saved ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`,
               }}>
-              {saving ? '⏳ Creating...' : saved ? '✅ Created!' : '🚀 Create Tontine'}
+              {saving ? ' Creating...' : saved ? ' Created!' : ' Create Tontine'}
             </button>
 
             <p style={{ textAlign: 'center', fontSize: '12px', color: C.texteGris, marginTop: '16px' }}>
-              TARSYN — Your Community. Your Power. 🌍
+              TARSYN  Your Community. Your Power. 
             </p>
           </div>
         </div>

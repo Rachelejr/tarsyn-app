@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -123,21 +123,21 @@ export default function LoginPage() {
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
           <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
             <div style={{textAlign:'center',marginBottom:'28px'}}>
-              <div style={{fontSize:'48px',marginBottom:'12px'}}>🔐</div>
+              <div style={{fontSize:'48px',marginBottom:'12px'}}></div>
               <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'8px'}}>Check your email!</h2>
               <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.6'}}>
-                {sending ? '⏳ Sending code...' : 'A 6-digit code was sent to'}<br/>
+                {sending ? ' Sending code...' : 'A 6-digit code was sent to'}<br/>
                 <strong style={{color:'#6B2D4E'}}>{email}</strong>
               </p>
             </div>
             {error && (
               <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
-                ⚠️ {error}
+                 {error}
               </div>
             )}
             {resendMsg && (
               <div style={{background:'#d4edda',border:'1px solid #c3e6cb',color:'#155724',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
-                ✅ {resendMsg}
+                 {resendMsg}
               </div>
             )}
             <div style={{marginBottom:'24px'}}>
@@ -185,16 +185,16 @@ export default function LoginPage() {
             </div>
             <button onClick={handleVerify2FA} disabled={code.length !== 6}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:code.length!==6?0.6:1}}>
-              ✅ Verify & Sign In
+               Verify & Sign In
             </button>
             <div style={{textAlign:'center',display:'flex',flexDirection:'column',gap:'10px'}}>
               <button onClick={handleResend} disabled={sending}
                 style={{background:'none',border:'none',color:'#C4748E',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
-                🔄 Resend code
+                 Resend code
               </button>
               <button onClick={()=>{setStep('login');setCode('');setError('');}}
                 style={{background:'none',border:'none',color:'#7A5068',fontSize:'13px',cursor:'pointer'}}>
-                ← Back to login
+                 Back to login
               </button>
             </div>
           </div>
@@ -210,12 +210,12 @@ export default function LoginPage() {
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
         <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
           <div style={{textAlign:'center',marginBottom:'32px'}}>
-            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#D4AF7A'}}>✦</div>
+            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#D4AF7A'}}></div>
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Welcome Back</h1>
             <p style={{color:'#7A5068',fontSize:'14px'}}>Sign in to your <strong style={{color:'#D4AF7A'}}>TARSYN</strong> account</p>
           </div>
           <div style={{background:'#EDD9E5',borderRadius:'10px',padding:'10px 14px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'#6B2D4E'}}>
-            <span style={{fontSize:'20px'}}>🔐</span>
+            <span style={{fontSize:'20px'}}></span>
             <div>
               <div style={{fontWeight:'700'}}>2-Factor Authentication enabled</div>
               <div style={{fontSize:'11px',color:'#7A5068'}}>A verification code will be sent to your email</div>
@@ -223,7 +223,7 @@ export default function LoginPage() {
           </div>
           {error && (
             <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
-              ⚠️ {error}
+               {error}
             </div>
           )}
           <form onSubmit={handleLogin}>
@@ -234,10 +234,10 @@ export default function LoginPage() {
             <div style={{marginBottom:'8px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Password</label>
               <div style={{position:'relative'}}>
-                <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{...inp,paddingRight:'44px'}}/>
+                <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowPass(!showPass)}
                   style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#7A5068'}}>
-                  {showPass?'🙈':'👁️'}
+                  {showPass?'':''}
                 </button>
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function LoginPage() {
             </div>
             <button type="submit" disabled={loading}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
-              {loading ? '⏳ Signing in...' : '🔐 Sign In & Get Code'}
+              {loading ? ' Signing in...' : ' Sign In & Get Code'}
             </button>
           </form>
           <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#7A5068',fontSize:'12px'}}>
@@ -270,7 +270,7 @@ export default function LoginPage() {
 function Nav() {
   return (
     <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
-      <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}>✦</div>
+      <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}></div>
       <div>
         <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px'}}>TARSYN</div>
         <div style={{color:'#D4AF7A',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
@@ -282,7 +282,7 @@ function Nav() {
 function Footer() {
   return (
     <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(250,240,230,0.6)',fontSize:'12px'}}>
-      <span style={{color:'#D4AF7A'}}>TARSYN</span> — © 2026 Your Community. Your Power.
+      <span style={{color:'#D4AF7A'}}>TARSYN</span>   2026 Your Community. Your Power.
     </footer>
   );
 }

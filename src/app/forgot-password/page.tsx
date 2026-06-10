@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
     <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
       {/* NAV */}
       <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
-        <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}>✦</div>
+        <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}></div>
         <div>
           <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px'}}>TARSYN</div>
           <div style={{color:'#D4AF7A',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
@@ -50,9 +50,9 @@ export default function ForgotPasswordPage() {
         <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
 
           {sent ? (
-            /* ── Email envoyé ── */
+            /*  Email envoy  */
             <div style={{textAlign:'center'}}>
-              <div style={{fontSize:'64px',marginBottom:'16px'}}>📧</div>
+              <div style={{fontSize:'64px',marginBottom:'16px'}}></div>
               <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Check your email!</h2>
               <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.7',marginBottom:'24px'}}>
                 We sent a password reset link to<br/>
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
                 Click the link to reset your password.
               </p>
               <div style={{background:'#EDD9E5',borderRadius:'12px',padding:'16px',marginBottom:'24px',fontSize:'13px',color:'#6B2D4E',textAlign:'left'}}>
-                <div style={{fontWeight:'700',marginBottom:'8px'}}>📋 Next steps:</div>
+                <div style={{fontWeight:'700',marginBottom:'8px'}}> Next steps:</div>
                 <div style={{lineHeight:'1.8'}}>
                   1. Open your email inbox<br/>
                   2. Click the reset link from TARSYN<br/>
@@ -74,17 +74,17 @@ export default function ForgotPasswordPage() {
               <button onClick={async()=>{
                 try {
                   await sendPasswordResetEmail(auth, email);
-                  alert('✅ New reset email sent!');
+                  alert(' New reset email sent!');
                 } catch { alert('Error sending email.'); }
               }} style={{background:'none',border:'none',color:'#C4748E',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
-                🔄 Resend reset email
+                 Resend reset email
               </button>
             </div>
           ) : (
-            /* ── Formulaire ── */
+            /*  Formulaire  */
             <>
               <div style={{textAlign:'center',marginBottom:'32px'}}>
-                <div style={{fontSize:'48px',marginBottom:'12px'}}>🔑</div>
+                <div style={{fontSize:'48px',marginBottom:'12px'}}></div>
                 <h1 style={{color:'#6B2D4E',fontSize:'26px',fontWeight:'700',marginBottom:'8px'}}>Forgot Password?</h1>
                 <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.6'}}>
                   Enter your email and we'll send you a link to reset your password.
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
 
               {error && (
                 <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
-                  ⚠️ {error}
+                   {error}
                 </div>
               )}
 
@@ -111,12 +111,12 @@ export default function ForgotPasswordPage() {
 
                 <button type="submit" disabled={loading}
                   style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'16px',opacity:loading?0.7:1}}>
-                  {loading ? '⏳ Sending...' : '📧 Send Reset Link'}
+                  {loading ? ' Sending...' : ' Send Reset Link'}
                 </button>
               </form>
 
               <a href="/login" style={{display:'block',textAlign:'center',color:'#7A5068',fontSize:'13px',textDecoration:'none'}}>
-                ← Back to Sign In
+                 Back to Sign In
               </a>
             </>
           )}
@@ -125,8 +125,9 @@ export default function ForgotPasswordPage() {
 
       {/* FOOTER */}
       <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(250,240,230,0.6)',fontSize:'12px'}}>
-        <span style={{color:'#D4AF7A'}}>TARSYN</span> — © 2026 Your Community. Your Power.
+        <span style={{color:'#D4AF7A'}}>TARSYN</span>   2026 Your Community. Your Power.
       </footer>
     </div>
   );
 }
+

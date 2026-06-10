@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
@@ -7,22 +7,22 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+//  CONSTANTS 
 
 const CURRENCIES = [
   {code:'USD',symbol:'$',name:'US Dollar'},
-  {code:'HTG',symbol:'G',name:'Gourde Haïtienne'},
-  {code:'EUR',symbol:'€',name:'Euro'},
+  {code:'HTG',symbol:'G',name:'Gourde Hatienne'},
+  {code:'EUR',symbol:'',name:'Euro'},
   {code:'CAD',symbol:'CA$',name:'Dollar Canadien'},
   {code:'XOF',symbol:'CFA',name:'Franc CFA'},
-  {code:'GBP',symbol:'£',name:'Livre Sterling'},
-  {code:'BRL',symbol:'R$',name:'Real Brésilien'},
+  {code:'GBP',symbol:'',name:'Livre Sterling'},
+  {code:'BRL',symbol:'R$',name:'Real Brsilien'},
   {code:'MXN',symbol:'MX$',name:'Peso Mexicain'},
   {code:'CDF',symbol:'FC',name:'Franc Congolais'},
-  {code:'INR',symbol:'₹',name:'Roupie Indienne'},
-  {code:'PHP',symbol:'₱',name:'Peso Philippin'},
-  {code:'BTC',symbol:'₿',name:'Bitcoin'},
-  {code:'ETH',symbol:'Ξ',name:'Ethereum'},
+  {code:'INR',symbol:'',name:'Roupie Indienne'},
+  {code:'PHP',symbol:'',name:'Peso Philippin'},
+  {code:'BTC',symbol:'',name:'Bitcoin'},
+  {code:'ETH',symbol:'',name:'Ethereum'},
   {code:'USDT',symbol:'USDT',name:'Tether USDT'},
   {code:'USDC',symbol:'USDC',name:'USD Coin'},
 ];
@@ -59,7 +59,7 @@ const S = {
   darkGreen: '#155724',
 };
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
+//  TYPES 
 
 interface Group {
   id: string;
@@ -112,7 +112,7 @@ interface Payment {
   createdAt: any;
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+//  MAIN COMPONENT 
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -149,7 +149,7 @@ export default function DashboardPage() {
   const [alertForm, setAlertForm] = useState({type:'info',text:''});
   const [settingsForm, setSettingsForm] = useState<Partial<Group>>({});
 
-  // ─── AUTH ──────────────────────────────────────────────────────────────────
+  //  AUTH 
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -172,7 +172,7 @@ export default function DashboardPage() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ─── FIREBASE LOADERS ──────────────────────────────────────────────────────
+  //  FIREBASE LOADERS 
 
   const loadGroup = async (uid: string) => {
     try {
@@ -213,7 +213,7 @@ export default function DashboardPage() {
     setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Payment));
   };
 
-  // ─── ACTIONS ───────────────────────────────────────────────────────────────
+  //  ACTIONS 
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -274,7 +274,7 @@ export default function DashboardPage() {
       await addDoc(collection(db, 'alerts'), {
         groupId: group.id,
         type: 'info',
-        text: `New member added — ${tynId} assigned. Invitation sent to ${memberForm.email}.`,
+        text: `New member added  ${tynId} assigned. Invitation sent to ${memberForm.email}.`,
         createdAt: serverTimestamp(),
         read: false,
       });
@@ -282,7 +282,7 @@ export default function DashboardPage() {
       await loadAlerts(group.id);
       setShowAddMember(false);
       setMemberForm({name:'',email:'',phone:'',country:''});
-      showToast(`Member added — ID: ${tynId}`);
+      showToast(`Member added  ID: ${tynId}`);
     } catch (e) {
       showToast('Error adding member'); console.error(e);
     }
@@ -371,7 +371,7 @@ export default function DashboardPage() {
     } catch (e) {}
   };
 
-  // ─── DERIVED ───────────────────────────────────────────────────────────────
+  //  DERIVED 
 
   const adminName = user?.displayName || user?.email?.split('@')[0] || 'Admin';
   const adminInitials = adminName.slice(0, 2).toUpperCase();
@@ -382,14 +382,14 @@ export default function DashboardPage() {
   const reserveFund = totalTreasury * (group?.reservePercent || 5) / 100;
   const unreadAlerts = alerts.filter(a => !a.read);
 
-  // ─── SHARED UI ─────────────────────────────────────────────────────────────
+  //  SHARED UI 
 
   const Modal = ({ title, onClose, children, wide = false }: any) => (
     <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.55)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
       <div style={{background:'white',borderRadius:'16px',padding:'32px',maxWidth:wide?'700px':'480px',width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.3)',maxHeight:'90vh',overflowY:'auto'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'24px'}}>
           <h3 style={{color:S.bordeaux,fontSize:'20px',fontWeight:'700',margin:0}}>{title}</h3>
-          <button onClick={onClose} style={{background:'none',border:'none',fontSize:'24px',cursor:'pointer',color:S.muted,lineHeight:1}}>×</button>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:'24px',cursor:'pointer',color:S.muted,lineHeight:1}}></button>
         </div>
         {children}
       </div>
@@ -419,7 +419,7 @@ export default function DashboardPage() {
     </div>
   );
 
-  // ─── LOADING ───────────────────────────────────────────────────────────────
+  //  LOADING 
 
   if (loading) return (
     <div style={{minHeight:'100vh',background:S.cream,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -430,7 +430,7 @@ export default function DashboardPage() {
     </div>
   );
 
-  // ─── NO GROUP YET ──────────────────────────────────────────────────────────
+  //  NO GROUP YET 
 
   if (!hasGroup) return (
     <div style={{minHeight:'100vh',background:S.cream,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
@@ -443,14 +443,14 @@ export default function DashboardPage() {
               const cur = CURRENCIES.find(c => c.code === e.target.value)!;
               setGroupForm({...groupForm, currency: cur.code, currencySymbol: cur.symbol});
             }} style={{width:'100%',padding:'10px 14px',border:`1.5px solid ${S.border}`,borderRadius:'8px',fontSize:'14px',outline:'none',color:S.text}}>
-              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
+              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}  {c.name}</option>)}
             </select>
           </div>
           <div style={{marginBottom:'14px'}}>
             <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:S.bordeaux,marginBottom:'5px'}}>Payment Frequency *</label>
             <select value={groupForm.frequency} onChange={(e:any) => setGroupForm({...groupForm,frequency:e.target.value})}
               style={{width:'100%',padding:'10px 14px',border:`1.5px solid ${S.border}`,borderRadius:'8px',fontSize:'14px',outline:'none',color:S.text}}>
-              {FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label} — {f.desc}</option>)}
+              {FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}  {f.desc}</option>)}
             </select>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
@@ -490,7 +490,7 @@ export default function DashboardPage() {
     </div>
   );
 
-  // ─── PAGE CONTENTS ─────────────────────────────────────────────────────────
+  //  PAGE CONTENTS 
 
   const PageDashboard = () => (
     <>
@@ -501,7 +501,7 @@ export default function DashboardPage() {
             Welcome back, <span style={{color:S.gold}}>{adminName}</span>
           </h2>
           <p style={{color:'rgba(250,240,230,0.7)',fontSize:'13px',margin:0}}>
-            {group?.name} · {members.length}/{group?.maxMembers} members · {group?.frequency} · {group?.currency}
+            {group?.name}  {members.length}/{group?.maxMembers} members  {group?.frequency}  {group?.currency}
           </p>
         </div>
         <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
@@ -539,8 +539,8 @@ export default function DashboardPage() {
         ) : payments.slice(0, 5).map(p => (
           <div key={p.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 20px',borderBottom:`1px solid #F5EAF0`}}>
             <div>
-              <div style={{fontSize:'13px',fontWeight:'600',color:S.text}}>{p.tynId} — {group?.confidentialMode ? '***' : p.memberName}</div>
-              <div style={{fontSize:'11px',color:S.muted,marginTop:'2px'}}>Cycle {p.cycleNumber} · {p.method}</div>
+              <div style={{fontSize:'13px',fontWeight:'600',color:S.text}}>{p.tynId}  {group?.confidentialMode ? '***' : p.memberName}</div>
+              <div style={{fontSize:'11px',color:S.muted,marginTop:'2px'}}>Cycle {p.cycleNumber}  {p.method}</div>
             </div>
             <div style={{fontSize:'14px',fontWeight:'700',color:S.green}}>{sym}{p.amount.toLocaleString()}</div>
           </div>
@@ -575,15 +575,15 @@ export default function DashboardPage() {
     <>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
         <div>
-          <h3 style={{color:S.bordeaux,fontSize:'18px',fontWeight:'700',margin:'0 0 4px'}}>{group?.name} — Members</h3>
-          <p style={{color:S.muted,fontSize:'13px',margin:0}}>{members.length}/{group?.maxMembers} members · Confidential mode {group?.confidentialMode ? 'ON' : 'OFF'}</p>
+          <h3 style={{color:S.bordeaux,fontSize:'18px',fontWeight:'700',margin:'0 0 4px'}}>{group?.name}  Members</h3>
+          <p style={{color:S.muted,fontSize:'13px',margin:0}}>{members.length}/{group?.maxMembers} members  Confidential mode {group?.confidentialMode ? 'ON' : 'OFF'}</p>
         </div>
         <Btn onClick={() => setShowAddMember(true)}>+ Add Member</Btn>
       </div>
 
       {members.length === 0 ? (
         <div style={{background:'white',border:`2px dashed ${S.border}`,borderRadius:'12px',padding:'48px',textAlign:'center'}}>
-          <div style={{fontSize:'32px',marginBottom:'12px'}}>👥</div>
+          <div style={{fontSize:'32px',marginBottom:'12px'}}></div>
           <div style={{fontSize:'16px',fontWeight:'700',color:S.bordeaux,marginBottom:'8px'}}>No members yet</div>
           <div style={{fontSize:'14px',color:S.muted,marginBottom:'20px'}}>Add your first member to get started. Each member gets a unique TYN-ID automatically.</div>
           <Btn onClick={() => setShowAddMember(true)}>Add First Member</Btn>
@@ -603,9 +603,9 @@ export default function DashboardPage() {
                 <tr key={m.id} style={{borderBottom:`1px solid #F5EAF0`}}>
                   <td style={{padding:'12px 16px',fontSize:'12px',fontWeight:'600',color:S.bordeaux}}>{m.tynId}</td>
                   <td style={{padding:'12px 16px',fontSize:'13px',fontWeight:'600',color:S.text}}>
-                    {group?.confidentialMode ? '••••••' : m.name}
+                    {group?.confidentialMode ? '' : m.name}
                   </td>
-                  <td style={{padding:'12px 16px',fontSize:'13px',color:S.muted}}>{m.country || '—'}</td>
+                  <td style={{padding:'12px 16px',fontSize:'13px',color:S.muted}}>{m.country || ''}</td>
                   <td style={{padding:'12px 16px',fontSize:'13px',fontWeight:'600',color:S.bordeaux}}>#{m.position}</td>
                   <td style={{padding:'12px 16px'}}>
                     <span style={{fontSize:'11px',fontWeight:'700',padding:'3px 9px',borderRadius:'20px',
@@ -624,7 +624,7 @@ export default function DashboardPage() {
                   </td>
                   <td style={{padding:'12px 16px'}}>
                     <button onClick={async () => {
-                      await addDoc(collection(db,'alerts'),{groupId:group!.id,type:'warning',text:`Reminder sent to ${m.tynId} — payment due.`,createdAt:serverTimestamp(),read:false});
+                      await addDoc(collection(db,'alerts'),{groupId:group!.id,type:'warning',text:`Reminder sent to ${m.tynId}  payment due.`,createdAt:serverTimestamp(),read:false});
                       await loadAlerts(group!.id);
                       showToast(`Reminder sent to ${m.tynId}`);
                     }} style={{padding:'4px 10px',border:`1px solid ${S.border}`,borderRadius:'6px',background:'white',cursor:'pointer',fontSize:'11px',color:S.bordeaux,fontWeight:'600'}}>
@@ -701,7 +701,7 @@ export default function DashboardPage() {
         <p style={{color:S.muted,fontSize:'13px',margin:0}}>Receipts, contracts, reports</p>
       </div>
       <div style={{background:'white',border:`2px dashed ${S.border}`,borderRadius:'12px',padding:'48px',textAlign:'center'}}>
-        <div style={{fontSize:'32px',marginBottom:'12px'}}>📄</div>
+        <div style={{fontSize:'32px',marginBottom:'12px'}}></div>
         <div style={{fontSize:'16px',fontWeight:'700',color:S.bordeaux,marginBottom:'8px'}}>Document storage</div>
         <div style={{fontSize:'14px',color:S.muted,marginBottom:'20px'}}>Receipts are generated automatically when you record payments. Contracts and reports coming soon.</div>
         <Btn onClick={() => setShowRecordPayment(true)}>Record a Payment</Btn>
@@ -727,7 +727,7 @@ export default function DashboardPage() {
           {label:'Excel Export',desc:'Full data spreadsheet for analysis'},
           {label:'CSV Export',desc:'Raw data, compatible with all tools'},
         ].map(r => (
-          <div key={r.label} onClick={() => showToast(`${r.label} — coming soon`)}
+          <div key={r.label} onClick={() => showToast(`${r.label}  coming soon`)}
             style={{display:'flex',alignItems:'center',gap:'16px',padding:'16px 20px',border:`1.5px solid ${S.border}`,borderRadius:'12px',cursor:'pointer',background:'white'}}
             onMouseEnter={e => e.currentTarget.style.borderColor = S.bordeaux}
             onMouseLeave={e => e.currentTarget.style.borderColor = S.border}>
@@ -759,7 +759,7 @@ export default function DashboardPage() {
           {alerts.map(a => (
             <div key={a.id} style={{background:a.type==='danger'?'#f8d7da':a.type==='warning'?'#fff3cd':a.type==='success'?S.lightGreen:'#d1ecf1',borderRadius:'12px',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',fontSize:'13px',color:a.type==='danger'?'#721c24':a.type==='warning'?'#856404':a.type==='success'?S.darkGreen:'#0c5460',opacity:a.read?0.5:1}}>
               <span>{a.text}</span>
-              {!a.read && <button onClick={() => dismissAlert(a.id)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'inherit',opacity:0.6,marginLeft:'12px'}}>×</button>}
+              {!a.read && <button onClick={() => dismissAlert(a.id)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'inherit',opacity:0.6,marginLeft:'12px'}}></button>}
             </div>
           ))}
         </div>
@@ -789,7 +789,7 @@ export default function DashboardPage() {
             <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:S.bordeaux,marginBottom:'5px'}}>Payment Frequency</label>
             <select value={settingsForm.frequency||'monthly'} onChange={(e:any) => setSettingsForm({...settingsForm,frequency:e.target.value})}
               style={{width:'100%',padding:'10px 14px',border:`1.5px solid ${S.border}`,borderRadius:'8px',fontSize:'14px',outline:'none',color:S.text}}>
-              {FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label} — {f.desc}</option>)}
+              {FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}  {f.desc}</option>)}
             </select>
           </div>
           <Btn onClick={saveSettings} disabled={saving}>{saving?'Saving...':'Save Changes'}</Btn>
@@ -808,7 +808,7 @@ export default function DashboardPage() {
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:`1px solid #F5EAF0`}}>
             <div>
               <div style={{fontSize:'14px',fontWeight:'600',color:S.text}}>Confidential Mode</div>
-              <div style={{fontSize:'12px',color:S.muted,marginTop:'2px'}}>Hide member names — show TYN-IDs only</div>
+              <div style={{fontSize:'12px',color:S.muted,marginTop:'2px'}}>Hide member names  show TYN-IDs only</div>
             </div>
             <button onClick={() => setSettingsForm({...settingsForm,confidentialMode:!settingsForm.confidentialMode})}
               style={{background:settingsForm.confidentialMode?S.bordeaux:S.border,border:'none',borderRadius:'20px',padding:'6px 16px',fontSize:'12px',fontWeight:'600',cursor:'pointer',color:'white'}}>
@@ -836,7 +836,7 @@ export default function DashboardPage() {
     }
   };
 
-  // ─── MODALS ────────────────────────────────────────────────────────────────
+  //  MODALS 
 
   const renderModals = () => (
     <>
@@ -864,8 +864,8 @@ export default function DashboardPage() {
             <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:S.bordeaux,marginBottom:'5px'}}>Select Member *</label>
             <select value={paymentForm.memberId} onChange={(e:any) => setPaymentForm({...paymentForm,memberId:e.target.value})}
               style={{width:'100%',padding:'10px 14px',border:`1.5px solid ${S.border}`,borderRadius:'8px',fontSize:'14px',outline:'none',color:S.text}}>
-              <option value="">— Select by TYN-ID —</option>
-              {members.map(m => <option key={m.id} value={m.id}>{m.tynId} {group?.confidentialMode?'':` — ${m.name}`}</option>)}
+              <option value=""> Select by TYN-ID </option>
+              {members.map(m => <option key={m.id} value={m.id}>{m.tynId} {group?.confidentialMode?'':`  ${m.name}`}</option>)}
             </select>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
@@ -879,7 +879,7 @@ export default function DashboardPage() {
               {['Cash','Bank Transfer','Mobile Money','Zelle','PayPal','Bitcoin','USDT','USDC'].map(m => <option key={m}>{m}</option>)}
             </select>
           </div>
-          <Field label="Note (optional)" value={paymentForm.note} onChange={(e:any) => setPaymentForm({...paymentForm,note:e.target.value})} placeholder="Cash — confirmed in person" />
+          <Field label="Note (optional)" value={paymentForm.note} onChange={(e:any) => setPaymentForm({...paymentForm,note:e.target.value})} placeholder="Cash  confirmed in person" />
           <Btn onClick={recordPayment} disabled={saving} style={{width:'100%',padding:'12px',fontSize:'15px'}}>
             {saving ? 'Recording...' : 'Confirm Payment'}
           </Btn>
@@ -891,18 +891,18 @@ export default function DashboardPage() {
           <div style={{marginBottom:'14px'}}>
             <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:S.bordeaux,marginBottom:'5px'}}>Select Member</label>
             <select style={{width:'100%',padding:'10px 14px',border:`1.5px solid ${S.border}`,borderRadius:'8px',fontSize:'14px',outline:'none',color:S.text}}>
-              <option value="">— Select by TYN-ID —</option>
+              <option value=""> Select by TYN-ID </option>
               {members.map(m => <option key={m.id} value={m.id}>{m.tynId}</option>)}
             </select>
           </div>
           <div style={{background:S.rose,borderRadius:'8px',padding:'16px',marginBottom:'16px'}}>
             {['TYN-ID (not full name)','Payment amount & date','Cycle number','QR Code verifiable online','TARSYN official stamp'].map(i => (
-              <div key={i} style={{fontSize:'12px',color:S.muted,padding:'3px 0'}}>— {i}</div>
+              <div key={i} style={{fontSize:'12px',color:S.muted,padding:'3px 0'}}> {i}</div>
             ))}
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'16px'}}>
             {['Print Receipt','Download PDF','Send by Email','Send by WhatsApp'].map(a => (
-              <button key={a} onClick={() => showToast(`${a} — coming soon`)}
+              <button key={a} onClick={() => showToast(`${a}  coming soon`)}
                 style={{padding:'10px',border:`1.5px solid ${S.border}`,borderRadius:'8px',background:S.cream,color:S.bordeaux,fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>
                 {a}
               </button>
@@ -945,7 +945,7 @@ export default function DashboardPage() {
             {label:'Excel Export',desc:'Full data spreadsheet'},
             {label:'CSV Export',desc:'Raw data for any tool'},
           ].map(r => (
-            <div key={r.label} onClick={() => showToast(`${r.label} — coming soon`)}
+            <div key={r.label} onClick={() => showToast(`${r.label}  coming soon`)}
               style={{display:'flex',gap:'14px',padding:'14px',border:`1.5px solid ${S.border}`,borderRadius:'10px',cursor:'pointer',background:'white',marginBottom:'8px'}}
               onMouseEnter={e => e.currentTarget.style.borderColor = S.bordeaux}
               onMouseLeave={e => e.currentTarget.style.borderColor = S.border}>
@@ -960,7 +960,7 @@ export default function DashboardPage() {
     </>
   );
 
-  // ─── MAIN RENDER ───────────────────────────────────────────────────────────
+  //  MAIN RENDER 
 
   return (
     <div style={{minHeight:'100vh',background:S.cream,display:'flex'}}>
@@ -1030,7 +1030,7 @@ export default function DashboardPage() {
             <div ref={currencyRef} style={{position:'relative'}}>
               <button onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
                 style={{padding:'6px 14px',background:S.rose,border:`1px solid ${S.border}`,borderRadius:'20px',fontSize:'12px',fontWeight:'600',color:S.bordeaux,cursor:'pointer'}}>
-                {group?.currency || 'USD'} ▾
+                {group?.currency || 'USD'} 
               </button>
               {showCurrencyDropdown && (
                 <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,background:'white',border:`1px solid ${S.border}`,borderRadius:'12px',boxShadow:'0 8px 24px rgba(0,0,0,0.12)',zIndex:100,maxHeight:'280px',overflowY:'auto',minWidth:'220px'}}>
@@ -1044,7 +1044,7 @@ export default function DashboardPage() {
                     }} style={{padding:'10px 16px',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',background:group?.currency===c.code?S.rose:'white',fontSize:'13px',color:S.text}}
                     onMouseEnter={e => e.currentTarget.style.background = S.rose}
                     onMouseLeave={e => e.currentTarget.style.background = group?.currency===c.code?S.rose:'white'}>
-                      <span><strong>{c.code}</strong> — {c.name}</span>
+                      <span><strong>{c.code}</strong>  {c.name}</span>
                       <span style={{color:S.muted,fontSize:'12px'}}>{c.symbol}</span>
                     </div>
                   ))}
@@ -1063,3 +1063,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
