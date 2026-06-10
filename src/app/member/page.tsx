@@ -4,6 +4,7 @@ import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
+// ============ STATIC DATA (to be replaced with Firestore) ============
 const MEMBER_DATA = {
   tynId: 'TYN-000003',
   groupName: 'Tontine 2026',
@@ -61,7 +62,6 @@ const LANGUAGES = [
   { code: 'fr', label: 'Français', flag: '🇫🇷' },
   { code: 'ht', label: 'Kreyòl Ayisyen', flag: '🇭🇹' },
 ];
-
 export default function MemberPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -69,14 +69,17 @@ export default function MemberPage() {
   const [language, setLanguage] = useState('en');
   const [unreadCount, setUnreadCount] = useState(NOTIFICATIONS.filter(n => !n.read).length);
 
+  // Profile edit
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({ name: '', phone: '', country: '', bio: '' });
   const [profileSaved, setProfileSaved] = useState(false);
 
+  // Contact organizer
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [contactSent, setContactSent] = useState(false);
 
+  // Comments
   const [comment, setComment] = useState('');
   const [commentSent, setCommentSent] = useState(false);
   const [comments, setComments] = useState([
@@ -84,16 +87,20 @@ export default function MemberPage() {
     { id: 2, text: 'Love the confidentiality feature. Very professional.', date: 'May 10, 2026', author: 'TYN-000002' },
   ]);
 
+  // Rating
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [ratingComment, setRatingComment] = useState('');
   const [ratingSent, setRatingSent] = useState(false);
 
+  // Documents
   const [uploadedDocs, setUploadedDocs] = useState(DOCUMENTS);
   const [docFilter, setDocFilter] = useState('All');
 
+  // Notifications
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
 
+  // Privacy
   const [privacySettings, setPrivacySettings] = useState({
     showEmail: false,
     showCountry: true,
@@ -140,22 +147,22 @@ export default function MemberPage() {
   const paidCycles = PAYMENT_HISTORY.filter(p => p.status === 'Paid').length;
 
   const handleSaveProfile = async () => {
-    try {
-      await updateProfile(user, { displayName: profileData.name });
-      await setDoc(doc(db, 'users', user.uid), {
-        displayName: profileData.name,
-        phone: profileData.phone,
-        country: profileData.country,
-        bio: profileData.bio,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-      setProfileSaved(true);
-      setEditingProfile(false);
-      setTimeout(() => setProfileSaved(false), 3000);
-    } catch (e) { console.error(e); }
+   try {
+    await updateProfile(user, { displayName: profileData.name });
+    await setDoc(doc(db, 'users', user.uid), {
+      displayName: profileData.name,
+      phone: profileData.phone,
+      country: profileData.country,
+      bio: profileData.bio,
+      language: profileData.language,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+    setProfileSaved(true);
+    setEditingProfile(false);
+    setTimeout(() => setProfileSaved(false), 3000);
+  } catch (e) { console.error(e); }
+};
   };
-
-  const handleSendContact = async () => {
     if (!contactSubject || !contactMessage) return;
     try {
       await addDoc(collection(db, 'messages'), {
@@ -170,7 +177,9 @@ export default function MemberPage() {
       setContactSubject('');
       setContactMessage('');
       setTimeout(() => setContactSent(false), 4000);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleSendComment = async () => {
@@ -241,6 +250,8 @@ export default function MemberPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex' }}>
+
+      {/* SIDEBAR */}
       <aside style={{ width: '230px', background: '#6B2D4E', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 50, overflowY: 'auto' }}>
         <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -251,6 +262,7 @@ export default function MemberPage() {
             </div>
           </div>
         </div>
+
         <div style={{ padding: '14px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', color: '#6B2D4E' }}>{initials}</div>
@@ -260,15 +272,21 @@ export default function MemberPage() {
             </div>
           </div>
         </div>
+
         <nav style={{ flex: 1, padding: '8px 0' }}>
           {navItems.map(item => (
             <div key={item.id} onClick={() => setActivePage(item.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 20px', cursor: 'pointer', background: activePage === item.id ? 'rgba(212,175,122,0.2)' : 'transparent', borderLeft: activePage === item.id ? '3px solid #D4AF7A' : '3px solid transparent' }}>
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 20px', cursor: 'pointer',
+                background: activePage === item.id ? 'rgba(212,175,122,0.2)' : 'transparent',
+                borderLeft: activePage === item.id ? '3px solid #D4AF7A' : '3px solid transparent',
+              }}>
               <span style={{ fontSize: '14px' }}>{item.icon}</span>
               <span style={{ fontSize: '12px', fontWeight: activePage === item.id ? '700' : '400', color: activePage === item.id ? '#D4AF7A' : 'rgba(250,240,230,0.8)' }}>{item.label}</span>
             </div>
           ))}
         </nav>
+
         <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <button onClick={() => signOut(auth).then(() => window.location.href = '/login')}
             style={{ width: '100%', padding: '9px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#FAF0E6', fontSize: '13px', cursor: 'pointer' }}>
@@ -277,7 +295,10 @@ export default function MemberPage() {
         </div>
       </aside>
 
+      {/* MAIN */}
       <main style={{ marginLeft: '230px', flex: 1, minHeight: '100vh' }}>
+
+        {/* TOPBAR */}
         <div style={{ background: 'white', borderBottom: '1px solid #D9C0CC', padding: '0 28px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 40 }}>
           <div style={{ fontSize: '17px', fontWeight: '700', color: '#6B2D4E' }}>{MEMBER_DATA.groupName}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -293,12 +314,14 @@ export default function MemberPage() {
 
         <div style={{ padding: '24px' }}>
 
+          {/* ===== HOME ===== */}
           {activePage === 'home' && (
             <>
               <div style={{ background: 'linear-gradient(135deg,#6B2D4E,#8B3D62)', borderRadius: '14px', padding: '24px 28px', marginBottom: '24px' }}>
                 <h2 style={{ color: '#FAF0E6', fontSize: '20px', marginBottom: '4px' }}>Welcome, <span style={{ color: '#D4AF7A' }}>{name}</span> 👋</h2>
                 <p style={{ color: 'rgba(250,240,230,0.7)', fontSize: '13px' }}>{MEMBER_DATA.groupName} • Position #{MEMBER_DATA.position} • {MEMBER_DATA.frequency}</p>
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '14px', marginBottom: '24px' }}>
                 {[
                   { label: 'MY TYN-ID', value: MEMBER_DATA.tynId, sub: 'Anonymous ID', icon: '🪪' },
@@ -313,6 +336,7 @@ export default function MemberPage() {
                   </div>
                 ))}
               </div>
+
               <div style={{ background: MEMBER_DATA.status === 'Paid' ? '#d4edda' : '#fff3cd', border: `1px solid ${MEMBER_DATA.status === 'Paid' ? '#c3e6cb' : '#ffeeba'}`, borderRadius: '10px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '24px' }}>{MEMBER_DATA.status === 'Paid' ? '✅' : '⚠️'}</span>
                 <div>
@@ -322,6 +346,8 @@ export default function MemberPage() {
                   <div style={{ fontSize: '12px', color: '#7A5068', marginTop: '2px' }}>Amount: {sym}{MEMBER_DATA.contributionAmount} • Contact your organizer to record payment</div>
                 </div>
               </div>
+
+              {/* Quick actions */}
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '20px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>🚀 Quick Actions</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '10px' }}>
@@ -344,6 +370,7 @@ export default function MemberPage() {
             </>
           )}
 
+          {/* ===== PAYMENTS ===== */}
           {activePage === 'payments' && (
             <>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', marginBottom: '24px' }}>
@@ -391,6 +418,7 @@ export default function MemberPage() {
             </>
           )}
 
+          {/* ===== DOCUMENTS ===== */}
           {activePage === 'documents' && (
             <>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', marginBottom: '20px', padding: '20px' }}>
@@ -405,12 +433,14 @@ export default function MemberPage() {
                   <div style={{ color: '#6B2D4E', fontWeight: '600', fontSize: '14px' }}>Click to Upload Document</div>
                   <div style={{ color: '#7A5068', fontSize: '12px', marginTop: '4px' }}>PDF, Word, Excel, JPG, PNG — max 10MB</div>
                 </div>
+
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
                   {['All', 'Receipts', 'Contracts', 'Personal'].map(f => (
                     <button key={f} onClick={() => setDocFilter(f)}
                       style={{ padding: '6px 14px', borderRadius: '20px', border: '1.5px solid #D9C0CC', background: docFilter === f ? '#6B2D4E' : 'white', color: docFilter === f ? 'white' : '#6B2D4E', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{f}</button>
                   ))}
                 </div>
+
                 {uploadedDocs.filter(d => docFilter === 'All' || d.type === docFilter.toLowerCase().slice(0, -1)).map(d => (
                   <div key={d.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid #D9C0CC', borderRadius: '10px', marginBottom: '8px', background: 'white' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -431,13 +461,14 @@ export default function MemberPage() {
             </>
           )}
 
+          {/* ===== CYCLES ===== */}
           {activePage === 'cycles' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC' }}>
                 <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>🔄 Cycle Rotation</span>
               </div>
               <div style={{ padding: '16px 20px', background: '#EDD9E5', margin: '16px', borderRadius: '8px', fontSize: '13px', color: '#6B2D4E' }}>
-                🔒 Confidential mode — Only dates and positions are shown.
+                🔒 Confidential mode — Only dates and positions are shown. No member names visible.
               </div>
               <div style={{ padding: '0 20px 20px' }}>
                 {CYCLE_VIEW.map(c => (
@@ -445,7 +476,9 @@ export default function MemberPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', minWidth: '30px' }}>#{c.position}</span>
                       <span style={{ fontSize: '13px', color: '#7A5068' }}>{c.date}</span>
-                      {c.position === MEMBER_DATA.position && <span style={{ fontSize: '11px', fontWeight: '700', background: '#6B2D4E', color: '#D4AF7A', padding: '2px 8px', borderRadius: '20px' }}>← YOU</span>}
+                      {c.position === MEMBER_DATA.position && (
+                        <span style={{ fontSize: '11px', fontWeight: '700', background: '#6B2D4E', color: '#D4AF7A', padding: '2px 8px', borderRadius: '20px' }}>← YOU</span>
+                      )}
                     </div>
                     <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: c.status === 'Received' ? '#d4edda' : '#EDD9E5', color: c.status === 'Received' ? '#155724' : '#7A5068' }}>
                       {c.status === 'Received' ? '✅ Received' : '⏳ Upcoming'}
@@ -456,6 +489,7 @@ export default function MemberPage() {
             </div>
           )}
 
+          {/* ===== STATISTICS ===== */}
           {activePage === 'stats' && (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '14px', marginBottom: '24px' }}>
@@ -471,21 +505,37 @@ export default function MemberPage() {
                   </div>
                 ))}
               </div>
-              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>⭐ Reputation Score</div>
+
+              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>⭐ Reputation Score Detail</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                  <div style={{ fontSize: '48px', fontWeight: '800', color: '#856404' }}>{MEMBER_DATA.score}</div>
+                  <div style={{ fontSize: '48px', fontWeight: '800', color: MEMBER_DATA.score >= 80 ? '#4A7C59' : '#856404' }}>{MEMBER_DATA.score}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ background: '#EDD9E5', borderRadius: '8px', height: '12px', marginBottom: '8px' }}>
-                      <div style={{ background: '#D4AF7A', borderRadius: '8px', height: '12px', width: `${MEMBER_DATA.score}%` }}></div>
+                      <div style={{ background: MEMBER_DATA.score >= 80 ? '#4A7C59' : '#D4AF7A', borderRadius: '8px', height: '12px', width: `${MEMBER_DATA.score}%` }}></div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#7A5068' }}>🥈 Good — Pay on time to improve</div>
+                    <div style={{ fontSize: '12px', color: '#7A5068' }}>🥈 Good — Pay on time to improve your score</div>
                   </div>
                 </div>
+                {[
+                  { label: 'On-time payments', value: `${paidCycles}/${PAYMENT_HISTORY.length}`, points: '+40 pts' },
+                  { label: 'Cycles completed', value: paidCycles.toString(), points: '+20 pts' },
+                  { label: 'Member since', value: 'Apr 2026', points: '+0 pts' },
+                  { label: 'Late payments', value: '0', points: '+0 pts' },
+                ].map(r => (
+                  <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F5EAF0' }}>
+                    <span style={{ fontSize: '13px', color: '#7A5068' }}>{r.label}</span>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: '#2C1A24' }}>{r.value}</span>
+                      <span style={{ fontSize: '12px', color: '#4A7C59', fontWeight: '600' }}>{r.points}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </>
           )}
 
+          {/* ===== PROFILE ===== */}
           {activePage === 'profile' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -494,11 +544,13 @@ export default function MemberPage() {
                   {editingProfile ? '✕ Cancel' : '✏️ Edit Profile'}
                 </button>
               </div>
+
               {profileSaved && (
                 <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
                   ✅ Profile saved successfully!
                 </div>
               )}
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px', padding: '20px', background: '#FAF0E6', borderRadius: '12px' }}>
                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#6B2D4E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: '700', color: '#D4AF7A' }}>{initials}</div>
                 <div>
@@ -507,6 +559,7 @@ export default function MemberPage() {
                   <div style={{ fontSize: '12px', fontWeight: '600', color: '#6B2D4E', marginTop: '4px' }}>{MEMBER_DATA.tynId} • {MEMBER_DATA.groupName}</div>
                 </div>
               </div>
+
               {editingProfile ? (
                 <div>
                   {[
@@ -523,7 +576,9 @@ export default function MemberPage() {
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Bio</label>
                     <textarea value={profileData.bio} onChange={e => setProfileData({ ...profileData, bio: e.target.value })} placeholder="A few words about yourself..." rows={3} style={{ ...inp, resize: 'vertical' }} />
                   </div>
-                  <button onClick={handleSaveProfile} style={btn({ width: '100%', padding: '12px' })}>💾 Save Profile</button>
+                  <button onClick={handleSaveProfile} style={btn({ width: '100%', padding: '12px' })}>
+                    💾 Save Profile
+                  </button>
                 </div>
               ) : (
                 <>
@@ -548,14 +603,21 @@ export default function MemberPage() {
             </div>
           )}
 
+          {/* ===== CONTACT ===== */}
           {activePage === 'contact' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📧 Contact Organizer</div>
+
               {contactSent && (
                 <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
-                  ✅ Message sent successfully!
+                  ✅ Message sent successfully! The organizer will reply by email.
                 </div>
               )}
+
+              <div style={{ background: '#EDD9E5', borderRadius: '8px', padding: '14px', marginBottom: '20px', fontSize: '13px', color: '#6B2D4E' }}>
+                📬 Your message will be sent to the group organizer. You will receive a reply by email within 24-48 hours.
+              </div>
+
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Subject</label>
                 <select value={contactSubject} onChange={e => setContactSubject(e.target.value)} style={inp}>
@@ -579,14 +641,24 @@ export default function MemberPage() {
             </div>
           )}
 
+          {/* ===== COMMENTS ===== */}
           {activePage === 'comments' && (
             <>
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
                 <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>💬 Leave a Comment</div>
-                {commentSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>✅ Comment posted!</div>}
-                <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience..." rows={4} style={{ ...inp, marginBottom: '14px', resize: 'vertical' }} />
-                <button onClick={handleSendComment} disabled={!comment.trim()} style={btn({ opacity: !comment.trim() ? 0.6 : 1 })}>💬 Post Comment</button>
+
+                {commentSent && (
+                  <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
+                    ✅ Comment posted successfully!
+                  </div>
+                )}
+
+                <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience or thoughts about the tontine..." rows={4} style={{ ...inp, marginBottom: '14px', resize: 'vertical' }} />
+                <button onClick={handleSendComment} disabled={!comment.trim()} style={btn({ opacity: !comment.trim() ? 0.6 : 1 })}>
+                  💬 Post Comment
+                </button>
               </div>
+
               <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>💬 All Comments</div>
                 {comments.map(c => (
@@ -599,81 +671,121 @@ export default function MemberPage() {
             </>
           )}
 
+          {/* ===== RATING ===== */}
           {activePage === 'rating' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>⭐ Rate TARSYN Service</div>
+              <div style={{ fontSize: '13px', color: '#7A5068', marginBottom: '24px' }}>Your feedback helps us improve the platform for everyone.</div>
+
               {ratingSent ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>Thank you for your rating!</div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>Thank you for your rating!</div>
+                  <div style={{ fontSize: '13px', color: '#7A5068' }}>Your feedback has been submitted successfully.</div>
                 </div>
               ) : (
                 <>
                   <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#6B2D4E', marginBottom: '16px' }}>How would you rate our service?</div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                       {[1, 2, 3, 4, 5].map(star => (
-                        <span key={star} onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)}
-                          style={{ fontSize: '40px', cursor: 'pointer', filter: (hoverRating || rating) >= star ? 'none' : 'grayscale(1)' }}>⭐</span>
+                        <span key={star}
+                          onClick={() => setRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          style={{ fontSize: '40px', cursor: 'pointer', transition: 'transform 0.1s', transform: (hoverRating || rating) >= star ? 'scale(1.2)' : 'scale(1)', filter: (hoverRating || rating) >= star ? 'none' : 'grayscale(1)' }}>
+                          ⭐
+                        </span>
                       ))}
                     </div>
-                    {rating > 0 && <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E' }}>{rating === 5 ? 'Excellent!' : rating === 4 ? 'Very Good' : rating === 3 ? 'Good' : rating === 2 ? 'Fair' : 'Poor'} ({rating}/5)</div>}
+                    {rating > 0 && (
+                      <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E' }}>
+                        {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent!'} ({rating}/5)
+                      </div>
+                    )}
                   </div>
-                  <textarea value={ratingComment} onChange={e => setRatingComment(e.target.value)} placeholder="Tell us how we can improve..." rows={4} style={{ ...inp, marginBottom: '20px', resize: 'vertical' }} />
-                  <button onClick={handleSendRating} disabled={!rating} style={btn({ width: '100%', padding: '12px', opacity: !rating ? 0.6 : 1 })}>⭐ Submit Rating</button>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Additional Comments (optional)</label>
+                    <textarea value={ratingComment} onChange={e => setRatingComment(e.target.value)} placeholder="Tell us what you liked or how we can improve..." rows={4} style={{ ...inp, resize: 'vertical' }} />
+                  </div>
+
+                  <button onClick={handleSendRating} disabled={!rating} style={btn({ width: '100%', padding: '12px', opacity: !rating ? 0.6 : 1 })}>
+                    ⭐ Submit Rating
+                  </button>
                 </>
               )}
             </div>
           )}
 
+          {/* ===== NOTIFICATIONS ===== */}
           {activePage === 'notifications' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>🔔 Notifications</span>
-                {unreadCount > 0 && <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#C4748E', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Mark all as read</button>}
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#C4748E', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Mark all as read</button>
+                )}
               </div>
               {notifications.map(n => (
-                <div key={n.id} style={{ padding: '14px 20px', borderBottom: '1px solid #F5EAF0', background: n.read ? 'white' : '#FAF0E6', display: 'flex', gap: '12px' }}>
+                <div key={n.id} style={{ padding: '14px 20px', borderBottom: '1px solid #F5EAF0', background: n.read ? 'white' : '#FAF0E6', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '20px' }}>{n.type === 'warning' ? '⚠️' : n.type === 'success' ? '✅' : 'ℹ️'}</span>
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '13px', color: '#2C1A24', fontWeight: n.read ? '400' : '600' }}>{n.text}</div>
                     <div style={{ fontSize: '11px', color: '#7A5068', marginTop: '4px' }}>{n.time}</div>
                   </div>
+                  {!n.read && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6B2D4E', flexShrink: 0, marginTop: '4px' }}></span>}
                 </div>
               ))}
             </div>
           )}
 
+          {/* ===== RULES ===== */}
           {activePage === 'rules' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📜 Group Rules</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📜 Group Rules & Contract</div>
               {[
-                { title: '1. Contribution', text: `Each member must contribute ${sym}${MEMBER_DATA.contributionAmount} every ${MEMBER_DATA.frequency.toLowerCase()}.` },
-                { title: '2. Rotation Order', text: 'The rotation order is determined at the start and cannot be changed without organizer agreement.' },
-                { title: '3. Late Payments', text: 'Late payments result in a penalty and reputation score reduction.' },
-                { title: '4. Confidentiality', text: 'Only TYN-IDs are visible to other members.' },
-                { title: '5. Commission', text: 'The organizer charges 1% per distribution cycle.' },
-                { title: '6. Withdrawal', text: 'Early withdrawal requires 30 days notice and organizer approval.' },
+                { title: '1. Contribution', text: `Each member must contribute ${MEMBER_DATA.currency.symbol}${MEMBER_DATA.contributionAmount} every ${MEMBER_DATA.frequency.toLowerCase()}. Payments must be made before the due date.` },
+                { title: '2. Rotation Order', text: 'The rotation order is determined at the start of the group and cannot be changed without agreement from the organizer and all affected members.' },
+                { title: '3. Late Payments', text: 'Late payments will result in a penalty and a reduction in your reputation score. Chronic late payments may result in suspension from the group.' },
+                { title: '4. Confidentiality', text: 'Member identities are protected. Only TYN-IDs are visible to other members. Personal information is strictly confidential.' },
+                { title: '5. Commission', text: 'The organizer charges a commission of 1% per distribution cycle. This is clearly stated and transparent.' },
+                { title: '6. Withdrawal', text: 'Early withdrawal from the group requires 30 days notice and approval from the organizer. Penalties may apply.' },
+                { title: '7. Disputes', text: 'Any disputes must be communicated in writing to the organizer within 7 days of the issue.' },
               ].map(r => (
-                <div key={r.title} style={{ marginBottom: '16px', padding: '16px', background: '#FAF0E6', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '6px' }}>{r.title}</div>
-                  <div style={{ fontSize: '13px', color: '#7A5068' }}>{r.text}</div>
+                <div key={r.title} style={{ marginBottom: '20px', padding: '16px', background: '#FAF0E6', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>{r.title}</div>
+                  <div style={{ fontSize: '13px', color: '#7A5068', lineHeight: '1.6' }}>{r.text}</div>
                 </div>
               ))}
+              <button onClick={() => alert('Downloading contract PDF...')} style={btn({ width: '100%', padding: '12px' })}>
+                📥 Download Contract PDF
+              </button>
             </div>
           )}
 
+          {/* ===== FAQ ===== */}
           {activePage === 'faq' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>❓ Help & FAQ</div>
               {FAQ.map((f, i) => (
                 <details key={i} style={{ marginBottom: '12px', border: '1px solid #D9C0CC', borderRadius: '10px', overflow: 'hidden' }}>
-                  <summary style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E', cursor: 'pointer', background: '#FAF0E6' }}>{f.q}</summary>
-                  <div style={{ padding: '14px 18px', fontSize: '13px', color: '#7A5068', lineHeight: '1.6' }}>{f.a}</div>
+                  <summary style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E', cursor: 'pointer', background: '#FAF0E6' }}>
+                    {f.q}
+                  </summary>
+                  <div style={{ padding: '14px 18px', fontSize: '13px', color: '#7A5068', lineHeight: '1.6', borderTop: '1px solid #EDD9E5' }}>
+                    {f.a}
+                  </div>
                 </details>
               ))}
+              <div style={{ marginTop: '24px', padding: '16px', background: '#EDD9E5', borderRadius: '10px', textAlign: 'center' }}>
+                <div style={{ fontSize: '13px', color: '#6B2D4E', marginBottom: '10px' }}>Still have questions?</div>
+                <button onClick={() => setActivePage('contact')} style={btn()}>📧 Contact Organizer</button>
+              </div>
             </div>
           )}
 
+          {/* ===== PRIVACY ===== */}
           {activePage === 'privacy' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
               <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>🔒 Privacy Settings</div>
@@ -685,40 +797,56 @@ export default function MemberPage() {
                 { label: 'SMS notifications', key: 'smsNotifications' },
               ].map(s => (
                 <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid #F5EAF0' }}>
-                  <span style={{ fontSize: '13px', color: '#2C1A24' }}>{s.label}</span>
+                  <span style={{ fontSize: '13px', color: '#2C1A24', fontWeight: '500' }}>{s.label}</span>
                   <button onClick={() => setPrivacySettings({ ...privacySettings, [s.key]: !(privacySettings as any)[s.key] })}
-                    style={{ background: (privacySettings as any)[s.key] ? '#6B2D4E' : '#D9C0CC', border: 'none', borderRadius: '20px', padding: '4px 16px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: 'white' }}>
+                    style={{ background: (privacySettings as any)[s.key] ? '#6B2D4E' : '#D9C0CC', border: 'none', borderRadius: '20px', padding: '4px 16px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: 'white', minWidth: '52px' }}>
                     {(privacySettings as any)[s.key] ? 'ON' : 'OFF'}
                   </button>
                 </div>
               ))}
+              <button onClick={() => alert('✅ Privacy settings saved!')} style={btn({ marginTop: '20px', width: '100%', padding: '12px' })}>
+                💾 Save Settings
+              </button>
             </div>
           )}
 
+          {/* ===== INVITE ===== */}
           {activePage === 'invite' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>📱 Invite a Friend</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>📱 Invite a Friend</div>
+              <div style={{ fontSize: '13px', color: '#7A5068', marginBottom: '24px' }}>Invite someone to join TARSYN or your tontine group.</div>
+
               <div style={{ background: '#EDD9E5', borderRadius: '10px', padding: '16px', marginBottom: '20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: '#6B2D4E', background: 'white', padding: '10px', borderRadius: '8px' }}>
+                <div style={{ fontSize: '12px', color: '#7A5068', marginBottom: '8px' }}>Your invite link</div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#6B2D4E', background: 'white', padding: '10px', borderRadius: '8px', wordBreak: 'break-all' }}>
                   https://tarsyn-app.com/register?ref={MEMBER_DATA.tynId}
                 </div>
                 <button onClick={() => { navigator.clipboard.writeText(`https://tarsyn-app.com/register?ref=${MEMBER_DATA.tynId}`); alert('✅ Link copied!'); }} style={{ ...btn(), marginTop: '12px' }}>
                   📋 Copy Link
                 </button>
               </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Or send by email</label>
+                <input type="email" placeholder="friend@example.com" style={inp} />
+              </div>
+              <button onClick={() => alert('✅ Invitation sent!')} style={btn({ width: '100%', padding: '12px' })}>
+                📧 Send Invitation
+              </button>
             </div>
           )}
 
+          {/* ===== LANGUAGE ===== */}
           {activePage === 'language' && (
             <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>🌍 Language</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>🌍 Language / Langue / Lang</div>
               <div style={{ display: 'grid', gap: '10px' }}>
                 {LANGUAGES.map(l => (
-                  <div key={l.code} onClick={() => setLanguage(l.code)}
+                  <div key={l.code} onClick={() => { setLanguage(l.code); alert(`Language set to ${l.label}`); }}
                     style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px', border: `2px solid ${language === l.code ? '#6B2D4E' : '#D9C0CC'}`, borderRadius: '12px', cursor: 'pointer', background: language === l.code ? '#EDD9E5' : 'white' }}>
                     <span style={{ fontSize: '28px' }}>{l.flag}</span>
                     <span style={{ fontSize: '16px', fontWeight: '600', color: '#2C1A24' }}>{l.label}</span>
-                    {language === l.code && <span style={{ marginLeft: 'auto', color: '#6B2D4E', fontWeight: '700' }}>✓</span>}
+                    {language === l.code && <span style={{ marginLeft: 'auto', color: '#6B2D4E', fontWeight: '700' }}>✓ Selected</span>}
                   </div>
                 ))}
               </div>
@@ -730,3 +858,5 @@ export default function MemberPage() {
     </div>
   );
 }
+
+
