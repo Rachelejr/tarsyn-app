@@ -16,62 +16,62 @@ const C = {
 };
 
 const REGIONS = [
-  { region: 'Afrique de l\'Ouest',    flag: '🌍', name: 'Tontine' },
-  { region: 'Cameroun',               flag: '🇨🇲', name: 'Njangi' },
-  { region: 'Congo (RDC)',            flag: '🇨🇩', name: 'Likelemba' },
-  { region: 'Ghana',                  flag: '🇬🇭', name: 'Susu' },
-  { region: 'Nigeria',                flag: '🇳🇬', name: 'Ajo / Esusu' },
-  { region: 'Sénégal',                flag: '🇸🇳', name: 'Tontine' },
-  { region: 'Côte d\'Ivoire',         flag: '🇨🇮', name: 'Tontine' },
-  { region: 'Kenya',                  flag: '🇰🇪', name: 'Chama' },
-  { region: 'Éthiopie',               flag: '🇪🇹', name: 'Iqub' },
-  { region: 'Haïti',                  flag: '🇭🇹', name: 'Sol' },
-  { region: 'République Dominicaine', flag: '🇩🇴', name: 'San / Mutualidad' },
-  { region: 'Jamaïque',               flag: '🇯🇲', name: 'Partner' },
-  { region: 'Trinidad & Tobago',      flag: '🇹🇹', name: 'Sou-Sou' },
-  { region: 'Barbade',                flag: '🇧🇧', name: 'Meeting Turn' },
-  { region: 'Guyana',                 flag: '🇬🇾', name: 'Box Hand' },
-  { region: 'Suriname',               flag: '🇸🇷', name: 'Kasmoni' },
-  { region: 'Cuba',                   flag: '🇨🇺', name: 'Cundina' },
-  { region: 'Puerto Rico',            flag: '🇵🇷', name: 'Cundina' },
-  { region: 'Guadeloupe',             flag: '🇬🇵', name: 'Sou-Sou' },
-  { region: 'Martinique',             flag: '🇲🇶', name: 'Sou-Sou' },
-  { region: 'Guyane française',       flag: '🇬🇫', name: 'Sou-Sou' },
-  { region: 'Sainte-Lucie',           flag: '🇱🇨', name: 'Sou-Sou' },
-  { region: 'Saint-Vincent',          flag: '🇻🇨', name: 'Sou-Sou' },
-  { region: 'Antigua & Barbuda',      flag: '🇦🇬', name: 'Meeting Turn' },
-  { region: 'Mexique',                flag: '🇲🇽', name: 'Tanda' },
-  { region: 'Guatemala',              flag: '🇬🇹', name: 'Cundina' },
-  { region: 'Honduras',               flag: '🇭🇳', name: 'Cundina' },
-  { region: 'El Salvador',            flag: '🇸🇻', name: 'Cundina' },
-  { region: 'Colombie',               flag: '🇨🇴', name: 'Natillera' },
-  { region: 'Pérou',                  flag: '🇵🇪', name: 'Pandero' },
-  { region: 'Bolivie',                flag: '🇧🇴', name: 'Pasanaku' },
-  { region: 'Équateur',               flag: '🇪🇨', name: 'Pandero' },
-  { region: 'Inde',                   flag: '🇮🇳', name: 'Chit Fund' },
-  { region: 'Philippines',            flag: '🇵🇭', name: 'Paluwagan' },
-  { region: 'Vietnam',                flag: '🇻🇳', name: 'Hui' },
-  { region: 'Chine',                  flag: '🇨🇳', name: 'Hui' },
-  { region: 'Corée du Sud',           flag: '🇰🇷', name: 'Gye' },
-  { region: 'Japon',                  flag: '🇯🇵', name: 'Ko' },
-  { region: 'Général / Autre',        flag: '🌍', name: 'Rotating Savings' },
+  { region: 'West Africa',          flag: '🌍', name: 'Tontine' },
+  { region: 'Cameroon',             flag: '🇨🇲', name: 'Njangi' },
+  { region: 'Congo (DRC)',          flag: '🇨🇩', name: 'Likelemba' },
+  { region: 'Ghana',                flag: '🇬🇭', name: 'Susu' },
+  { region: 'Nigeria',              flag: '🇳🇬', name: 'Ajo / Esusu' },
+  { region: 'Senegal',              flag: '🇸🇳', name: 'Tontine' },
+  { region: 'Ivory Coast',          flag: '🇨🇮', name: 'Tontine' },
+  { region: 'Kenya',                flag: '🇰🇪', name: 'Chama' },
+  { region: 'Ethiopia',             flag: '🇪🇹', name: 'Iqub' },
+  { region: 'Haiti',                flag: '🇭🇹', name: 'Sol' },
+  { region: 'Dominican Republic',   flag: '🇩🇴', name: 'San / Mutualidad' },
+  { region: 'Jamaica',              flag: '🇯🇲', name: 'Partner' },
+  { region: 'Trinidad & Tobago',    flag: '🇹🇹', name: 'Sou-Sou' },
+  { region: 'Barbados',             flag: '🇧🇧', name: 'Meeting Turn' },
+  { region: 'Guyana',               flag: '🇬🇾', name: 'Box Hand' },
+  { region: 'Suriname',             flag: '🇸🇷', name: 'Kasmoni' },
+  { region: 'Cuba',                 flag: '🇨🇺', name: 'Cundina' },
+  { region: 'Puerto Rico',          flag: '🇵🇷', name: 'Cundina' },
+  { region: 'Guadeloupe',           flag: '🇬🇵', name: 'Sou-Sou' },
+  { region: 'Martinique',           flag: '🇲🇶', name: 'Sou-Sou' },
+  { region: 'French Guiana',        flag: '🇬🇫', name: 'Sou-Sou' },
+  { region: 'Saint Lucia',          flag: '🇱🇨', name: 'Sou-Sou' },
+  { region: 'Saint Vincent',        flag: '🇻🇨', name: 'Sou-Sou' },
+  { region: 'Antigua & Barbuda',    flag: '🇦🇬', name: 'Meeting Turn' },
+  { region: 'Mexico',               flag: '🇲🇽', name: 'Tanda' },
+  { region: 'Guatemala',            flag: '🇬🇹', name: 'Cundina' },
+  { region: 'Honduras',             flag: '🇭🇳', name: 'Cundina' },
+  { region: 'El Salvador',          flag: '🇸🇻', name: 'Cundina' },
+  { region: 'Colombia',             flag: '🇨🇴', name: 'Natillera' },
+  { region: 'Peru',                 flag: '🇵🇪', name: 'Pandero' },
+  { region: 'Bolivia',              flag: '🇧🇴', name: 'Pasanaku' },
+  { region: 'Ecuador',              flag: '🇪🇨', name: 'Pandero' },
+  { region: 'India',                flag: '🇮🇳', name: 'Chit Fund' },
+  { region: 'Philippines',          flag: '🇵🇭', name: 'Paluwagan' },
+  { region: 'Vietnam',              flag: '🇻🇳', name: 'Hui' },
+  { region: 'China',                flag: '🇨🇳', name: 'Hui' },
+  { region: 'South Korea',          flag: '🇰🇷', name: 'Gye' },
+  { region: 'Japan',                flag: '🇯🇵', name: 'Ko' },
+  { region: 'Other / General',      flag: '🌍', name: 'Rotating Savings' },
 ];
 
 const CURRENCIES = [
   { code: 'USD',  label: 'USD — US Dollar' },
-  { code: 'HTG',  label: 'HTG — Gourde Haïtienne' },
+  { code: 'HTG',  label: 'HTG — Haitian Gourde' },
   { code: 'EUR',  label: 'EUR — Euro' },
-  { code: 'CAD',  label: 'CAD — Dollar Canadien' },
-  { code: 'GBP',  label: 'GBP — Livre Sterling' },
-  { code: 'XOF',  label: 'XOF — Franc CFA' },
-  { code: 'NGN',  label: 'NGN — Naira Nigérian' },
-  { code: 'GHS',  label: 'GHS — Cedi Ghanéen' },
-  { code: 'INR',  label: 'INR — Roupie Indienne' },
-  { code: 'MXN',  label: 'MXN — Peso Mexicain' },
-  { code: 'PHP',  label: 'PHP — Peso Philippin' },
-  { code: 'DOP',  label: 'DOP — Peso Dominicain' },
-  { code: 'TTD',  label: 'TTD — Dollar de T&T' },
-  { code: 'JMD',  label: 'JMD — Dollar Jamaïcain' },
+  { code: 'CAD',  label: 'CAD — Canadian Dollar' },
+  { code: 'GBP',  label: 'GBP — British Pound' },
+  { code: 'XOF',  label: 'XOF — CFA Franc' },
+  { code: 'NGN',  label: 'NGN — Nigerian Naira' },
+  { code: 'GHS',  label: 'GHS — Ghanaian Cedi' },
+  { code: 'INR',  label: 'INR — Indian Rupee' },
+  { code: 'MXN',  label: 'MXN — Mexican Peso' },
+  { code: 'PHP',  label: 'PHP — Philippine Peso' },
+  { code: 'DOP',  label: 'DOP — Dominican Peso' },
+  { code: 'TTD',  label: 'TTD — T&T Dollar' },
+  { code: 'JMD',  label: 'JMD — Jamaican Dollar' },
   { code: 'BTC',  label: 'BTC — Bitcoin' },
   { code: 'ETH',  label: 'ETH — Ethereum' },
   { code: 'USDT', label: 'USDT — Tether' },
@@ -82,18 +82,18 @@ const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual',
 const COMMISSIONS = ['0.5%', '1%', '1.5%', '2%'];
 
 const LANGUAGES = [
-  'Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe',
-  'Arménien','Bengali','Birman','Bosniaque','Bulgare','Catalan','Chinois (Mandarin)',
-  'Chinois (Cantonais)','Coréen','Créole Haïtien','Croate','Danois','Espagnol',
-  'Estonien','Filipino / Tagalog','Finnois','Français','Géorgien','Grec',
-  'Gujarati','Haoussa','Hébreu','Hindi','Hongrois','Igbo','Indonésien','Italien',
-  'Japonais','Kannada','Kazakh','Khmer','Kinyarwanda','Kurde','Laotien','Letton',
-  'Lituanien','Macédonien','Malaisien','Malayalam','Malgache','Maltais','Marathi',
-  'Mongol','Népalais','Néerlandais','Norvégien','Ourdou','Ouzbek','Panjabi',
-  'Persan (Farsi)','Polonais','Portugais (Brésil)','Portugais (Portugal)',
-  'Roumain','Russe','Serbe','Shona','Slovaque','Slovène','Somali','Souahéli',
-  'Suédois','Tamoul','Tchèque','Telugu','Thaï','Turc','Ukrainien','Vietnamien',
-  'Wolof','Xhosa','Yoruba','Zoulou',
+  'Afrikaans','Albanian','Amharic','Arabic','Armenian','Bengali','Bosnian',
+  'Bulgarian','Burmese','Catalan','Chinese (Cantonese)','Chinese (Mandarin)',
+  'Croatian','Czech','Danish','Dutch','English','Estonian','Filipino / Tagalog',
+  'Finnish','French','Georgian','German','Greek','Gujarati','Haitian Creole',
+  'Hausa','Hebrew','Hindi','Hungarian','Igbo','Indonesian','Italian','Japanese',
+  'Kannada','Kazakh','Khmer','Kinyarwanda','Korean','Kurdish','Lao','Latvian',
+  'Lithuanian','Macedonian','Malagasy','Malay','Malayalam','Maltese','Marathi',
+  'Mongolian','Nepali','Norwegian','Persian (Farsi)','Polish',
+  'Portuguese (Brazil)','Portuguese (Portugal)','Punjabi','Romanian','Russian',
+  'Serbian','Shona','Slovak','Slovene','Somali','Spanish','Swahili','Swedish',
+  'Tamil','Telugu','Thai','Turkish','Ukrainian','Urdu','Uzbek','Vietnamese',
+  'Wolof','Xhosa','Yoruba','Zulu',
 ].sort();
 
 export default function CreateTontinePage() {
@@ -113,12 +113,13 @@ export default function CreateTontinePage() {
     commission:   '1%',
     rules:        '',
     confidential: false,
-    inviteEmails: '',
-    language:     'Français',
+    language:     'English',
   });
 
+  const [emailInput, setEmailInput] = useState('');
+  const [emailList,  setEmailList]  = useState<string[]>([]);
+
   const selectedRegion = REGIONS.find(r => r.region === form.region);
-  const tontineName    = form.customName || selectedRegion?.name || '';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -128,22 +129,32 @@ export default function CreateTontinePage() {
     }));
   };
 
+  const addEmail = () => {
+    const email = emailInput.trim();
+    if (email && !emailList.includes(email)) {
+      setEmailList([...emailList, email]);
+      setEmailInput('');
+    }
+  };
+
+  const removeEmail = (email: string) => {
+    setEmailList(emailList.filter(e => e !== email));
+  };
+
   const handleSubmit = async () => {
     setError('');
-    if (!form.region) return setError('Veuillez sélectionner une région.');
-    if (!form.numMembers || parseInt(form.numMembers) < 2) return setError('Minimum 2 membres requis.');
-    if (!form.contribution || parseFloat(form.contribution) <= 0) return setError('Montant invalide.');
-    if (!form.startDate) return setError('Veuillez choisir une date de début.');
+    if (!form.region) return setError('Please select a region.');
+    if (!form.numMembers || parseInt(form.numMembers) < 2) return setError('Minimum 2 members required.');
+    if (!form.contribution || parseFloat(form.contribution) <= 0) return setError('Invalid contribution amount.');
+    if (!form.startDate) return setError('Please choose a start date.');
 
-    const emails = form.inviteEmails.split(',').map(e => e.trim()).filter(Boolean);
     setSaving(true);
-
     try {
       const docRef = await addDoc(collection(db, 'tontines'), {
         region:       form.region,
         regionFlag:   selectedRegion?.flag || '🌍',
         regionalName: selectedRegion?.name || 'Rotating Savings',
-        name:         tontineName,
+        name:         form.customName || selectedRegion?.name || 'Tontine',
         numMembers:   parseInt(form.numMembers),
         contribution: parseFloat(form.contribution),
         currency:     form.currency,
@@ -153,18 +164,18 @@ export default function CreateTontinePage() {
         rules:        form.rules,
         confidential: form.confidential,
         language:     form.language,
-        inviteEmails: emails,
+        inviteEmails: emailList,
         status:       'active',
         createdAt:    serverTimestamp(),
       });
 
-      if (emails.length > 0) {
+      if (emailList.length > 0) {
         await fetch('/api/send-invite', {
-          method:  'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            emails,
-            tontineName,
+            emails:       emailList,
+            tontineName:  form.customName || selectedRegion?.name,
             region:       form.region,
             regionFlag:   selectedRegion?.flag || '🌍',
             contribution: form.contribution,
@@ -180,148 +191,237 @@ export default function CreateTontinePage() {
       setTimeout(() => router.push('/dashboard'), 2500);
     } catch (e) {
       console.error(e);
-      setError('Erreur lors de la création. Vérifiez la console.');
+      setError('Error creating tontine. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const inp: React.CSSProperties = {
-    width: '100%', padding: '10px 14px',
-    border: `1.5px solid ${C.roseMoyen}`,
-    borderRadius: '8px', fontSize: '14px',
-    color: C.texteFonce, background: C.creme,
-    boxSizing: 'border-box',
+    width: '100%', padding: '11px 14px',
+    border: `1.5px solid ${C.roseMoyen}`, borderRadius: '10px',
+    fontSize: '14px', color: C.texteFonce, background: C.creme,
+    boxSizing: 'border-box', outline: 'none',
   };
 
+  const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', marginTop: '8px' }}>
+      <span style={{ fontSize: '16px' }}>{icon}</span>
+      <span style={{ fontSize: '12px', fontWeight: '600', color: C.bordeaux, textTransform: 'uppercase', letterSpacing: '1px' }}>{text}</span>
+      <div style={{ flex: 1, height: '1px', background: C.roseClair }} />
+    </div>
+  );
+
+  const Field = ({ icon, label, required, children }: { icon: string; label: string; required?: boolean; children: React.ReactNode }) => (
+    <div style={{ marginBottom: '18px', flex: 1 }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: C.texteFonce, marginBottom: '7px' }}>
+        {icon} {label} {required && <span style={{ color: '#DC2626', fontSize: '12px' }}>*</span>}
+      </label>
+      {children}
+    </div>
+  );
+
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 16px' }}>
-      <div style={{ background: '#fff', borderRadius: '16px', boxShadow: '0 4px 32px rgba(107,45,78,0.12)', padding: '40px', width: '100%', maxWidth: '700px', border: `1px solid ${C.roseMoyen}` }}>
+    <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px' }}>
+      <div style={{ width: '100%', maxWidth: '720px' }}>
 
-        {/* Header */}
-        <button onClick={() => router.push('/dashboard')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', fontWeight: '600', marginBottom: '12px', padding: 0, display: 'block' }}>
-          ← Retour au Dashboard
-        </button>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', color: C.texteFonce, margin: '0 0 4px' }}>✨ Créer une Tontine</h1>
-        <p style={{ color: C.texteGris, margin: '0 0 8px', fontSize: '14px' }}>Lancez votre groupe d'épargne communautaire</p>
-        <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore})`, borderRadius: '2px', marginBottom: '28px' }} />
+        {/* Gold bar top */}
+        <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '2px 2px 0 0' }} />
 
-        {/* Région */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>🌍 Région / Pays <span style={{ color: 'red' }}>*</span></label>
-          <select name="region" value={form.region} onChange={handleChange} style={inp}>
-            <option value="">— Sélectionner un pays ou une région —</option>
-            {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
-          </select>
-          {selectedRegion && <p style={{ marginTop: '6px', fontSize: '13px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '6px', display: 'inline-block' }}>{selectedRegion.flag} Nom régional : <strong>{selectedRegion.name}</strong></p>}
-        </div>
+        <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.roseMoyen}`, borderTop: 'none', boxShadow: '0 8px 40px rgba(107,45,78,0.1)', overflow: 'hidden' }}>
 
-        {/* Nom personnalisé */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>✏️ Nom personnalisé (optionnel)</label>
-          <input type="text" name="customName" value={form.customName} onChange={handleChange} placeholder={selectedRegion?.name || 'ex: Mon Sol 2026'} style={inp} />
-          {tontineName && <p style={{ marginTop: '4px', fontSize: '13px', color: C.bordeaux }}>Nom final : <strong>{tontineName}</strong></p>}
-        </div>
-
-        {/* Langue */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>🌐 Langue du groupe</label>
-          <select name="language" value={form.language} onChange={handleChange} style={inp}>
-            {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
-          </select>
-        </div>
-
-        {/* Nombre de membres */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>👥 Nombre de membres <span style={{ color: 'red' }}>*</span></label>
-          <input type="number" name="numMembers" value={form.numMembers} onChange={handleChange} min={2} placeholder="ex: 12" style={inp} />
-        </div>
-
-        {/* Contribution + Devise */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>💰 Contribution <span style={{ color: 'red' }}>*</span></label>
-            <input type="number" name="contribution" value={form.contribution} onChange={handleChange} min={1} placeholder="ex: 200" style={inp} />
+          {/* Hero */}
+          <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '32px 40px', position: 'relative' }}>
+            <button onClick={() => router.push('/dashboard')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '16px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              ← Back to Dashboard
+            </button>
+            <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', margin: '0 0 6px' }}>✨ Create a Tontine</h1>
+            <p style={{ color: C.roseClair, fontSize: '14px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
+            <div style={{ position: 'absolute', right: '40px', top: '50%', transform: 'translateY(-50%)', width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(212,175,122,0.15)', border: `2px solid rgba(212,175,122,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
+              🌍
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>Devise</label>
-            <select name="currency" value={form.currency} onChange={handleChange} style={inp}>
-              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
-            </select>
-          </div>
-        </div>
 
-        {/* Fréquence */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>🔄 Fréquence de paiement</label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            {FREQUENCIES.map(f => (
-              <button key={f} onClick={() => setForm(p => ({ ...p, frequency: f }))}
-                style={{ padding: '8px 18px', borderRadius: '20px', border: `2px solid ${form.frequency === f ? C.bordeaux : C.roseMoyen}`, background: form.frequency === f ? C.bordeaux : '#fff', color: form.frequency === f ? '#fff' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
-                {f}
-              </button>
+          {/* Steps */}
+          <div style={{ display: 'flex', padding: '16px 40px', borderBottom: `1px solid ${C.roseClair}`, background: '#FDFAF8', alignItems: 'center' }}>
+            {[{ n: 1, label: 'Group Info' }, { n: 2, label: 'Settings' }, { n: 3, label: 'Members' }].map((s, i) => (
+              <div key={s.n} style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', background: i === 0 ? C.bordeaux : C.roseClair, color: i === 0 ? 'white' : C.texteGris, flexShrink: 0 }}>
+                    {s.n}
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: i === 0 ? C.bordeaux : C.texteGris }}>{s.label}</span>
+                </div>
+                {i < 2 && <div style={{ flex: 1, height: '1px', background: C.roseMoyen, margin: '0 12px' }} />}
+              </div>
             ))}
           </div>
-        </div>
 
-        {/* Date de début */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>📅 Date de début <span style={{ color: 'red' }}>*</span></label>
-          <input type="date" name="startDate" value={form.startDate} onChange={handleChange} style={inp} />
-        </div>
+          {/* Form */}
+          <div style={{ padding: '32px 40px' }}>
 
-        {/* Commission */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>💼 Commission organisateur</label>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {COMMISSIONS.map(c => (
-              <button key={c} onClick={() => setForm(p => ({ ...p, commission: c }))}
-                style={{ padding: '8px 18px', borderRadius: '20px', border: `2px solid ${form.commission === c ? C.bordeaux : C.roseMoyen}`, background: form.commission === c ? C.bordeaux : '#fff', color: form.commission === c ? '#fff' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
-                {c}
-              </button>
-            ))}
+            <SectionTitle icon="🌍" text="Region & Identity" />
+
+            <Field icon="📍" label="Region / Country" required>
+              <select name="region" value={form.region} onChange={handleChange} style={inp}>
+                <option value="">— Select a country or region —</option>
+                {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
+              </select>
+              {selectedRegion && (
+                <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '6px', display: 'inline-block' }}>
+                  {selectedRegion.flag} Regional name: <strong>{selectedRegion.name}</strong>
+                </p>
+              )}
+            </Field>
+
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <Field icon="✏️" label="Custom Name (optional)">
+                <input type="text" name="customName" value={form.customName} onChange={handleChange} placeholder="e.g. My Sol 2026" style={inp} />
+              </Field>
+              <Field icon="🌐" label="Group Language">
+                <select name="language" value={form.language} onChange={handleChange} style={inp}>
+                  {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <SectionTitle icon="💰" text="Financial Settings" />
+
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <Field icon="👥" label="Number of Members" required>
+                <input type="number" name="numMembers" value={form.numMembers} onChange={handleChange} min={2} placeholder="e.g. 12" style={inp} />
+              </Field>
+              <Field icon="💵" label="Contribution Amount" required>
+                <input type="number" name="contribution" value={form.contribution} onChange={handleChange} min={1} placeholder="e.g. 200" style={inp} />
+              </Field>
+              <Field icon="🏦" label="Currency">
+                <select name="currency" value={form.currency} onChange={handleChange} style={inp}>
+                  {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: C.texteFonce, marginBottom: '10px' }}>
+                🔄 Payment Frequency
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {FREQUENCIES.map(f => (
+                  <button key={f} onClick={() => setForm(p => ({ ...p, frequency: f }))}
+                    style={{ padding: '8px 18px', borderRadius: '20px', border: `2px solid ${form.frequency === f ? C.bordeaux : C.roseMoyen}`, background: form.frequency === f ? C.bordeaux : 'white', color: form.frequency === f ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
+              <Field icon="📅" label="Start Date" required>
+                <input type="date" name="startDate" value={form.startDate} onChange={handleChange} style={inp} />
+              </Field>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: C.texteFonce, marginBottom: '10px' }}>
+                  💼 Organizer Commission
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {COMMISSIONS.map(c => (
+                    <button key={c} onClick={() => setForm(p => ({ ...p, commission: c }))}
+                      style={{ flex: 1, padding: '9px 0', borderRadius: '10px', border: `2px solid ${form.commission === c ? C.bordeaux : C.roseMoyen}`, background: form.commission === c ? C.bordeaux : 'white', color: form.commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Field icon="📜" label="Group Rules">
+              <textarea name="rules" value={form.rules} onChange={handleChange} rows={3}
+                placeholder="e.g. Payment before the 5th of the month. $10 penalty per late payment..."
+                style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
+            </Field>
+
+            <SectionTitle icon="👥" text="Members & Privacy" />
+
+            {/* Confidential */}
+            <div onClick={() => setForm(p => ({ ...p, confidential: !p.confidential }))}
+              style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px', background: form.confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${form.confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', marginBottom: '20px', cursor: 'pointer' }}>
+              <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${form.confidential ? C.bordeaux : C.roseMoyen}`, background: form.confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', flexShrink: 0 }}>
+                {form.confidential ? '✓' : ''}
+              </div>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: C.texteFonce }}>🔒 Confidential Mode</div>
+                <div style={{ fontSize: '12px', color: C.texteGris, marginTop: '2px' }}>Members only see their TYN-ID, not each other's names</div>
+              </div>
+            </div>
+
+            {/* Email invite */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: C.texteFonce, marginBottom: '10px' }}>
+                📧 Invite Members by Email
+              </label>
+              <div style={{ background: C.creme, border: `1.5px dashed ${C.roseMoyen}`, borderRadius: '12px', padding: '16px' }}>
+                {emailList.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                    {emailList.map(email => (
+                      <span key={email} style={{ background: C.roseClair, color: C.bordeaux, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {email}
+                        <button onClick={() => removeEmail(email)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', padding: 0, lineHeight: 1 }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="email" value={emailInput} onChange={e => setEmailInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addEmail()}
+                    placeholder="e.g. member@gmail.com"
+                    style={{ ...inp, flex: 1, background: 'white' }} />
+                  <button onClick={addEmail}
+                    style={{ padding: '11px 18px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                    + Add
+                  </button>
+                </div>
+                <p style={{ fontSize: '12px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add — each member receives a personalized invitation</p>
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>
+                ⚠️ {error}
+              </div>
+            )}
+
+            {/* Success */}
+            {saved && (
+              <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', padding: '12px 16px', color: '#16A34A', fontSize: '14px', marginBottom: '20px' }}>
+                ✅ Tontine created! Invitations sent. Redirecting...
+              </div>
+            )}
+
+            {/* Button */}
+            <button onClick={handleSubmit} disabled={saving || saved}
+              style={{
+                width: '100%', padding: '15px',
+                background: saving || saved ? C.roseMoyen : C.bordeaux,
+                color: saving || saved ? C.texteGris : 'white',
+                border: 'none', borderRadius: '12px',
+                fontSize: '15px', fontWeight: '700',
+                cursor: saving || saved ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                boxShadow: saving || saved ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`,
+              }}>
+              {saving ? '⏳ Creating...' : saved ? '✅ Created!' : '🚀 Create Tontine'}
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: '12px', color: C.texteGris, marginTop: '16px' }}>
+              TARSYN — Your Community. Your Power. 🌍
+            </p>
           </div>
         </div>
 
-        {/* Règles */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>📜 Règles du groupe</label>
-          <textarea name="rules" value={form.rules} onChange={handleChange} rows={4}
-            placeholder="ex: Paiement avant le 5 du mois. Pénalité de 10$ par retard..."
-            style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
-        </div>
-
-        {/* Mode confidentiel */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', padding: '14px 16px', background: C.roseClair, borderRadius: '10px', border: `1px solid ${C.roseMoyen}` }}>
-          <input type="checkbox" name="confidential" id="confidential" checked={form.confidential} onChange={handleChange}
-            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: C.bordeaux }} />
-          <label htmlFor="confidential" style={{ fontSize: '14px', color: C.texteFonce, cursor: 'pointer', fontWeight: '500' }}>
-            🔒 Mode confidentiel — Les membres ne voient que leur TYN-ID
-          </label>
-        </div>
-
-        {/* Inviter membres */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: '600', color: C.texteFonce, marginBottom: '6px', fontSize: '14px' }}>📧 Inviter des membres par email</label>
-          <input type="text" name="inviteEmails" value={form.inviteEmails} onChange={handleChange}
-            placeholder="email1@gmail.com, email2@yahoo.com, ..." style={inp} />
-          <p style={{ fontSize: '12px', color: C.texteGris, margin: '4px 0 0' }}>Séparez les emails par des virgules</p>
-        </div>
-
-        {/* Erreur */}
-        {error && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>⚠️ {error}</div>}
-
-        {/* Succès */}
-        {saved && <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '12px 16px', color: '#16A34A', fontSize: '14px', marginBottom: '20px' }}>✅ Tontine créée ! Redirection...</div>}
-
-        {/* Bouton */}
-        <button onClick={handleSubmit} disabled={saving || saved}
-          style={{ width: '100%', padding: '15px', background: saving || saved ? C.roseMoyen : `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, color: saving || saved ? C.texteGris : '#fff', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '700', cursor: saving || saved ? 'not-allowed' : 'pointer', boxShadow: `0 4px 16px rgba(107,45,78,0.3)` }}>
-          {saving ? '⏳ Création en cours...' : saved ? '✅ Créée !' : '🚀 Créer la Tontine'}
-        </button>
-
-        <p style={{ textAlign: 'center', fontSize: '12px', color: C.texteGris, marginTop: '16px' }}>TARSYN — Your Community. Your Power. 🌍</p>
+        {/* Gold bar bottom */}
+        <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '0 0 2px 2px' }} />
       </div>
     </div>
   );
