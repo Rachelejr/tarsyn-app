@@ -16,6 +16,15 @@ const C = {
 };
 
 const REGIONS = [
+  // North America
+  { region: 'United States',        flag: '🇺🇸', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'Canada',               flag: '🇨🇦', name: 'Sou-Sou / Rotating Savings' },
+  // Europe
+  { region: 'United Kingdom',       flag: '🇬🇧', name: 'Pardner' },
+  { region: 'France',               flag: '🇫🇷', name: 'Tontine' },
+  { region: 'Belgium',              flag: '🇧🇪', name: 'Tontine' },
+  { region: 'Switzerland',          flag: '🇨🇭', name: 'Tontine' },
+  // Africa
   { region: 'West Africa',          flag: '🌍', name: 'Tontine' },
   { region: 'Cameroon',             flag: '🇨🇲', name: 'Njangi' },
   { region: 'Congo (DRC)',          flag: '🇨🇩', name: 'Likelemba' },
@@ -25,6 +34,7 @@ const REGIONS = [
   { region: 'Ivory Coast',          flag: '🇨🇮', name: 'Tontine' },
   { region: 'Kenya',                flag: '🇰🇪', name: 'Chama' },
   { region: 'Ethiopia',             flag: '🇪🇹', name: 'Iqub' },
+  // Caribbean & Antilles
   { region: 'Haiti',                flag: '🇭🇹', name: 'Sol' },
   { region: 'Dominican Republic',   flag: '🇩🇴', name: 'San / Mutualidad' },
   { region: 'Jamaica',              flag: '🇯🇲', name: 'Partner' },
@@ -40,6 +50,7 @@ const REGIONS = [
   { region: 'Saint Lucia',          flag: '🇱🇨', name: 'Sou-Sou' },
   { region: 'Saint Vincent',        flag: '🇻🇨', name: 'Sou-Sou' },
   { region: 'Antigua & Barbuda',    flag: '🇦🇬', name: 'Meeting Turn' },
+  // Latin America
   { region: 'Mexico',               flag: '🇲🇽', name: 'Tanda' },
   { region: 'Guatemala',            flag: '🇬🇹', name: 'Cundina' },
   { region: 'Honduras',             flag: '🇭🇳', name: 'Cundina' },
@@ -48,12 +59,14 @@ const REGIONS = [
   { region: 'Peru',                 flag: '🇵🇪', name: 'Pandero' },
   { region: 'Bolivia',              flag: '🇧🇴', name: 'Pasanaku' },
   { region: 'Ecuador',              flag: '🇪🇨', name: 'Pandero' },
+  // Asia
   { region: 'India',                flag: '🇮🇳', name: 'Chit Fund' },
   { region: 'Philippines',          flag: '🇵🇭', name: 'Paluwagan' },
   { region: 'Vietnam',              flag: '🇻🇳', name: 'Hui' },
   { region: 'China',                flag: '🇨🇳', name: 'Hui' },
   { region: 'South Korea',          flag: '🇰🇷', name: 'Gye' },
   { region: 'Japan',                flag: '🇯🇵', name: 'Ko' },
+  // General
   { region: 'Other / General',      flag: '🌍', name: 'Rotating Savings' },
 ];
 
@@ -225,7 +238,6 @@ export default function CreateTontinePage() {
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px' }}>
       <div style={{ width: '100%', maxWidth: '720px' }}>
 
-        {/* Gold bar top */}
         <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '2px 2px 0 0' }} />
 
         <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.roseMoyen}`, borderTop: 'none', boxShadow: '0 8px 40px rgba(107,45,78,0.1)', overflow: 'hidden' }}>
@@ -343,7 +355,6 @@ export default function CreateTontinePage() {
 
             <SectionTitle icon="👥" text="Members & Privacy" />
 
-            {/* Confidential */}
             <div onClick={() => setForm(p => ({ ...p, confidential: !p.confidential }))}
               style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px', background: form.confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${form.confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', marginBottom: '20px', cursor: 'pointer' }}>
               <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${form.confidential ? C.bordeaux : C.roseMoyen}`, background: form.confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', flexShrink: 0 }}>
@@ -355,7 +366,6 @@ export default function CreateTontinePage() {
               </div>
             </div>
 
-            {/* Email invite */}
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: C.texteFonce, marginBottom: '10px' }}>
                 📧 Invite Members by Email
@@ -385,21 +395,18 @@ export default function CreateTontinePage() {
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>
                 ⚠️ {error}
               </div>
             )}
 
-            {/* Success */}
             {saved && (
               <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', padding: '12px 16px', color: '#16A34A', fontSize: '14px', marginBottom: '20px' }}>
                 ✅ Tontine created! Invitations sent. Redirecting...
               </div>
             )}
 
-            {/* Button */}
             <button onClick={handleSubmit} disabled={saving || saved}
               style={{
                 width: '100%', padding: '15px',
@@ -420,7 +427,6 @@ export default function CreateTontinePage() {
           </div>
         </div>
 
-        {/* Gold bar bottom */}
         <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '0 0 2px 2px' }} />
       </div>
     </div>
