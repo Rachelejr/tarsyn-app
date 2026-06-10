@@ -1,47 +1,27 @@
-export const dynamic = 'force-dynamic';
+﻿export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { SignJWT } from 'jose';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'tarsyn-secret-key');
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, code } = await req.json();
-
-    const token = await new SignJWT({ email, code })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('10m')
-      .sign(secret);
-
+    const { email } = await req.json();
+    if (!email) {
+      return NextResponse.json({ error: 'Email requis' }, { status: 400 });
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
     await resend.emails.send({
       from: 'TARSYN <noreply@tarsyn-app.com>',
       to: email,
-      subject: '🔐 Your TARSYN verification code',
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#FAF0E6;border-radius:16px;">
-          <h2 style="color:#6B2D4E;text-align:center;">Your verification code</h2>
-          <div style="background:#6B2D4E;color:#D4AF7A;font-size:36px;font-weight:700;text-align:center;padding:24px;border-radius:12px;letter-spacing:8px;">
-            ${code}
-          </div>
-          <p style="color:#7A5068;text-align:center;margin-top:16px;font-size:13px;">
-            This code expires in 10 minutes. Do not share it with anyone.
-          </p>
-        </div>
-      `,
+      subject: 'Code de verification TARSYN',
+      html: '<p>' + code + '</p>',
     });
-
-    const res = NextResponse.json({ success: true });
-    res.cookies.set('otp_token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 600,
-    });
-    return res;
+    return NextResponse.json({ success: true, code });
   } catch (error) {
-    console.error('Send 2FA error:', error);
-    return NextResponse.json({ error: 'Failed to send code' }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
