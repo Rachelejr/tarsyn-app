@@ -250,7 +250,7 @@ export default function CreateTontinePage() {
             </button>
             <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', margin: '0 0 6px' }}>✨ Create a Tontine</h1>
             <p style={{ color: C.roseClair, fontSize: '14px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
-            <
+            
           </div>
 
           {/* Steps */}
