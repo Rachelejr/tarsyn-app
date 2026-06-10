@@ -1,19 +1,18 @@
-﻿'use client';
+'use client';
 import { useState } from 'react';
-import { createUserWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
 export default function RegisterPage() {
-  const [name, setName]             = useState('');
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
-  const [confirm, setConfirm]       = useState('');
-  const [showPass, setShowPass]     = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError]           = useState('');
-  const [loading, setLoading]       = useState(false);
-  const [success, setSuccess]       = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '13px 16px',
@@ -25,25 +24,16 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (password !== confirm) {
-      setError('Passwords do not match.');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
+    if (password !== confirm) { setError('Passwords do not match.'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true);
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(result.user);
       await setDoc(doc(db, 'users', result.user.uid), {
-        name,
-        email,
-        role: 'member',
-        createdAt: new Date().toISOString(),
+        name, email, role: 'admin', createdAt: new Date().toISOString(),
       });
-      setSuccess(true);
+      // Redirect to dashboard where admin creates their group
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       if (err instanceof Error) {
         if (err.message.includes('email-already-in-use')) {
@@ -64,37 +54,15 @@ export default function RegisterPage() {
       await setDoc(doc(db, 'users', result.user.uid), {
         name: result.user.displayName || '',
         email: result.user.email || '',
-        role: 'member',
+        role: 'admin',
         createdAt: new Date().toISOString(),
       }, { merge: true });
-      window.location.href = '/member';
+      // Redirect to dashboard where admin creates their group
+      window.location.href = '/dashboard';
     } catch {
       setError('Google sign-up failed. Please try again.');
     }
   };
-
-  if (success) {
-    return (
-      <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
-        <Nav/>
-        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
-          <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',textAlign:'center',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
-            <div style={{fontSize:'64px',marginBottom:'16px'}}></div>
-            <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Check your email!</h2>
-            <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.6',marginBottom:'24px'}}>
-              We sent a verification link to<br/>
-              <strong style={{color:'#6B2D4E'}}>{email}</strong><br/>
-              Click the link to activate your account.
-            </p>
-            <a href="/login" style={{display:'block',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',borderRadius:'10px',fontSize:'15px',fontWeight:'700',textDecoration:'none'}}>
-              Go to Sign In
-            </a>
-          </div>
-        </div>
-        <Footer/>
-      </div>
-    );
-  }
 
   return (
     <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
@@ -102,14 +70,14 @@ export default function RegisterPage() {
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
         <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
           <div style={{textAlign:'center',marginBottom:'32px'}}>
-            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#D4AF7A'}}></div>
+            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#D4AF7A',fontWeight:'700'}}>T</div>
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
             <p style={{color:'#7A5068',fontSize:'14px'}}>Join the <strong style={{color:'#D4AF7A'}}>TARSYN</strong> community</p>
           </div>
 
           {error && (
             <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
-               {error}
+              {error}
             </div>
           )}
 
@@ -125,31 +93,33 @@ export default function RegisterPage() {
             <div style={{marginBottom:'16px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Password</label>
               <div style={{position:'relative'}}>
-                <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="" style={{...inp,paddingRight:'44px'}}/>
+                <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min. 6 characters" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowPass(!showPass)}
-                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#7A5068'}}>
-                  {showPass?'':''}
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'14px',color:'#7A5068',fontWeight:'600'}}>
+                  {showPass?'Hide':'Show'}
                 </button>
               </div>
             </div>
             <div style={{marginBottom:'24px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Confirm Password</label>
               <div style={{position:'relative'}}>
-                <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="" style={{...inp,paddingRight:'44px'}}/>
+                <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Repeat password" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowConfirm(!showConfirm)}
-                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#7A5068'}}>
-                  {showConfirm?'':''}
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'14px',color:'#7A5068',fontWeight:'600'}}>
+                  {showConfirm?'Hide':'Show'}
                 </button>
               </div>
             </div>
             <button type="submit" disabled={loading}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
-              {loading ? ' Creating account...' : ' Create Free Account'}
+              {loading ? 'Creating account...' : 'Create Free Account'}
             </button>
           </form>
 
           <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#7A5068',fontSize:'12px'}}>
-            <div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>or continue with<div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>
+            <div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>
+            or continue with
+            <div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>
           </div>
 
           <button onClick={handleGoogle}
@@ -171,11 +141,13 @@ export default function RegisterPage() {
 function Nav() {
   return (
     <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
-      <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}></div>
-      <div>
-        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px'}}>TARSYN</div>
-        <div style={{color:'#D4AF7A',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
-      </div>
+      <a href="/" style={{display:'flex',alignItems:'center',gap:'12px',textDecoration:'none'}}>
+        <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',fontWeight:'700',color:'#6B2D4E'}}>T</div>
+        <div>
+          <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px'}}>TARSYN</div>
+          <div style={{color:'#D4AF7A',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
+        </div>
+      </a>
     </nav>
   );
 }
@@ -183,7 +155,7 @@ function Nav() {
 function Footer() {
   return (
     <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(250,240,230,0.6)',fontSize:'12px'}}>
-      <span style={{color:'#D4AF7A'}}>TARSYN</span>   2026 Your Community. Your Power.
+      <span style={{color:'#D4AF7A'}}>TARSYN</span> — 2026 Your Community. Your Power.
     </footer>
   );
 }
@@ -198,4 +170,3 @@ function GoogleIcon() {
     </svg>
   );
 }
-
