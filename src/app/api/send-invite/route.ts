@@ -4,10 +4,11 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 export async function POST(req: NextRequest) {
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const { emails, tontineName, contribution, currency, frequency, startDate, tontineId } = await req.json();
     if (!emails || emails.length === 0) {
       return NextResponse.json({ error: 'Aucun email fourni' }, { status: 400 });
@@ -28,3 +29,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
+
