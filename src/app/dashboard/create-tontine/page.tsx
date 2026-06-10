@@ -250,9 +250,7 @@ export default function CreateTontinePage() {
             </button>
             <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', margin: '0 0 6px' }}>✨ Create a Tontine</h1>
             <p style={{ color: C.roseClair, fontSize: '14px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
-            <div style={{ position: 'absolute', right: '40px', top: '50%', transform: 'translateY(-50%)', width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(212,175,122,0.15)', border: `2px solid rgba(212,175,122,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
-              🌍
-            </div>
+            <
           </div>
 
           {/* Steps */}
