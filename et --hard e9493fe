@@ -1,0 +1,107 @@
+[33m7f6c34e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m HEAD@{0}: commit: force redeploy
+[33me9493fe[m HEAD@{1}: commit: fix: init Resend inside function
+[33mca9cb57[m HEAD@{2}: commit: fix: remove broken auth API routes
+[33me51179f[m HEAD@{3}: commit: fix: overwrite send-invite
+[33m57cf5ae[m HEAD@{4}: commit: fix: overwrite send-2fa
+[33m5401737[m HEAD@{5}: commit: fix: rewrite send-2fa without JWT
+[33me8120e2[m HEAD@{6}: commit: fix: force dynamic all API routes
+[33mf482bae[m HEAD@{7}: commit: fix: clean send-invite route
+[33mbc18a55[m HEAD@{8}: commit: fix: send-invite route syntax
+[33m2b36f7f[m HEAD@{9}: commit: fix: force dynamic for send-invite API route
+[33md6012e1[m HEAD@{10}: commit: feat: Firebase-connected dashboard, no hardcoded data
+[33mb512b6c[m HEAD@{11}: commit: feat: real page navigation + logo link + remove ADMIN_EMAILS
+[33m4ef9643[m HEAD@{12}: commit: fix: dashboard no emojis UTF8
+[33m27542b4[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{13}: merge main: Fast-forward
+[33ma8cf987[m HEAD@{14}: checkout: moving from main to master
+[33m27542b4[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{15}: commit: fix: member page no emojis UTF8
+[33madeb9fd[m HEAD@{16}: commit: fix: member page clean
+[33mfb1c3c7[m HEAD@{17}: commit: fix: revert member page to working version
+[33mcd9b98f[m HEAD@{18}: commit: force: redeploy latest code
+[33mdca46a7[m HEAD@{19}: commit: fix: restore dashboard from b3f2bb5
+[33m95376f8[m HEAD@{20}: commit: fix: restore dashboard page
+[33m59e60bd[m HEAD@{21}: commit: fix: typing bug fixed + globe removed
+[33me65c693[m HEAD@{22}: commit: fix: remove globe remnant
+[33m4fdadc0[m HEAD@{23}: commit: fix: remove globe icon
+[33mfbdc9e7[m HEAD@{24}: commit: feat: add United States + redesign
+[33m07ad58f[m HEAD@{25}: commit: feat: create-tontine beautiful redesign
+[33m017e3d1[m HEAD@{26}: commit: feat: create-tontine page restored
+[33mad8393b[m HEAD@{27}: commit: fix: member page corrigé
+[33mc8478d3[m HEAD@{28}: commit: fix: route send-invite corrigé
+[33mb3f2bb5[m HEAD@{29}: commit: fix: create-tontine page final
+[33m6c01476[m HEAD@{30}: commit: fix: rename page.tsgit en page.tsx
+[33m8c52ecb[m HEAD@{31}: commit: fix: couleurs + pays + langues tontine
+[33m2ae3ae8[m HEAD@{32}: commit: feat: send-invite email + create-tontine page
+[33mcae035b[m HEAD@{33}: commit: feat: create-tontine v2 final
+[33m984d068[m HEAD@{34}: commit: fix: logo links to home
+[33m69a1d75[m HEAD@{35}: commit: fix: remove orphan return statement line 167
+[33m736a25c[m HEAD@{36}: commit: fix: restore working member page
+[33mf804531[m HEAD@{37}: commit: trigger: redeploy create-tontine
+[33mbc2018e[m HEAD@{38}: commit: fix: member page syntax corrected
+[33m1a28f57[m HEAD@{39}: commit: fix: ignore typescript errors in build
+[33m2997dd7[m HEAD@{40}: commit: feat: page creation tontine
+[33mad0cc10[m HEAD@{41}: commit: chore: remove empty create-tontine
+[33m03a62f6[m HEAD@{42}: commit: feat: page creation tontine
+[33ma04e08f[m HEAD@{43}: commit: feat: page creation tontine complete
+[33mef403a7[m HEAD@{44}: commit: feat: page creation tontine
+[33mb90816d[m HEAD@{45}: commit: fix: setEditingProfile inside try block
+[33mbb58f3a[m HEAD@{46}: commit: fix: setDoc with profile data merge
+[33mf1b4d48[m HEAD@{47}: commit: fix: remove duplicate setDoc line
+[33mc0be842[m HEAD@{48}: commit: fix: restore setDoc line
+[33meda707f[m HEAD@{49}: commit: fix: remove accidental terminal command from file
+[33m7780c5b[m HEAD@{50}: commit: fix: profile save
+[33m7fea880[m HEAD@{51}: commit: fix: setDoc merge profile
+[33m9e330f1[m HEAD@{52}: commit: fix: use setDoc merge for profile update
+[33m9553f79[m HEAD@{53}: commit: fix: install jose package
+[33m9b243fc[m HEAD@{54}: commit: feat: member page 16 features
+[33m819eba0[m HEAD@{55}: commit: feat: complete member page with 16 features
+[33m9e6f799[m HEAD@{56}: commit: feat: complete member page with 16 features
+[33m2585412[m HEAD@{57}: commit: fix: verify 2FA via API route
+[33mb4a7878[m HEAD@{58}: commit: fix: 2FA verify with JWT cookie
+[33mdf29f5e[m HEAD@{59}: commit: feat: show/hide confirm password
+[33m234f4b7[m HEAD@{60}: commit: feat: register page complete
+[33mf8b20b8[m HEAD@{61}: commit: feat: add send-2fa API route
+[33m84265b9[m HEAD@{62}: commit: fix: restore login page with correct redirectByRole
+[33m0282aa6[m HEAD@{63}: commit: fix: save login page
+[33m5b7fe59[m HEAD@{64}: commit: fix: login page TypeScript errors
+[33m81f4f27[m HEAD@{65}: commit: trigger: force vercel redeploy
+[33mb33c0bd[m HEAD@{66}: commit: fix: add register page placeholder
+[33m15a539a[m HEAD@{67}: commit: fix: remove send-2fa, clean next.config
+[33md34f38b[m HEAD@{68}: pull origin main --rebase: Fast-forward
+[33m9616754[m HEAD@{69}: commit: remove send-2fa folder
+[33ma58a3ff[m HEAD@{70}: commit: update next config
+[33m24b2f70[m HEAD@{71}: commit: disable turbopack
+[33m6507938[m HEAD@{72}: commit: route.ts LF final
+[33m3de6532[m HEAD@{73}: commit: fix next config
+[33m7b0c3d0[m HEAD@{74}: commit: disable turbopack utf8 issue
+[33mebcc924[m HEAD@{75}: commit: clean register page
+[33mfe10111[m HEAD@{76}: commit: trigger new build
+[33m9662947[m HEAD@{77}: commit: trigger new build
+[33mdfd3f0b[m HEAD@{78}: commit: fix route.ts manual
+[33m624561d[m HEAD@{79}: commit: fix register page clean
+[33m10b14fc[m HEAD@{80}: commit: save role Firestore register
+[33ma30cc4d[m HEAD@{81}: commit: role-based redirect login
+[33m9b3a8ff[m HEAD@{82}: commit: add member space /member
+[33m263c915[m HEAD@{83}: commit: add member space /member
+[33med0f08c[m HEAD@{84}: commit: restrict dashboard to admin only
+[33m403b539[m HEAD@{85}: commit: fix route.ts
+[33m5cc3d3d[m HEAD@{86}: commit: fix route.ts utf-8 clean
+[33m67fda6d[m HEAD@{87}: commit: add program types, home button, admin link
+[33m72aee5f[m HEAD@{88}: commit: add super admin panel
+[33m14ba97f[m HEAD@{89}: commit: add super admin panel
+[33m772b3d9[m HEAD@{90}: commit: add forgot password page
+[33mb2a5db8[m HEAD@{91}: commit: fix build remove bad folder
+[33m99c28f5[m HEAD@{92}: commit: fix login resend
+[33m12928df[m HEAD@{93}: commit: add Resend 2FA route
+[33m73ce85d[m HEAD@{94}: commit: add Resend 2FA
+[33m5032979[m HEAD@{95}: commit: add emailjs 2FA
+[33m57e9e8d[m HEAD@{96}: commit: add 2FA login register
+[33m3a83f90[m HEAD@{97}: commit: update dashboard and home page
+[33m6048260[m HEAD@{98}: commit: complete SPA dashboard
+[33mf9909f1[m HEAD@{99}: commit: complete dashboard final
+[33mdac20aa[m HEAD@{100}: commit: fix page location
+[33me3a8f14[m HEAD@{101}: commit: update colors
+[33maeedfe5[m HEAD@{102}: commit: update home page
+[33m2a82b5d[m HEAD@{103}: commit: fix: firebase config
+[33m91b421f[m HEAD@{104}: commit: redeploy
+[33ma8cf987[m HEAD@{105}: checkout: moving from master to main
+[33ma8cf987[m HEAD@{106}: commit (initial): TARSYN v1
