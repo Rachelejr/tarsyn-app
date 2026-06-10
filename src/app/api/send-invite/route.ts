@@ -1,51 +1,31 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-
-export const dynamic = 'force-dynamic';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    const { emails, tontineName, region, regionFlag, contribution, currency, frequency, startDate, tontineId } = await req.json();
-
-    if (!emails || emails.length === 0) {
-      return NextResponse.json({ error: 'Aucun email fourni' }, { status: 400 });
+    const { email } = await req.json();
+    if (!email) {
+      return NextResponse.json({ error: 'Email requis' }, { status: 400 });
     }
-
-    const results = [];
-    for (const email of emails) {
-      const result = await resend.emails.send({
-        from: 'TARSYN <noreply@tarsyn-app.com>',
-        to: email,
-        subject: `Invitation a rejoindre ${tontineName} — TARSYN`,
-        html: `<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;background:#FAF0E6;">
-          <div style="background:#6B2D4E;padding:32px 40px;text-align:center;">
-            <h1 style="color:#D4AF7A;font-size:28px;margin:0;letter-spacing:2px;">TARSYN</h1>
-            <p style="color:#EDD9E5;margin:6px 0 0;font-size:13px;">YOUR COMMUNITY. YOUR POWER.</p>
-          </div>
-          <div style="padding:36px 40px;background:#fff;">
-            <h2 style="color:#2C1A24;">Rejoignez ${tontineName}</h2>
-            <p style="color:#2C1A24;">Region: ${region}</p>
-            <p style="color:#2C1A24;">Contribution: ${contribution} ${currency}</p>
-            <p style="color:#2C1A24;">Frequence: ${frequency}</p>
-            <p style="color:#2C1A24;">Debut: ${startDate}</p>
-            <a href="https://tarsyn-app.com/register?tontineId=${tontineId}"
-               style="display:inline-block;background:#6B2D4E;color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;margin-top:20px;">
-              Accepter l'invitation
-            </a>
-          </div>
-          <div style="background:#EDD9E5;padding:20px;text-align:center;">
-            <p style="color:#7A5068;font-size:12px;margin:0;">2026 TARSYN — tarsyn-app.com</p>
-          </div>
-        </div>`,
-      });
-      results.push({ email, id: result.data?.id });
-    }
-
-    return NextResponse.json({ success: true, sent: results.length, results });
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    await resend.emails.send({
+      from: 'TARSYN <noreply@tarsyn-app.com>',
+      to: email,
+      subject: 'Code de verification TARSYN',
+      html: `<div style="font-family:Georgia,serif;max-width:500px;margin:0 auto;padding:32px;background:#FAF0E6;">
+        <h2 style="color:#6B2D4E;">Code de verification</h2>
+        <p style="font-size:32px;font-weight:700;color:#6B2D4E;letter-spacing:8px;">${code}</p>
+        <p style="color:#7A5068;font-size:13px;">Ce code expire dans 10 minutes.</p>
+      </div>`,
+    });
+    return NextResponse.json({ success: true, code });
   } catch (error) {
-    console.error('Erreur envoi email:', error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    console.error('Erreur send-2fa:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
