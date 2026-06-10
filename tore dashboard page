@@ -1,0 +1,10 @@
+[33m59e60bd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: typing bug fixed + globe removed
+[33me65c693[m fix: remove globe remnant
+[33m4fdadc0[m fix: remove globe icon
+[33mfbdc9e7[m feat: add United States + redesign
+[33m07ad58f[m feat: create-tontine beautiful redesign
+[33m017e3d1[m feat: create-tontine page restored
+[33mad8393b[m fix: member page corrigé
+[33mc8478d3[m fix: route send-invite corrigé
+[33mb3f2bb5[m fix: create-tontine page final
+[33m6c01476[m fix: rename page.tsgit en page.tsx
