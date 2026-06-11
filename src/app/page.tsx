@@ -2,18 +2,18 @@
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#FAF0E6] flex flex-col">
-      <nav className="flex items-center justify-between px-8 py-5">
-        <span className="font-bold text-2xl text-[#6B2D4E]">TARSYN</span>
-        <div className="flex gap-4">
-          <Link href="/login" className="px-5 py-2 text-[#6B2D4E]">Sign In</Link>
-          <Link href="/register" className="px-5 py-2 bg-[#6B2D4E] text-white rounded-lg">Get Started</Link>
+    <main style={{minHeight:"100vh",background:"#FAF0E6",display:"flex",flexDirection:"column"}}>
+      <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"20px 32px",borderBottom:"1px solid #D4AF7A"}}>
+        <span style={{fontWeight:800,fontSize:"24px",color:"#6B2D4E"}}>TARSYN</span>
+        <div style={{display:"flex",gap:"16px"}}>
+          <Link href="/login" style={{padding:"8px 20px",color:"#6B2D4E",border:"1px solid #6B2D4E",borderRadius:"8px",textDecoration:"none"}}>Sign In</Link>
+          <Link href="/register" style={{padding:"8px 20px",background:"#6B2D4E",color:"white",borderRadius:"8px",textDecoration:"none"}}>Get Started</Link>
         </div>
       </nav>
-      <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24 gap-8">
-        <h1 className="text-5xl font-extrabold text-[#6B2D4E]">Your community. Your power.</h1>
-        <p className="text-xl text-[#6B2D4E]/70 max-w-xl">TARSYN automates your rotating savings group.</p>
-        <Link href="/register" className="px-8 py-3 bg-[#6B2D4E] text-white rounded-xl font-semibold">Create My Group</Link>
+      <section style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"80px 24px"}}>
+        <h1 style={{fontSize:"48px",fontWeight:800,color:"#6B2D4E",marginBottom:"24px"}}>Your community. Your power.</h1>
+        <p style={{fontSize:"20px",color:"#6B2D4E",opacity:0.7,maxWidth:"500px",marginBottom:"40px"}}>TARSYN automates your rotating savings group. No spreadsheets. No missed payments.</p>
+        <Link href="/register" style={{padding:"16px 40px",background:"#6B2D4E",color:"white",borderRadius:"12px",fontWeight:700,fontSize:"18px",textDecoration:"none"}}>Create My Group</Link>
       </section>
     </main>
   );
