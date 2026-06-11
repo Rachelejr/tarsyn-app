@@ -18,9 +18,10 @@ export default function LoginPage() {
   const [resendMsg, setResendMsg] = useState('');
 
   const redirectByRole = async (uid: string) => {
-    const snap = await getDoc(doc(db, 'users', uid));
-    const role = snap.data()?.role;
-    if (role === 'superadmin' || role === 'organizer') {
+    const mq = query(collection(db, "members"), where("email", "==", (await import("firebase/auth")).getAuth().currentUser?.email ?? ""));
+    const ms = await getDocs(mq);
+    const role = ms.empty ? null : ms.docs[0].data()?.role;
+    if (role === 'superadmin' || role === 'organizer' || role === 'admin') {
       window.location.href = '/dashboard';
     } else {
       window.location.href = '/member';
@@ -297,3 +298,5 @@ function GoogleIcon() {
     </svg>
   );
 }
+
+
