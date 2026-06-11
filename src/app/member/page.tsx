@@ -1,642 +1,410 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-const MEMBER_DATA = {
-  tynId: 'TYN-000003',
-  groupName: 'Tontine 2026',
-  contributionAmount: 200,
-  currency: { code: 'USD', symbol: '$', flag: 'US' },
-  frequency: 'Monthly',
-  totalMembers: 8,
-  position: 3,
-  myPaymentDate: 'Jun 1, 2026',
-  joinedDate: 'Apr 1, 2026',
-  score: 60,
-  status: 'Unpaid',
-};
-
-const PAYMENT_HISTORY = [
-  { id: 'PAY-001', date: 'May 1, 2026', amount: 200, status: 'Paid', cycle: 1, receipt: 'REC-001' },
-  { id: 'PAY-002', date: 'Apr 1, 2026', amount: 200, status: 'Paid', cycle: 0, receipt: 'REC-000' },
-];
-
-const CYCLE_VIEW = [
-  { position: 1, date: 'May 1, 2026', status: 'Received' },
-  { position: 2, date: 'May 15, 2026', status: 'Received' },
-  { position: 3, date: 'Jun 1, 2026', status: 'Upcoming' },
-  { position: 4, date: 'Jun 6, 2026', status: 'Upcoming' },
-  { position: 5, date: 'Jun 20, 2026', status: 'Upcoming' },
-  { position: 6, date: 'Jul 4, 2026', status: 'Upcoming' },
-  { position: 7, date: 'Jul 18, 2026', status: 'Upcoming' },
-  { position: 8, date: 'Aug 1, 2026', status: 'Upcoming' },
-];
-
-const NOTIFICATIONS = [
-  { id: 1, type: 'warning', text: 'Payment due in 5 days - Jun 1, 2026', time: '2 hours ago', read: false },
-  { id: 2, type: 'success', text: 'Receipt REC-001 generated', time: 'May 1, 2026', read: true },
-  { id: 3, type: 'info', text: 'Cycle 3 starts Jun 1, 2026 - your turn!', time: 'Apr 28, 2026', read: true },
-];
-
-const DOCUMENTS = [
-  { id: 'DOC-001', name: 'Receipt REC-001 - May 2026', type: 'receipt', date: 'May 1, 2026', size: '245 KB' },
-  { id: 'DOC-002', name: 'Receipt REC-000 - Apr 2026', type: 'receipt', date: 'Apr 1, 2026', size: '238 KB' },
-  { id: 'DOC-003', name: 'Group Contract - Tontine 2026', type: 'contract', date: 'Apr 1, 2026', size: '1.2 MB' },
-];
-
-const FAQ = [
-  { q: 'How does a tontine work?', a: 'Each member contributes a fixed amount every cycle. One member receives the full pot each cycle, rotating until everyone has received.' },
-  { q: 'How is my TYN-ID used?', a: 'Your TYN-ID is your anonymous identifier. Other members only see your TYN-ID, not your personal information.' },
-  { q: 'What happens if I miss a payment?', a: 'Late payments affect your reputation score. Contact your organizer immediately.' },
-  { q: 'How do I receive my payout?', a: 'When it is your turn, the organizer will contact you to arrange the payout.' },
-  { q: 'Can I change my position?', a: 'Position changes require agreement from the organizer and all affected members.' },
-  { q: 'How is my reputation score calculated?', a: 'Your score is based on on-time payments, participation, and overall reliability.' },
-];
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'fr', label: 'Francais' },
-  { code: 'ht', label: 'Kreyol Ayisyen' },
-];
-
-export default function MemberPage() {
+export default function MemberDashboard() {
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [member, setMember] = useState<any>(null);
+  const [group, setGroup] = useState<any>(null);
+  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePage, setActivePage] = useState('home');
-  const [language, setLanguage] = useState('en');
-  const [unreadCount, setUnreadCount] = useState(NOTIFICATIONS.filter(n => !n.read).length);
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [profileData, setProfileData] = useState({ name: '', phone: '', country: '', bio: '' });
-  const [profileSaved, setProfileSaved] = useState(false);
-  const [contactSubject, setContactSubject] = useState('');
-  const [contactMessage, setContactMessage] = useState('');
-  const [contactSent, setContactSent] = useState(false);
-  const [comment, setComment] = useState('');
-  const [commentSent, setCommentSent] = useState(false);
-  const [comments, setComments] = useState([
-    { id: 1, text: 'Great experience so far!', date: 'May 15, 2026', author: 'TYN-000001' },
-    { id: 2, text: 'Love the confidentiality feature.', date: 'May 10, 2026', author: 'TYN-000002' },
-  ]);
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [ratingComment, setRatingComment] = useState('');
-  const [ratingSent, setRatingSent] = useState(false);
-  const [uploadedDocs, setUploadedDocs] = useState(DOCUMENTS);
-  const [docFilter, setDocFilter] = useState('All');
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
-  const [privacySettings, setPrivacySettings] = useState({
-    showEmail: false, showCountry: true, showScore: true,
-    emailNotifications: true, smsNotifications: false,
-  });
+  const [activeTab, setActiveTab] = useState('profile');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) { window.location.href = '/login'; return; }
-      try {
-        const snap = await getDoc(doc(db, 'users', u.uid));
-        const role = snap.data()?.role;
-        if (role === 'superadmin' || role === 'organizer') {
-          window.location.href = '/dashboard';
-          return;
-        }
-        setProfileData({
-          name: u.displayName || '',
-          phone: snap.data()?.phone || '',
-          country: snap.data()?.country || '',
-          bio: snap.data()?.bio || '',
-        });
-      } catch { }
+      if (!u) { router.push('/login'); return; }
       setUser(u);
+      try {
+        const mq = query(collection(db, 'members'), where('userId', '==', u.uid));
+        const ms = await getDocs(mq);
+        if (!ms.empty) {
+          const memberData = { id: ms.docs[0].id, ...ms.docs[0].data() };
+          setMember(memberData);
+          const gq = query(collection(db, 'groups'), where('__name__', '==', (memberData as any).groupId));
+          const gs = await getDocs(collection(db, 'groups'));
+          const groupDoc = gs.docs.find(d => d.id === (memberData as any).groupId);
+          if (groupDoc) setGroup({ id: groupDoc.id, ...groupDoc.data() });
+          const pq = query(collection(db, 'payments'), where('memberId', '==', ms.docs[0].id));
+          const ps = await getDocs(pq);
+          setPayments(ps.docs.map(d => ({ id: d.id, ...d.data() })));
+        }
+      } catch(e) { console.error(e); }
       setLoading(false);
     });
     return () => unsub();
-  }, []);
+  }, [router]);
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ width: '56px', height: '56px', background: '#6B2D4E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '24px', color: '#D4AF7A' }}>T</div>
-        <p style={{ color: '#6B2D4E', fontWeight: '600' }}>Loading TARSYN...</p>
-      </div>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#FAF0E6'}}>
+      <p style={{color:'#6B2D4E',fontSize:'18px',fontWeight:'600'}}>Loading your account...</p>
     </div>
   );
 
-  const name = profileData.name || user?.displayName || user?.email?.split('@')[0] || 'Member';
-  const initials = name.slice(0, 2).toUpperCase();
-  const sym = MEMBER_DATA.currency.symbol;
-  const paidCycles = PAYMENT_HISTORY.filter(p => p.status === 'Paid').length;
+  if (!member) return (
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#FAF0E6',flexDirection:'column',gap:'16px'}}>
+      <div style={{fontSize:'48px'}}>🔍</div>
+      <h2 style={{color:'#6B2D4E',fontSize:'22px',fontWeight:'800',margin:'0'}}>No membership found</h2>
+      <p style={{color:'#7A5068',fontSize:'14px',margin:'0'}}>You are not registered as a member in any group.</p>
+      <button onClick={() => router.push('/')}
+        style={{background:'#6B2D4E',color:'#FAF0E6',padding:'12px 24px',borderRadius:'12px',border:'none',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
+        Go Home
+      </button>
+    </div>
+  );
 
-  const handleSaveProfile = async () => {
-    try {
-      await updateProfile(user, { displayName: profileData.name });
-      await setDoc(doc(db, 'users', user.uid), {
-        displayName: profileData.name,
-        phone: profileData.phone,
-        country: profileData.country,
-        bio: profileData.bio,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-      setProfileSaved(true);
-      setEditingProfile(false);
-      setTimeout(() => setProfileSaved(false), 3000);
-    } catch (e) { console.error(e); }
-  };
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const expectedAmount = group?.contributionSettings?.amount || member?.expectedAmount || 0;
+  const remaining = Math.max(0, expectedAmount - totalPaid);
+  const cycleProgress = group?.numMembers > 0 ? Math.round((member?.position / group?.numMembers) * 100) : 0;
+  const isConfidential = group?.confidential;
 
-  const handleSendContact = async () => {
-    if (!contactSubject || !contactMessage) return;
-    try {
-      await addDoc(collection(db, 'messages'), {
-        from: user.uid,
-        tynId: MEMBER_DATA.tynId,
-        subject: contactSubject,
-        message: contactMessage,
-        createdAt: serverTimestamp(),
-        read: false,
-      });
-      setContactSent(true);
-      setContactSubject('');
-      setContactMessage('');
-      setTimeout(() => setContactSent(false), 4000);
-    } catch (e) { console.error(e); }
-  };
-
-  const handleSendComment = async () => {
-    if (!comment.trim()) return;
-    const newComment = { id: Date.now(), text: comment, date: new Date().toLocaleDateString(), author: MEMBER_DATA.tynId };
-    setComments([newComment, ...comments]);
-    try {
-      await addDoc(collection(db, 'comments'), { tynId: MEMBER_DATA.tynId, text: comment, createdAt: serverTimestamp() });
-    } catch (e) { console.error(e); }
-    setComment('');
-    setCommentSent(true);
-    setTimeout(() => setCommentSent(false), 3000);
-  };
-
-  const handleSendRating = async () => {
-    if (!rating) return;
-    try {
-      await addDoc(collection(db, 'ratings'), { tynId: MEMBER_DATA.tynId, rating, comment: ratingComment, createdAt: serverTimestamp() });
-    } catch (e) { console.error(e); }
-    setRatingSent(true);
-  };
-
-  const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
-  };
-
-  const navItems = [
-    { id: 'home', label: 'My Space' },
-    { id: 'payments', label: 'My Payments' },
-    { id: 'documents', label: 'My Documents' },
-    { id: 'cycles', label: 'Cycles' },
-    { id: 'stats', label: 'My Statistics' },
-    { id: 'profile', label: 'My Profile' },
-    { id: 'contact', label: 'Contact' },
-    { id: 'comments', label: 'Comments' },
-    { id: 'rating', label: 'Rate Service' },
-    { id: 'notifications', label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
-    { id: 'rules', label: 'Group Rules' },
-    { id: 'faq', label: 'Help / FAQ' },
-    { id: 'privacy', label: 'Privacy' },
-    { id: 'invite', label: 'Invite a Friend' },
-    { id: 'language', label: 'Language' },
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: '👤' },
+    { id: 'contributions', label: 'Contributions', icon: '💰' },
+    { id: 'rotation', label: 'Rotation', icon: '🔄' },
+    { id: 'group', label: 'Group', icon: '🏘️' },
+    { id: 'notifications', label: 'Alerts', icon: '🔔' },
   ];
 
-  const inp: React.CSSProperties = {
-    width: '100%', padding: '10px 14px',
-    border: '1.5px solid #D9C0CC', borderRadius: '8px',
-    fontSize: '14px', outline: 'none',
-    boxSizing: 'border-box', color: '#2C1A24',
-    background: '#FAF0E6',
+  const statusColor = (status: string) => {
+    if (status === 'active') return { bg: '#E8F5E9', color: '#2E7D32' };
+    if (status === 'pending') return { bg: '#FFF3E0', color: '#E65100' };
+    if (status === 'completed') return { bg: '#E3F2FD', color: '#1565C0' };
+    return { bg: '#FAF0E6', color: '#7A5068' };
   };
 
-  const btn = (extra = {}): React.CSSProperties => ({
-    padding: '10px 20px', background: '#6B2D4E', color: 'white',
-    border: 'none', borderRadius: '8px', fontSize: '13px',
-    fontWeight: '700', cursor: 'pointer', ...extra,
-  });
-
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex' }}>
-      <aside style={{ width: '230px', background: '#6B2D4E', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 50, overflowY: 'auto' }}>
-        <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>T</div>
-            <div>
-              <div style={{ color: '#FAF0E6', fontSize: '16px', fontWeight: '700', letterSpacing: '2px' }}>TARSYN</div>
-              <div style={{ color: '#D4AF7A', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
-            </div>
+    <div style={{minHeight:'100vh',background:'#FAF0E6'}}>
+
+      {/* NAVBAR */}
+      <nav style={{background:'#6B2D4E',padding:'16px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',boxShadow:'0 2px 12px rgba(0,0,0,0.15)'}}>
+        <div onClick={() => router.push('/')} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:'10px'}}>
+          <div style={{width:'36px',height:'36px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:'800',color:'#6B2D4E',fontSize:'14px'}}>T</div>
+          <div>
+            <div style={{color:'#D4AF7A',fontWeight:'800',fontSize:'18px',lineHeight:'1'}}>TARSYN</div>
+            <div style={{color:'rgba(250,240,230,0.6)',fontSize:'10px',letterSpacing:'2px'}}>MEMBER PORTAL</div>
           </div>
         </div>
-        <div style={{ padding: '14px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#D4AF7A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', color: '#6B2D4E' }}>{initials}</div>
-            <div>
-              <div style={{ color: '#FAF0E6', fontSize: '12px', fontWeight: '600' }}>{name}</div>
-              <div style={{ color: '#D4AF7A', fontSize: '9px', letterSpacing: '1px' }}>MEMBER - {MEMBER_DATA.tynId}</div>
-            </div>
+        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          <div style={{background:'rgba(212,175,122,0.2)',borderRadius:'20px',padding:'6px 14px'}}>
+            <span style={{color:'#D4AF7A',fontSize:'12px',fontWeight:'600',fontFamily:'monospace'}}>{member?.tynId}</span>
           </div>
-        </div>
-        <nav style={{ flex: 1, padding: '8px 0' }}>
-          {navItems.map(item => (
-            <div key={item.id} onClick={() => setActivePage(item.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 20px', cursor: 'pointer', background: activePage === item.id ? 'rgba(212,175,122,0.2)' : 'transparent', borderLeft: activePage === item.id ? '3px solid #D4AF7A' : '3px solid transparent' }}>
-              <span style={{ fontSize: '12px', fontWeight: activePage === item.id ? '700' : '400', color: activePage === item.id ? '#D4AF7A' : 'rgba(250,240,230,0.8)' }}>{item.label}</span>
-            </div>
-          ))}
-        </nav>
-        <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <button onClick={() => signOut(auth).then(() => window.location.href = '/login')}
-            style={{ width: '100%', padding: '9px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#FAF0E6', fontSize: '13px', cursor: 'pointer' }}>
+          <button onClick={() => auth.signOut().then(() => router.push('/'))}
+            style={{background:'transparent',border:'1px solid rgba(212,175,122,0.5)',color:'#D4AF7A',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontSize:'12px'}}>
             Sign Out
           </button>
         </div>
-      </aside>
+      </nav>
 
-      <main style={{ marginLeft: '230px', flex: 1, minHeight: '100vh' }}>
-        <div style={{ background: 'white', borderBottom: '1px solid #D9C0CC', padding: '0 28px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 40 }}>
-          <div style={{ fontSize: '17px', fontWeight: '700', color: '#6B2D4E' }}>{MEMBER_DATA.groupName}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '12px', color: '#7A5068' }}>{MEMBER_DATA.tynId}</span>
-            {unreadCount > 0 && (
-              <span onClick={() => setActivePage('notifications')} style={{ fontSize: '11px', fontWeight: '700', background: '#C0392B', color: 'white', padding: '4px 10px', borderRadius: '20px', cursor: 'pointer' }}>
-                {unreadCount} new
+      {/* HERO CARD */}
+      <div style={{background:'linear-gradient(135deg,#6B2D4E,#4A1A3A)',padding:'32px 24px',marginBottom:'0'}}>
+        <div style={{maxWidth:'800px',margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'16px'}}>
+          <div>
+            <p style={{color:'rgba(250,240,230,0.6)',fontSize:'13px',margin:'0 0 4px'}}>Welcome back</p>
+            <h1 style={{color:'white',fontSize:'24px',fontWeight:'800',margin:'0 0 8px'}}>{member?.name}</h1>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+              <span style={{...statusColor(member?.status),padding:'4px 12px',borderRadius:'20px',fontSize:'12px',fontWeight:'700'}}>
+                {member?.status || 'active'}
               </span>
-            )}
-            <span style={{ fontSize: '11px', fontWeight: '700', background: '#EDD9E5', color: '#6B2D4E', padding: '4px 12px', borderRadius: '20px' }}>MEMBER</span>
+              <span style={{background:'rgba(212,175,122,0.2)',color:'#D4AF7A',padding:'4px 12px',borderRadius:'20px',fontSize:'12px',fontWeight:'600'}}>
+                Position #{member?.position}
+              </span>
+              <span style={{background:'rgba(212,175,122,0.2)',color:'#D4AF7A',padding:'4px 12px',borderRadius:'20px',fontSize:'12px',fontWeight:'600'}}>
+                {member?.country}
+              </span>
+            </div>
+          </div>
+          <div style={{background:'rgba(255,255,255,0.1)',borderRadius:'16px',padding:'20px 24px',textAlign:'center',minWidth:'140px'}}>
+            <p style={{color:'rgba(250,240,230,0.6)',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>TYN-ID</p>
+            <p style={{color:'#D4AF7A',fontSize:'16px',fontWeight:'800',margin:'0',fontFamily:'monospace'}}>{member?.tynId}</p>
           </div>
         </div>
+      </div>
 
-        <div style={{ padding: '24px' }}>
+      {/* TABS */}
+      <div style={{background:'white',borderBottom:'1px solid #E8D5E0',position:'sticky',top:0,zIndex:50}}>
+        <div style={{maxWidth:'800px',margin:'0 auto',display:'flex',overflowX:'auto'}}>
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              style={{padding:'14px 20px',border:'none',background:'transparent',cursor:'pointer',fontSize:'13px',fontWeight:'600',color:activeTab===tab.id?'#6B2D4E':'#7A5068',borderBottom:activeTab===tab.id?'3px solid #6B2D4E':'3px solid transparent',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:'6px'}}>
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          {activePage === 'home' && (
-            <>
-              <div style={{ background: 'linear-gradient(135deg,#6B2D4E,#8B3D62)', borderRadius: '14px', padding: '24px 28px', marginBottom: '24px' }}>
-                <h2 style={{ color: '#FAF0E6', fontSize: '20px', marginBottom: '4px' }}>Welcome, <span style={{ color: '#D4AF7A' }}>{name}</span></h2>
-                <p style={{ color: 'rgba(250,240,230,0.7)', fontSize: '13px' }}>{MEMBER_DATA.groupName} - Position #{MEMBER_DATA.position} - {MEMBER_DATA.frequency}</p>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '14px', marginBottom: '24px' }}>
+      <div style={{maxWidth:'800px',margin:'0 auto',padding:'24px 16px'}}>
+
+        {/* PROFILE TAB */}
+        {activeTab === 'profile' && (
+          <div>
+            <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)',marginBottom:'16px'}}>
+              <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>👤 My Profile</h3>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
                 {[
-                  { label: 'MY TYN-ID', value: MEMBER_DATA.tynId, sub: 'Anonymous ID' },
-                  { label: 'MY POSITION', value: `#${MEMBER_DATA.position}`, sub: `of ${MEMBER_DATA.totalMembers}` },
-                  { label: 'CONTRIBUTION', value: `${sym}${MEMBER_DATA.contributionAmount}`, sub: MEMBER_DATA.frequency },
-                  { label: 'REPUTATION', value: `${MEMBER_DATA.score} pts`, sub: MEMBER_DATA.score >= 80 ? 'Excellent' : 'Good' },
-                ].map(s => (
-                  <div key={s.label} style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '16px 18px' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5068', marginBottom: '6px', fontWeight: '600' }}>{s.label}</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#6B2D4E' }}>{s.value}</div>
-                    <div style={{ fontSize: '11px', color: '#C4748E', marginTop: '4px', fontWeight: '600' }}>{s.sub}</div>
+                  { label: 'Full Name', value: member?.name },
+                  { label: 'TYN-ID', value: member?.tynId, mono: true },
+                  { label: 'Country', value: member?.country || '—' },
+                  { label: 'Phone', value: member?.phone || '—' },
+                  { label: 'Position', value: `#${member?.position}` },
+                  { label: 'Role', value: member?.role || 'member' },
+                  { label: 'Member Type', value: member?.memberType || 'Regular' },
+                  { label: 'Status', value: member?.status || 'active' },
+                ].map(item => (
+                  <div key={item.label} style={{background:'#FAF0E6',borderRadius:'12px',padding:'14px 16px'}}>
+                    <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{item.label}</p>
+                    <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'14px',margin:'0',fontFamily:(item as any).mono?'monospace':'inherit'}}>{item.value}</p>
                   </div>
                 ))}
               </div>
-              <div style={{ background: '#fff3cd', border: '1px solid #ffeeba', borderRadius: '10px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div>
-                  <div style={{ fontWeight: '700', color: '#856404', fontSize: '14px' }}>Payment due - {MEMBER_DATA.myPaymentDate}</div>
-                  <div style={{ fontSize: '12px', color: '#7A5068', marginTop: '2px' }}>Amount: {sym}{MEMBER_DATA.contributionAmount} - Contact your organizer to record payment</div>
-                </div>
-              </div>
-              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '20px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>Quick Actions</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '10px' }}>
-                  {[
-                    { label: 'My Payments', page: 'payments' },
-                    { label: 'Documents', page: 'documents' },
-                    { label: 'Contact', page: 'contact' },
-                    { label: 'Comments', page: 'comments' },
-                    { label: 'Rate Service', page: 'rating' },
-                    { label: 'Notifications', page: 'notifications' },
-                  ].map(a => (
-                    <button key={a.label} onClick={() => setActivePage(a.page)}
-                      style={{ background: '#FAF0E6', border: '1.5px solid #D9C0CC', borderRadius: '12px', padding: '14px 10px', cursor: 'pointer', textAlign: 'center' }}>
-                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#6B2D4E' }}>{a.label}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+            </div>
 
-          {activePage === 'payments' && (
-            <>
-              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', marginBottom: '24px' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC' }}>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>My Payment History</span>
+            {/* Digital Membership Card */}
+            <div style={{background:'linear-gradient(135deg,#6B2D4E,#D4AF7A)',borderRadius:'20px',padding:'28px',boxShadow:'0 4px 20px rgba(107,45,78,0.25)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px'}}>
+                <div>
+                  <p style={{color:'rgba(250,240,230,0.7)',fontSize:'11px',margin:'0 0 4px',letterSpacing:'2px'}}>TARSYN MEMBER</p>
+                  <p style={{color:'white',fontSize:'20px',fontWeight:'800',margin:'0'}}>{member?.name}</p>
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{width:'40px',height:'40px',background:'rgba(255,255,255,0.2)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>T</div>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+                <div>
+                  <p style={{color:'rgba(250,240,230,0.7)',fontSize:'11px',margin:'0 0 4px'}}>TYN-ID</p>
+                  <p style={{color:'white',fontSize:'16px',fontWeight:'800',margin:'0',fontFamily:'monospace',letterSpacing:'2px'}}>{member?.tynId}</p>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <p style={{color:'rgba(250,240,230,0.7)',fontSize:'11px',margin:'0 0 4px'}}>POSITION</p>
+                  <p style={{color:'white',fontSize:'20px',fontWeight:'800',margin:'0'}}>#{member?.position}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTRIBUTIONS TAB */}
+        {activeTab === 'contributions' && (
+          <div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'16px',marginBottom:'20px'}}>
+              {[
+                { label: 'Total Paid', value: `${totalPaid}`, icon: '✅', color: '#2E7D32', bg: '#E8F5E9' },
+                { label: 'Remaining', value: `${remaining}`, icon: '⏳', color: '#E65100', bg: '#FFF3E0' },
+                { label: 'Payments', value: payments.length, icon: '📋', color: '#6B2D4E', bg: '#FAF0E6' },
+                { label: 'Next Payment', value: member?.payoutDate || '—', icon: '📅', color: '#1565C0', bg: '#E3F2FD' },
+              ].map((s, i) => (
+                <div key={i} style={{background:s.bg,borderRadius:'16px',padding:'20px',border:`1px solid ${s.bg}`}}>
+                  <span style={{fontSize:'24px',marginBottom:'8px',display:'block'}}>{s.icon}</span>
+                  <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{s.label}</p>
+                  <p style={{color:s.color,fontSize:'20px',fontWeight:'800',margin:'0'}}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Progress Bar */}
+            {expectedAmount > 0 && (
+              <div style={{background:'white',borderRadius:'16px',padding:'20px',marginBottom:'20px',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                  <span style={{color:'#6B2D4E',fontWeight:'600',fontSize:'14px'}}>Payment Progress</span>
+                  <span style={{color:'#6B2D4E',fontWeight:'800',fontSize:'14px'}}>{Math.round((totalPaid/expectedAmount)*100)}%</span>
+                </div>
+                <div style={{background:'#FAF0E6',borderRadius:'8px',height:'10px',overflow:'hidden'}}>
+                  <div style={{width:`${Math.min((totalPaid/expectedAmount)*100,100)}%`,height:'100%',background:'linear-gradient(90deg,#6B2D4E,#D4AF7A)',borderRadius:'8px'}}/>
+                </div>
+              </div>
+            )}
+
+            {/* Payment History */}
+            <div style={{background:'white',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+              <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>💳 Payment History</h3>
+              {payments.length === 0 ? (
+                <div style={{textAlign:'center',padding:'32px',color:'#7A5068'}}>
+                  <p style={{fontSize:'32px',margin:'0 0 8px'}}>💸</p>
+                  <p style={{fontSize:'14px',margin:'0'}}>No payments recorded yet.</p>
+                </div>
+              ) : (
+                <table style={{width:'100%',borderCollapse:'collapse'}}>
                   <thead>
-                    <tr style={{ background: '#FAF0E6' }}>
-                      {['Receipt', 'Date', 'Amount', 'Cycle', 'Status', 'Actions'].map(h => (
-                        <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: '#7A5068' }}>{h}</th>
+                    <tr style={{borderBottom:'2px solid #FAF0E6'}}>
+                      {['Receipt','Amount','Method','Date','Status'].map(h => (
+                        <th key={h} style={{textAlign:'left',padding:'8px 10px',color:'#7A5068',fontSize:'11px',textTransform:'uppercase',letterSpacing:'1px'}}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {PAYMENT_HISTORY.map(p => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid #F5EAF0' }}>
-                        <td style={{ padding: '12px 16px', fontSize: '12px', fontWeight: '600', color: '#6B2D4E' }}>{p.receipt}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px' }}>{p.date}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '700', color: '#6B2D4E' }}>{sym}{p.amount}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#7A5068' }}>Cycle {p.cycle}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#d4edda', color: '#155724' }}>{p.status}</span>
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <button onClick={() => alert(`Downloading ${p.receipt}...`)} style={{ padding: '4px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '11px', color: '#6B2D4E', fontWeight: '600' }}>Download</button>
+                    {payments.map((p, i) => (
+                      <tr key={p.id} style={{borderBottom:'1px solid #FAF0E6',background:i%2===0?'transparent':'#FDFAF7'}}>
+                        <td style={{padding:'10px',color:'#6B2D4E',fontFamily:'monospace',fontSize:'11px'}}>{p.receiptNumber || '—'}</td>
+                        <td style={{padding:'10px',color:'#2E7D32',fontWeight:'700',fontSize:'13px'}}>{p.amount} {p.currency}</td>
+                        <td style={{padding:'10px',color:'#7A5068',fontSize:'12px'}}>{p.paymentMethod}</td>
+                        <td style={{padding:'10px',color:'#7A5068',fontSize:'12px'}}>{p.paymentDate}</td>
+                        <td style={{padding:'10px'}}>
+                          <span style={{background:p.status==='confirmed'?'#E8F5E9':'#FFF3E0',color:p.status==='confirmed'?'#2E7D32':'#E65100',padding:'3px 10px',borderRadius:'20px',fontSize:'11px',fontWeight:'600'}}>
+                            {p.status || 'confirmed'}
+                          </span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </>
-          )}
-
-          {activePage === 'documents' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', marginBottom: '20px', padding: '20px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '14px' }}>My Documents</div>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                {['All', 'Receipts', 'Contracts', 'Personal'].map(f => (
-                  <button key={f} onClick={() => setDocFilter(f)}
-                    style={{ padding: '6px 14px', borderRadius: '20px', border: '1.5px solid #D9C0CC', background: docFilter === f ? '#6B2D4E' : 'white', color: docFilter === f ? 'white' : '#6B2D4E', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{f}</button>
-                ))}
-              </div>
-              {uploadedDocs.map(d => (
-                <div key={d.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid #D9C0CC', borderRadius: '10px', marginBottom: '8px', background: 'white' }}>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#2C1A24' }}>{d.name}</div>
-                    <div style={{ fontSize: '11px', color: '#7A5068' }}>{d.id} - {d.date} - {d.size}</div>
-                  </div>
-                  <button onClick={() => alert(`Downloading ${d.name}...`)} style={{ padding: '6px 10px', border: '1px solid #D9C0CC', borderRadius: '6px', background: 'white', cursor: 'pointer', fontSize: '12px' }}>Download</button>
-                </div>
-              ))}
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {activePage === 'cycles' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>Cycle Rotation</span>
-              </div>
-              <div style={{ padding: '0 20px 20px', marginTop: '16px' }}>
-                {CYCLE_VIEW.map(c => (
-                  <div key={c.position} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: `2px solid ${c.position === MEMBER_DATA.position ? '#6B2D4E' : '#EDD9E5'}`, borderRadius: '10px', marginBottom: '8px', background: c.position === MEMBER_DATA.position ? '#EDD9E5' : 'white' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', minWidth: '30px' }}>#{c.position}</span>
-                      <span style={{ fontSize: '13px', color: '#7A5068' }}>{c.date}</span>
-                      {c.position === MEMBER_DATA.position && <span style={{ fontSize: '11px', fontWeight: '700', background: '#6B2D4E', color: '#D4AF7A', padding: '2px 8px', borderRadius: '20px' }}>YOU</span>}
-                    </div>
-                    <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: c.status === 'Received' ? '#d4edda' : '#EDD9E5', color: c.status === 'Received' ? '#155724' : '#7A5068' }}>
-                      {c.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activePage === 'stats' && (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '14px', marginBottom: '24px' }}>
-                {[
-                  { label: 'TOTAL PAID', value: `${sym}${paidCycles * MEMBER_DATA.contributionAmount}` },
-                  { label: 'ON-TIME PAYMENTS', value: `${paidCycles}/${PAYMENT_HISTORY.length}` },
-                  { label: 'CYCLES COMPLETED', value: paidCycles.toString() },
-                  { label: 'REPUTATION', value: `${MEMBER_DATA.score}/100` },
-                ].map(s => (
-                  <div key={s.label} style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '16px 18px' }}>
-                    <div style={{ fontSize: '11px', color: '#7A5068', marginBottom: '6px', fontWeight: '600' }}>{s.label}</div>
-                    <div style={{ fontSize: '22px', fontWeight: '800', color: '#6B2D4E' }}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {activePage === 'profile' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E' }}>My Profile</div>
-                <button onClick={() => setEditingProfile(!editingProfile)} style={btn()}>
-                  {editingProfile ? 'Cancel' : 'Edit Profile'}
-                </button>
-              </div>
-              {profileSaved && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>Profile saved!</div>}
-              {editingProfile ? (
+        {/* ROTATION TAB */}
+        {activeTab === 'rotation' && (
+          <div>
+            <div style={{background:'linear-gradient(135deg,#6B2D4E,#8B3D6E)',borderRadius:'20px',padding:'28px',marginBottom:'16px',color:'white'}}>
+              <h3 style={{color:'#D4AF7A',fontSize:'14px',fontWeight:'600',margin:'0 0 16px',textTransform:'uppercase',letterSpacing:'1px'}}>My Rotation</h3>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
                 <div>
+                  <p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>My Position</p>
+                  <p style={{color:'white',fontSize:'32px',fontWeight:'800',margin:'0'}}>#{member?.position}</p>
+                </div>
+                <div>
+                  <p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>Payout Date</p>
+                  <p style={{color:'#D4AF7A',fontSize:'18px',fontWeight:'800',margin:'0'}}>{member?.payoutDate || 'Not set'}</p>
+                </div>
+                <div>
+                  <p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>Expected Payout</p>
+                  <p style={{color:'white',fontSize:'18px',fontWeight:'800',margin:'0'}}>{member?.expectedAmount ? `${member.expectedAmount} ${group?.contributionSettings?.currency || ''}` : '—'}</p>
+                </div>
+                <div>
+                  <p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>Group Members</p>
+                  <p style={{color:'white',fontSize:'18px',fontWeight:'800',margin:'0'}}>{group?.numMembers || group?.memberCount || '—'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cycle Progress */}
+            <div style={{background:'white',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)',marginBottom:'16px'}}>
+              <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 16px'}}>📊 Cycle Progress</h3>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                <span style={{color:'#7A5068',fontSize:'13px'}}>Your turn in rotation</span>
+                <span style={{color:'#6B2D4E',fontWeight:'800',fontSize:'13px'}}>Position {member?.position} of {group?.numMembers || '?'}</span>
+              </div>
+              <div style={{background:'#FAF0E6',borderRadius:'8px',height:'12px',overflow:'hidden',marginBottom:'8px'}}>
+                <div style={{width:`${cycleProgress}%`,height:'100%',background:'linear-gradient(90deg,#6B2D4E,#D4AF7A)',borderRadius:'8px'}}/>
+              </div>
+              <p style={{color:'#7A5068',fontSize:'12px',margin:'0'}}>Contribution streak: {payments.filter(p => p.status === 'confirmed').length} confirmed payments</p>
+            </div>
+          </div>
+        )}
+
+        {/* GROUP TAB */}
+        {activeTab === 'group' && (
+          <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+            <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>🏘️ Group Information</h3>
+            {group ? (
+              <div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'20px'}}>
                   {[
-                    { label: 'Full Name', key: 'name', type: 'text', placeholder: 'Your full name' },
-                    { label: 'Phone Number', key: 'phone', type: 'tel', placeholder: '+1 (555) 000-0000' },
-                    { label: 'Country', key: 'country', type: 'text', placeholder: 'Haiti, USA, Canada...' },
-                  ].map(f => (
-                    <div key={f.key} style={{ marginBottom: '14px' }}>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>{f.label}</label>
-                      <input type={f.type} value={(profileData as any)[f.key]} onChange={e => setProfileData({ ...profileData, [f.key]: e.target.value })} placeholder={f.placeholder} style={inp} />
+                    { label: 'Group Name', value: group?.name || '—' },
+                    { label: 'Module', value: group?.module || group?.regionalName || '—' },
+                    { label: 'Total Members', value: group?.numMembers || group?.memberCount || '—' },
+                    { label: 'Frequency', value: group?.frequency || group?.contributionSettings?.frequency || '—' },
+                    { label: 'Contribution', value: group?.contributionSettings?.amount ? `${group.contributionSettings.amount} ${group.contributionSettings.currency}` : '—' },
+                    { label: 'Privacy', value: group?.privacy || group?.privacyMode || '—' },
+                    { label: 'Status', value: group?.status || '—' },
+                    { label: 'Start Date', value: group?.startDate || group?.rotationSettings?.startDate || '—' },
+                  ].map(item => (
+                    <div key={item.label} style={{background:'#FAF0E6',borderRadius:'12px',padding:'14px 16px'}}>
+                      <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{item.label}</p>
+                      <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'14px',margin:'0'}}>{item.value}</p>
                     </div>
                   ))}
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Bio</label>
-                    <textarea value={profileData.bio} onChange={e => setProfileData({ ...profileData, bio: e.target.value })} placeholder="A few words about yourself..." rows={3} style={{ ...inp, resize: 'vertical' }} />
-                  </div>
-                  <button onClick={handleSaveProfile} style={btn({ width: '100%', padding: '12px' })}>Save Profile</button>
                 </div>
-              ) : (
-                <>
-                  {[
-                    { label: 'TYN-ID', value: MEMBER_DATA.tynId },
-                    { label: 'Group', value: MEMBER_DATA.groupName },
-                    { label: 'Position', value: `#${MEMBER_DATA.position} of ${MEMBER_DATA.totalMembers}` },
-                    { label: 'Contribution', value: `${sym}${MEMBER_DATA.contributionAmount} / ${MEMBER_DATA.frequency}` },
-                    { label: 'Phone', value: profileData.phone || '-' },
-                    { label: 'Country', value: profileData.country || '-' },
-                    { label: 'Bio', value: profileData.bio || '-' },
-                    { label: 'Member Since', value: MEMBER_DATA.joinedDate },
-                    { label: 'Reputation Score', value: `${MEMBER_DATA.score} pts` },
-                  ].map(f => (
-                    <div key={f.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid #F5EAF0' }}>
-                      <span style={{ fontSize: '13px', color: '#7A5068', fontWeight: '600' }}>{f.label}</span>
-                      <span style={{ fontSize: '13px', color: '#2C1A24', fontWeight: '700' }}>{f.value}</span>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
 
-          {activePage === 'contact' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Contact Organizer</div>
-              {contactSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>Message sent!</div>}
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Subject</label>
-                <select value={contactSubject} onChange={e => setContactSubject(e.target.value)} style={inp}>
-                  <option value="">Select a subject</option>
-                  <option>Payment question</option>
-                  <option>Request position change</option>
-                  <option>Technical issue</option>
-                  <option>Document request</option>
-                  <option>Withdrawal request</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#6B2D4E', marginBottom: '5px' }}>Message</label>
-                <textarea value={contactMessage} onChange={e => setContactMessage(e.target.value)} placeholder="Write your message here..." rows={5} style={{ ...inp, resize: 'vertical' }} />
-              </div>
-              <button onClick={handleSendContact} disabled={!contactSubject || !contactMessage}
-                style={btn({ width: '100%', padding: '12px', opacity: !contactSubject || !contactMessage ? 0.6 : 1 })}>
-                Send Message
-              </button>
-            </div>
-          )}
-
-          {activePage === 'comments' && (
-            <>
-              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '24px', marginBottom: '20px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>Leave a Comment</div>
-                {commentSent && <div style={{ background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>Comment posted!</div>}
-                <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience..." rows={4} style={{ ...inp, marginBottom: '14px', resize: 'vertical' }} />
-                <button onClick={handleSendComment} disabled={!comment.trim()} style={btn({ opacity: !comment.trim() ? 0.6 : 1 })}>Post Comment</button>
-              </div>
-              <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '24px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '16px' }}>All Comments</div>
-                {comments.map(c => (
-                  <div key={c.id} style={{ padding: '14px', background: '#FAF0E6', borderRadius: '10px', marginBottom: '10px' }}>
-                    <div style={{ fontSize: '13px', color: '#2C1A24', marginBottom: '8px' }}>{c.text}</div>
-                    <div style={{ fontSize: '11px', color: '#7A5068' }}>{c.author} - {c.date}</div>
+                {group?.rules && (
+                  <div style={{background:'#FAF0E6',borderRadius:'12px',padding:'16px'}}>
+                    <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'13px',margin:'0 0 8px'}}>📜 Group Rules</p>
+                    <p style={{color:'#7A5068',fontSize:'13px',margin:'0',lineHeight:'1.6'}}>{group.rules}</p>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
+                )}
 
-          {activePage === 'rating' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '8px' }}>Rate TARSYN Service</div>
-              {ratingSent ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#6B2D4E' }}>Thank you for your rating!</div>
-                </div>
-              ) : (
-                <>
-                  <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <span key={star} onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)}
-                          style={{ fontSize: '40px', cursor: 'pointer', filter: (hoverRating || rating) >= star ? 'none' : 'grayscale(1)' }}>*</span>
-                      ))}
+                {isConfidential && (
+                  <div style={{background:'#2C1A3E',borderRadius:'12px',padding:'16px',marginTop:'16px',display:'flex',alignItems:'center',gap:'12px'}}>
+                    <span style={{fontSize:'20px'}}>🔒</span>
+                    <div>
+                      <p style={{color:'#D4AF7A',fontWeight:'700',fontSize:'13px',margin:'0 0 4px'}}>Confidential Mode Active</p>
+                      <p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0'}}>Member identities are protected. You can only see your own information.</p>
                     </div>
-                    {rating > 0 && <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E' }}>{rating}/5</div>}
                   </div>
-                  <textarea value={ratingComment} onChange={e => setRatingComment(e.target.value)} placeholder="Tell us how we can improve..." rows={4} style={{ ...inp, marginBottom: '20px', resize: 'vertical' }} />
-                  <button onClick={handleSendRating} disabled={!rating} style={btn({ width: '100%', padding: '12px', opacity: !rating ? 0.6 : 1 })}>Submit Rating</button>
-                </>
-              )}
-            </div>
-          )}
+                )}
 
-          {activePage === 'notifications' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #D9C0CC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E' }}>Notifications</span>
-                {unreadCount > 0 && <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#C4748E', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>Mark all as read</button>}
+                {group?.inviteCode && (
+                  <div style={{background:'#FAF0E6',borderRadius:'12px',padding:'16px',marginTop:'16px'}}>
+                    <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'13px',margin:'0 0 8px'}}>🔗 Invite Code</p>
+                    <p style={{color:'#6B2D4E',fontFamily:'monospace',fontSize:'16px',fontWeight:'800',margin:'0 0 8px'}}>{group.inviteCode}</p>
+                    <button onClick={() => navigator.clipboard.writeText(group.inviteLink || '')}
+                      style={{background:'#6B2D4E',color:'white',border:'none',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>
+                      Copy Invite Link
+                    </button>
+                  </div>
+                )}
               </div>
-              {notifications.map(n => (
-                <div key={n.id} style={{ padding: '14px 20px', borderBottom: '1px solid #F5EAF0', background: n.read ? 'white' : '#FAF0E6', display: 'flex', gap: '12px' }}>
+            ) : (
+              <p style={{color:'#7A5068',fontSize:'14px'}}>Group information not available.</p>
+            )}
+          </div>
+        )}
+
+        {/* NOTIFICATIONS TAB */}
+        {activeTab === 'notifications' && (
+          <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+            <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>🔔 My Notifications</h3>
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+
+              {member?.payoutDate && (
+                <div style={{background:'#E8F5E9',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px',alignItems:'flex-start'}}>
+                  <span style={{fontSize:'24px'}}>🎉</span>
                   <div>
-                    <div style={{ fontSize: '13px', color: '#2C1A24', fontWeight: n.read ? '400' : '600' }}>{n.text}</div>
-                    <div style={{ fontSize: '11px', color: '#7A5068', marginTop: '4px' }}>{n.time}</div>
+                    <p style={{color:'#2E7D32',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Your Payout is Scheduled</p>
+                    <p style={{color:'#388E3C',fontSize:'13px',margin:'0'}}>Your turn is on <strong>{member.payoutDate}</strong> — Position #{member.position}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {activePage === 'rules' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Group Rules</div>
-              {[
-                { title: '1. Contribution', text: `Each member must contribute ${sym}${MEMBER_DATA.contributionAmount} every ${MEMBER_DATA.frequency.toLowerCase()}.` },
-                { title: '2. Rotation Order', text: 'The rotation order is determined at the start and cannot be changed without organizer agreement.' },
-                { title: '3. Late Payments', text: 'Late payments result in a penalty and reputation score reduction.' },
-                { title: '4. Confidentiality', text: 'Only TYN-IDs are visible to other members.' },
-                { title: '5. Commission', text: 'The organizer charges 1% per distribution cycle.' },
-                { title: '6. Withdrawal', text: 'Early withdrawal requires 30 days notice and organizer approval.' },
-              ].map(r => (
-                <div key={r.title} style={{ marginBottom: '16px', padding: '16px', background: '#FAF0E6', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#6B2D4E', marginBottom: '6px' }}>{r.title}</div>
-                  <div style={{ fontSize: '13px', color: '#7A5068' }}>{r.text}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activePage === 'faq' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Help and FAQ</div>
-              {FAQ.map((f, i) => (
-                <details key={i} style={{ marginBottom: '12px', border: '1px solid #D9C0CC', borderRadius: '10px', overflow: 'hidden' }}>
-                  <summary style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#6B2D4E', cursor: 'pointer', background: '#FAF0E6' }}>{f.q}</summary>
-                  <div style={{ padding: '14px 18px', fontSize: '13px', color: '#7A5068', lineHeight: '1.6' }}>{f.a}</div>
-                </details>
-              ))}
-            </div>
-          )}
-
-          {activePage === 'privacy' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Privacy Settings</div>
-              {[
-                { label: 'Show email to organizer', key: 'showEmail' },
-                { label: 'Show country in profile', key: 'showCountry' },
-                { label: 'Show reputation score', key: 'showScore' },
-                { label: 'Email notifications', key: 'emailNotifications' },
-                { label: 'SMS notifications', key: 'smsNotifications' },
-              ].map(s => (
-                <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid #F5EAF0' }}>
-                  <span style={{ fontSize: '13px', color: '#2C1A24' }}>{s.label}</span>
-                  <button onClick={() => setPrivacySettings({ ...privacySettings, [s.key]: !(privacySettings as any)[s.key] })}
-                    style={{ background: (privacySettings as any)[s.key] ? '#6B2D4E' : '#D9C0CC', border: 'none', borderRadius: '20px', padding: '4px 16px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: 'white' }}>
-                    {(privacySettings as any)[s.key] ? 'ON' : 'OFF'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activePage === 'invite' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Invite a Friend</div>
-              <div style={{ background: '#EDD9E5', borderRadius: '10px', padding: '16px', marginBottom: '20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: '#6B2D4E', background: 'white', padding: '10px', borderRadius: '8px' }}>
-                  https://tarsyn-app.com/register?ref={MEMBER_DATA.tynId}
-                </div>
-                <button onClick={() => { navigator.clipboard.writeText(`https://tarsyn-app.com/register?ref=${MEMBER_DATA.tynId}`); alert('Link copied!'); }} style={{ ...btn(), marginTop: '12px' }}>
-                  Copy Link
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activePage === 'language' && (
-            <div style={{ background: 'white', border: '1px solid #D9C0CC', borderRadius: '12px', padding: '28px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#6B2D4E', marginBottom: '24px' }}>Language</div>
-              <div style={{ display: 'grid', gap: '10px' }}>
-                {LANGUAGES.map(l => (
-                  <div key={l.code} onClick={() => setLanguage(l.code)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px', border: `2px solid ${language === l.code ? '#6B2D4E' : '#D9C0CC'}`, borderRadius: '12px', cursor: 'pointer', background: language === l.code ? '#EDD9E5' : 'white' }}>
-                    <span style={{ fontSize: '16px', fontWeight: '600', color: '#2C1A24' }}>{l.label}</span>
-                    {language === l.code && <span style={{ marginLeft: 'auto', color: '#6B2D4E', fontWeight: '700' }}>Selected</span>}
+              {remaining > 0 && (
+                <div style={{background:'#FFF3E0',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px',alignItems:'flex-start'}}>
+                  <span style={{fontSize:'24px'}}>⏰</span>
+                  <div>
+                    <p style={{color:'#E65100',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Payment Reminder</p>
+                    <p style={{color:'#EF6C00',fontSize:'13px',margin:'0'}}>You have a remaining balance of <strong>{remaining}</strong>. Stay on track!</p>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              )}
 
-        </div>
-      </main>
+              {payments.length === 0 && (
+                <div style={{background:'#E3F2FD',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px',alignItems:'flex-start'}}>
+                  <span style={{fontSize:'24px'}}>👋</span>
+                  <div>
+                    <p style={{color:'#1565C0',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Welcome to TARSYN!</p>
+                    <p style={{color:'#1976D2',fontSize:'13px',margin:'0'}}>Your membership is active. Your organizer will record your contributions.</p>
+                  </div>
+                </div>
+              )}
+
+              {payments.filter(p => p.status === 'confirmed').length > 0 && (
+                <div style={{background:'#FAF0E6',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px',alignItems:'flex-start'}}>
+                  <span style={{fontSize:'24px'}}>✅</span>
+                  <div>
+                    <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Contribution Streak</p>
+                    <p style={{color:'#7A5068',fontSize:'13px',margin:'0'}}>{payments.filter(p => p.status === 'confirmed').length} confirmed payments — Keep it up!</p>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
