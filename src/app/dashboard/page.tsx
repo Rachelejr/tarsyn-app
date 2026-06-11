@@ -51,8 +51,7 @@ export default function Dashboard() {
             <div style={{color:'rgba(250,240,230,0.6)',fontSize:'10px',letterSpacing:'2px'}}>YOUR COMMUNITY</div>
           </div>
         </div>
-        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
-          <span style={{color:'rgba(250,240,230,0.7)',fontSize:'13px'}}>{user?.email}</span>
+        <div style={{display:'flex',alignItems:'center',gap:'16px'}}
           <button onClick={() => auth.signOut().then(() => router.push('/'))}
             style={{background:'transparent',border:'1px solid rgba(212,175,122,0.5)',color:'#D4AF7A',padding:'6px 16px',borderRadius:'8px',cursor:'pointer',fontSize:'13px'}}>
             Sign Out
