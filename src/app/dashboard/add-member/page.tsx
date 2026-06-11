@@ -20,6 +20,7 @@ export default function AddMember() {
   const [email, setEmail] = useState('');
   const [country, setCountry] = useState('');
   const [position, setPosition] = useState('');
+  const [payoutDate, setPayoutDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -27,6 +28,7 @@ export default function AddMember() {
   const handleAdd = async () => {
     if (!name.trim()) { setError('Name is required.'); return; }
     if (!position) { setError('Position is required.'); return; }
+    if (!payoutDate) { setError('Payout date is required.'); return; }
     setLoading(true);
     setError('');
     try {
@@ -42,15 +44,16 @@ export default function AddMember() {
         name: name.trim(),
         phone: phone.trim(),
         email: email.trim(),
-        country: country.trim(),
+        country,
         position: parseInt(position),
+        payoutDate,
         tynId,
         role: 'member',
         status: 'active',
         createdAt: serverTimestamp(),
       });
       setSuccess('Member added! TYN-ID: ' + tynId);
-      setName(''); setPhone(''); setEmail(''); setCountry(''); setPosition('');
+      setName(''); setPhone(''); setEmail(''); setCountry(''); setPosition(''); setPayoutDate('');
     } catch(e) {
       console.error(e);
       setError('Error adding member. Please try again.');
@@ -71,7 +74,7 @@ export default function AddMember() {
         <p style={{color:'#7A5068',fontSize:'14px',margin:'0 0 32px'}}>A TYN-ID will be generated automatically.</p>
 
         {error && <p style={{color:'#E53935',fontSize:'13px',marginBottom:'16px',background:'#FFEBEE',padding:'10px 14px',borderRadius:'8px'}}>{error}</p>}
-        {success && <p style={{color:'#2E7D32',fontSize:'13px',marginBottom:'16px',background:'#E8F5E9',padding:'10px 14px',borderRadius:'8px'}}>{success}</p>}
+        {success && <p style={{color:'#2E7D32',fontSize:'13px',marginBottom:'16px',background:'#E8F5E9',padding:'10px 14px',borderRadius:'8px',fontWeight:'600'}}>{success}</p>}
 
         <div style={{marginBottom:'20px'}}>
           <label style={{display:'block',color:'#6B2D4E',fontSize:'13px',fontWeight:'600',marginBottom:'6px'}}>Full Name *</label>
@@ -103,12 +106,18 @@ export default function AddMember() {
             style={{width:'100%',padding:'12px 14px',border:'1.5px solid #E8D5E0',borderRadius:'10px',fontSize:'14px',outline:'none',boxSizing:'border-box'}}/>
         </div>
 
-        <div style={{marginBottom:'32px'}}>
+        <div style={{marginBottom:'20px'}}>
           <label style={{display:'block',color:'#6B2D4E',fontSize:'13px',fontWeight:'600',marginBottom:'6px'}}>Position in Group *</label>
           <input value={position} onChange={e => setPosition(e.target.value)} type="number" min="1"
-            placeholder="Ex: 2, 3, 4..."
+            placeholder="Ex: 1, 2, 3..."
             style={{width:'100%',padding:'12px 14px',border:'1.5px solid #E8D5E0',borderRadius:'10px',fontSize:'14px',outline:'none',boxSizing:'border-box'}}/>
-          <p style={{color:'#7A5068',fontSize:'12px',margin:'6px 0 0'}}>Position determines when they receive the funds.</p>
+        </div>
+
+        <div style={{marginBottom:'32px'}}>
+          <label style={{display:'block',color:'#6B2D4E',fontSize:'13px',fontWeight:'600',marginBottom:'6px'}}>Payout Date *</label>
+          <input value={payoutDate} onChange={e => setPayoutDate(e.target.value)} type="date"
+            style={{width:'100%',padding:'12px 14px',border:'1.5px solid #E8D5E0',borderRadius:'10px',fontSize:'14px',outline:'none',boxSizing:'border-box'}}/>
+          <p style={{color:'#7A5068',fontSize:'12px',margin:'6px 0 0'}}>Date this member is scheduled to receive the funds.</p>
         </div>
 
         <button onClick={handleAdd} disabled={loading}
