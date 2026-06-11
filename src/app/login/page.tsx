@@ -52,17 +52,7 @@ export default function LoginPage() {
     setError('');
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      if (!result.user.emailVerified) {
-        await sendEmailVerification(result.user);
-        setError('Please verify your email first. A new verification email has been sent.');
-        setLoading(false);
-        return;
-      }
-      const otp = generate2FACode();
-      setGeneratedCode(otp);
-      await sendCode(email, otp);
-      setStep('2fa');
-    } catch {
+       catch {
       setError('Invalid email or password.');
     } finally {
       setLoading(false);
@@ -298,5 +288,6 @@ function GoogleIcon() {
     </svg>
   );
 }
+
 
 
