@@ -33,11 +33,11 @@ export default function LoginPage() {
       await redirectByRole(result.user.uid, result.user.email!);
     } catch (err: any) {
       const msg: Record<string, string> = {
-        'auth/user-not-found': 'Aucun compte trouvé.',
+        'auth/user-not-found': 'Aucun compte trouvÃ©.',
         'auth/wrong-password': 'Mot de passe incorrect.',
         'auth/invalid-email': 'Email invalide.',
         'auth/invalid-credential': 'Email ou mot de passe incorrect.',
-        'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
+        'auth/too-many-requests': 'Trop de tentatives. RÃ©essayez plus tard.',
       };
       setError(msg[err.code] || 'Erreur de connexion.');
     } finally {
@@ -53,7 +53,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       await redirectByRole(result.user.uid, result.user.email!);
     } catch {
-      setError('Erreur Google. Réessayez.');
+      setError('Erreur Google. RÃ©essayez.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function LoginPage() {
           </div>
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,color:'#6B2D4E',margin:'0 0 0.25rem'}}>Connexion</h1>
-        <p style={{color:'#888',margin:'0 0 1.5rem',fontSize:'0.9rem'}}>Accédez à votre espace TARSYN</p>
+        <p style={{color:'#888',margin:'0 0 1.5rem',fontSize:'0.9rem'}}>AccÃ©dez Ã  votre espace TARSYN</p>
         {error && <div style={{background:'#F8D7DA',color:'#721C24',border:'1px solid #F5C6CB',borderRadius:'8px',padding:'0.75rem 1rem',fontSize:'0.88rem',marginBottom:'1rem'}}>{error}</div>}
         <form onSubmit={handleLogin}>
           <div style={{marginBottom:'1rem'}}>
@@ -79,10 +79,10 @@ export default function LoginPage() {
           </div>
           <div style={{marginBottom:'1.25rem'}}>
             <label style={{display:'block',fontSize:'0.83rem',fontWeight:600,color:'#555',marginBottom:'0.4rem'}}>Mot de passe</label>
-            <input style={{width:'100%',padding:'0.75rem 1rem',border:'1.5px solid #E0D0C0',borderRadius:'10px',fontSize:'0.95rem',background:'#fff',color:'#333',outline:'none',boxSizing:'border-box'}} type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required />
+            <input style={{width:'100%',padding:'0.75rem 1rem',border:'1.5px solid #E0D0C0',borderRadius:'10px',fontSize:'0.95rem',background:'#fff',color:'#333',outline:'none',boxSizing:'border-box'}} type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" value={password} onChange={e=>setPassword(e.target.value)} required />
           </div>
           <div style={{textAlign:'right',marginBottom:'1.25rem'}}>
-            <button type="button" style={{background:'none',border:'none',color:'#D4AF7A',fontSize:'0.83rem',fontWeight:600,cursor:'pointer'}} onClick={()=>router.push('/forgot-password')}>Mot de passe oublié ?</button>
+            <button type="button" style={{background:'none',border:'none',color:'#D4AF7A',fontSize:'0.83rem',fontWeight:600,cursor:'pointer'}} onClick={()=>router.push('/forgot-password')}>Mot de passe oubliÃ© ?</button>
           </div>
           <button type="submit" disabled={loading} style={{width:'100%',padding:'0.85rem',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'1rem',fontWeight:700,cursor:'pointer',opacity:loading?0.7:1}}>
             {loading ? 'Connexion...' : 'Se connecter'}
@@ -94,7 +94,7 @@ export default function LoginPage() {
         </button>
         <div style={{textAlign:'center',margin:'1.25rem 0',color:'#aaa',fontSize:'0.85rem'}}>pas de compte ?</div>
         <button onClick={()=>router.push('/register')} style={{width:'100%',padding:'0.85rem',background:'transparent',color:'#6B2D4E',border:'2px solid #6B2D4E',borderRadius:'10px',fontSize:'1rem',fontWeight:700,cursor:'pointer'}}>
-          Créer un compte
+          CrÃ©er un compte
         </button>
       </div>
     </div>
