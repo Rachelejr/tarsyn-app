@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   const sendOTP = async (uid: string, uEmail: string) => {
     const otp = generateOTP();
-    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const expires = Date.now() + 10 * 60 * 1000;
     await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
     await fetch('/api/auth/send-2fa', {
       method: 'POST',
@@ -54,13 +54,13 @@ export default function LoginPage() {
       setStep('2fa');
     } catch (err: any) {
       const msg: Record<string, string> = {
-        'auth/user-not-found': 'Aucun compte trouve.',
-        'auth/wrong-password': 'Mot de passe incorrect.',
-        'auth/invalid-email': 'Email invalide.',
-        'auth/invalid-credential': 'Email ou mot de passe incorrect.',
-        'auth/too-many-requests': 'Trop de tentatives. Reessayez plus tard.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/invalid-credential': 'Invalid email or password.',
+        'auth/too-many-requests': 'Too many attempts. Please try again later.',
       };
-      setError(msg[err.code] || 'Erreur de connexion.');
+      setError(msg[err.code] || 'Login error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,19 +72,19 @@ export default function LoginPage() {
     try {
       const enteredCode = code.join('');
       const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
-      if (!otpDoc.exists()) { setError('Code expire. Demandez un nouveau code.'); setLoading(false); return; }
+      if (!otpDoc.exists()) { setError('Code expired. Please request a new one.'); setLoading(false); return; }
       const { otp, expires } = otpDoc.data();
       if (Date.now() > expires) {
         await deleteDoc(doc(db, 'otp_codes', userId));
-        setError('Code expire. Demandez un nouveau code.');
+        setError('Code expired. Please request a new one.');
         setLoading(false);
         return;
       }
-      if (enteredCode !== otp) { setError('Code incorrect. Reessayez.'); setLoading(false); return; }
+      if (enteredCode !== otp) { setError('Incorrect code. Please try again.'); setLoading(false); return; }
       await deleteDoc(doc(db, 'otp_codes', userId));
       await redirectByRole(userId, userEmail);
     } catch {
-      setError('Erreur de verification. Reessayez.');
+      setError('Verification error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export default function LoginPage() {
   const handleResend = async () => {
     setError('');
     await sendOTP(userId, userEmail);
-    setResendMsg('Nouveau code envoye !');
+    setResendMsg('New code sent!');
     setTimeout(() => setResendMsg(''), 4000);
   };
 
@@ -105,7 +105,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       await redirectByRole(result.user.uid, result.user.email!);
     } catch {
-      setError('Erreur Google. Reessayez.');
+      setError('Google sign-in error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -127,12 +127,12 @@ export default function LoginPage() {
       <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#6B2D4E,#4A1F36)',display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',fontFamily:'Inter,sans-serif'}}>
         <div style={{background:'#FAF0E6',borderRadius:'20px',padding:'2.5rem',width:'100%',maxWidth:'420px',boxShadow:'0 20px 60px rgba(0,0,0,0.3)',textAlign:'center'}}>
           <div style={{fontSize:'3rem',marginBottom:'1rem'}}>🔐</div>
-          <h2 style={{fontSize:'1.5rem',fontWeight:800,color:'#6B2D4E',margin:'0 0 0.5rem'}}>Verifiez votre email !</h2>
-          <p style={{color:'#888',fontSize:'0.9rem',margin:'0 0 0.25rem'}}>Un code a 6 chiffres a ete envoye a</p>
+          <h2 style={{fontSize:'1.5rem',fontWeight:800,color:'#6B2D4E',margin:'0 0 0.5rem'}}>Check your email!</h2>
+          <p style={{color:'#888',fontSize:'0.9rem',margin:'0 0 0.25rem'}}>A 6-digit code was sent to</p>
           <p style={{color:'#6B2D4E',fontWeight:700,margin:'0 0 1.5rem'}}>{userEmail}</p>
           {error && <div style={{background:'#F8D7DA',color:'#721C24',border:'1px solid #F5C6CB',borderRadius:'8px',padding:'0.75rem',fontSize:'0.88rem',marginBottom:'1rem'}}>{error}</div>}
           {resendMsg && <div style={{background:'#D4EDDA',color:'#155724',borderRadius:'8px',padding:'0.75rem',fontSize:'0.88rem',marginBottom:'1rem'}}>{resendMsg}</div>}
-          <label style={{display:'block',fontSize:'0.83rem',fontWeight:600,color:'#555',marginBottom:'0.75rem'}}>Entrez votre code a 6 chiffres</label>
+          <label style={{display:'block',fontSize:'0.83rem',fontWeight:600,color:'#555',marginBottom:'0.75rem'}}>Enter your 6-digit code</label>
           <div style={{display:'flex',gap:'8px',justifyContent:'center',marginBottom:'1.5rem'}}>
             {code.map((digit, i) => (
               <input
@@ -157,13 +157,13 @@ export default function LoginPage() {
             disabled={loading || code.join('').length !== 6}
             style={{width:'100%',padding:'0.85rem',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'1rem',fontWeight:700,cursor:'pointer',opacity:(loading || code.join('').length !== 6) ? 0.7 : 1,marginBottom:'1rem'}}
           >
-            {loading ? 'Verification...' : 'Verifier & Se connecter'}
+            {loading ? 'Verifying...' : 'Verify & Sign In'}
           </button>
           <button onClick={handleResend} style={{background:'none',border:'none',color:'#D4AF7A',fontWeight:600,cursor:'pointer',fontSize:'0.88rem',marginBottom:'0.5rem',display:'block',width:'100%'}}>
-            Renvoyer le code
+            Resend code
           </button>
           <button onClick={() => { setStep('login'); setCode(['','','','','','']); setError(''); }} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:'0.85rem'}}>
-            Retour au login
+            Back to login
           </button>
         </div>
       </div>
@@ -180,26 +180,26 @@ export default function LoginPage() {
             <p style={{margin:0,fontSize:'0.65rem',color:'#888',letterSpacing:'0.1em'}}>YOUR COMMUNITY</p>
           </div>
         </div>
-        <h1 style={{fontSize:'1.6rem',fontWeight:800,color:'#6B2D4E',margin:'0 0 0.25rem'}}>Connexion</h1>
-        <p style={{color:'#888',margin:'0 0 1.5rem',fontSize:'0.9rem'}}>Accedez a votre espace TARSYN</p>
+        <h1 style={{fontSize:'1.6rem',fontWeight:800,color:'#6B2D4E',margin:'0 0 0.25rem'}}>Sign In</h1>
+        <p style={{color:'#888',margin:'0 0 1.5rem',fontSize:'0.9rem'}}>Access your TARSYN account</p>
         {error && <div style={{background:'#F8D7DA',color:'#721C24',border:'1px solid #F5C6CB',borderRadius:'8px',padding:'0.75rem 1rem',fontSize:'0.88rem',marginBottom:'1rem'}}>{error}</div>}
         <form onSubmit={handleLogin}>
           <div style={{marginBottom:'1rem'}}>
             <label style={{display:'block',fontSize:'0.83rem',fontWeight:600,color:'#555',marginBottom:'0.4rem'}}>Email</label>
-            <input style={{width:'100%',padding:'0.75rem 1rem',border:'1.5px solid #E0D0C0',borderRadius:'10px',fontSize:'0.95rem',background:'#fff',color:'#333',outline:'none',boxSizing:'border-box'}} type="email" placeholder="votre@email.com" value={email} onChange={e=>setEmail(e.target.value)} required />
+            <input style={{width:'100%',padding:'0.75rem 1rem',border:'1.5px solid #E0D0C0',borderRadius:'10px',fontSize:'0.95rem',background:'#fff',color:'#333',outline:'none',boxSizing:'border-box'}} type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)} required />
           </div>
           <div style={{marginBottom:'1.25rem'}}>
-            <label style={{display:'block',fontSize:'0.83rem',fontWeight:600,color:'#555',marginBottom:'0.4rem'}}>Mot de passe</label>
+            <label style={{display:'block',fontSize:'0.83rem',fontWeight:600,color:'#555',marginBottom:'0.4rem'}}>Password</label>
             <input style={{width:'100%',padding:'0.75rem 1rem',border:'1.5px solid #E0D0C0',borderRadius:'10px',fontSize:'0.95rem',background:'#fff',color:'#333',outline:'none',boxSizing:'border-box'}} type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required />
           </div>
           <div style={{textAlign:'right',marginBottom:'1.25rem'}}>
-            <button type="button" style={{background:'none',border:'none',color:'#D4AF7A',fontSize:'0.83rem',fontWeight:600,cursor:'pointer'}} onClick={()=>router.push('/forgot-password')}>Mot de passe oublie ?</button>
+            <button type="button" style={{background:'none',border:'none',color:'#D4AF7A',fontSize:'0.83rem',fontWeight:600,cursor:'pointer'}} onClick={()=>router.push('/forgot-password')}>Forgot password?</button>
           </div>
           <button type="submit" disabled={loading} style={{width:'100%',padding:'0.85rem',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'1rem',fontWeight:700,cursor:'pointer',opacity:loading?0.7:1}}>
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <div style={{textAlign:'center',margin:'1.25rem 0',color:'#aaa',fontSize:'0.85rem'}}>ou</div>
+        <div style={{textAlign:'center',margin:'1.25rem 0',color:'#aaa',fontSize:'0.85rem'}}>or</div>
         <button onClick={handleGoogle} disabled={loading} style={{width:'100%',padding:'0.85rem',background:'#fff',color:'#333',border:'2px solid #E0D0C0',borderRadius:'10px',fontSize:'1rem',fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'0.75rem'}}>
           <svg width="20" height="20" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
@@ -207,11 +207,11 @@ export default function LoginPage() {
             <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
             <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
           </svg>
-          Continuer avec Google
+          Continue with Google
         </button>
-        <div style={{textAlign:'center',margin:'1.25rem 0',color:'#aaa',fontSize:'0.85rem'}}>pas de compte ?</div>
+        <div style={{textAlign:'center',margin:'1.25rem 0',color:'#aaa',fontSize:'0.85rem'}}>Don't have an account?</div>
         <button onClick={()=>router.push('/register')} style={{width:'100%',padding:'0.85rem',background:'transparent',color:'#6B2D4E',border:'2px solid #6B2D4E',borderRadius:'10px',fontSize:'1rem',fontWeight:700,cursor:'pointer'}}>
-          Creer un compte
+          Create Account
         </button>
       </div>
     </div>
