@@ -17,7 +17,6 @@ export default function LoginPage() {
   const [userId, setUserId] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [resendMsg, setResendMsg] = useState('');
-  const [otpDisplay, setOtpDisplay] = useState('');
 
   const redirectByRole = async (uid: string, uEmail: string) => {
     const mq = query(collection(db, 'members'), where('email', '==', uEmail));
@@ -36,7 +35,6 @@ export default function LoginPage() {
     const otp = generateOTP();
     const expires = Date.now() + 10 * 60 * 1000;
     await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
-    setOtpDisplay(otp);
     try {
       await fetch('/api/auth/send-2fa', {
         method: 'POST',
@@ -137,41 +135,10 @@ export default function LoginPage() {
     }
   };
 
-  const pageStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    background: '#FAF0E6',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '1rem',
-    fontFamily: 'Inter, sans-serif',
-  };
-
-  const cardStyle: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: '20px',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '420px',
-    boxShadow: '0 8px 32px rgba(107,45,78,0.12)',
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '0.75rem 1rem',
-    border: '1.5px solid #E0D0C0',
-    borderRadius: '10px',
-    fontSize: '0.95rem',
-    background: '#FAF0E6',
-    color: '#333',
-    outline: 'none',
-    boxSizing: 'border-box',
-  };
-
   if (step === '2fa') {
     return (
-      <div style={pageStyle}>
-        <div style={{ ...cardStyle, textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
             {String.fromCodePoint(0x1F510)}
           </div>
@@ -181,14 +148,9 @@ export default function LoginPage() {
           <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>
             A 6-digit code was sent to
           </p>
-          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1rem' }}>{userEmail}</p>
-
-          {otpDisplay && (
-            <div style={{ background: '#FFF8E7', border: '1px solid #D4AF7A', borderRadius: '10px', padding: '0.75rem', marginBottom: '1rem' }}>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#888' }}>Your code (use if email not received)</p>
-              <p style={{ margin: '0.25rem 0 0', fontSize: '1.6rem', fontWeight: 900, color: '#6B2D4E', letterSpacing: '0.3em' }}>{otpDisplay}</p>
-            </div>
-          )}
+          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem' }}>
+            {userEmail}
+          </p>
 
           {error && (
             <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
@@ -232,11 +194,14 @@ export default function LoginPage() {
             {loading ? 'Verifying...' : 'Verify & Sign In'}
           </button>
 
-          <button onClick={handleResend} style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>
+          <button
+            onClick={handleResend}
+            style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}
+          >
             Resend code
           </button>
           <button
-            onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); setOtpDisplay(''); }}
+            onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); }}
             style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem' }}
           >
             Back to login
@@ -247,16 +212,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-          <div style={{ width: '44px', height: '44px', background: '#6B2D4E', color: '#D4AF7A', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.4rem' }}>
-            T
-          </div>
-          <div>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: '1.1rem', color: '#6B2D4E' }}>TARSYN</p>
-            <p style={{ margin: 0, fontSize: '0.65rem', color: '#888', letterSpacing: '0.1em' }}>YOUR COMMUNITY</p>
-          </div>
+    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
+
+        <div style={{ marginBottom: '2rem' }}>
+          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6B2D4E' }}>TARSYN</p>
+          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY</p>
         </div>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
@@ -271,25 +232,51 @@ export default function LoginPage() {
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Email</label>
-            <input style={inputStyle} type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+            <input
+              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Password</label>
-            <input style={inputStyle} type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
+            <input
+              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
           </div>
           <div style={{ textAlign: 'right', marginBottom: '1.25rem' }}>
-            <button type="button" style={{ background: 'none', border: 'none', color: '#D4AF7A', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer' }} onClick={() => router.push('/forgot-password')}>
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', color: '#D4AF7A', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer' }}
+              onClick={() => router.push('/forgot-password')}
+            >
               Forgot password?
             </button>
           </div>
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+          >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div style={{ textAlign: 'center', margin: '1.25rem 0', color: '#aaa', fontSize: '0.85rem' }}>or</div>
 
-        <button onClick={handleGoogle} disabled={loading} style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+        <button
+          onClick={handleGoogle}
+          disabled={loading}
+          style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
+        >
           <svg width="20" height="20" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
             <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" />
@@ -302,7 +289,10 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', margin: '1.25rem 0', color: '#aaa', fontSize: '0.85rem' }}>
           Don't have an account?
         </div>
-        <button onClick={() => router.push('/register')} style={{ width: '100%', padding: '0.85rem', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>
+        <button
+          onClick={() => router.push('/register')}
+          style={{ width: '100%', padding: '0.85rem', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}
+        >
           Create Account
         </button>
       </div>
