@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { db } from '@/lib/firebase-admin';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'tarsyn-secret-key');
 
@@ -14,11 +15,23 @@ export async function POST(req: NextRequest) {
 
     const { payload } = await jwtVerify(token, secret);
 
-    if (payload.code !== code) {
+    if (String(payload.code) !== String(code)) {
       return NextResponse.json({ error: 'Incorrect code.' }, { status: 400 });
     }
 
-    const res = NextResponse.json({ success: true });
+    // Récupérer le rôle depuis Firestore
+    const email = payload.email as string;
+    const userSnap = await db.collection('members').where('email', '==', email).limit(1).get();
+    
+    let role = 'member'; // défaut
+    if (!userSnap.empty) {
+      role = userSnap.docs[0].data().role || 'member';
+    }
+
+    // Redirection selon le rôle
+    const redirectTo = role === 'admin' ? '/dashboard' : '/member';
+
+    const res = NextResponse.json({ success: true, redirectTo });
     res.cookies.delete('otp_token');
     return res;
   } catch {
