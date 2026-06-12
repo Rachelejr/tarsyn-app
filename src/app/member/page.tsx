@@ -1,5 +1,4 @@
-$file = "src\app\member\page.tsx"
-$content = @'
+'use client';
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -182,14 +181,6 @@ export default function MemberDashboard() {
                       </div>
                     ))}
                   </div>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'20px'}}>
-                    {[{label:'TYN-ID',value:member?.tynId},{label:'Position',value:`#${member?.position}`},{label:'Role',value:member?.role},{label:'Status',value:member?.status}].map(item => (
-                      <div key={item.label} style={{background:'#F0F0F0',borderRadius:'12px',padding:'14px 16px',opacity:0.7}}>
-                        <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{item.label} (locked)</p>
-                        <p style={{color:'#999',fontWeight:'700',fontSize:'14px',margin:'0'}}>{item.value}</p>
-                      </div>
-                    ))}
-                  </div>
                   <div style={{display:'flex',gap:'10px'}}>
                     <button onClick={() => setEditMode(false)} style={{flex:1,padding:'10px',background:'transparent',color:'#6B2D4E',border:'2px solid #6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>Cancel</button>
                     <button onClick={handleSaveProfile} disabled={saving} style={{flex:1,padding:'10px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'14px',fontWeight:'700',cursor:'pointer',opacity:saving?0.7:1}}>{saving?'Saving...':'Save Changes'}</button>
@@ -197,110 +188,49 @@ export default function MemberDashboard() {
                 </div>
               )}
             </div>
-            <div style={{background:'linear-gradient(135deg,#6B2D4E,#D4AF7A)',borderRadius:'20px',padding:'28px',boxShadow:'0 4px 20px rgba(107,45,78,0.25)'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px'}}>
-                <div>
-                  <p style={{color:'rgba(250,240,230,0.7)',fontSize:'11px',margin:'0 0 4px',letterSpacing:'2px'}}>TARSYN MEMBER</p>
-                  <p style={{color:'white',fontSize:'20px',fontWeight:'800',margin:'0'}}>{member?.name}</p>
-                </div>
-              </div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
-                <div>
-                  <p style={{color:'rgba(250,240,230,0.7)',fontSize:'11px',margin:'0 0 4px'}}>TYN-ID</p>
-                  <p style={{color:'white',fontSize:'16px',fontWeight:'800',margin:'0',fontFamily:'monospace',letterSpacing:'2px'}}>{member?.tynId}</p>
-                </div>
-                <div style={{textAlign:'right'}}>
-                  <p style={{color:'rgba(250,240,230,0.7)',fontSize:'11px',margin:'0 0 4px'}}>POSITION</p>
-                  <p style={{color:'white',fontSize:'20px',fontWeight:'800',margin:'0'}}>#{member?.position}</p>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
         {activeTab === 'contributions' && (
-          <div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'16px',marginBottom:'20px'}}>
-              {[
-                { label: 'Total Paid', value: `${totalPaid}`, icon: '✅', color: '#2E7D32', bg: '#E8F5E9' },
-                { label: 'Remaining', value: `${remaining}`, icon: '⏳', color: '#E65100', bg: '#FFF3E0' },
-                { label: 'Payments', value: payments.length, icon: '📋', color: '#6B2D4E', bg: '#FAF0E6' },
-                { label: 'Next Payment', value: member?.payoutDate || 'Not set', icon: '📅', color: '#1565C0', bg: '#E3F2FD' },
-              ].map((s, i) => (
-                <div key={i} style={{background:s.bg,borderRadius:'16px',padding:'20px'}}>
-                  <span style={{fontSize:'24px',marginBottom:'8px',display:'block'}}>{s.icon}</span>
-                  <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{s.label}</p>
-                  <p style={{color:s.color,fontSize:'20px',fontWeight:'800',margin:'0'}}>{s.value}</p>
-                </div>
-              ))}
-            </div>
-            {expectedAmount > 0 && (
-              <div style={{background:'white',borderRadius:'16px',padding:'20px',marginBottom:'20px',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
-                <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
-                  <span style={{color:'#6B2D4E',fontWeight:'600',fontSize:'14px'}}>Payment Progress</span>
-                  <span style={{color:'#6B2D4E',fontWeight:'800',fontSize:'14px'}}>{Math.round((totalPaid/expectedAmount)*100)}%</span>
-                </div>
-                <div style={{background:'#FAF0E6',borderRadius:'8px',height:'10px',overflow:'hidden'}}>
-                  <div style={{width:`${Math.min((totalPaid/expectedAmount)*100,100)}%`,height:'100%',background:'linear-gradient(90deg,#6B2D4E,#D4AF7A)',borderRadius:'8px'}}/>
-                </div>
+          <div style={{background:'white',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+            <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>💳 Payment History</h3>
+            {payments.length === 0 ? (
+              <div style={{textAlign:'center',padding:'32px',color:'#7A5068'}}>
+                <p style={{fontSize:'32px',margin:'0 0 8px'}}>💸</p>
+                <p style={{fontSize:'14px',margin:'0'}}>No payments recorded yet.</p>
               </div>
-            )}
-            <div style={{background:'white',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-              <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>💳 Payment History</h3>
-              {payments.length === 0 ? (
-                <div style={{textAlign:'center',padding:'32px',color:'#7A5068'}}>
-                  <p style={{fontSize:'32px',margin:'0 0 8px'}}>💸</p>
-                  <p style={{fontSize:'14px',margin:'0'}}>No payments recorded yet.</p>
-                </div>
-              ) : (
-                <table style={{width:'100%',borderCollapse:'collapse'}}>
-                  <thead>
-                    <tr style={{borderBottom:'2px solid #FAF0E6'}}>
-                      {['Receipt','Amount','Method','Date','Status'].map(h => (
-                        <th key={h} style={{textAlign:'left',padding:'8px 10px',color:'#7A5068',fontSize:'11px',textTransform:'uppercase',letterSpacing:'1px'}}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payments.map((p, i) => (
-                      <tr key={p.id} style={{borderBottom:'1px solid #FAF0E6',background:i%2===0?'transparent':'#FDFAF7'}}>
-                        <td style={{padding:'10px',color:'#6B2D4E',fontFamily:'monospace',fontSize:'11px'}}>{p.receiptNumber || 'Not provided'}</td>
-                        <td style={{padding:'10px',color:'#2E7D32',fontWeight:'700',fontSize:'13px'}}>{p.amount} {p.currency}</td>
-                        <td style={{padding:'10px',color:'#7A5068',fontSize:'12px'}}>{p.paymentMethod || 'Not provided'}</td>
-                        <td style={{padding:'10px',color:'#7A5068',fontSize:'12px'}}>{p.paymentDate || 'Not provided'}</td>
-                        <td style={{padding:'10px'}}>
-                          <span style={{background:p.status==='confirmed'?'#E8F5E9':'#FFF3E0',color:p.status==='confirmed'?'#2E7D32':'#E65100',padding:'3px 10px',borderRadius:'20px',fontSize:'11px',fontWeight:'600'}}>{p.status||'confirmed'}</span>
-                        </td>
-                      </tr>
+            ) : (
+              <table style={{width:'100%',borderCollapse:'collapse'}}>
+                <thead>
+                  <tr style={{borderBottom:'2px solid #FAF0E6'}}>
+                    {['Amount','Method','Date','Status'].map(h => (
+                      <th key={h} style={{textAlign:'left',padding:'8px 10px',color:'#7A5068',fontSize:'11px',textTransform:'uppercase',letterSpacing:'1px'}}>{h}</th>
                     ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p, i) => (
+                    <tr key={p.id} style={{borderBottom:'1px solid #FAF0E6',background:i%2===0?'transparent':'#FDFAF7'}}>
+                      <td style={{padding:'10px',color:'#2E7D32',fontWeight:'700',fontSize:'13px'}}>{p.amount} {p.currency}</td>
+                      <td style={{padding:'10px',color:'#7A5068',fontSize:'12px'}}>{p.paymentMethod || 'Not provided'}</td>
+                      <td style={{padding:'10px',color:'#7A5068',fontSize:'12px'}}>{p.paymentDate || 'Not provided'}</td>
+                      <td style={{padding:'10px'}}>
+                        <span style={{background:p.status==='confirmed'?'#E8F5E9':'#FFF3E0',color:p.status==='confirmed'?'#2E7D32':'#E65100',padding:'3px 10px',borderRadius:'20px',fontSize:'11px',fontWeight:'600'}}>{p.status||'confirmed'}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
 
         {activeTab === 'rotation' && (
-          <div>
-            <div style={{background:'linear-gradient(135deg,#6B2D4E,#8B3D6E)',borderRadius:'20px',padding:'28px',marginBottom:'16px',color:'white'}}>
-              <h3 style={{color:'#D4AF7A',fontSize:'14px',fontWeight:'600',margin:'0 0 16px',textTransform:'uppercase',letterSpacing:'1px'}}>My Rotation</h3>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-                <div><p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>My Position</p><p style={{color:'white',fontSize:'32px',fontWeight:'800',margin:'0'}}>#{member?.position}</p></div>
-                <div><p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>Payout Date</p><p style={{color:'#D4AF7A',fontSize:'18px',fontWeight:'800',margin:'0'}}>{member?.payoutDate||'Not set'}</p></div>
-                <div><p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>Expected Payout</p><p style={{color:'white',fontSize:'18px',fontWeight:'800',margin:'0'}}>{member?.expectedAmount?`${member.expectedAmount} ${group?.contributionSettings?.currency||''}`:'Not provided'}</p></div>
-                <div><p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0 0 4px'}}>Group Members</p><p style={{color:'white',fontSize:'18px',fontWeight:'800',margin:'0'}}>{group?.numMembers||group?.memberCount||'Not provided'}</p></div>
-              </div>
-            </div>
-            <div style={{background:'white',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-              <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 16px'}}>📊 Cycle Progress</h3>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
-                <span style={{color:'#7A5068',fontSize:'13px'}}>Your turn in rotation</span>
-                <span style={{color:'#6B2D4E',fontWeight:'800',fontSize:'13px'}}>Position {member?.position} of {group?.numMembers||'?'}</span>
-              </div>
-              <div style={{background:'#FAF0E6',borderRadius:'8px',height:'12px',overflow:'hidden',marginBottom:'8px'}}>
-                <div style={{width:`${cycleProgress}%`,height:'100%',background:'linear-gradient(90deg,#6B2D4E,#D4AF7A)',borderRadius:'8px'}}/>
-              </div>
-              <p style={{color:'#7A5068',fontSize:'12px',margin:'0'}}>Contribution streak: {payments.filter(p=>p.status==='confirmed').length} confirmed payments</p>
+          <div style={{background:'white',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+            <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 16px'}}>🔄 My Rotation</h3>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+              <div style={{background:'#FAF0E6',borderRadius:'12px',padding:'14px 16px'}}><p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px'}}>My Position</p><p style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'800',margin:'0'}}>#{member?.position}</p></div>
+              <div style={{background:'#FAF0E6',borderRadius:'12px',padding:'14px 16px'}}><p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px'}}>Payout Date</p><p style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'800',margin:'0'}}>{member?.payoutDate||'Not set'}</p></div>
             </div>
           </div>
         )}
@@ -309,33 +239,18 @@ export default function MemberDashboard() {
           <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
             <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>🏘️ Group Information</h3>
             {group ? (
-              <div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'20px'}}>
-                  {[
-                    {label:'Group Name',value:val(group?.name)},
-                    {label:'Module',value:val(group?.module||group?.regionalName)},
-                    {label:'Total Members',value:val(group?.numMembers||group?.memberCount)},
-                    {label:'Frequency',value:val(group?.frequency||group?.contributionSettings?.frequency)},
-                    {label:'Contribution',value:group?.contributionSettings?.amount?`${group.contributionSettings.amount} ${group.contributionSettings.currency}`:'Not provided'},
-                    {label:'Privacy',value:val(group?.privacy||group?.privacyMode)},
-                    {label:'Status',value:val(group?.status)},
-                    {label:'Start Date',value:val(group?.startDate||group?.rotationSettings?.startDate)},
-                  ].map(item => (
-                    <div key={item.label} style={{background:'#FAF0E6',borderRadius:'12px',padding:'14px 16px'}}>
-                      <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{item.label}</p>
-                      <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'14px',margin:'0'}}>{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-                {isConfidential && (
-                  <div style={{background:'#2C1A3E',borderRadius:'12px',padding:'16px',display:'flex',alignItems:'center',gap:'12px'}}>
-                    <span style={{fontSize:'20px'}}>🔒</span>
-                    <div>
-                      <p style={{color:'#D4AF7A',fontWeight:'700',fontSize:'13px',margin:'0 0 4px'}}>Confidential Mode Active</p>
-                      <p style={{color:'rgba(250,240,230,0.6)',fontSize:'12px',margin:'0'}}>Member identities are protected.</p>
-                    </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+                {[
+                  {label:'Group Name',value:val(group?.name)},
+                  {label:'Total Members',value:val(group?.numMembers||group?.memberCount)},
+                  {label:'Frequency',value:val(group?.frequency)},
+                  {label:'Status',value:val(group?.status)},
+                ].map(item => (
+                  <div key={item.label} style={{background:'#FAF0E6',borderRadius:'12px',padding:'14px 16px'}}>
+                    <p style={{color:'#7A5068',fontSize:'11px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{item.label}</p>
+                    <p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'14px',margin:'0'}}>{item.value}</p>
                   </div>
-                )}
+                ))}
               </div>
             ) : <p style={{color:'#7A5068',fontSize:'14px'}}>Group information not available.</p>}
           </div>
@@ -345,10 +260,8 @@ export default function MemberDashboard() {
           <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
             <h3 style={{color:'#6B2D4E',fontSize:'16px',fontWeight:'700',margin:'0 0 20px'}}>🔔 My Alerts</h3>
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {member?.payoutDate && <div style={{background:'#E8F5E9',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px'}}><span style={{fontSize:'24px'}}>🎉</span><div><p style={{color:'#2E7D32',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Your Payout is Scheduled</p><p style={{color:'#388E3C',fontSize:'13px',margin:'0'}}>Your turn is on <strong>{member.payoutDate}</strong> - Position #{member.position}</p></div></div>}
-              {remaining > 0 && <div style={{background:'#FFF3E0',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px'}}><span style={{fontSize:'24px'}}>⏰</span><div><p style={{color:'#E65100',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Payment Reminder</p><p style={{color:'#EF6C00',fontSize:'13px',margin:'0'}}>Remaining balance: <strong>{remaining}</strong></p></div></div>}
-              {payments.length === 0 && <div style={{background:'#E3F2FD',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px'}}><span style={{fontSize:'24px'}}>👋</span><div><p style={{color:'#1565C0',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Welcome to TARSYN!</p><p style={{color:'#1976D2',fontSize:'13px',margin:'0'}}>Your membership is active. Your organizer will record your contributions.</p></div></div>}
-              {payments.filter(p=>p.status==='confirmed').length > 0 && <div style={{background:'#FAF0E6',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px'}}><span style={{fontSize:'24px'}}>✅</span><div><p style={{color:'#6B2D4E',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Contribution Streak</p><p style={{color:'#7A5068',fontSize:'13px',margin:'0'}}>{payments.filter(p=>p.status==='confirmed').length} confirmed payments - Keep it up!</p></div></div>}
+              {payments.length === 0 && <div style={{background:'#E3F2FD',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px'}}><span style={{fontSize:'24px'}}>👋</span><div><p style={{color:'#1565C0',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Welcome to TARSYN!</p><p style={{color:'#1976D2',fontSize:'13px',margin:'0'}}>Your membership is active.</p></div></div>}
+              {remaining > 0 && <div style={{background:'#FFF3E0',borderRadius:'12px',padding:'16px',display:'flex',gap:'12px'}}><span style={{fontSize:'24px'}}>⏰</span><div><p style={{color:'#E65100',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>Payment Reminder</p><p style={{color:'#EF6C00',fontSize:'13px',margin:'0'}}>Remaining: <strong>{remaining}</strong></p></div></div>}
             </div>
           </div>
         )}
@@ -356,8 +269,3 @@ export default function MemberDashboard() {
     </div>
   );
 }
-'@
-[System.IO.File]::WriteAllText("$PWD\$file", $content, [System.Text.UTF8Encoding]::new($false))
-git add .
-git commit -m "Improve member page - edit profile, not provided, quick summary"
-git push
