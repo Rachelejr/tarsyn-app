@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 $file = "src\app\member\page.tsx"
 $content = @'
 'use client';
@@ -363,4 +361,3 @@ export default function MemberDashboard() {
 git add .
 git commit -m "Improve member page - edit profile, not provided, quick summary"
 git push
->>>>>>> fa7655142a1d0cdc9d7c7de2b86daf06188256a1
