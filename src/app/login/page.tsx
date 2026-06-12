@@ -1,4 +1,5 @@
 ﻿'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -17,8 +18,9 @@ export default function LoginPage() {
   const [userEmail, setUserEmail] = useState('');
   const [resendMsg, setResendMsg] = useState('');
 
- const userDoc = await getDoc(doc(db, 'users', uid));
-const role = userDoc.exists() ? userDoc.data()?.role : null;
+  const redirectByRole = async (uid: string, uEmail: string) => {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    const role = userDoc.exists() ? userDoc.data()?.role : null;
     if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
       window.location.href = '/dashboard';
     } else {
@@ -47,6 +49,11 @@ const role = userDoc.exists() ? userDoc.data()?.role : null;
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
+      // Sauvegarder le user dans Firestore sans écraser le rôle existant
+      await setDoc(doc(db, 'users', result.user.uid), {
+        email: result.user.email,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
       setUserId(result.user.uid);
       setUserEmail(result.user.email!);
       await sendOTP(result.user.uid, result.user.email!);
@@ -113,6 +120,10 @@ const role = userDoc.exists() ? userDoc.data()?.role : null;
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      await setDoc(doc(db, 'users', result.user.uid), {
+        email: result.user.email,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
       await redirectByRole(result.user.uid, result.user.email!);
     } catch {
       setError('Google sign-in error. Please try again.');
