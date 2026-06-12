@@ -17,10 +17,8 @@ export default function LoginPage() {
   const [userEmail, setUserEmail] = useState('');
   const [resendMsg, setResendMsg] = useState('');
 
-  const redirectByRole = async (uid: string, uEmail: string) => {
-    const mq = query(collection(db, 'users'), where('email', '==', uEmail));
-    const ms = await getDocs(mq);
-    const role = ms.empty ? null : ms.docs[0].data()?.role;
+ const userDoc = await getDoc(doc(db, 'users', uid));
+const role = userDoc.exists() ? userDoc.data()?.role : null;
     if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
       window.location.href = '/dashboard';
     } else {
