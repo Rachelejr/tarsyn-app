@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,16 +12,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const redirectByRole = async (uid: string) => {
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    const role = userDoc.exists() ? userDoc.data()?.role : null;
-    if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
-      window.location.href = '/dashboard';
-    } else {
-      window.location.href = '/member';
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +23,7 @@ export default function LoginPage() {
         email: result.user.email,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      await redirectByRole(result.user.uid);
+      window.location.href = '/dashboard';
     } catch (err: any) {
       const msg: Record<string, string> = {
         'auth/user-not-found': 'No account found with this email.',
@@ -58,7 +48,7 @@ export default function LoginPage() {
         email: result.user.email,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      await redirectByRole(result.user.uid);
+      window.location.href = '/dashboard';
     } catch {
       setError('Google sign-in error. Please try again.');
     } finally {
