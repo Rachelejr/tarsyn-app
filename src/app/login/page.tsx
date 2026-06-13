@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,13 +12,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'login' | '2fa'>('login');
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [userId, setUserId] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-  const [resendMsg, setResendMsg] = useState('');
 
-  const redirectByRole = async (uid: string, uEmail: string) => {
+  const redirectByRole = async (uid: string) => {
     const userDoc = await getDoc(doc(db, 'users', uid));
     const role = userDoc.exists() ? userDoc.data()?.role : null;
     if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
@@ -28,36 +23,17 @@ export default function LoginPage() {
     }
   };
 
-  const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
-
-  const sendOTP = async (uid: string, uEmail: string) => {
-    const otp = generateOTP();
-    const expires = Date.now() + 10 * 60 * 1000;
-    await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
-    try {
-      await fetch('/api/auth/send-2fa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: uEmail, otp }),
-      });
-    } catch {}
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      // Sauvegarder le user dans Firestore sans écraser le rôle existant
       await setDoc(doc(db, 'users', result.user.uid), {
         email: result.user.email,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      setUserId(result.user.uid);
-      setUserEmail(result.user.email!);
-      await sendOTP(result.user.uid, result.user.email!);
-      setStep('2fa');
+      await redirectByRole(result.user.uid);
     } catch (err: any) {
       const msg: Record<string, string> = {
         'auth/user-not-found': 'No account found with this email.',
@@ -72,48 +48,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleVerify2FA = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const enteredCode = code.join('');
-      const otpRef = doc(db, 'otp_codes', userId);
-      const otpDoc = await getDoc(otpRef);
-      if (!otpDoc.exists()) {
-        setError('Code expired. Please request a new one.');
-        setLoading(false);
-        return;
-      }
-      const { otp, expires } = otpDoc.data();
-      if (Date.now() > expires) {
-        await deleteDoc(otpRef);
-        setError('Code expired. Please request a new one.');
-        setLoading(false);
-        return;
-      }
-      if (String(enteredCode) !== String(otp)) {
-        setError('Incorrect code. Please try again.');
-        setLoading(false);
-        return;
-      }
-      await deleteDoc(otpRef);
-      await redirectByRole(userId, userEmail);
-    } catch (e) {
-      console.error(e);
-      setError('Verification error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setError('');
-    setCode(['', '', '', '', '', '']);
-    await sendOTP(userId, userEmail);
-    setResendMsg('New code sent!');
-    setTimeout(() => setResendMsg(''), 4000);
-  };
-
   const handleGoogle = async () => {
     setError('');
     setLoading(true);
@@ -124,55 +58,13 @@ export default function LoginPage() {
         email: result.user.email,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      await redirectByRole(result.user.uid, result.user.email!);
+      await redirectByRole(result.user.uid);
     } catch {
       setError('Google sign-in error. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
-  const handleCodeChange = (index: number, value: string) => {
-    const val = value.replace(/\D/g, '');
-    const arr = [...code];
-    arr[index] = val;
-    setCode(arr);
-    if (val && index < 5) {
-      const next = document.getElementById(`otp-${index + 1}`);
-      if (next) (next as HTMLInputElement).focus();
-    }
-  };
-
-  if (step === '2fa') {
-    return (
-      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{String.fromCodePoint(0x1F510)}</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Check your email!</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code was sent to</p>
-          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem' }}>{userEmail}</p>
-          {error && <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>{error}</div>}
-          {resendMsg && <div style={{ background: '#D4EDDA', color: '#155724', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>{resendMsg}</div>}
-          <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.75rem' }}>Enter your 6-digit code</label>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            {code.map((digit, i) => (
-              <input key={i} id={`otp-${i}`} type="text" maxLength={1} value={digit}
-                onChange={e => handleCodeChange(i, e.target.value)}
-                onKeyDown={e => { if (e.key === 'Backspace' && !code[i] && i > 0) { const prev = document.getElementById(`otp-${i - 1}`); if (prev) (prev as HTMLInputElement).focus(); } }}
-                style={{ width: '46px', height: '56px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #E0D0C0', borderRadius: '10px', background: '#FAF0E6', color: '#6B2D4E', outline: 'none' }}
-              />
-            ))}
-          </div>
-          <button onClick={handleVerify2FA} disabled={loading || code.join('').length !== 6}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
-            {loading ? 'Verifying...' : 'Verify & Sign In'}
-          </button>
-          <button onClick={handleResend} style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>Resend code</button>
-          <button onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); }} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem' }}>Back to login</button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
