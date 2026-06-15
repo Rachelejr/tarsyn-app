@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 
 export default function MemberDashboard() {
   const router = useRouter();
@@ -22,6 +22,17 @@ export default function MemberDashboard() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
+        // 1. Vérifier si admin → rediriger vers dashboard
+        const userDoc = await getDoc(doc(db, 'users', u.uid));
+        if (userDoc.exists()) {
+          const role = userDoc.data()?.role;
+          if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
+            router.push('/dashboard');
+            return;
+          }
+        }
+
+        // 2. Sinon chercher dans members
         const mq = query(collection(db, 'members'), where('userId', '==', u.uid));
         const ms = await getDocs(mq);
         if (!ms.empty) {
@@ -153,7 +164,6 @@ export default function MemberDashboard() {
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
         {saveMsg && <div style={{ background: '#E8F5E9', color: '#2E7D32', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontWeight: 600 }}>✅ {saveMsg}</div>}
 
-        {/* PROFILE TAB */}
         {activeTab === 'profile' && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -201,7 +211,6 @@ export default function MemberDashboard() {
           </div>
         )}
 
-        {/* CONTRIBUTIONS TAB */}
         {activeTab === 'contributions' && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700, margin: '0 0 20px' }}>💳 Payment History</h3>
@@ -236,7 +245,6 @@ export default function MemberDashboard() {
           </div>
         )}
 
-        {/* ROTATION TAB */}
         {activeTab === 'rotation' && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700, margin: '0 0 16px' }}>🔄 My Rotation</h3>
@@ -253,7 +261,6 @@ export default function MemberDashboard() {
           </div>
         )}
 
-        {/* GROUP TAB */}
         {activeTab === 'group' && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700, margin: '0 0 20px' }}>🏘️ Group Information</h3>
@@ -275,7 +282,6 @@ export default function MemberDashboard() {
           </div>
         )}
 
-        {/* ALERTS TAB */}
         {activeTab === 'alerts' && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700, margin: '0 0 20px' }}>🔔 My Alerts</h3>
