@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function MemberDashboard() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function MemberDashboard() {
   const [saveMsg, setSaveMsg] = useState('');
   const [saving, setSaving] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -61,6 +64,37 @@ export default function MemberDashboard() {
       setTimeout(() => setSaveMsg(''), 4000);
     } catch (e) { console.error(e); }
     setSaving(false);
+  };
+
+  const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>, paymentId: string) => {
+    const file = e.target.files?.[0];
+    if (!file || !member) return;
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadMsg('Only PDF, JPG or PNG files accepted.');
+      setTimeout(() => setUploadMsg(''), 4000);
+      return;
+    }
+    setUploading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const storageRef = ref(storage, `payment-proofs/${user.uid}/${paymentId}-${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      await updateDoc(doc(db, 'payments', paymentId), {
+        proofUrl: downloadURL,
+        proofStatus: 'pending',
+        proofUploadedAt: serverTimestamp(),
+      });
+      setUploadMsg('✅ Proof uploaded! Waiting for admin validation.');
+      setTimeout(() => setUploadMsg(''), 5000);
+    } catch (err) {
+      console.error(err);
+      setUploadMsg('Error uploading. Please try again.');
+      setTimeout(() => setUploadMsg(''), 4000);
+    }
+    setUploading(false);
   };
 
   const printReceipt = (p: any) => {
@@ -157,12 +191,10 @@ export default function MemberDashboard() {
                 Receipt {selectedReceipt.receiptNumber || `TR-${new Date().getFullYear()}-${selectedReceipt.id?.slice(-6).toUpperCase()}`}
               </p>
             </div>
-
             <div style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px', textAlign: 'center', marginBottom: '20px' }}>
               <p style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 900, margin: '0 0 8px' }}>{selectedReceipt.amount} {selectedReceipt.currency}</p>
               <span style={{ background: '#E8F5E9', color: '#2E7D32', padding: '4px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>{selectedReceipt.status || 'confirmed'}</span>
             </div>
-
             {[
               ['TYN-ID', member.tynId],
               ['Member Name', member.name],
@@ -177,11 +209,9 @@ export default function MemberDashboard() {
                 <span style={{ color: '#2C1A3E', fontWeight: 600, fontSize: '13px' }}>{value}</span>
               </div>
             ))}
-
             <p style={{ color: '#7A5068', fontSize: '11px', textAlign: 'center', margin: '16px 0' }}>
               This receipt was generated automatically by TARSYN. Receipts cannot be modified.
             </p>
-
             <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <button onClick={() => setSelectedReceipt(null)}
                 style={{ flex: 1, padding: '10px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
@@ -257,6 +287,7 @@ export default function MemberDashboard() {
       {/* CONTENT */}
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
         {saveMsg && <div style={{ background: '#E8F5E9', color: '#2E7D32', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontWeight: 600 }}>✅ {saveMsg}</div>}
+        {uploadMsg && <div style={{ background: uploadMsg.includes('✅') ? '#E8F5E9' : '#FFEBEE', color: uploadMsg.includes('✅') ? '#2E7D32' : '#C62828', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontWeight: 600 }}>{uploadMsg}</div>}
 
         {/* PROFILE */}
         {activeTab === 'profile' && (
@@ -320,7 +351,7 @@ export default function MemberDashboard() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #FAF0E6' }}>
-                      {['Amount', 'Method', 'Date', 'Status', 'Receipt'].map(h => (
+                      {['Amount', 'Method', 'Date', 'Status', 'Receipt', 'Proof'].map(h => (
                         <th key={h} style={{ textAlign: 'left', padding: '8px 10px', color: '#7A5068', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
                       ))}
                     </tr>
@@ -339,6 +370,20 @@ export default function MemberDashboard() {
                             style={{ background: '#FAF0E6', color: '#6B2D4E', border: '1px solid #D4AF7A', borderRadius: '8px', padding: '4px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
                             🧾 View
                           </button>
+                        </td>
+                        <td style={{ padding: '10px' }}>
+                          {p.proofUrl ? (
+                            <span style={{ background: p.proofStatus === 'verified' ? '#E8F5E9' : '#FFF3E0', color: p.proofStatus === 'verified' ? '#2E7D32' : '#E65100', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>
+                              {p.proofStatus === 'verified' ? '✅ Verified' : '⏳ Pending'}
+                            </span>
+                          ) : (
+                            <label style={{ cursor: 'pointer' }}>
+                              <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleUploadProof(e, p.id)} style={{ display: 'none' }} />
+                              <span style={{ background: '#E3F2FD', color: '#1565C0', border: '1px solid #1565C0', borderRadius: '8px', padding: '4px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                                {uploading ? '...' : '📎 Upload'}
+                              </span>
+                            </label>
+                          )}
                         </td>
                       </tr>
                     ))}
