@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export default function Overview() {
   const router = useRouter();
@@ -12,12 +12,15 @@ export default function Overview() {
   const [members, setMembers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [savingGroup, setSavingGroup] = useState(false);
+  const [deletingMember, setDeletingMember] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
-        // Isolation par organizerId = uid de l'admin connecté
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
         const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -40,6 +43,28 @@ export default function Overview() {
     return () => unsub();
   }, [router]);
 
+  const handleSaveGroupName = async () => {
+    if (!editingGroup || !newGroupName.trim()) return;
+    setSavingGroup(true);
+    try {
+      await updateDoc(doc(db, 'groups', editingGroup.id), { name: newGroupName.trim() });
+      setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, name: newGroupName.trim() } : g));
+      setEditingGroup(null);
+      setNewGroupName('');
+    } catch (e) { console.error(e); }
+    setSavingGroup(false);
+  };
+
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`Are you sure you want to delete ${memberName}?`)) return;
+    setDeletingMember(memberId);
+    try {
+      await deleteDoc(doc(db, 'members', memberId));
+      setMembers(members.filter(m => m.id !== memberId));
+    } catch (e) { console.error(e); }
+    setDeletingMember(null);
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF0E6' }}>
       <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
@@ -54,6 +79,31 @@ export default function Overview() {
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
       <style>{`.card:hover{transform:translateY(-2px)!important;box-shadow:0 8px 24px rgba(107,45,78,0.2)!important;}`}</style>
+
+      {/* EDIT GROUP NAME MODAL */}
+      {editingGroup && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Group Name</h3>
+            <input
+              value={newGroupName}
+              onChange={e => setNewGroupName(e.target.value)}
+              placeholder="New group name..."
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { setEditingGroup(null); setNewGroupName(''); }}
+                style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={handleSaveGroupName} disabled={savingGroup}
+                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                {savingGroup ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <nav style={{ background: '#6B2D4E', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.15)' }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -72,7 +122,7 @@ export default function Overview() {
 
         <div style={{ marginBottom: '32px' }}>
           <h1 style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 800, margin: '0 0 6px' }}>⚡ TARSYN Handles the Rest</h1>
-          <p style={{ color: '#7A5068', fontSize: '15px', margin: 0 }}>DGP — Rotation, reminders, reports — all automatic.</p>
+          <p style={{ color: '#7A5068', fontSize: '15px', margin: 0 }}>Rotation, reminders, reports — all automatic.</p>
         </div>
 
         {/* STATS */}
@@ -104,7 +154,11 @@ export default function Overview() {
               {groups.map((g, i) => (
                 <div key={i} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px' }}>
                   <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '15px', margin: '0 0 4px' }}>{g.name}</p>
-                  <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{g.frequency} · {g.status}</p>
+                  <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 12px' }}>{g.frequency} · {g.status}</p>
+                  <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }}
+                    style={{ background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                    ✏️ Edit Name
+                  </button>
                 </div>
               ))}
             </div>
@@ -121,7 +175,7 @@ export default function Overview() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #FAF0E6' }}>
-                    {['Position', 'TYN-ID', 'Name', 'Payout Date', 'Status'].map(h => (
+                    {['Position', 'TYN-ID', 'Name', 'Payout Date', 'Status', 'Action'].map(h => (
                       <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#7A5068', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
                     ))}
                   </tr>
@@ -137,6 +191,16 @@ export default function Overview() {
                         <span style={{ background: m.status === 'active' ? '#E8F5E9' : '#FFF3E0', color: m.status === 'active' ? '#2E7D32' : '#E65100', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
                           {m.status || 'active'}
                         </span>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        {m.role !== 'admin' && (
+                          <button
+                            onClick={() => handleDeleteMember(m.id, m.name)}
+                            disabled={deletingMember === m.id}
+                            style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                            {deletingMember === m.id ? '...' : '🗑️ Delete'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
