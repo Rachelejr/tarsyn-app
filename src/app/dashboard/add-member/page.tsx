@@ -38,13 +38,11 @@ export default function AddMember() {
     const load = async () => {
       const user = auth.currentUser;
       if (!user) return;
-      // Cherche le groupe de CET admin seulement
       const q = query(collection(db, 'groups'), where('organizerId', '==', user.uid));
       const snap = await getDocs(q);
       if (snap.empty) return;
       const gId = snap.docs[0].id;
       setGroupId(gId);
-      // Cherche les membres de CET admin seulement
       const mq = query(collection(db, 'members'), where('organizerId', '==', user.uid));
       const ms = await getDocs(mq);
       setExistingMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -87,9 +85,10 @@ export default function AddMember() {
       if (!user) { router.push('/login'); return; }
       const countryCode = country.substring(0, 2).toUpperCase();
       const tynId = generateTynId(countryCode, memberCount);
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
       const memberData = {
         groupId,
-        organizerId: user.uid,        // ← ISOLATION PAR ADMIN
+        organizerId: user.uid,
         name: name.trim(),
         phone: phone.trim(),
         email: email.trim(),
@@ -102,12 +101,31 @@ export default function AddMember() {
         expectedAmount: expectedAmount ? parseFloat(expectedAmount) : null,
         currency,
         tynId,
+        inviteCode,
         notes: notes.trim(),
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       };
       await addDoc(collection(db, 'members'), memberData);
       setSavedMember({ ...memberData, tynId });
+
+      if (email.trim()) {
+        const gq = query(collection(db, 'groups'), where('organizerId', '==', user.uid));
+        const gs = await getDocs(gq);
+        const groupName = gs.empty ? 'TARSYN Group' : gs.docs[0].data().name;
+        await fetch('/api/invite-member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            name: name.trim(),
+            tynId,
+            groupName,
+            inviteCode,
+          }),
+        });
+      }
+
       setName(''); setPhone(''); setEmail(''); setCountry('');
       setPayoutDate(''); setNotes(''); setExpectedAmount('');
       setMemberCount(prev => prev + 1);
@@ -130,6 +148,7 @@ export default function AddMember() {
           <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Country: {savedMember.country}</p>
           <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Position: #{savedMember.position}</p>
           <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Payout Date: {savedMember.payoutDate}</p>
+          <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Invite Code: <strong style={{ color: '#6B2D4E', fontFamily: 'monospace' }}>{savedMember.inviteCode}</strong></p>
           <p style={{ margin: 0, color: '#7A5068', fontSize: '13px' }}>Status: <span style={{ background: '#FFF3E0', color: '#E65100', padding: '2px 8px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>{savedMember.status}</span></p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
