@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -16,8 +16,12 @@ export default function Dashboard() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
-      setAdminName(u.displayName || u.email?.split('@')[0] || 'Admin');
       try {
+        // Cherche le vrai nom dans Firestore users
+        const userDoc = await getDoc(doc(db, 'users', u.uid));
+        const userName = userDoc.exists() ? userDoc.data()?.name : null;
+        setAdminName(userName || u.displayName || u.email?.split('@')[0] || 'Admin');
+
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
         if (!gsnap.empty) {
