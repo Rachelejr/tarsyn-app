@@ -20,20 +20,16 @@ export default function LoginPage() {
   const redirectByRole = async (uid: string, uEmail: string) => {
     try {
       let role = null;
-
-      // 1. Cherche dans users EN PREMIER
       const userDoc = await getDoc(doc(db, 'users', uid));
       if (userDoc.exists()) {
         role = userDoc.data()?.role;
       } else {
-        // 2. Cherche dans members par email
         const q2 = query(collection(db, 'members'), where('email', '==', uEmail));
         const s2 = await getDocs(q2);
         if (!s2.empty) {
           role = s2.docs[0].data()?.role;
         }
       }
-
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
         window.location.href = '/dashboard';
       } else {
@@ -240,7 +236,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '0.5rem' }}>
             <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
@@ -256,6 +252,13 @@ export default function LoginPage() {
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
+          </div>
+
+          {/* FORGOT PASSWORD LINK */}
+          <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
+            <a href="/forgot-password" style={{ color: '#6B2D4E', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
+              Forgot password?
+            </a>
           </div>
 
           <button type="submit" disabled={loading}
