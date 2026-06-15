@@ -19,7 +19,7 @@ export default function CreateGroup() {
   const totalSteps = 5;
 
   const [groupName, setGroupName] = useState('');
-  const [groupType, setGroupType] = useState('Family');
+  const [groupType, setGroupType] = useState('Sol');
   const [description, setDescription] = useState('');
   const [country, setCountry] = useState('');
   const [region, setRegion] = useState('');
@@ -63,7 +63,6 @@ export default function CreateGroup() {
       const user = auth.currentUser;
       if (!user) { router.push('/login'); return; }
 
-      // Vérifier doublons pour CET admin seulement
       const q = query(collection(db, 'groups'), where('organizerId', '==', user.uid), where('name', '==', groupName.trim()));
       const existing = await getDocs(q);
       if (!existing.empty) { setError('You already have a group with this name.'); setLoading(false); return; }
@@ -85,7 +84,7 @@ export default function CreateGroup() {
         contributionSettings: { amount: contributionAmount ? parseFloat(contributionAmount) : 0, currency, frequency },
         rotationSettings: { mode: rotationMode, startDate },
         adminId: user.uid,
-        organizerId: user.uid,        // ← ISOLATION PAR ADMIN
+        organizerId: user.uid,
         adminPosition: parseInt(adminPosition),
         status: 'active',
         inviteCode,
@@ -97,7 +96,7 @@ export default function CreateGroup() {
       const memberCode = generateCode('TYN', countryCode);
       await addDoc(collection(db, 'members'), {
         groupId: groupRef.id,
-        organizerId: user.uid,        // ← ISOLATION PAR ADMIN
+        organizerId: user.uid,
         name: user.displayName || user.email?.split('@')[0] || 'Admin',
         email: user.email,
         tynId: memberCode,
@@ -181,7 +180,7 @@ export default function CreateGroup() {
                 <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Group Type</label>
                 <select value={groupType} onChange={e => setGroupType(e.target.value)}
                   style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}>
-                  {['Family', 'Friends', 'Community', 'Professional', 'Church', 'Association', 'Other'].map(t => <option key={t}>{t}</option>)}
+                  {['Sol', 'Tontine', 'Family', 'Friends', 'Community', 'Professional', 'Church', 'Association', 'Organization', 'Foundation', 'Agriculture', 'Other'].map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div style={{ marginBottom: '16px' }}>
@@ -218,18 +217,15 @@ export default function CreateGroup() {
                   { name: 'Tontine', icon: '🤝', desc: 'Community fund' },
                   { name: 'Association', icon: '🏛️', desc: 'Formal group' },
                   { name: 'Church', icon: '⛪', desc: 'Faith community' },
+                  { name: 'Organization', icon: '🏢', desc: 'Professional org' },
+                  { name: 'Foundation', icon: '💎', desc: 'Non-profit' },
+                  { name: 'Agriculture', icon: '🌾', desc: 'Farming group' },
                 ].map(m => (
                   <div key={m.name} onClick={() => setModule(m.name)}
                     style={{ border: `2px solid ${module === m.name ? '#6B2D4E' : '#E8D5E0'}`, borderRadius: '16px', padding: '20px', cursor: 'pointer', background: module === m.name ? '#FAF0E6' : 'white', transition: 'all 0.2s' }}>
                     <div style={{ fontSize: '28px', marginBottom: '8px' }}>{m.icon}</div>
                     <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '15px', margin: '0 0 4px' }}>{m.name}</p>
                     <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{m.desc}</p>
-                  </div>
-                ))}
-                {['Organization', 'Foundation', 'Agriculture'].map(m => (
-                  <div key={m} style={{ border: '2px solid #E8D5E0', borderRadius: '16px', padding: '20px', background: '#F5F5F5', opacity: 0.6 }}>
-                    <p style={{ color: '#9E9E9E', fontWeight: 700, fontSize: '15px', margin: '0 0 4px' }}>{m}</p>
-                    <p style={{ color: '#BDBDBD', fontSize: '12px', margin: 0 }}>Coming Soon</p>
                   </div>
                 ))}
               </div>
