@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,11 +11,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'login' | '2fa'>('login');
+  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [resendMsg, setResendMsg] = useState('');
+  const [userId, setUserId] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   const redirectByRole = async (uid: string, uEmail: string) => {
     try {
       let role = null;
-
       const q1 = query(collection(db, 'members'), where('userId', '==', uid));
       const s1 = await getDocs(q1);
       if (!s1.empty) {
@@ -25,7 +29,6 @@ export default function LoginPage() {
         const s2 = await getDocs(q2);
         if (!s2.empty) role = s2.docs[0].data()?.role;
       }
-
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
         window.location.href = '/dashboard';
       } else {
@@ -36,13 +39,33 @@ export default function LoginPage() {
     }
   };
 
+  const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+  const sendOTP = async (uid: string, uEmail: string) => {
+    const otp = generateOTP();
+    const expires = Date.now() + 10 * 60 * 1000;
+    await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
+    try {
+      await fetch('/api/auth/send-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: uEmail, otp }),
+      });
+    } catch {
+      // OTP stocké dans Firestore même si email échoue
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-      await redirectByRole(result.user.uid, result.user.email!);
+      setUserId(result.user.uid);
+      setUserEmail(result.user.email!);
+      await sendOTP(result.user.uid, result.user.email!);
+      setStep('2fa');
     } catch (err: any) {
       const msg: Record<string, string> = {
         'auth/user-not-found': 'Aucun compte trouvé.',
@@ -57,6 +80,38 @@ export default function LoginPage() {
     }
   };
 
+  const handleVerify2FA = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const entered = code.join('');
+      const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
+      if (!otpDoc.exists()) { setError('Code expiré. Demandez un nouveau code.'); setLoading(false); return; }
+      const { otp, expires } = otpDoc.data();
+      if (Date.now() > expires) {
+        await deleteDoc(doc(db, 'otp_codes', userId));
+        setError('Code expiré. Demandez un nouveau code.');
+        setLoading(false);
+        return;
+      }
+      if (entered !== otp) { setError('Code incorrect. Réessayez.'); setLoading(false); return; }
+      await deleteDoc(doc(db, 'otp_codes', userId));
+      await redirectByRole(userId, userEmail);
+    } catch {
+      setError('Erreur de vérification. Réessayez.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setCode(['', '', '', '', '', '']);
+    await sendOTP(userId, userEmail);
+    setResendMsg('Nouveau code envoyé !');
+    setTimeout(() => setResendMsg(''), 4000);
+  };
+
   const handleGoogle = async () => {
     setError('');
     setLoading(true);
@@ -64,13 +119,91 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
-      await redirectByRole(result.user.uid, result.user.email!);
+      setUserId(result.user.uid);
+      setUserEmail(result.user.email!);
+      await sendOTP(result.user.uid, result.user.email!);
+      setStep('2fa');
     } catch (err: any) {
       setError(`Erreur Google: ${err.code}`);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleCodeChange = (index: number, value: string) => {
+    const val = value.replace(/\D/g, '');
+    const arr = [...code];
+    arr[index] = val;
+    setCode(arr);
+    if (val && index < 5) {
+      const next = document.getElementById(`otp-${index + 1}`);
+      if (next) (next as HTMLInputElement).focus();
+    }
+  };
+
+  if (step === '2fa') {
+    return (
+      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Vérification 2FA</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code a 6 chiffres a été envoyé à</p>
+          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
+
+          {error && (
+            <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
+              {error}
+            </div>
+          )}
+          {resendMsg && (
+            <div style={{ background: '#D4EDDA', color: '#155724', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
+              {resendMsg}
+            </div>
+          )}
+
+          <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.75rem' }}>
+            Entrez votre code
+          </label>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem' }}>
+            {code.map((digit, i) => (
+              <input
+                key={i}
+                id={`otp-${i}`}
+                type="text"
+                maxLength={1}
+                value={digit}
+                onChange={e => handleCodeChange(i, e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Backspace' && !code[i] && i > 0) {
+                    const prev = document.getElementById(`otp-${i - 1}`);
+                    if (prev) (prev as HTMLInputElement).focus();
+                  }
+                }}
+                style={{ width: '46px', height: '56px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #E0D0C0', borderRadius: '10px', background: '#FAF0E6', color: '#6B2D4E', outline: 'none' }}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={handleVerify2FA}
+            disabled={loading || code.join('').length !== 6}
+            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}
+          >
+            {loading ? 'Vérification...' : 'Vérifier et se connecter'}
+          </button>
+
+          <button onClick={handleResend}
+            style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>
+            Renvoyer le code
+          </button>
+          <button onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); }}
+            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem' }}>
+            Retour au login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
@@ -114,32 +247,23 @@ export default function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}>
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1, marginBottom: '1rem' }}
-          >
+          <button type="submit" disabled={loading}
+            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1, marginBottom: '1rem' }}>
             {loading ? 'Connexion...' : 'Sign In'}
           </button>
         </form>
 
         <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>or</div>
 
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
-        >
+        <button onClick={handleGoogle} disabled={loading}
+          style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
           <svg width="20" height="20" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
             <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
