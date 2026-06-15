@@ -13,22 +13,37 @@ export default function JoinPage() {
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [debugMsg, setDebugMsg] = useState('');
 
   useEffect(() => {
     const load = async () => {
       try {
-        if (!code) { setNotFound(true); setLoading(false); return; }
+        if (!code) {
+          setDebugMsg('No code found in URL');
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
         const codeStr = String(code).trim().toUpperCase();
+        setDebugMsg(`Searching for code: ${codeStr}`);
         const q = query(collection(db, 'members'), where('inviteCode', '==', codeStr));
         const snap = await getDocs(q);
-        if (snap.empty) { setNotFound(true); setLoading(false); return; }
+        setDebugMsg(`Found ${snap.size} members with code ${codeStr}`);
+        if (snap.empty) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
         const memberData = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
         setMember(memberData);
         if (memberData.groupId) {
           const gDoc = await getDoc(doc(db, 'groups', memberData.groupId));
           if (gDoc.exists()) setGroup({ id: gDoc.id, ...gDoc.data() });
         }
-      } catch (e) { setNotFound(true); }
+      } catch (e: any) {
+        setDebugMsg(`Error: ${e.message}`);
+        setNotFound(true);
+      }
       setLoading(false);
     };
     load();
@@ -45,6 +60,7 @@ export default function JoinPage() {
       <div style={{ fontSize: '48px' }}>❌</div>
       <h2 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
       <p style={{ color: '#7A5068', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
+      <p style={{ color: '#E53935', fontSize: '12px', margin: 0, fontFamily: 'monospace' }}>{debugMsg}</p>
       <button onClick={() => router.push('/')} style={{ background: '#6B2D4E', color: '#FAF0E6', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
     </div>
   );
