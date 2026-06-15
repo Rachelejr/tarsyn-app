@@ -16,6 +16,7 @@ export default function Overview() {
   const [newGroupName, setNewGroupName] = useState('');
   const [savingGroup, setSavingGroup] = useState(false);
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
+  const [updatingMember, setUpdatingMember] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -26,9 +27,7 @@ export default function Overview() {
         const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
         setGroups(groupList);
 
-        const groupIds = groupList.map(g => g.id);
-
-        if (groupIds.length > 0) {
+        if (groupList.length > 0) {
           const mq = query(collection(db, 'members'), where('organizerId', '==', u.uid));
           const ms = await getDocs(mq);
           setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -53,6 +52,15 @@ export default function Overview() {
       setNewGroupName('');
     } catch (e) { console.error(e); }
     setSavingGroup(false);
+  };
+
+  const handleUpdateStatus = async (memberId: string, newStatus: string) => {
+    setUpdatingMember(memberId);
+    try {
+      await updateDoc(doc(db, 'members', memberId), { status: newStatus });
+      setMembers(members.map(m => m.id === memberId ? { ...m, status: newStatus } : m));
+    } catch (e) { console.error(e); }
+    setUpdatingMember(null);
   };
 
   const handleDeleteMember = async (memberId: string, memberName: string) => {
@@ -165,17 +173,17 @@ export default function Overview() {
           )}
         </div>
 
-        {/* ROTATION */}
+        {/* MEMBER MANAGEMENT */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>🔄 Rotation Schedule</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>👥 Member Management</h3>
           {members.length === 0 ? (
-            <p style={{ color: '#7A5068', fontSize: '14px' }}>No members yet. Add members to see rotation.</p>
+            <p style={{ color: '#7A5068', fontSize: '14px' }}>No members yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #FAF0E6' }}>
-                    {['Position', 'TYN-ID', 'Name', 'Payout Date', 'Status', 'Action'].map(h => (
+                    {['#', 'TYN-ID', 'Name', 'Payout Date', 'Status', 'Actions'].map(h => (
                       <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#7A5068', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
                     ))}
                   </tr>
@@ -188,18 +196,40 @@ export default function Overview() {
                       <td style={{ padding: '12px', color: '#2C1A3E', fontWeight: 600 }}>{m.name}</td>
                       <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{m.payoutDate || '—'}</td>
                       <td style={{ padding: '12px' }}>
-                        <span style={{ background: m.status === 'active' ? '#E8F5E9' : '#FFF3E0', color: m.status === 'active' ? '#2E7D32' : '#E65100', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
-                          {m.status || 'active'}
+                        <span style={{
+                          background: m.status === 'active' ? '#E8F5E9' : m.status === 'paused' ? '#E3F2FD' : '#FFF3E0',
+                          color: m.status === 'active' ? '#2E7D32' : m.status === 'paused' ? '#1565C0' : '#E65100',
+                          padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600
+                        }}>
+                          {m.status || 'pending'}
                         </span>
                       </td>
                       <td style={{ padding: '12px' }}>
                         {m.role !== 'admin' && (
-                          <button
-                            onClick={() => handleDeleteMember(m.id, m.name)}
-                            disabled={deletingMember === m.id}
-                            style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                            {deletingMember === m.id ? '...' : '🗑️ Delete'}
-                          </button>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {m.status !== 'active' && (
+                              <button
+                                onClick={() => handleUpdateStatus(m.id, 'active')}
+                                disabled={updatingMember === m.id}
+                                style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                                ✅ Activate
+                              </button>
+                            )}
+                            {m.status !== 'paused' && (
+                              <button
+                                onClick={() => handleUpdateStatus(m.id, 'paused')}
+                                disabled={updatingMember === m.id}
+                                style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                                ⏸️ Pause
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteMember(m.id, m.name)}
+                              disabled={deletingMember === m.id}
+                              style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                              {deletingMember === m.id ? '...' : '🗑️ Delete'}
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -260,7 +290,6 @@ export default function Overview() {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );
