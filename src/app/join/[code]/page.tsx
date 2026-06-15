@@ -15,11 +15,13 @@ export default function JoinPage() {
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [step, setStep] = useState<'profile' | 'register' | 'done'>('profile');
+  const [step, setStep] = useState<'profile' | 'done'>('profile');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [error, setError] = useState('');
 
@@ -50,6 +52,7 @@ export default function JoinPage() {
     if (!fullName.trim()) { setError('Full name is required.'); return; }
     if (!email.trim()) { setError('Email is required.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
     setRegistering(true);
     try {
       const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -115,7 +118,7 @@ export default function JoinPage() {
           <h1 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome, {member.name}!</h1>
           <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>You are a member of <strong style={{ color: '#6B2D4E' }}>{group?.name || 'your group'}</strong></p>
 
-          <div style={{ background: '#FAF0E6', borderRadius: '16px', padding: '20px', marginBottom: '0', textAlign: 'left' }}>
+          <div style={{ background: '#FAF0E6', borderRadius: '16px', padding: '20px', textAlign: 'left' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {[
                 { label: 'TYN-ID', value: member.tynId, mono: true },
@@ -166,7 +169,7 @@ export default function JoinPage() {
             />
           </div>
 
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
@@ -181,6 +184,26 @@ export default function JoinPage() {
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                type={showConfirm ? 'text' : 'password'}
+                placeholder="••••••••"
+                style={{ width: '100%', padding: '12px 44px 12px 14px', border: `1.5px solid ${confirmPassword && password !== confirmPassword ? '#E53935' : '#E8D5E0'}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+              />
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#888' }}>
+                {showConfirm ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {confirmPassword && password !== confirmPassword && (
+              <p style={{ color: '#E53935', fontSize: '12px', margin: '4px 0 0' }}>Passwords do not match</p>
+            )}
           </div>
 
           <button onClick={handleRegister} disabled={registering}
