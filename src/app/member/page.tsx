@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function MemberDashboard() {
@@ -143,10 +143,55 @@ export default function MemberDashboard() {
     if (win) { win.document.write(content); win.document.close(); win.print(); }
   };
 
+  const printReport = (type: string) => {
+    const now = new Date();
+    const totalPaidConfirmed = payments.filter(p => p.status === 'confirmed').reduce((s, p) => s + (p.amount || 0), 0);
+    const confirmedCount = payments.filter(p => p.status === 'confirmed').length;
+    const pendingCount = payments.filter(p => p.status === 'pending').length;
+    const currency = group?.contributionSettings?.currency || '';
+
+    const content = `
+      <html><head><title>TARSYN ${type} Report</title>
+      <style>
+        body { font-family: Inter, sans-serif; padding: 40px; color: #2C1A3E; }
+        .logo { font-size: 28px; font-weight: 900; color: #6B2D4E; letter-spacing: 4px; }
+        .subtitle { color: #D4AF7A; font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; }
+        .title { font-size: 20px; font-weight: 700; color: #6B2D4E; margin: 20px 0 4px; }
+        .divider { border: 1px solid #E8D5E0; margin: 16px 0; }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #FAF0E6; }
+        .label { color: #7A5068; font-size: 13px; }
+        .value { color: #2C1A3E; font-weight: 700; font-size: 13px; }
+        .footer { text-align: center; margin-top: 40px; color: #7A5068; font-size: 12px; }
+      </style></head><body>
+      <div class="logo">TARSYN</div>
+      <div class="subtitle">YOUR COMMUNITY. YOUR POWER.</div>
+      <div class="title">${type} Report — ${member?.name}</div>
+      <div style="color:#7A5068;font-size:12px;">Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}</div>
+      <div class="divider"></div>
+      ${[
+        ['TYN-ID', member?.tynId],
+        ['Group', group?.name || 'N/A'],
+        ['Position', `#${member?.position}`],
+        ['Status', member?.status || 'active'],
+        ['Total Paid', `${totalPaidConfirmed} ${currency}`],
+        ['Confirmed Payments', String(confirmedCount)],
+        ['Pending Payments', String(pendingCount)],
+        ['Payout Date', member?.payoutDate || 'Not set'],
+        ['Report Date', now.toLocaleDateString()],
+      ].map(([l, v]) => `<div class="row"><span class="label">${l}</span><span class="value">${v}</span></div>`).join('')}
+      <div class="footer">Generated automatically by TARSYN. This report cannot be modified.</div>
+      </body></html>
+    `;
+    const win = window.open('', '_blank');
+    if (win) { win.document.write(content); win.document.close(); win.print(); }
+  };
+
   const val = (v: any) => (v && v !== '') ? v : 'Not provided';
   const totalPaid = payments.filter(p => p.status === 'confirmed').reduce((s, p) => s + (p.amount || 0), 0);
   const expectedAmount = group?.contributionSettings?.amount || member?.expectedAmount || 0;
   const remaining = Math.max(0, expectedAmount - totalPaid);
+  const confirmedCount = payments.filter(p => p.status === 'confirmed').length;
+  const pendingCount = payments.filter(p => p.status === 'pending').length;
 
   const statusColor = (s: string) => {
     if (s === 'active') return { bg: '#E8F5E9', color: '#2E7D32' };
@@ -160,6 +205,7 @@ export default function MemberDashboard() {
     { id: 'rotation', label: 'Rotation', icon: '🔄' },
     { id: 'group', label: 'Group', icon: '🏘️' },
     { id: 'alerts', label: 'Alerts', icon: '🔔' },
+    { id: 'reports', label: 'Reports', icon: '📊' },
   ];
 
   if (loading) return (
@@ -467,6 +513,63 @@ export default function MemberDashboard() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* REPORTS */}
+        {activeTab === 'reports' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700, margin: 0 }}>📊 My Reports</h3>
+
+            {[
+              { title: 'Weekly Report', icon: '📅', desc: 'Summary of your contributions this week' },
+              { title: 'Monthly Report', icon: '📆', desc: 'Complete monthly contribution summary' },
+              { title: 'Cycle Report', icon: '🔄', desc: 'Full cycle report with all details' },
+            ].map(report => (
+              <div key={report.title} style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '28px' }}>{report.icon}</span>
+                    <div>
+                      <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '15px', margin: 0 }}>{report.title}</p>
+                      <p style={{ color: '#7A5068', fontSize: '12px', margin: '2px 0 0' }}>{report.desc}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+                  {[
+                    { label: 'Total Paid', value: `${totalPaid} ${group?.contributionSettings?.currency || ''}` },
+                    { label: 'Confirmed', value: `${confirmedCount} payments` },
+                    { label: 'Pending', value: `${pendingCount} payments` },
+                    { label: 'Payout Date', value: member.payoutDate || 'Not set' },
+                  ].map(item => (
+                    <div key={item.label} style={{ background: '#FAF0E6', borderRadius: '10px', padding: '10px 14px' }}>
+                      <p style={{ color: '#7A5068', fontSize: '11px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
+                      <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: 0 }}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => printReport(report.title)}
+                    style={{ flex: 1, background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                    🖨️ Print Report
+                  </button>
+                  <button onClick={() => {
+                    const csv = [
+                      'Report Type,Member,TYN-ID,Group,Total Paid,Confirmed,Pending,Payout Date',
+                      `${report.title},${member.name},${member.tynId},${group?.name || 'N/A'},${totalPaid},${confirmedCount},${pendingCount},${member.payoutDate || 'Not set'}`
+                    ].join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `${report.title.replace(' ', '-')}-${member.tynId}.csv`; a.click();
+                  }} style={{ flex: 1, background: '#FAF0E6', color: '#6B2D4E', border: '1px solid #D4AF7A', borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                    📥 Export CSV
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
