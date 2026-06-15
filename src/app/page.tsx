@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 
 // ============ 25 LANGUES + OTHER ============
