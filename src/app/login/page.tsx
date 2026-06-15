@@ -21,21 +21,16 @@ export default function LoginPage() {
     try {
       let role = null;
 
-      // 1. Cherche dans members par userId
-      const q1 = query(collection(db, 'members'), where('userId', '==', uid));
-      const s1 = await getDocs(q1);
-      if (!s1.empty) {
-        role = s1.docs[0].data()?.role;
+      // 1. Cherche dans users EN PREMIER
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        role = userDoc.data()?.role;
       } else {
         // 2. Cherche dans members par email
         const q2 = query(collection(db, 'members'), where('email', '==', uEmail));
         const s2 = await getDocs(q2);
         if (!s2.empty) {
           role = s2.docs[0].data()?.role;
-        } else {
-          // 3. Cherche dans users par uid directement
-          const userDoc = await getDoc(doc(db, 'users', uid));
-          if (userDoc.exists()) role = userDoc.data()?.role;
         }
       }
 
