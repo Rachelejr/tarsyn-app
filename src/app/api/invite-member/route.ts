@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: Request) {
   try {
     const { email, name, tynId, groupName, inviteCode } = await req.json();
-    const joinUrl = `https://www.tarsyn-app.com/join/${inviteCode}`;
+    const joinUrl = `https://tarsyn-app.com/join/${inviteCode}`;
 
     await resend.emails.send({
       from: "TARSYN <noreply@tarsyn-app.com>",
