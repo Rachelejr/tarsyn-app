@@ -6,7 +6,8 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 export default function JoinPage() {
-  const { code } = useParams();
+  const params = useParams();
+  const code = Array.isArray(params.code) ? params.code[0] : params.code;
   const router = useRouter();
   const [member, setMember] = useState<any>(null);
   const [group, setGroup] = useState<any>(null);
@@ -16,7 +17,9 @@ export default function JoinPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const q = query(collection(db, 'members'), where('inviteCode', '==', code));
+        if (!code) { setNotFound(true); setLoading(false); return; }
+        const codeStr = String(code).trim().toUpperCase();
+        const q = query(collection(db, 'members'), where('inviteCode', '==', codeStr));
         const snap = await getDocs(q);
         if (snap.empty) { setNotFound(true); setLoading(false); return; }
         const memberData = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
