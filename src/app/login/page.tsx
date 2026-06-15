@@ -20,15 +20,26 @@ export default function LoginPage() {
   const redirectByRole = async (uid: string, uEmail: string) => {
     try {
       let role = null;
+
+      // 1. Cherche dans members par userId
       const q1 = query(collection(db, 'members'), where('userId', '==', uid));
       const s1 = await getDocs(q1);
       if (!s1.empty) {
         role = s1.docs[0].data()?.role;
       } else {
+        // 2. Cherche dans members par email
         const q2 = query(collection(db, 'members'), where('email', '==', uEmail));
         const s2 = await getDocs(q2);
-        if (!s2.empty) role = s2.docs[0].data()?.role;
+        if (!s2.empty) {
+          role = s2.docs[0].data()?.role;
+        } else {
+          // 3. Cherche dans users (admins qui viennent de s'inscrire)
+          const q3 = query(collection(db, 'users'), where('email', '==', uEmail));
+          const s3 = await getDocs(q3);
+          if (!s3.empty) role = s3.docs[0].data()?.role;
+        }
       }
+
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
         window.location.href = '/dashboard';
       } else {
@@ -147,7 +158,7 @@ export default function LoginPage() {
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Vérification 2FA</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code a 6 chiffres a été envoyé à</p>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code à 6 chiffres a été envoyé à</p>
           <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
 
           {error && (
@@ -187,8 +198,7 @@ export default function LoginPage() {
           <button
             onClick={handleVerify2FA}
             disabled={loading || code.join('').length !== 6}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}
-          >
+            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
             {loading ? 'Vérification...' : 'Vérifier et se connecter'}
           </button>
 
