@@ -33,10 +33,9 @@ export default function LoginPage() {
         if (!s2.empty) {
           role = s2.docs[0].data()?.role;
         } else {
-          // 3. Cherche dans users (admins qui viennent de s'inscrire)
-          const q3 = query(collection(db, 'users'), where('email', '==', uEmail));
-          const s3 = await getDocs(q3);
-          if (!s3.empty) role = s3.docs[0].data()?.role;
+          // 3. Cherche dans users par uid directement
+          const userDoc = await getDoc(doc(db, 'users', uid));
+          if (userDoc.exists()) role = userDoc.data()?.role;
         }
       }
 
