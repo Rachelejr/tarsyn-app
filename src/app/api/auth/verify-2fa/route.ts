@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import { db } from '@/lib/firebase-admin';
-
+import { db } from '@/lib/firebase';
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'tarsyn-secret-key');
 
 export async function POST(req: NextRequest) {
