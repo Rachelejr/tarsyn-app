@@ -17,6 +17,7 @@ export default function Overview() {
   const [savingGroup, setSavingGroup] = useState(false);
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
+  const [validatingProof, setValidatingProof] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -73,6 +74,15 @@ export default function Overview() {
     setDeletingMember(null);
   };
 
+  const handleValidateProof = async (paymentId: string, action: 'verified' | 'rejected') => {
+    setValidatingProof(paymentId);
+    try {
+      await updateDoc(doc(db, 'payments', paymentId), { proofStatus: action });
+      setPayments(payments.map(p => p.id === paymentId ? { ...p, proofStatus: action } : p));
+    } catch (e) { console.error(e); }
+    setValidatingProof(null);
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF0E6' }}>
       <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
@@ -83,6 +93,7 @@ export default function Overview() {
   const confirmedPayments = payments.filter(p => p.status === 'confirmed').length;
   const pendingPayments = payments.filter(p => p.status === 'pending').length;
   const activeMembers = members.filter(m => m.status === 'active').length;
+  const pendingProofs = payments.filter(p => p.proofUrl && p.proofStatus === 'pending');
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
@@ -208,24 +219,18 @@ export default function Overview() {
                         {m.role !== 'admin' && (
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             {m.status !== 'active' && (
-                              <button
-                                onClick={() => handleUpdateStatus(m.id, 'active')}
-                                disabled={updatingMember === m.id}
+                              <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id}
                                 style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
                                 ✅ Activate
                               </button>
                             )}
                             {m.status !== 'paused' && (
-                              <button
-                                onClick={() => handleUpdateStatus(m.id, 'paused')}
-                                disabled={updatingMember === m.id}
+                              <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id}
                                 style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
                                 ⏸️ Pause
                               </button>
                             )}
-                            <button
-                              onClick={() => handleDeleteMember(m.id, m.name)}
-                              disabled={deletingMember === m.id}
+                            <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id}
                               style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
                               {deletingMember === m.id ? '...' : '🗑️ Delete'}
                             </button>
@@ -239,6 +244,38 @@ export default function Overview() {
             </div>
           )}
         </div>
+
+        {/* PAYMENT PROOFS */}
+        {pendingProofs.length > 0 && (
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>📎 Payment Proofs</h3>
+            <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 20px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {pendingProofs.map((p, i) => (
+                <div key={p.id} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>{p.memberName}</p>
+                    <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{p.amount} {p.currency} · {p.paymentDate} · {p.paymentMethod}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <a href={p.proofUrl} target="_blank" rel="noopener noreferrer"
+                      style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none' }}>
+                      👁️ View
+                    </a>
+                    <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id}
+                      style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                      ✅ Validate
+                    </button>
+                    <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id}
+                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                      ❌ Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* RECENT PAYMENTS */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
