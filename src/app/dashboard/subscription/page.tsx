@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -53,7 +53,13 @@ const PLANS = [
   },
 ];
 
-export default function SubscriptionPage() {
+const LoadingScreen = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF0E6' }}>
+    <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+  </div>
+);
+
+function SubscriptionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
@@ -98,11 +104,7 @@ export default function SubscriptionPage() {
     setCheckoutLoading(null);
   };
 
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF0E6' }}>
-      <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
-    </div>
-  );
+  if (loading) return <LoadingScreen />;
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
@@ -119,7 +121,6 @@ export default function SubscriptionPage() {
       </nav>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 24px' }}>
-
         {success && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', color: '#2E7D32', fontWeight: 600 }}>
             🎉 Subscription activated! Welcome to TARSYN Pro.
@@ -201,5 +202,13 @@ export default function SubscriptionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <SubscriptionContent />
+    </Suspense>
   );
 }
