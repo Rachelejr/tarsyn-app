@@ -109,10 +109,8 @@ function SubscriptionContent() {
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
       <nav style={{ background: '#6B2D4E', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button onClick={() => router.push('/dashboard')}
-            style={{ background: 'transparent', border: 'none', color: '#D4AF7A', cursor: 'pointer', fontSize: '20px' }}>←</button>
-          <div style={{ color: '#D4AF7A', fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
+        <div onClick={() => router.push('/')} style={{ color: '#D4AF7A', fontWeight: 800, fontSize: '18px', cursor: 'pointer' }}>
+          TARSYN
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
           style={{ background: 'transparent', border: '1px solid rgba(212,175,122,0.5)', color: '#D4AF7A', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
