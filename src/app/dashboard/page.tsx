@@ -17,7 +17,6 @@ export default function Dashboard() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
-        // Cherche le vrai nom dans Firestore users
         const userDoc = await getDoc(doc(db, 'users', u.uid));
         const userName = userDoc.exists() ? userDoc.data()?.name : null;
         setAdminName(userName || u.displayName || u.email?.split('@')[0] || 'Admin');
@@ -81,6 +80,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
+            {/* Stats */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
               {[
                 {label:'Total Members',value:members.length,icon:'👥'},
@@ -97,7 +97,8 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
+            {/* Actions — Row 1 */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'16px'}}>
               {[
                 {title:'Record Contribution',icon:'💰',path:'/dashboard/record-contribution',color:'#6B2D4E'},
                 {title:'Add Member',icon:'👤',path:'/dashboard/add-member',color:'#4A2D5E'},
@@ -111,6 +112,21 @@ export default function Dashboard() {
               ))}
             </div>
 
+            {/* Actions — Row 2 */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'16px',marginBottom:'24px'}}>
+              {[
+                {title:'Reminders',icon:'🔔',path:'/dashboard/reminders',color:'#7A3B5E'},
+                {title:'Documents',icon:'📁',path:'/dashboard/documents',color:'#3D1F4E'},
+              ].map((a,i) => (
+                <div key={i} onClick={() => router.push(a.path)}
+                  style={{background:a.color,borderRadius:'16px',padding:'28px',cursor:'pointer',boxShadow:'0 4px 16px rgba(107,45,78,0.2)'}}>
+                  <span style={{fontSize:'32px',display:'block',marginBottom:'12px'}}>{a.icon}</span>
+                  <p style={{color:'#D4AF7A',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Members Table */}
             <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
                 <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:700,margin:0}}>Members</h3>
