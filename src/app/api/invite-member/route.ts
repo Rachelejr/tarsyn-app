@@ -1,41 +1,60 @@
-import { NextResponse } from "next/server";
-import { Resend } from "resend";
+import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { email, name, tynId, groupName, inviteCode } = await req.json();
-    const joinUrl = `https://tarsyn-app.com/join/${inviteCode}`;
+    const { memberEmail, memberName, groupName, amount, dueDate, adminName } = await req.json();
 
-    await resend.emails.send({
-      from: "TARSYN <noreply@tarsyn-app.com>",
-      to: email,
-      subject: `You've been invited to join ${groupName} on TARSYN`,
+    if (!memberEmail || !memberName || !groupName) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: 'TARSYN <onboarding@resend.dev>',
+      to: memberEmail,
+      subject: `💰 Reminder: Contribution due — ${groupName}`,
       html: `
-        <div style="font-family:Inter,sans-serif;max-width:480px;margin:0 auto;padding:2rem;background:#FAF0E6;border-radius:16px;">
-          <div style="text-align:center;margin-bottom:1.5rem;">
-            <div style="display:inline-block;background:#6B2D4E;color:#D4AF7A;width:48px;height:48px;border-radius:10px;font-size:1.5rem;font-weight:900;line-height:48px;text-align:center;">T</div>
-            <h2 style="color:#6B2D4E;margin:0.5rem 0 0;">TARSYN</h2>
+        <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 auto; background: #FAF0E6; padding: 32px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="background: #6B2D4E; display: inline-block; padding: 12px 24px; border-radius: 12px;">
+              <span style="color: #D4AF7A; font-weight: 800; font-size: 22px;">TARSYN</span>
+            </div>
           </div>
-          <h3 style="color:#6B2D4E;text-align:center;">You've been invited!</h3>
-          <div style="background:#fff;border-radius:12px;padding:1.5rem;margin:1rem 0;">
-            <p style="color:#7A5068;margin:0 0 8px;">Hello <strong style="color:#6B2D4E;">${name}</strong>,</p>
-            <p style="color:#7A5068;margin:0 0 16px;">You have been added to <strong style="color:#6B2D4E;">${groupName}</strong> as a member.</p>
-            <p style="color:#7A5068;margin:0 0 8px;">Your TYN-ID: <strong style="color:#6B2D4E;font-family:monospace;">${tynId}</strong></p>
+          <h2 style="color: #6B2D4E; font-size: 22px; font-weight: 800; margin: 0 0 8px;">
+            Hello ${memberName} 👋
+          </h2>
+          <p style="color: #7A5068; font-size: 15px; margin: 0 0 24px;">
+            This is a friendly reminder from <strong>${adminName}</strong> about your upcoming contribution.
+          </p>
+          <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Group</p>
+            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0 0 16px;">${groupName}</p>
+            ${amount ? `
+            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Amount Due</p>
+            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0 0 16px;">$${amount}</p>
+            ` : ''}
+            ${dueDate ? `
+            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Due Date</p>
+            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0;">${dueDate}</p>
+            ` : ''}
           </div>
-          <div style="text-align:center;margin:1.5rem 0;">
-            <a href="${joinUrl}" style="background:#6B2D4E;color:#FAF0E6;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;">
-              View My Profile
-            </a>
-          </div>
-          <p style="color:#888;font-size:0.85rem;text-align:center;">If you have questions, contact your group organizer.</p>
+          <p style="color: #7A5068; font-size: 13px; text-align: center; margin: 0;">
+            Please make your payment on time. Thank you for being part of the community!
+          </p>
         </div>
       `,
     });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Invite error:", error);
-    return NextResponse.json({ error: "Failed to send invite" }, { status: 500 });
+
+    if (error) {
+      console.error('Resend error:', error);
+      return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data });
+  } catch (err) {
+    console.error('Server error:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
