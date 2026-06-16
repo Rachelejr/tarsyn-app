@@ -5,16 +5,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    const { memberEmail, memberName, groupName, amount, dueDate, adminName } = await req.json();
+    const { memberEmail, memberName, groupName, inviteLink, adminName } = await req.json();
 
     if (!memberEmail || !memberName || !groupName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'TARSYN <onboarding@resend.dev>',
+      from: 'TARSYN <noreply@tarsyn-app.com>',
       to: memberEmail,
-      subject: `💰 Reminder: Contribution due — ${groupName}`,
+      subject: `🎉 You've been invited to join ${groupName} on TARSYN`,
       html: `
         <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 auto; background: #FAF0E6; padding: 32px; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 24px;">
@@ -26,22 +26,24 @@ export async function POST(req: NextRequest) {
             Hello ${memberName} 👋
           </h2>
           <p style="color: #7A5068; font-size: 15px; margin: 0 0 24px;">
-            This is a friendly reminder from <strong>${adminName}</strong> about your upcoming contribution.
+            <strong>${adminName}</strong> has invited you to join <strong>${groupName}</strong> on TARSYN.
           </p>
           <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
             <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Group</p>
-            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0 0 16px;">${groupName}</p>
-            ${amount ? `
-            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Amount Due</p>
-            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0 0 16px;">$${amount}</p>
-            ` : ''}
-            ${dueDate ? `
-            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Due Date</p>
-            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0;">${dueDate}</p>
-            ` : ''}
+            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0;">${groupName}</p>
           </div>
-          <p style="color: #7A5068; font-size: 13px; text-align: center; margin: 0;">
-            Please make your payment on time. Thank you for being part of the community!
+          ${inviteLink ? `
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="${inviteLink}" style="background: #6B2D4E; color: #D4AF7A; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block;">
+              Join Now →
+            </a>
+          </div>
+          <p style="color: #7A5068; font-size: 12px; text-align: center; margin: 0;">
+            Or copy this link: <a href="${inviteLink}" style="color: #6B2D4E;">${inviteLink}</a>
+          </p>
+          ` : ''}
+          <p style="color: #7A5068; font-size: 13px; text-align: center; margin: 24px 0 0;">
+            Welcome to the community! 🎉
           </p>
         </div>
       `,
