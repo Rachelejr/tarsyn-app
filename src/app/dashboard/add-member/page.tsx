@@ -32,17 +32,21 @@ export default function AddMember() {
   const [savedMember, setSavedMember] = useState<any>(null);
   const [existingMembers, setExistingMembers] = useState<any[]>([]);
   const [groupId, setGroupId] = useState('');
+  const [groupName, setGroupName] = useState('');
+  const [adminName, setAdminName] = useState('');
   const [memberCount, setMemberCount] = useState(0);
 
   useEffect(() => {
     const load = async () => {
       const user = auth.currentUser;
       if (!user) return;
+      setAdminName(user.displayName || user.email?.split('@')[0] || 'Admin');
       const q = query(collection(db, 'groups'), where('organizerId', '==', user.uid));
       const snap = await getDocs(q);
       if (snap.empty) return;
       const gId = snap.docs[0].id;
       setGroupId(gId);
+      setGroupName(snap.docs[0].data().name || 'TARSYN Group');
       const mq = query(collection(db, 'members'), where('organizerId', '==', user.uid));
       const ms = await getDocs(mq);
       setExistingMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -86,6 +90,8 @@ export default function AddMember() {
       const countryCode = country.substring(0, 2).toUpperCase();
       const tynId = generateTynId(countryCode, memberCount);
       const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const inviteLink = `${window.location.origin}/join/${inviteCode}`;
+
       const memberData = {
         groupId,
         organizerId: user.uid,
@@ -106,24 +112,27 @@ export default function AddMember() {
         createdBy: user.uid,
         createdAt: serverTimestamp(),
       };
+
       await addDoc(collection(db, 'members'), memberData);
       setSavedMember({ ...memberData, tynId });
 
       if (email.trim()) {
-        const gq = query(collection(db, 'groups'), where('organizerId', '==', user.uid));
-        const gs = await getDocs(gq);
-        const groupName = gs.empty ? 'TARSYN Group' : gs.docs[0].data().name;
-        await fetch('/api/invite-member', {
+        const res = await fetch('/api/invite-member', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: email.trim(),
-            name: name.trim(),
-            tynId,
+            memberEmail: email.trim(),
+            memberName: name.trim(),
             groupName,
             inviteCode,
+            inviteLink,
+            adminName,
+            tynId,
           }),
         });
+        if (!res.ok) {
+          console.error('Failed to send invitation email');
+        }
       }
 
       setName(''); setPhone(''); setEmail(''); setCountry('');
@@ -142,6 +151,9 @@ export default function AddMember() {
       <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '480px', width: '100%', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
         <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Member Added!</h2>
+        <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>
+          {savedMember.email ? `✉️ Invitation sent to ${savedMember.email}` : 'No email provided — share the invite code manually.'}
+        </p>
         <div style={{ background: '#FAF0E6', borderRadius: '16px', padding: '20px', margin: '24px 0', textAlign: 'left' }}>
           <p style={{ margin: '0 0 8px', color: '#2C1A3E', fontWeight: 700, fontSize: '16px' }}>{savedMember.name}</p>
           <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>TYN-ID: <strong style={{ color: '#6B2D4E', fontFamily: 'monospace' }}>{savedMember.tynId}</strong></p>
