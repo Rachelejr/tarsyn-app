@@ -23,17 +23,21 @@ export async function POST(req: NextRequest) {
 
     switch (event.type) {
       case 'customer.subscription.created':
-      case 'customer.subscription.updated':
+      case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
+        const item = sub.items.data[0];
+        const periodEnd = (item as any)?.current_period_end ?? (sub as any).current_period_end;
+
         await updateDoc(userRef, {
           subscription: {
             status: sub.status,
-            plan: sub.items.data[0]?.price.id,
-            currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+            plan: item?.price.id ?? null,
+            currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
             trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
           }
         });
         break;
+      }
       case 'customer.subscription.deleted':
         await updateDoc(userRef, {
           subscription: { status: 'canceled', plan: null }
