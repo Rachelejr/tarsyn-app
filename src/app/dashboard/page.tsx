@@ -45,7 +45,7 @@ export default function Dashboard() {
   return (
     <div style={{minHeight:'100vh',background:'#FAF0E6',fontFamily:'Inter, sans-serif'}}>
       <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+        <div onClick={() => router.push('/')} style={{display:'flex',alignItems:'center',gap:'10px',cursor:'pointer'}}>
           <div style={{width:'36px',height:'36px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#6B2D4E',fontSize:'14px'}}>T</div>
           <div>
             <div style={{color:'#D4AF7A',fontWeight:800,fontSize:'18px'}}>TARSYN</div>
@@ -113,10 +113,11 @@ export default function Dashboard() {
             </div>
 
             {/* Actions — Row 2 */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'16px',marginBottom:'24px'}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
               {[
                 {title:'Reminders',icon:'🔔',path:'/dashboard/reminders',color:'#7A3B5E'},
                 {title:'Documents',icon:'📁',path:'/dashboard/documents',color:'#3D1F4E'},
+                {title:'Subscription',icon:'💳',path:'/dashboard/subscription',color:'#5A2D6E'},
               ].map((a,i) => (
                 <div key={i} onClick={() => router.push(a.path)}
                   style={{background:a.color,borderRadius:'16px',padding:'28px',cursor:'pointer',boxShadow:'0 4px 16px rgba(107,45,78,0.2)'}}>
