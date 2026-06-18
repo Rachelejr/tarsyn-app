@@ -209,6 +209,13 @@ function SubscriptionContent() {
   const rawPlan: string = subscription?.plan || '';
   const activePlanId: string = PRICE_ID_TO_PLAN[rawPlan] || 'free';
 
+  // DEBUG TEMPORAIRE — à retirer une fois le problème résolu
+  console.log('[DEBUG] subscription object:', subscription);
+  console.log('[DEBUG] rawPlan:', JSON.stringify(rawPlan));
+  console.log('[DEBUG] rawPlan length:', rawPlan.length);
+  console.log('[DEBUG] activePlanId:', activePlanId);
+  console.log('[DEBUG] mapping keys:', Object.keys(PRICE_ID_TO_PLAN));
+
   const handleSubscribe = async (priceId: string | null, planName: string) => {
     if (!priceId || !user) return;
     setCheckoutLoading(planName);
