@@ -1,3 +1,4 @@
+@'
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
@@ -34,12 +35,12 @@ const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
   'price_1TipthJk3DYYTrgp7LEDrLgE': 'starter',
   'price_1Tiq1IJk3DYYTrgp2VmhXb6J': 'growth',
   'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'pro',
-  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'starter', // Starter mensuel $14.99
-  'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'starter', // Starter annuel $149
-  'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'growth',  // Growth mensuel $29.99
-  'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',  // Growth annuel $299
-  'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'pro',     // Pro mensuel $59.99
-  'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'pro',     // Pro annuel $599
+  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'starter',
+  'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'starter',
+  'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'growth',
+  'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',
+  'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'pro',
+  'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'pro',
 };
 
 const PLANS: PlanDef[] = [
@@ -175,7 +176,7 @@ function SubscriptionContent() {
 
       <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
         <div style={{ background: '#FFEB3B', border: '3px solid red', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontFamily: 'monospace', fontSize: '13px', color: '#000' }}>
-          <strong>DEBUG BANNER — visible si le nouveau code est déployé</strong><br/>
+          <strong>DEBUG BANNER</strong><br/>
           rawPlan: {JSON.stringify(rawPlan)}<br/>
           activePlanId: {JSON.stringify(activePlanId)}<br/>
           subscription: {JSON.stringify(subscription)}
@@ -319,3 +320,4 @@ export default function SubscriptionPage() {
     </Suspense>
   );
 }
+'@ | Set-Content -Path "src\app\dashboard\subscription\page.tsx" -Encoding utf8
