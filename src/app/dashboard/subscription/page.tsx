@@ -49,7 +49,7 @@ const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
   'price_1Tiq1IJk3DYYTrgp2VmhXb6J': 'growth',
   'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'pro',
   // Nouveaux Price IDs (mensuel + annuel, créés le 18/06/2026)
-  'price_1TjVjQJk3DYYTrgpEDu8Ofyl': 'starter', // Starter mensuel $14.99
+  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'starter', // Starter mensuel $14.99
   'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'starter', // Starter annuel $149
   'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'growth',  // Growth mensuel $29.99
   'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',  // Growth annuel $299
