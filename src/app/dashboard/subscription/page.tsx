@@ -62,6 +62,17 @@ const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
 //      upgrade prompt shown to the user when they hit their plan's cap.
 // Today this page only displays these numbers as marketing copy; no
 // enforcement exists anywhere in the app yet.
+
+// TODO (future work — internationalization, not implemented yet):
+// Currently all subscription pricing is hardcoded in USD for simplicity
+// (billing, accounting, reporting, and deployment are all easier with a
+// single currency in V1). Future work should:
+//   1. Detect the user's country (e.g. via IP geolocation or browser locale)
+//   2. Display an estimated price in their local currency alongside the
+//      official USD price (clearly labeled as an estimate)
+//   3. Eventually support real multi-currency billing through Stripe
+//      (Stripe Prices support multiple currencies per product)
+// USD remains the official billing currency worldwide until this is done.
 const PLANS: PlanDef[] = [
   {
     id: 'free',
