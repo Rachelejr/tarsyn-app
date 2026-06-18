@@ -95,6 +95,9 @@ export async function POST(req: NextRequest) {
 
   const userId = (event.data.object as any)?.metadata?.userId;
 
+  console.log('[webhook] Event type:', event.type);
+  console.log('[webhook] Extracted userId from metadata:', userId);
+
   if (userId) {
     const userRef = adminDb.collection('users').doc(userId);
 
@@ -106,14 +109,20 @@ export async function POST(req: NextRequest) {
           const item = sub.items.data[0];
           const periodEnd = (item as any)?.current_period_end ?? (sub as any).current_period_end;
 
-          await userRef.update({
+          const updatePayload = {
             subscription: {
               status: sub.status,
               plan: item?.price.id ?? null,
               currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
               trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
             }
-          });
+          };
+
+          console.log('[webhook] About to write to Firestore for userId:', userId, 'payload:', JSON.stringify(updatePayload));
+
+          await userRef.update(updatePayload);
+
+          console.log('[webhook] Firestore update SUCCEEDED for userId:', userId);
 
           // Notification email uniquement sur la création initiale d'abonnement,
           // et seulement APRÈS le succès de la mise à jour Firestore ci-dessus.
