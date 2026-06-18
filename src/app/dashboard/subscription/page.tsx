@@ -38,6 +38,16 @@ interface PlanDef {
 
 const SALES_EMAIL = 'sales@tarsyn-app.com';
 
+// Mapping Price ID Stripe -> identifiant de plan interne.
+// Inclut les anciens Price IDs (système précédent) pour que le plan actif
+// soit correctement détecté même pour les abonnements souscrits avant la
+// refonte de cette page.
+const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
+  'price_1TipthJk3DYYTrgp7LEDrLgE': 'starter',
+  'price_1Tiq1IJk3DYYTrgp2VmhXb6J': 'growth',
+  'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'pro',
+};
+
 const PLANS: PlanDef[] = [
   {
     id: 'free',
@@ -162,7 +172,8 @@ function SubscriptionContent() {
     return () => unsub();
   }, [router]);
 
-  const activePlanId: string = subscription?.plan || 'free';
+  const rawPlan: string = subscription?.plan || '';
+  const activePlanId: string = PRICE_ID_TO_PLAN[rawPlan] || 'free';
 
   const handleSubscribe = async (priceId: string | null, planName: string) => {
     if (!priceId || !user) return;
