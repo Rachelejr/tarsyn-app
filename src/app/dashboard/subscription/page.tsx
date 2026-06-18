@@ -48,6 +48,20 @@ const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
   'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'pro',
 };
 
+// TODO (future work — not implemented yet):
+// Enforce membership limits server-side once this is prioritized.
+// Limits per plan:
+//   Free       -> max 15 members
+//   Starter    -> max 100 members
+//   Growth     -> max 300 members
+//   Pro        -> max 1500 members
+//   Enterprise -> unlimited
+// This should be enforced in two places:
+//   1. Firestore security rules (reject member creation past the limit)
+//   2. Application logic (e.g. the "add member" flow), with a clear
+//      upgrade prompt shown to the user when they hit their plan's cap.
+// Today this page only displays these numbers as marketing copy; no
+// enforcement exists anywhere in the app yet.
 const PLANS: PlanDef[] = [
   {
     id: 'free',
@@ -58,7 +72,7 @@ const PLANS: PlanDef[] = [
     priceAnnual: 0,
     priceIdMonthly: null,
     priceIdAnnual: null,
-    members: '15 members',
+    members: 'Up to 15 Members',
     groups: '1 group',
     reports: 'Basic dashboard',
     support: 'Limited notifications',
@@ -76,7 +90,7 @@ const PLANS: PlanDef[] = [
     priceAnnual: 149,
     priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY || 'price_STARTER_MONTHLY_REPLACE_ME',
     priceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_ANNUAL || 'price_STARTER_ANNUAL_REPLACE_ME',
-    members: '100 members',
+    members: 'Up to 100 Members',
     groups: '2 groups',
     reports: 'Basic reports',
     support: 'Email support',
@@ -95,7 +109,7 @@ const PLANS: PlanDef[] = [
     priceAnnual: 299,
     priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY || 'price_GROWTH_MONTHLY_REPLACE_ME',
     priceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_ANNUAL || 'price_GROWTH_ANNUAL_REPLACE_ME',
-    members: '300 members',
+    members: 'Up to 300 Members',
     groups: '10 groups',
     reports: 'Advanced reports',
     support: 'Priority support',
@@ -114,7 +128,7 @@ const PLANS: PlanDef[] = [
     priceAnnual: 599,
     priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY || 'price_PRO_MONTHLY_REPLACE_ME',
     priceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_ANNUAL || 'price_PRO_ANNUAL_REPLACE_ME',
-    members: '1500 members',
+    members: 'Up to 1500 Members',
     groups: '50 groups',
     reports: 'Advanced administration',
     support: 'Dedicated support',
@@ -131,7 +145,7 @@ const PLANS: PlanDef[] = [
     priceAnnual: null,
     priceIdMonthly: null,
     priceIdAnnual: null,
-    members: 'Unlimited members',
+    members: 'Unlimited Members',
     groups: 'Unlimited groups',
     reports: 'Advanced administration',
     support: 'SLA support',
