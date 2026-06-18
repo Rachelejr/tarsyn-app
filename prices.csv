@@ -1,0 +1,7 @@
+Price ID,Product ID,Product Name,Product Statement Descriptor,Product Tax Code,Description,Created (UTC),Amount,Currency,Interval,Interval Count,Usage Type,Aggregate Usage,Billing Scheme,Trial Period Days,Tax Behavior
+price_1TjXA0Jk3DYYTrgp6shxK6SC,prod_UiGa2U4gT81Fhc,TARSYN Pro,,,,2026-06-18 04:02,599.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1TjXA0Jk3DYYTrgpL0cf12Mw,prod_UiGa2U4gT81Fhc,TARSYN Pro,,,,2026-06-18 04:02,59.99,usd,month,1,licensed,,per_unit,,unspecified
+price_1TjX5gJk3DYYTrgp6xy976sv,prod_UiGYpifUUKY9sx,TARSYN Growth,,,,2026-06-18 03:58,299.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1TjX5gJk3DYYTrgpw5ngPx4P,prod_UiGYpifUUKY9sx,TARSYN Growth,,,,2026-06-18 03:58,29.99,usd,month,1,licensed,,per_unit,,unspecified
+price_1TjVjQJk3DYYTrgpOaG0DWjU,prod_UiGQPWyHlWhtww,TARSYN Starter,,,,2026-06-18 02:31,149.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1TjVjQJk3DYYTrgpEDu8OfyI,prod_UiGQPWyHlWhtww,TARSYN Starter,,,,2026-06-18 02:31,14.99,usd,month,1,licensed,,per_unit,,unspecified
