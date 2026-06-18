@@ -174,6 +174,12 @@ function SubscriptionContent() {
       </nav>
 
       <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
+        <div style={{ background: '#FFEB3B', border: '3px solid red', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontFamily: 'monospace', fontSize: '13px', color: '#000' }}>
+          <strong>DEBUG BANNER — visible si le nouveau code est déployé</strong><br/>
+          rawPlan: {JSON.stringify(rawPlan)}<br/>
+          activePlanId: {JSON.stringify(activePlanId)}<br/>
+          subscription: {JSON.stringify(subscription)}
+        </div>
         {success && (
           <div style={{ background: '#E8F5E9', borderRadius: '16px', padding: '20px 24px', marginBottom: '28px', color: '#2E7D32', fontWeight: 600, fontSize: '15px' }}>
             🎉 Subscription activated successfully. Welcome to TARSYN.
