@@ -1,18 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-
-// ---------------------------------------------------------------------------
-// Configuration des plans
-// ⚠️ Les priceId ci-dessous sont des PLACEHOLDERS. Remplace-les par les vrais
-// Price IDs Stripe une fois les produits créés sur dashboard.stripe.com.
-// Tu peux aussi les piloter via variables d'env (NEXT_PUBLIC_STRIPE_PRICE_*)
-// si tu préfères ne pas committer les IDs en dur.
-// ---------------------------------------------------------------------------
 
 type BillingPeriod = 'monthly' | 'annual';
 
@@ -38,50 +30,19 @@ interface PlanDef {
 
 const SALES_EMAIL = 'sales@tarsyn-app.com';
 
-// Mapping Price ID Stripe -> identifiant de plan interne.
-// Inclut les anciens Price IDs (système précédent) pour que le plan actif
-// soit correctement détecté même pour les abonnements souscrits avant la
-// refonte de cette page.
 const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
-  // Anciens Price IDs (système précédent, conservés pour compatibilité
-  // avec les abonnements souscrits avant la refonte de cette page)
   'price_1TipthJk3DYYTrgp7LEDrLgE': 'starter',
   'price_1Tiq1IJk3DYYTrgp2VmhXb6J': 'growth',
   'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'pro',
-  // Nouveaux Price IDs (mensuel + annuel, créés le 18/06/2026)
-  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'starter', // Starter mensuel $14.99
-  'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'starter', // Starter annuel $149
-  'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'growth',  // Growth mensuel $29.99
-  'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',  // Growth annuel $299
-  'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'pro',     // Pro mensuel $59.99
-  'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'pro',     // Pro annuel $599
+  'price_1TjVjQJk3DYYTrgpEDu8Ofyl': 'starter',
+  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'starter',
+  'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'starter',
+  'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'growth',
+  'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',
+  'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'pro',
+  'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'pro',
 };
 
-// TODO (future work — not implemented yet):
-// Enforce membership limits server-side once this is prioritized.
-// Limits per plan:
-//   Free       -> max 15 members
-//   Starter    -> max 100 members
-//   Growth     -> max 300 members
-//   Pro        -> max 1500 members
-//   Enterprise -> unlimited
-// This should be enforced in two places:
-//   1. Firestore security rules (reject member creation past the limit)
-//   2. Application logic (e.g. the "add member" flow), with a clear
-//      upgrade prompt shown to the user when they hit their plan's cap.
-// Today this page only displays these numbers as marketing copy; no
-// enforcement exists anywhere in the app yet.
-
-// TODO (future work — internationalization, not implemented yet):
-// Currently all subscription pricing is hardcoded in USD for simplicity
-// (billing, accounting, reporting, and deployment are all easier with a
-// single currency in V1). Future work should:
-//   1. Detect the user's country (e.g. via IP geolocation or browser locale)
-//   2. Display an estimated price in their local currency alongside the
-//      official USD price (clearly labeled as an estimate)
-//   3. Eventually support real multi-currency billing through Stripe
-//      (Stripe Prices support multiple currencies per product)
-// USD remains the official billing currency worldwide until this is done.
 const PLANS: PlanDef[] = [
   {
     id: 'free',
@@ -300,7 +261,6 @@ function SubscriptionContent() {
           </div>
         )}
 
-        {/* Toggle mensuel / annuel */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'inline-flex', background: 'white', borderRadius: '14px', padding: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <button
@@ -369,7 +329,6 @@ function SubscriptionContent() {
                   )}
                 </div>
 
-                {/* Ordre standardisé : Members → Groups → Reports → Support → Additional */}
                 <div style={{ margin: '0 0 14px' }}>
                   <p style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700, margin: '0 0 4px' }}>👥 {plan.members}</p>
                   <p style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700, margin: 0 }}>🏘️ {plan.groups}</p>
@@ -429,7 +388,6 @@ function SubscriptionContent() {
           })}
         </div>
 
-        {/* Section trust / conversion */}
         <div style={{ marginTop: '40px', background: 'white', borderRadius: '20px', padding: '32px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 800, margin: '0 0 6px' }}>Need Enterprise pricing?</h3>
           <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 18px' }}>Contact TARSYN Sales Team</p>
