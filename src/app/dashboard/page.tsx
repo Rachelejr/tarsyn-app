@@ -319,4 +319,3 @@ export default function SubscriptionPage() {
     </Suspense>
   );
 }
-'@ | Set-Content -Path "src\app\dashboard\subscription\page.tsx" -Encoding utf8
