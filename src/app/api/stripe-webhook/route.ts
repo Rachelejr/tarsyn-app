@@ -12,15 +12,12 @@ const SUPPORT_LOG_EMAIL = 'support@tarsyn-app.com';
 // Mapping Price ID Stripe -> nom de plan lisible, utilisé uniquement pour
 // le contenu de l'email de notification (pas pour la logique applicative).
 const PRICE_ID_TO_PLAN_NAME: Record<string, string> = {
-  'price_1TipthJk3DYYTrgp7LEDrLgE': 'Starter (legacy monthly)',
-  'price_1Tiq1IJk3DYYTrgp2VmhXb6J': 'Growth (legacy monthly)',
-  'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'Pro (legacy monthly)',
-  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'Starter (monthly)',
-  'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'Starter (annual)',
-  'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'Growth (monthly)',
-  'price_1TjX5gJk3DYYTrgp6xy976sv': 'Growth (annual)',
-  'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'Pro (monthly)',
-  'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'Pro (annual)',
+  'price_1TkzC7JBtj4UALaPm0ZOEB1T': 'Starter (monthly)',
+  'price_1TkzC7JBtj4UALaPhySF1Nb1': 'Starter (annual)',
+  'price_1TkzC9JBtj4UALaPZZIBDCV3': 'Growth (monthly)',
+  'price_1TkzC8JBtj4UALaPtELbrfO9': 'Growth (annual)',
+  'price_1TkzC3JBtj4UALaPFseCERie': 'Pro (monthly)',
+  'price_1TkzC2JBtj4UALaPBvORrRyy': 'Pro (annual)',
 };
 
 // ---------------------------------------------------------------------------
