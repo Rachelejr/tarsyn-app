@@ -41,6 +41,12 @@ const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
   'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',
   'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'pro',
   'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'pro',
+  'price_1TkzC7JBtj4UALaPm0ZOEB1T': 'starter',
+  'price_1TkzC7JBtj4UALaPhySF1Nb1': 'starter',
+  'price_1TkzC9JBtj4UALaPZZIBDCV3': 'growth',
+  'price_1TkzC8JBtj4UALaPtELbrfO9': 'growth',
+  'price_1TkzC3JBtj4UALaPFseCERie': 'pro',
+  'price_1TkzC2JBtj4UALaPBvORrRyy': 'pro',
 };
 
 const PLANS: PlanDef[] = [
@@ -149,6 +155,7 @@ function SubscriptionContent() {
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
 
   const success = searchParams.get('success');
@@ -189,6 +196,52 @@ function SubscriptionContent() {
       console.error(e);
     }
     setCheckoutLoading(null);
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+    if (!confirm('Are you sure you want to cancel your subscription? You will keep access until the end of your current billing period.')) return;
+    setActionLoading('cancel');
+    try {
+      const res = await fetch('/api/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Your subscription has been canceled and will end at the end of the current billing period.');
+        window.location.reload();
+      } else {
+        alert('Failed to cancel subscription. Please try again or contact support.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to cancel subscription. Please try again or contact support.');
+    }
+    setActionLoading(null);
+  };
+
+  const handleUpdateSubscription = async (newPriceId: string | null, planName: string) => {
+    if (!newPriceId || !user) return;
+    setActionLoading(planName);
+    try {
+      const res = await fetch('/api/update-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid, newPriceId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert('Failed to update subscription. Please try again or contact support.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to update subscription. Please try again or contact support.');
+    }
+    setActionLoading(null);
   };
 
   const handleContactSales = () => {
@@ -294,6 +347,7 @@ function SubscriptionContent() {
             const price = billingPeriod === 'monthly' ? plan.priceMonthly : plan.priceAnnual;
             const priceId = billingPeriod === 'monthly' ? plan.priceIdMonthly : plan.priceIdAnnual;
             const periodLabel = plan.priceMonthly === null ? '' : billingPeriod === 'monthly' ? '/month' : '/year';
+            const hasActiveSub = subscription?.status === 'active' || subscription?.status === 'trialing';
 
             return (
               <div key={plan.id} style={{
@@ -358,29 +412,57 @@ function SubscriptionContent() {
 
                 {plan.ctaAction === 'checkout' && (
                   isCurrent ? (
-                    <button
-                      disabled
-                      style={{
-                        width: '100%', height: '56px', background: '#FAF0E6', color: '#2E7D32',
-                        borderRadius: '14px', border: '1px solid #2E7D32',
-                        fontSize: '14px', fontWeight: 700, cursor: 'default',
-                        marginTop: 'auto',
-                      }}>
-                      Current Plan ✓
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
+                      <button
+                        disabled
+                        style={{
+                          width: '100%', height: '56px', background: '#FAF0E6', color: '#2E7D32',
+                          borderRadius: '14px', border: '1px solid #2E7D32',
+                          fontSize: '14px', fontWeight: 700, cursor: 'default',
+                        }}>
+                        Current Plan ✓
+                      </button>
+                      {!subscription?.cancelAtPeriodEnd ? (
+                        <button
+                          onClick={handleCancelSubscription}
+                          disabled={actionLoading === 'cancel'}
+                          style={{
+                            width: '100%', height: '40px', background: 'transparent', color: '#C62828',
+                            borderRadius: '10px', border: '1px solid #C62828',
+                            fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                            opacity: actionLoading === 'cancel' ? 0.6 : 1,
+                          }}>
+                          {actionLoading === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
+                        </button>
+                      ) : (
+                        <p style={{ fontSize: '11px', color: '#C62828', textAlign: 'center', margin: 0 }}>
+                          Cancels on {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'period end'}
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <button
                       className="tarsyn-cta-btn"
-                      onClick={() => handleSubscribe(priceId, plan.name)}
-                      disabled={checkoutLoading === plan.name}
+                      onClick={() => {
+                        if (hasActiveSub) {
+                          handleUpdateSubscription(priceId, plan.name);
+                        } else {
+                          handleSubscribe(priceId, plan.name);
+                        }
+                      }}
+                      disabled={checkoutLoading === plan.name || actionLoading === plan.name}
                       style={{
                         width: '100%', height: '56px', background: plan.color, color: '#FAF0E6',
                         borderRadius: '14px', border: 'none',
                         fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-                        opacity: checkoutLoading === plan.name ? 0.6 : 1,
+                        opacity: (checkoutLoading === plan.name || actionLoading === plan.name) ? 0.6 : 1,
                         marginTop: 'auto',
                       }}>
-                      {checkoutLoading === plan.name ? 'Loading...' : plan.ctaLabel}
+                      {checkoutLoading === plan.name || actionLoading === plan.name
+                        ? 'Loading...'
+                        : hasActiveSub
+                          ? `Switch to ${plan.name} →`
+                          : plan.ctaLabel}
                     </button>
                   )
                 )}
