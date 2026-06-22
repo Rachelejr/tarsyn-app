@@ -9,8 +9,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_NOTIFICATION_EMAIL = 'sales@tarsyn-app.com';
 const SUPPORT_LOG_EMAIL = 'support@tarsyn-app.com';
 
-// Mapping Price ID Stripe -> nom de plan lisible, utilisé uniquement pour
-// le contenu de l'email de notification (pas pour la logique applicative).
 const PRICE_ID_TO_PLAN_NAME: Record<string, string> = {
   'price_1TkzC7JBtj4UALaPm0ZOEB1T': 'Starter (monthly)',
   'price_1TkzC7JBtj4UALaPhySF1Nb1': 'Starter (annual)',
@@ -20,11 +18,6 @@ const PRICE_ID_TO_PLAN_NAME: Record<string, string> = {
   'price_1TkzC2JBtj4UALaPBvORrRyy': 'Pro (annual)',
 };
 
-// ---------------------------------------------------------------------------
-// Notification email envoyée après une mise à jour Firestore réussie suite à
-// customer.subscription.created. Ne doit JAMAIS faire échouer le webhook :
-// toute erreur ici est uniquement loggée, jamais propagée.
-// ---------------------------------------------------------------------------
 async function sendSubscriptionCreatedNotification(params: {
   userId: string;
   customerEmail: string | null;
@@ -52,7 +45,6 @@ async function sendSubscriptionCreatedNotification(params: {
     <p><strong>Timestamp:</strong> ${timestamp}</p>
   `;
 
-  // Email principal à l'équipe sales
   try {
     await resend.emails.send({
       from: 'noreply@tarsyn-app.com',
@@ -65,7 +57,6 @@ async function sendSubscriptionCreatedNotification(params: {
     console.error(`[webhook] Failed to send admin notification email to ${ADMIN_NOTIFICATION_EMAIL} for user ${userId}:`, err);
   }
 
-  // Copie optionnelle pour les logs support
   try {
     await resend.emails.send({
       from: 'noreply@tarsyn-app.com',
@@ -110,6 +101,7 @@ export async function POST(req: NextRequest) {
             subscription: {
               status: sub.status,
               plan: item?.price.id ?? null,
+              stripeSubscriptionId: sub.id,
               currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
               trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
             }
@@ -121,9 +113,6 @@ export async function POST(req: NextRequest) {
 
           console.log('[webhook] Firestore update SUCCEEDED for userId:', userId);
 
-          // Notification email uniquement sur la création initiale d'abonnement,
-          // et seulement APRÈS le succès de la mise à jour Firestore ci-dessus.
-          // Ne bloque jamais la réponse du webhook en cas d'échec d'envoi.
           if (event.type === 'customer.subscription.created') {
             try {
               const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id;
@@ -148,7 +137,6 @@ export async function POST(req: NextRequest) {
                 status: sub.status,
               });
             } catch (notifyErr) {
-              // Ne doit jamais faire échouer le webhook : log uniquement.
               console.error(`[webhook] Notification step failed for user ${userId} (non-blocking):`, notifyErr);
             }
           }
@@ -156,7 +144,7 @@ export async function POST(req: NextRequest) {
         }
         case 'customer.subscription.deleted':
           await userRef.update({
-            subscription: { status: 'canceled', plan: null }
+            subscription: { status: 'canceled', plan: null, stripeSubscriptionId: null }
           });
           break;
       }
