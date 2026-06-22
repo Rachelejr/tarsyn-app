@@ -299,19 +299,29 @@ function SubscriptionContent() {
               <div key={plan.id} style={{
                 background: 'white', borderRadius: '20px', padding: '28px',
                 boxShadow: plan.badge ? '0 8px 32px rgba(107,45,78,0.18)' : '0 2px 12px rgba(0,0,0,0.06)',
-                border: plan.badge ? `2px solid ${plan.color}` : '2px solid transparent',
+                border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '2px solid transparent'),
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
               }}>
-                {plan.badge && (
+                {plan.badge && !isCurrent && (
                   <div style={{
                     position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
                     background: plan.color, color: '#D4AF7A', padding: '5px 14px', borderRadius: '20px',
                     fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
                   }}>
                     {plan.badge}
+                  </div>
+                )}
+
+                {isCurrent && (
+                  <div style={{
+                    position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#2E7D32', color: 'white', padding: '5px 14px', borderRadius: '20px',
+                    fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
+                  }}>
+                    YOUR CURRENT PLAN
                   </div>
                 )}
 
@@ -347,26 +357,39 @@ function SubscriptionContent() {
                 )}
 
                 {plan.ctaAction === 'checkout' && (
-                  <button
-                    className="tarsyn-cta-btn"
-                    onClick={() => handleSubscribe(priceId, plan.name)}
-                    disabled={checkoutLoading === plan.name}
-                    style={{
-                      width: '100%', height: '56px', background: plan.color, color: '#FAF0E6',
-                      borderRadius: '14px', border: 'none',
-                      fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-                      opacity: checkoutLoading === plan.name ? 0.6 : 1,
-                      marginTop: 'auto',
-                    }}>
-                    {checkoutLoading === plan.name ? 'Loading...' : plan.ctaLabel}
-                  </button>
+                  isCurrent ? (
+                    <button
+                      disabled
+                      style={{
+                        width: '100%', height: '56px', background: '#FAF0E6', color: '#2E7D32',
+                        borderRadius: '14px', border: '1px solid #2E7D32',
+                        fontSize: '14px', fontWeight: 700, cursor: 'default',
+                        marginTop: 'auto',
+                      }}>
+                      Current Plan ✓
+                    </button>
+                  ) : (
+                    <button
+                      className="tarsyn-cta-btn"
+                      onClick={() => handleSubscribe(priceId, plan.name)}
+                      disabled={checkoutLoading === plan.name}
+                      style={{
+                        width: '100%', height: '56px', background: plan.color, color: '#FAF0E6',
+                        borderRadius: '14px', border: 'none',
+                        fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+                        opacity: checkoutLoading === plan.name ? 0.6 : 1,
+                        marginTop: 'auto',
+                      }}>
+                      {checkoutLoading === plan.name ? 'Loading...' : plan.ctaLabel}
+                    </button>
+                  )
                 )}
 
                 {plan.ctaAction === 'current' && (
                   <button
                     onClick={() => router.push('/dashboard')}
                     style={{ width: '100%', height: '56px', background: '#FAF0E6', color: '#6B2D4E', borderRadius: '14px', border: '1px solid #6B2D4E', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginTop: 'auto' }}>
-                    {isCurrent || plan.id === 'free' ? 'Current Plan ✓' : 'Switch to Free'}
+                    {isCurrent ? 'Current Plan ✓' : 'Free Plan'}
                   </button>
                 )}
 
