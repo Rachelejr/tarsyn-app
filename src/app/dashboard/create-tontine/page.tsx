@@ -84,7 +84,7 @@ const CURRENCIES = [
 const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual', 'Annual'];
 const COMMISSIONS = ['0.5%', '1%', '1.5%', '2%'];
 const ROTATION_TYPES = ['Fixed', 'Random', 'Admin Managed'];
-const PAYMENT_METHODS = ['Cash', 'Transfer', 'Mobile Money', 'Mixed'];
+const PAYMENT_METHODS = ['Cash', 'Transfer', 'Mobile Money', 'CashApp', 'Zelle', 'Mixed'];
 const POSITION_STRATEGIES = ['Manual', 'Automatic', 'Random'];
 const PRIVACY_MODES = [
   { value: 'Private', desc: 'Only members can see the group' },
@@ -98,7 +98,12 @@ const RULES_TEMPLATES = [
   { label: 'Flexible', text: 'Payment anytime during the month. No penalty for first late. Communication required for any delay.' },
   { label: 'Custom', text: '' },
 ];
-const LANGUAGES = ['English','French','Spanish','Portuguese','Haitian Creole','Arabic','Hindi','Wolof','Swahili','Other'].sort();
+const LANGUAGES = [
+  'English', 'French', 'Spanish', 'Portuguese', 'Haitian Creole', 'Arabic',
+  'Wolof', 'Bambara', 'Fula (Fulani)', 'Hausa', 'Yoruba', 'Igbo', 'Twi',
+  'Lingala', 'Swahili', 'Amharic', 'Somali', 'Kinyarwanda', 'Zulu', 'Xhosa',
+  'Hindi', 'Other',
+];
 const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
 const DEPOSIT_MULTIPLIERS = ['1× Contribution', '2× Contribution', 'Custom Amount'];
 const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
@@ -159,6 +164,7 @@ export default function CreateTontinePage() {
   const [frequency, setFrequency] = useState('Monthly');
   const [startDate, setStartDate] = useState('');
   const [commission, setCommission] = useState('1%');
+  const [commissionThreshold, setCommissionThreshold] = useState('');
   const [rotationType, setRotationType] = useState('Fixed');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [positionStrategy, setPositionStrategy] = useState('Manual');
@@ -183,7 +189,7 @@ export default function CreateTontinePage() {
   const commissionRate = parseFloat(commission) / 100;
   const organizerRevenue = totalPool * commissionRate;
   const cycleDuration = numM * (frequencyMonths[frequency] || 1);
-  const isFormValid = !!(region && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate);
+  const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate && commissionThreshold && parseFloat(commissionThreshold) > 0);
 
   const depositAmount = depositMode === 'No Deposit'
     ? 0
@@ -225,11 +231,13 @@ export default function CreateTontinePage() {
   const handleReview = () => {
     setError('');
     if (!region) return setError('Please select a region.');
+    if (!customName.trim() || customName.trim().length < 2) return setError('Tontine name is required.');
     if (!numMembers || parseInt(numMembers) < 2) return setError('Minimum 2 members required.');
     if (parseInt(numMembers) > 500) return setError('Maximum 500 members allowed.');
     if (!contribution || parseFloat(contribution) <= 0) return setError('Contribution amount must be greater than 0.');
     if (!startDate) return setError('Please choose a start date.');
     if (new Date(startDate) <= new Date()) return setError('Start date must be in the future.');
+    if (!commissionThreshold || parseFloat(commissionThreshold) <= 0) return setError('Commission threshold amount is required.');
     setShowReview(true);
   };
 
@@ -248,7 +256,7 @@ export default function CreateTontinePage() {
         name: customName || selectedRegion?.name || 'Tontine',
         numMembers: parseInt(numMembers),
         contribution: parseFloat(contribution),
-        currency, frequency, startDate, commission,
+        currency, frequency, startDate, commission, commissionThreshold: parseFloat(commissionThreshold),
         rotationType, paymentMethod, positionStrategy,
         privacyMode, adminVisibility,
         rulesTemplate, rules, confidential, language,
@@ -401,7 +409,7 @@ export default function CreateTontinePage() {
             { label: 'Estimated End Date', value: estimatedEndDate },
             { label: 'Start Date', value: startDate },
             { label: 'Privacy', value: privacyMode },
-            { label: 'Commission', value: commission },
+            { label: 'Commission', value: `${commission} (from ${commissionThreshold} ${currency})` },
             { label: 'Rotation', value: rotationType },
             { label: 'Payment', value: paymentMethod },
           ].map(item => (
@@ -487,7 +495,7 @@ export default function CreateTontinePage() {
                     </div>
                   </div>
                   <div>
-                    <FieldLabel label="Tontine Name (optional)" />
+                    <FieldLabel label="Tontine Name" required />
                     <input className="tarsyn-field" type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="e.g. My Sol 2026" style={inp} />
                   </div>
                 </Card>
@@ -569,13 +577,28 @@ export default function CreateTontinePage() {
                   </Card>
 
                   <Card title="Organizer Commission">
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      {COMMISSIONS.map(c => (
-                        <button key={c} className="tarsyn-pill" onClick={() => setCommission(c)}
-                          style={{ flex: 1, padding: '9px 0', borderRadius: '12px', border: `2px solid ${commission === c ? C.bordeaux : C.roseMoyen}`, background: commission === c ? C.bordeaux : 'white', color: commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
-                          {c}
-                        </button>
-                      ))}
+                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 12px' }}>
+                      Required. Set the commission rate and the minimum pool amount it applies to.
+                    </p>
+                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <FieldLabel label="Commission Rate" required />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {COMMISSIONS.map(c => (
+                            <button key={c} className="tarsyn-pill" onClick={() => setCommission(c)}
+                              style={{ flex: 1, padding: '9px 0', borderRadius: '12px', border: `2px solid ${commission === c ? C.bordeaux : C.roseMoyen}`, background: commission === c ? C.bordeaux : 'white', color: commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <FieldLabel label="Applies From (minimum pool amount)" required />
+                        <input className="tarsyn-field" type="number" value={commissionThreshold} onChange={e => setCommissionThreshold(e.target.value)} min={1} placeholder={`e.g. 100 ${currency}`} style={inp} />
+                        <p style={{ fontSize: '11px', color: C.texteGris, margin: '6px 0 0' }}>
+                          Commission of {commission} is taken only once the total pool reaches this amount.
+                        </p>
+                      </div>
                     </div>
                   </Card>
                 </>
