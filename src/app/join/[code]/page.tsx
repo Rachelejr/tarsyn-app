@@ -24,16 +24,33 @@ export default function JoinPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     const load = async () => {
+      console.log('[JOIN DEBUG] Starting load. Raw code param:', code, 'Type:', typeof code);
       try {
-        if (!code) { setNotFound(true); setLoading(false); return; }
+        if (!code) {
+          console.log('[JOIN DEBUG] No code found in params!');
+          setDebugInfo('No code param');
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
         const codeStr = String(code).trim().toUpperCase();
+        console.log('[JOIN DEBUG] Normalized codeStr:', codeStr);
         const q = query(collection(db, 'members'), where('inviteCode', '==', codeStr));
+        console.log('[JOIN DEBUG] About to call getDocs...');
         const snap = await getDocs(q);
-        if (snap.empty) { setNotFound(true); setLoading(false); return; }
+        console.log('[JOIN DEBUG] getDocs succeeded. Empty?', snap.empty, 'Size:', snap.size);
+        if (snap.empty) {
+          setDebugInfo(`No member found for code: ${codeStr}`);
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
         const memberData = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
+        console.log('[JOIN DEBUG] Member found:', memberData);
         setMember(memberData);
         setFullName(memberData.name || '');
         setEmail(memberData.email || '');
@@ -41,7 +58,13 @@ export default function JoinPage() {
           const gDoc = await getDoc(doc(db, 'groups', memberData.groupId));
           if (gDoc.exists()) setGroup({ id: gDoc.id, ...gDoc.data() });
         }
-      } catch (e) { setNotFound(true); }
+      } catch (e: any) {
+        console.error('[JOIN DEBUG] CAUGHT ERROR:', e);
+        console.error('[JOIN DEBUG] Error code:', e?.code);
+        console.error('[JOIN DEBUG] Error message:', e?.message);
+        setDebugInfo(`Error: ${e?.code || ''} ${e?.message || String(e)}`);
+        setNotFound(true);
+      }
       setLoading(false);
     };
     load();
@@ -86,6 +109,7 @@ export default function JoinPage() {
       <div style={{ fontSize: '48px' }}>❌</div>
       <h2 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
       <p style={{ color: '#7A5068', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
+      <p style={{ color: '#C62828', fontSize: '12px', margin: 0, fontFamily: 'monospace', maxWidth: '90%', textAlign: 'center', wordBreak: 'break-all' }}>{debugInfo}</p>
       <button onClick={() => router.push('/')} style={{ background: '#6B2D4E', color: '#FAF0E6', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
     </div>
   );
@@ -112,7 +136,6 @@ export default function JoinPage() {
 
       <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 16px 40px' }}>
 
-        {/* PROFIL */}
         <div style={{ background: 'white', borderRadius: '24px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center', marginBottom: '20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
           <h1 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome, {member.name}!</h1>
@@ -137,7 +160,6 @@ export default function JoinPage() {
           </div>
         </div>
 
-        {/* CREATE ACCOUNT */}
         <div style={{ background: 'white', borderRadius: '24px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 8px' }}>Create Your Account</h2>
           <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 24px' }}>Set up your account to access your member portal.</p>
