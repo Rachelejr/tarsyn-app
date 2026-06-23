@@ -99,7 +99,7 @@ const RULES_TEMPLATES = [
   { label: 'Custom', text: '' },
 ];
 const LANGUAGES = [
-  'English', 'French', 'Spanish', 'Portuguese', 'Haitian Creole', 'Arabic',
+  'English', 'French', 'Spanish', 'Portuguese', 'Arabic', 'Haitian Creole',
   'Wolof', 'Bambara', 'Fula (Fulani)', 'Hausa', 'Yoruba', 'Igbo', 'Twi',
   'Lingala', 'Swahili', 'Amharic', 'Somali', 'Kinyarwanda', 'Zulu', 'Xhosa',
   'Hindi', 'Other',
@@ -139,9 +139,41 @@ function FieldLabel({ label, required }: { label: string; required?: boolean }) 
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#FDFAF8', border: `1px solid ${C.roseClair}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-      <p style={{ fontSize: '12px', fontWeight: '700', color: C.bordeaux, textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 16px' }}>{title}</p>
+    <div style={{ background: '#FDFAF8', border: `1px solid ${C.roseClair}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+      <p style={{ fontSize: '12px', fontWeight: '700', color: C.bordeaux, textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 14px' }}>{title}</p>
       {children}
+    </div>
+  );
+}
+
+function SearchableSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const filtered = options.filter(o => o.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <div style={{ position: 'relative' }}>
+      <button type="button" onClick={() => setOpen(o => !o)} className="tarsyn-field"
+        style={{ ...inp, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+        <span>{value}</span>
+        <span style={{ color: C.texteGris, fontSize: '11px' }}>▾</span>
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)', zIndex: 20, maxHeight: '260px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search language..."
+            style={{ border: 'none', borderBottom: `1px solid ${C.roseClair}`, padding: '10px 12px', fontSize: '13px', outline: 'none' }} />
+          <div style={{ overflowY: 'auto' }}>
+            {filtered.length === 0 && <div style={{ padding: '10px 12px', fontSize: '13px', color: C.texteGris }}>No match</div>}
+            {filtered.map(o => (
+              <div key={o} onClick={() => { onChange(o); setOpen(false); setQuery(''); }}
+                style={{ padding: '9px 12px', fontSize: '13px', cursor: 'pointer', background: o === value ? C.roseClair : 'white', color: C.texteFonce }}
+                onMouseEnter={e => (e.currentTarget.style.background = C.creme)}
+                onMouseLeave={e => (e.currentTarget.style.background = o === value ? C.roseClair : 'white')}>
+                {o}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -190,6 +222,16 @@ export default function CreateTontinePage() {
   const organizerRevenue = totalPool * commissionRate;
   const cycleDuration = numM * (frequencyMonths[frequency] || 1);
   const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate && commissionThreshold && parseFloat(commissionThreshold) > 0);
+
+  const tabCompletion: Record<string, boolean> = {
+    identity: !!region && customName.trim().length >= 2,
+    finance: !!numMembers && parseInt(numMembers) >= 2 && !!contribution && parseFloat(contribution) > 0 && !!startDate && !!commissionThreshold && parseFloat(commissionThreshold) > 0,
+    rotation: true,
+    rules: !!rules.trim(),
+    invite: emailList.length > 0,
+  };
+  const currentStepIndex = TABS.findIndex(t => t.key === activeTab);
+  const progressPercent = Math.round(((currentStepIndex + 1) / TABS.length) * 100);
 
   const depositAmount = depositMode === 'No Deposit'
     ? 0
@@ -435,41 +477,42 @@ export default function CreateTontinePage() {
 
   // ── MAIN FORM (LANDSCAPE) ────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 16px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' }}>
       {sharedStyles}
-      <div className="tarsyn-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '24px', alignItems: 'start' }}>
+      <div className="tarsyn-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
 
         {/* FORM */}
         <div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '2px 2px 0 0' }} />
           <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.roseMoyen}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
 
-            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '28px 32px' }}>
+            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '20px 28px' }}>
               <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ArrowLeft size={14} /> Back to Dashboard
               </button>
-              <h1 style={{ color: 'white', fontSize: '24px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+              <h1 style={{ color: 'white', fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
               <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
             </div>
 
             {/* MINI STEP NAVIGATION */}
-            <div className="tarsyn-tabs" style={{ display: 'flex', gap: '4px', padding: '14px 32px 0', borderBottom: `1px solid ${C.roseClair}` }}>
+            <div className="tarsyn-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
               {TABS.map(t => (
                 <button key={t.key} className="tarsyn-tab" onClick={() => setActiveTab(t.key)}
                   style={{
-                    padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer',
+                    padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer',
                     fontSize: '13px', fontWeight: activeTab === t.key ? '700' : '500',
                     color: activeTab === t.key ? C.bordeaux : C.texteGris,
                     borderBottom: activeTab === t.key ? `2px solid ${C.bordeaux}` : '2px solid transparent',
-                    whiteSpace: 'nowrap',
+                    whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px',
                   }}>
+                  {tabCompletion[t.key] && <CheckCircle2 size={13} color={activeTab === t.key ? C.bordeaux : '#2E7D32'} />}
                   {t.label}
                 </button>
               ))}
             </div>
 
-            <div style={{ padding: '28px 32px' }}>
+            <div style={{ padding: '20px 28px' }}>
 
               {/* ── IDENTITY TAB ─────────────────────────────── */}
               {activeTab === 'identity' && (
@@ -489,9 +532,7 @@ export default function CreateTontinePage() {
                     </div>
                     <div>
                       <FieldLabel label="Group Language" />
-                      <select className="tarsyn-field" value={language} onChange={e => setLanguage(e.target.value)} style={inp}>
-                        {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
-                      </select>
+                      <SearchableSelect value={language} onChange={setLanguage} options={LANGUAGES} />
                     </div>
                   </div>
                   <div>
@@ -537,8 +578,11 @@ export default function CreateTontinePage() {
                   </Card>
 
                   <Card title="Initial Deposit">
-                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 12px' }}>
+                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 4px' }}>
                       Optional or required depending on admin settings and local practice.
+                    </p>
+                    <p style={{ fontSize: '11px', color: C.texteGris, margin: '0 0 12px', fontStyle: 'italic' }}>
+                      Deposit may be mandatory depending on local practices.
                     </p>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: depositMode !== 'No Deposit' ? '16px' : 0, flexWrap: 'wrap' }}>
                       {DEPOSIT_MODES.map(d => (
@@ -673,26 +717,26 @@ export default function CreateTontinePage() {
                   </Card>
 
                   <Card title="Privacy Mode">
-                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
                       {PRIVACY_MODES.map(p => (
                         <div key={p.value} className="tarsyn-privacy-card" onClick={() => setPrivacyMode(p.value)}
-                          style={{ border: `2px solid ${privacyMode === p.value ? C.bordeaux : C.roseMoyen}`, borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', background: privacyMode === p.value ? C.roseClair : 'white' }}>
-                          <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          style={{ border: `2px solid ${privacyMode === p.value ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', padding: '8px 12px', cursor: 'pointer', background: privacyMode === p.value ? C.roseClair : 'white' }}>
+                          <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             {p.value}
-                            {privacyMode === p.value && <CheckCircle2 size={14} color={C.bordeaux} />}
+                            {privacyMode === p.value && <CheckCircle2 size={13} color={C.bordeaux} />}
                           </p>
-                          <p style={{ color: C.texteGris, fontSize: '11px', margin: 0 }}>{p.desc}</p>
+                          <p style={{ color: C.texteGris, fontSize: '10px', margin: 0 }}>{p.desc}</p>
                         </div>
                       ))}
                     </div>
                     <div onClick={() => setConfidential(p => !p)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '14px', cursor: 'pointer', transition: 'background 0.2s ease, border-color 0.2s ease' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '6px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, transition: 'background 0.2s ease, border-color 0.2s ease' }}>
-                        {confidential && <Check size={12} />}
+                      style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', cursor: 'pointer', transition: 'background 0.2s ease, border-color 0.2s ease' }}>
+                      <div style={{ width: '18px', height: '18px', borderRadius: '5px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, transition: 'background 0.2s ease, border-color 0.2s ease' }}>
+                        {confidential && <Check size={11} />}
                       </div>
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
-                        <div style={{ fontSize: '11px', color: C.texteGris, marginTop: '2px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
+                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
                       </div>
                     </div>
                   </Card>
@@ -703,9 +747,9 @@ export default function CreateTontinePage() {
               {activeTab === 'invite' && (
                 <Card title="Invite Members">
                   <FieldLabel label="Invite by Email" />
-                  <div style={{ background: C.creme, border: `1.5px dashed ${C.roseMoyen}`, borderRadius: '14px', padding: '16px' }}>
+                  <div style={{ background: C.creme, border: `1.5px dashed ${C.roseMoyen}`, borderRadius: '12px', padding: '12px' }}>
                     {emailList.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
                         {emailList.map(email => (
                           <span key={email} style={{ background: C.roseClair, color: C.bordeaux, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {email}
@@ -722,12 +766,12 @@ export default function CreateTontinePage() {
                         placeholder="e.g. member@gmail.com"
                         style={{ ...inp, flex: 1, background: 'white' }} />
                       <button className="tarsyn-btn" onClick={addEmail}
-                        style={{ padding: '11px 18px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        style={{ padding: '10px 16px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <UserPlus size={14} /> Add
                       </button>
                     </div>
-                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add</p>
                   </div>
+                  <p style={{ fontSize: '11px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add</p>
                 </Card>
               )}
 
@@ -737,22 +781,20 @@ export default function CreateTontinePage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', gap: '12px' }}>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {TABS.map((t, i) => (
-                    <span key={t.key} style={{ width: '6px', height: '6px', borderRadius: '50%', background: TABS.findIndex(x => x.key === activeTab) >= i ? C.bordeaux : C.roseMoyen }} />
+                    <span key={t.key} style={{ width: '6px', height: '6px', borderRadius: '50%', background: TABS.findIndex(x => x.key === activeTab) >= i ? C.bordeaux : '#E8DCC8' }} />
                   ))}
                 </div>
                 <button className="tarsyn-btn" onClick={handleReview} disabled={!isFormValid || saving}
-                  style={{ padding: '14px 28px', background: !isFormValid ? C.roseMoyen : C.bordeaux, color: !isFormValid ? C.texteGris : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {saving ? 'Creating...' : <>Review & Create <ArrowRight size={16} /></>}
+                  style={{ padding: '13px 26px', background: !isFormValid ? '#E8DCC8' : C.bordeaux, color: !isFormValid ? '#9C8F78' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {saving ? 'Creating...' : <>Create Tontine <ArrowRight size={16} /></>}
                 </button>
               </div>
-              {!isFormValid && (
-                <p style={{ color: C.texteGris, fontSize: '12px', textAlign: 'right', marginTop: '8px' }}>
-                  Complete all required fields (*) in Identity and Finance to continue.
-                </p>
-              )}
+              <p style={{ textAlign: 'right', fontSize: '12px', color: C.texteGris, marginTop: '10px', fontStyle: 'italic' }}>
+                Your Community. Your Power.
+              </p>
             </div>
           </div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '0 0 2px 2px' }} />
@@ -760,31 +802,42 @@ export default function CreateTontinePage() {
 
         {/* LIVE SUMMARY CARD — simplified content */}
         <div className="tarsyn-live-summary">
-          <div style={{ background: 'white', borderRadius: '20px', padding: '22px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
-            <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 14px', letterSpacing: '-0.1px' }}>Live Summary</h3>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
+            <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 10px', letterSpacing: '-0.1px' }}>Live Summary</h3>
+
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '6px' }}>
+                <span>Step {currentStepIndex + 1} of {TABS.length}</span>
+                <span>{progressPercent}% completed</span>
+              </div>
+              <div style={{ height: '5px', background: '#E8DCC8', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progressPercent}%`, background: C.dore, borderRadius: '4px', transition: 'width 0.3s ease' }} />
+              </div>
+            </div>
+
             {[
               { label: 'Group Name', value: customName || selectedRegion?.name || '—' },
               { label: 'Members', value: numMembers || '—' },
-              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '—' },
+              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '—', gold: true },
               { label: 'Frequency', value: frequency },
               ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—' }] : []),
-              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '—', highlight: true },
-              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—' },
+              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '—', gold: true },
+              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—', gold: true },
               { label: 'Start Date', value: startDate || '—' },
               { label: 'Estimated End Date', value: estimatedEndDate },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
                 <span style={{ color: C.texteGris, fontSize: '12px' }}>{item.label}</span>
-                <span className="tarsyn-summary-value" style={{ color: (item as any).highlight ? C.bordeaux : C.texteFonce, fontWeight: (item as any).highlight ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
+                <span className="tarsyn-summary-value" style={{ color: (item as any).gold ? C.dore : C.texteFonce, fontWeight: (item as any).gold ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
               </div>
             ))}
             {totalPool > 0 && (
-              <div style={{ marginTop: '16px', background: `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, borderRadius: '14px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ marginTop: '14px', background: `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
                 <p style={{ color: C.roseClair, fontSize: '11px', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL POOL</p>
                 <p className="tarsyn-summary-value" style={{ color: C.dore, fontSize: '22px', fontWeight: '800', margin: '0' }}>{totalPool} {currency}</p>
               </div>
             )}
-            <div style={{ marginTop: '16px' }}>
+            <div style={{ marginTop: '14px' }}>
               <p style={{ color: C.texteGris, fontSize: '11px', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Required fields</p>
               {[
                 { label: 'Region', done: !!region },
