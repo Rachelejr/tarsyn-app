@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  MapPin, Wallet, Repeat, FileText, UserPlus,
+  ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X,
+} from 'lucide-react';
 
 const C = {
   bordeaux:   '#6B2D4E',
@@ -95,38 +99,51 @@ const RULES_TEMPLATES = [
   { label: 'Custom', text: '' },
 ];
 const LANGUAGES = ['English','French','Spanish','Portuguese','Haitian Creole','Arabic','Hindi','Wolof','Swahili','Other'].sort();
+const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
+const DEPOSIT_MULTIPLIERS = ['1× Contribution', '2× Contribution', 'Custom Amount'];
+const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
+
 const frequencyMonths: Record<string, number> = {
   'Weekly': 0.25, 'Bi-weekly': 0.5, 'Monthly': 1,
   'Quarterly': 3, 'Bi-annual': 6, 'Annual': 12
 };
 
+const TABS = [
+  { key: 'identity', label: 'Identity' },
+  { key: 'finance', label: 'Finance' },
+  { key: 'rotation', label: 'Rotation' },
+  { key: 'rules', label: 'Rules & Privacy' },
+  { key: 'invite', label: 'Invite' },
+];
+
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
-  border: `1.5px solid #D9C0CC`, borderRadius: '10px',
+  border: `1.5px solid #D9C0CC`, borderRadius: '12px',
   fontSize: '14px', color: '#2C1A24', background: '#FAF0E6',
   boxSizing: 'border-box', outline: 'none',
+  transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
 };
 
-function SectionTitle({ icon, text }: { icon: string; text: string }) {
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', marginTop: '24px' }}>
-      <span style={{ fontSize: '16px' }}>{icon}</span>
-      <span style={{ fontSize: '12px', fontWeight: '600', color: '#6B2D4E', textTransform: 'uppercase', letterSpacing: '1px' }}>{text}</span>
-      <div style={{ flex: 1, height: '1px', background: '#EDD9E5' }} />
-    </div>
+    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#2C1A24', marginBottom: '8px', letterSpacing: '0.1px' }}>
+      {label} {required && <span style={{ color: '#DC2626', fontSize: '12px' }}>*</span>}
+    </label>
   );
 }
 
-function FieldLabel({ icon, label, required }: { icon: string; label: string; required?: boolean }) {
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: '#2C1A24', marginBottom: '7px' }}>
-      {icon} {label} {required && <span style={{ color: '#DC2626', fontSize: '12px' }}>*</span>}
-    </label>
+    <div style={{ background: '#FDFAF8', border: `1px solid ${C.roseClair}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+      <p style={{ fontSize: '12px', fontWeight: '700', color: C.bordeaux, textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 16px' }}>{title}</p>
+      {children}
+    </div>
   );
 }
 
 export default function CreateTontinePage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('identity');
   const [saving, setSaving] = useState(false);
   const [savedGroup, setSavedGroup] = useState<any>(null);
   const [error, setError] = useState('');
@@ -153,6 +170,12 @@ export default function CreateTontinePage() {
   const [emailInput, setEmailInput] = useState('');
   const [emailList, setEmailList] = useState<string[]>([]);
 
+  // Initial Deposit (NEW)
+  const [depositMode, setDepositMode] = useState('No Deposit');
+  const [depositMultiplier, setDepositMultiplier] = useState('1× Contribution');
+  const [depositCustomAmount, setDepositCustomAmount] = useState('');
+  const [refundPolicy, setRefundPolicy] = useState(REFUND_POLICIES[0]);
+
   const selectedRegion = REGIONS.find(r => r.region === region);
   const numM = parseInt(numMembers) || 0;
   const contrib = parseFloat(contribution) || 0;
@@ -161,6 +184,20 @@ export default function CreateTontinePage() {
   const organizerRevenue = totalPool * commissionRate;
   const cycleDuration = numM * (frequencyMonths[frequency] || 1);
   const isFormValid = !!(region && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate);
+
+  const depositAmount = depositMode === 'No Deposit'
+    ? 0
+    : depositMultiplier === '1× Contribution' ? contrib
+    : depositMultiplier === '2× Contribution' ? contrib * 2
+    : parseFloat(depositCustomAmount) || 0;
+
+  const estimatedEndDate = (startDate && cycleDuration > 0)
+    ? (() => {
+        const d = new Date(startDate);
+        d.setMonth(d.getMonth() + Math.round(cycleDuration));
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      })()
+    : '—';
 
   const generateCode = (prefix: string) => {
     const countryCode = region ? region.substring(0, 2).toUpperCase() : 'XX';
@@ -215,6 +252,8 @@ export default function CreateTontinePage() {
         rotationType, paymentMethod, positionStrategy,
         privacyMode, adminVisibility,
         rulesTemplate, rules, confidential, language,
+        depositMode, depositMultiplier, depositCustomAmount: depositCustomAmount ? parseFloat(depositCustomAmount) : null,
+        refundPolicy, depositAmount,
         inviteCode, inviteLink,
         inviteEmails: emailList,
         estimatedPool: totalPool,
@@ -254,12 +293,52 @@ export default function CreateTontinePage() {
     }
   };
 
+  const sharedStyles = (
+    <style jsx global>{`
+      .tarsyn-field:focus {
+        border-color: ${C.dore} !important;
+        box-shadow: 0 0 0 3px rgba(212,175,122,0.20);
+        background: white !important;
+      }
+      .tarsyn-btn { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
+      .tarsyn-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(107,45,78,0.25);
+        filter: brightness(1.03);
+      }
+      .tarsyn-btn:active:not(:disabled) { transform: translateY(0); }
+      .tarsyn-pill { transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
+      .tarsyn-pill:hover { transform: translateY(-1px); }
+      .tarsyn-summary-value { transition: color 0.25s ease, font-size 0.25s ease; }
+      .tarsyn-privacy-card { transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease; }
+      .tarsyn-privacy-card:hover { transform: translateY(-1px); }
+      .tarsyn-tab { transition: background 0.2s ease, color 0.2s ease; }
+      @media (min-width: 769px) {
+        .tarsyn-live-summary { position: sticky; top: 24px; }
+      }
+      @media (max-width: 768px) {
+        .tarsyn-tontine-grid { grid-template-columns: 1fr !important; }
+        .tarsyn-live-summary { position: relative !important; top: 0 !important; }
+        .tarsyn-row-3 { grid-template-columns: 1fr !important; }
+        .tarsyn-row-2 { grid-template-columns: 1fr !important; }
+        .tarsyn-tabs { overflow-x: auto; }
+      }
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .tarsyn-tontine-grid { grid-template-columns: 1fr !important; }
+        .tarsyn-live-summary { position: relative !important; top: 0 !important; }
+      }
+    `}</style>
+  );
+
   // ── SUCCESS SCREEN ──────────────────────────────────────────────
   if (savedGroup) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '520px', width: '100%', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-        <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
-        <h2 style={{ color: C.bordeaux, fontSize: '26px', fontWeight: '800', margin: '0 0 8px' }}>Tontine Created!</h2>
+      {sharedStyles}
+      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '520px', width: '100%', boxShadow: '0 12px 48px rgba(107,45,78,0.10), 0 2px 8px rgba(107,45,78,0.06)', textAlign: 'center' }}>
+        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <CheckCircle2 size={32} color={C.bordeaux} strokeWidth={2} />
+        </div>
+        <h2 style={{ color: C.bordeaux, fontSize: '26px', fontWeight: '800', margin: '0 0 8px' }}>Tontine Created</h2>
         <p style={{ color: C.texteGris, fontSize: '14px', margin: '0 0 24px' }}>{savedGroup.name}</p>
         <div style={{ background: C.creme, borderRadius: '16px', padding: '20px', marginBottom: '24px', textAlign: 'left' }}>
           {[
@@ -280,21 +359,21 @@ export default function CreateTontinePage() {
             <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 8px' }}>Invite Link</p>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <p style={{ color: C.bordeaux, fontSize: '12px', wordBreak: 'break-all', fontWeight: '600', flex: 1, margin: 0 }}>{savedGroup.inviteLink}</p>
-              <button onClick={() => copyLink(savedGroup.inviteLink)}
-                style={{ background: copied ? '#2E7D32' : C.bordeaux, color: 'white', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', flexShrink: 0 }}>
-                {copied ? '✓ Copied!' : 'Copy'}
+              <button className="tarsyn-btn" onClick={() => copyLink(savedGroup.inviteLink)}
+                style={{ background: copied ? '#2E7D32' : C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', padding: '6px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {copied ? <Check size={13} /> : <CopyIcon size={13} />} {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <button onClick={() => router.push('/dashboard/add-member')}
-            style={{ background: C.dore, color: C.bordeaux, padding: '14px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
-            Invite Members
+          <button className="tarsyn-btn" onClick={() => router.push('/dashboard/add-member')}
+            style={{ background: C.dore, color: C.bordeaux, padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <UserPlus size={16} /> Invite Members
           </button>
-          <button onClick={() => router.push('/dashboard')}
-            style={{ background: C.bordeaux, color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
-            Dashboard
+          <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
+            style={{ background: C.bordeaux, color: 'white', padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            Dashboard <ArrowRight size={16} />
           </button>
         </div>
       </div>
@@ -304,19 +383,22 @@ export default function CreateTontinePage() {
   // ── REVIEW SCREEN ──────────────────────────────────────────────
   if (showReview) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'white', borderRadius: '24px', padding: '40px', maxWidth: '500px', width: '100%', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-        <h2 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: '800', margin: '0 0 8px' }}>📋 Review Your Tontine</h2>
+      {sharedStyles}
+      <div style={{ background: 'white', borderRadius: '24px', padding: '40px', maxWidth: '500px', width: '100%', boxShadow: '0 12px 48px rgba(107,45,78,0.10), 0 2px 8px rgba(107,45,78,0.06)' }}>
+        <h2 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: '800', margin: '0 0 8px' }}>Review Your Tontine</h2>
         <p style={{ color: C.texteGris, fontSize: '14px', margin: '0 0 24px' }}>Please confirm before creating.</p>
         <div style={{ background: C.creme, borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
           {[
             { label: 'Name', value: customName || selectedRegion?.name || 'Tontine' },
-            { label: 'Region', value: `${selectedRegion?.flag} ${region}` },
+            { label: 'Region', value: region },
             { label: 'Members', value: numMembers },
             { label: 'Contribution', value: `${contribution} ${currency}` },
             { label: 'Frequency', value: frequency },
+            { label: 'Initial Deposit', value: depositMode === 'No Deposit' ? 'None' : `${depositAmount.toFixed(2)} ${currency} (${depositMode})` },
             { label: 'Total Pool', value: `${totalPool} ${currency}` },
             { label: 'Your Revenue', value: `${organizerRevenue.toFixed(2)} ${currency}` },
             { label: 'Cycle Duration', value: `~${cycleDuration} months` },
+            { label: 'Estimated End Date', value: estimatedEndDate },
             { label: 'Start Date', value: startDate },
             { label: 'Privacy', value: privacyMode },
             { label: 'Commission', value: commission },
@@ -330,276 +412,353 @@ export default function CreateTontinePage() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => setShowReview(false)}
-            style={{ flex: 1, background: C.creme, color: C.bordeaux, padding: '14px', borderRadius: '12px', border: `2px solid ${C.bordeaux}`, fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-            ← Edit
+          <button className="tarsyn-btn" onClick={() => setShowReview(false)}
+            style={{ flex: 1, background: C.creme, color: C.bordeaux, padding: '14px', borderRadius: '18px', border: `2px solid ${C.bordeaux}`, fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <ArrowLeft size={16} /> Edit
           </button>
-          <button onClick={handleSubmit} disabled={saving}
-            style={{ flex: 2, background: C.bordeaux, color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
-            {saving ? '⏳ Creating...' : '🚀 Confirm & Create'}
+          <button className="tarsyn-btn" onClick={handleSubmit} disabled={saving}
+            style={{ flex: 2, background: C.bordeaux, color: 'white', padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            {saving ? 'Creating...' : <>Confirm & Create <Check size={16} /></>}
           </button>
         </div>
       </div>
     </div>
   );
 
-  // ── MAIN FORM ──────────────────────────────────────────────────
+  // ── MAIN FORM (LANDSCAPE) ────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '32px 16px' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 280px', gap: '24px', alignItems: 'start' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 16px' }}>
+      {sharedStyles}
+      <div className="tarsyn-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '24px', alignItems: 'start' }}>
 
         {/* FORM */}
         <div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '2px 2px 0 0' }} />
-          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.roseMoyen}`, borderTop: 'none', boxShadow: '0 8px 40px rgba(107,45,78,0.1)', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.roseMoyen}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
 
-            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '32px 40px' }}>
-              <button onClick={() => router.push('/dashboard')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '16px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                ← Back to Dashboard
+            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '28px 32px' }}>
+              <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ArrowLeft size={14} /> Back to Dashboard
               </button>
-              <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '700', margin: '0 0 6px' }}>✨ Create a Tontine</h1>
-              <p style={{ color: C.roseClair, fontSize: '14px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
+              <h1 style={{ color: 'white', fontSize: '24px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+              <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
             </div>
 
-            <div style={{ padding: '32px 40px' }}>
+            {/* MINI STEP NAVIGATION */}
+            <div className="tarsyn-tabs" style={{ display: 'flex', gap: '4px', padding: '14px 32px 0', borderBottom: `1px solid ${C.roseClair}` }}>
+              {TABS.map(t => (
+                <button key={t.key} className="tarsyn-tab" onClick={() => setActiveTab(t.key)}
+                  style={{
+                    padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer',
+                    fontSize: '13px', fontWeight: activeTab === t.key ? '700' : '500',
+                    color: activeTab === t.key ? C.bordeaux : C.texteGris,
+                    borderBottom: activeTab === t.key ? `2px solid ${C.bordeaux}` : '2px solid transparent',
+                    whiteSpace: 'nowrap',
+                  }}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
 
-              <SectionTitle icon="🌍" text="Region & Identity" />
-              <div style={{ marginBottom: '18px' }}>
-                <FieldLabel icon="📍" label="Region / Country" required />
-                <select value={region} onChange={e => setRegion(e.target.value)} style={inp}>
-                  <option value="">— Select a country or region —</option>
-                  {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
-                </select>
-                {selectedRegion && (
-                  <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '6px', display: 'inline-block' }}>
-                    {selectedRegion.flag} Regional name: <strong>{selectedRegion.name}</strong>
-                  </p>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="✏️" label="Tontine Name (optional)" />
-                  <input type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="e.g. My Sol 2026" style={inp} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="🌐" label="Group Language" />
-                  <select value={language} onChange={e => setLanguage(e.target.value)} style={inp}>
-                    {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </div>
-              </div>
+            <div style={{ padding: '28px 32px' }}>
 
-              <SectionTitle icon="💰" text="Financial Settings" />
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="👥" label="Number of Members" required />
-                  <input type="number" value={numMembers} onChange={e => setNumMembers(e.target.value)} min={2} max={500} placeholder="e.g. 12" style={inp} />
-                  {parseInt(numMembers) > 100 && <p style={{ color: '#D97706', fontSize: '12px', margin: '4px 0 0' }}>⚠️ Large groups may affect experience.</p>}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="💵" label="Contribution Amount" required />
-                  <input type="number" value={contribution} onChange={e => setContribution(e.target.value)} min={1} placeholder="e.g. 200" style={inp} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="🏦" label="Currency" />
-                  <select value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
-                    {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div style={{ marginBottom: '18px' }}>
-                <FieldLabel icon="🔄" label="Payment Frequency" />
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {FREQUENCIES.map(f => (
-                    <button key={f} onClick={() => setFrequency(f)}
-                      style={{ padding: '8px 18px', borderRadius: '20px', border: `2px solid ${frequency === f ? C.bordeaux : C.roseMoyen}`, background: frequency === f ? C.bordeaux : 'white', color: frequency === f ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px' }}>
-                      {f}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '18px' }}>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="📅" label="Start Date" required />
-                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                    min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} style={inp} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <FieldLabel icon="💼" label="Organizer Commission" />
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {COMMISSIONS.map(c => (
-                      <button key={c} onClick={() => setCommission(c)}
-                        style={{ flex: 1, padding: '9px 0', borderRadius: '10px', border: `2px solid ${commission === c ? C.bordeaux : C.roseMoyen}`, background: commission === c ? C.bordeaux : 'white', color: commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
-                        {c}
-                      </button>
-                    ))}
+              {/* ── IDENTITY TAB ─────────────────────────────── */}
+              {activeTab === 'identity' && (
+                <Card title="Region & Identity">
+                  <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    <div>
+                      <FieldLabel label="Region / Country" required />
+                      <select className="tarsyn-field" value={region} onChange={e => setRegion(e.target.value)} style={inp}>
+                        <option value="">— Select a country or region —</option>
+                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
+                      </select>
+                      {selectedRegion && (
+                        <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '8px', display: 'inline-block' }}>
+                          Regional name: <strong>{selectedRegion.name}</strong>
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <FieldLabel label="Group Language" />
+                      <select className="tarsyn-field" value={language} onChange={e => setLanguage(e.target.value)} style={inp}>
+                        {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <SectionTitle icon="⚙️" text="Rotation & Payment Settings" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '18px' }}>
-                <div>
-                  <FieldLabel icon="🔁" label="Rotation Type" />
-                  <select value={rotationType} onChange={e => setRotationType(e.target.value)} style={inp}>
-                    {ROTATION_TYPES.map(r => <option key={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <FieldLabel icon="💳" label="Payment Method" />
-                  <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={inp}>
-                    {PAYMENT_METHODS.map(p => <option key={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <FieldLabel icon="📋" label="Position Strategy" />
-                  <select value={positionStrategy} onChange={e => setPositionStrategy(e.target.value)} style={inp}>
-                    {POSITION_STRATEGIES.map(p => <option key={p}>{p}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <SectionTitle icon="👁️" text="Position Preview" />
-              {numM > 0 && startDate ? (
-                <div style={{ background: C.creme, borderRadius: '12px', padding: '16px', marginBottom: '18px' }}>
-                  <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview — {numMembers} members — {frequency}</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {Array.from({ length: Math.min(numM, 5) }, (_, i) => {
-                      const payoutDate = new Date(startDate);
-                      payoutDate.setMonth(payoutDate.getMonth() + i * (frequencyMonths[frequency] || 1));
-                      return (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'white', borderRadius: '8px', padding: '10px 14px' }}>
-                          <span style={{ background: C.bordeaux, color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', flexShrink: 0 }}>#{i + 1}</span>
-                          <span style={{ color: C.texteFonce, fontSize: '13px', fontWeight: '600', flex: 1 }}>Member {i + 1}</span>
-                          <span style={{ color: C.texteGris, fontSize: '12px' }}>{payoutDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                        </div>
-                      );
-                    })}
-                    {numM > 5 && <p style={{ color: C.texteGris, fontSize: '12px', textAlign: 'center', margin: '4px 0 0' }}>+{numM - 5} more members...</p>}
+                  <div>
+                    <FieldLabel label="Tontine Name (optional)" />
+                    <input className="tarsyn-field" type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="e.g. My Sol 2026" style={inp} />
                   </div>
-                </div>
-              ) : (
-                <div style={{ background: C.creme, borderRadius: '12px', padding: '16px', marginBottom: '18px', textAlign: 'center' }}>
-                  <p style={{ color: C.texteGris, fontSize: '13px', margin: 0 }}>Enter number of members and start date to see rotation preview.</p>
-                </div>
+                </Card>
               )}
 
-              <SectionTitle icon="📜" text="Rules" />
-              <div style={{ marginBottom: '18px' }}>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                  {RULES_TEMPLATES.map(t => (
-                    <button key={t.label} onClick={() => { setRulesTemplate(t.label); if (t.text) setRules(t.text); }}
-                      style={{ padding: '6px 16px', borderRadius: '20px', border: `2px solid ${rulesTemplate === t.label ? C.bordeaux : C.roseMoyen}`, background: rulesTemplate === t.label ? C.bordeaux : 'white', color: rulesTemplate === t.label ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-                <textarea value={rules} onChange={e => setRules(e.target.value)} rows={3}
-                  placeholder="Group rules..." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
-              </div>
-
-              <SectionTitle icon="🔒" text="Privacy & Members" />
-              <div style={{ marginBottom: '18px' }}>
-                <FieldLabel icon="🛡️" label="Privacy Mode" />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {PRIVACY_MODES.map(p => (
-                    <div key={p.value} onClick={() => setPrivacyMode(p.value)}
-                      style={{ border: `2px solid ${privacyMode === p.value ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', padding: '12px 16px', cursor: 'pointer', background: privacyMode === p.value ? C.roseClair : 'white' }}>
-                      <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 4px' }}>{p.value}</p>
-                      <p style={{ color: C.texteGris, fontSize: '11px', margin: 0 }}>{p.desc}</p>
+              {/* ── FINANCE TAB ──────────────────────────────── */}
+              {activeTab === 'finance' && (
+                <>
+                  <Card title="Financial Settings">
+                    <div className="tarsyn-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                      <div>
+                        <FieldLabel label="Number of Members" required />
+                        <input className="tarsyn-field" type="number" value={numMembers} onChange={e => setNumMembers(e.target.value)} min={2} max={500} placeholder="e.g. 12" style={inp} />
+                      </div>
+                      <div>
+                        <FieldLabel label="Contribution Amount" required />
+                        <input className="tarsyn-field" type="number" value={contribution} onChange={e => setContribution(e.target.value)} min={1} placeholder="e.g. 200" style={inp} />
+                      </div>
+                      <div>
+                        <FieldLabel label="Currency" />
+                        <select className="tarsyn-field" value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+                          {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                        </select>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div onClick={() => setConfidential(p => !p)}
-                style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', marginBottom: '20px', cursor: 'pointer' }}>
-                <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', flexShrink: 0 }}>
-                  {confidential ? '✓' : ''}
-                </div>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: C.texteFonce }}>🔒 Confidential Mode</div>
-                  <div style={{ fontSize: '12px', color: C.texteGris, marginTop: '2px' }}>Members only see their TYN-ID, not each other's names</div>
-                </div>
-              </div>
+                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <FieldLabel label="Start Date" required />
+                        <input className="tarsyn-field" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                          min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} style={inp} />
+                      </div>
+                      <div>
+                        <FieldLabel label="Payment Frequency" />
+                        <select className="tarsyn-field" value={frequency} onChange={e => setFrequency(e.target.value)} style={inp}>
+                          {FREQUENCIES.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </Card>
 
-              <SectionTitle icon="📧" text="Invite Members" />
-              <div style={{ marginBottom: '24px' }}>
-                <FieldLabel icon="📧" label="Invite by Email" />
-                <div style={{ background: C.creme, border: `1.5px dashed ${C.roseMoyen}`, borderRadius: '12px', padding: '16px' }}>
-                  {emailList.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
-                      {emailList.map(email => (
-                        <span key={email} style={{ background: C.roseClair, color: C.bordeaux, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {email}
-                          <button onClick={() => removeEmail(email)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: '14px', padding: 0 }}>×</button>
-                        </span>
+                  <Card title="Initial Deposit">
+                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 12px' }}>
+                      Optional or required depending on admin settings and local practice.
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: depositMode !== 'No Deposit' ? '16px' : 0, flexWrap: 'wrap' }}>
+                      {DEPOSIT_MODES.map(d => (
+                        <button key={d} className="tarsyn-pill" onClick={() => setDepositMode(d)}
+                          style={{ padding: '8px 16px', borderRadius: '20px', border: `2px solid ${depositMode === d ? C.bordeaux : C.roseMoyen}`, background: depositMode === d ? C.bordeaux : 'white', color: depositMode === d ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px' }}>
+                          {d}
+                        </button>
                       ))}
                     </div>
-                  )}
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input type="email" value={emailInput} onChange={e => setEmailInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && addEmail()}
-                      placeholder="e.g. member@gmail.com"
-                      style={{ ...inp, flex: 1, background: 'white' }} />
-                    <button onClick={addEmail}
-                      style={{ padding: '11px 18px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                      + Add
-                    </button>
+                    {depositMode !== 'No Deposit' && (
+                      <div className="tarsyn-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                        <div>
+                          <FieldLabel label="Deposit Amount" />
+                          <select className="tarsyn-field" value={depositMultiplier} onChange={e => setDepositMultiplier(e.target.value)} style={inp}>
+                            {DEPOSIT_MULTIPLIERS.map(m => <option key={m} value={m}>{m}</option>)}
+                          </select>
+                          {depositMultiplier === 'Custom Amount' && (
+                            <input className="tarsyn-field" type="number" value={depositCustomAmount} onChange={e => setDepositCustomAmount(e.target.value)}
+                              placeholder="e.g. 50" style={{ ...inp, marginTop: '8px' }} />
+                          )}
+                        </div>
+                        <div>
+                          <FieldLabel label="Refund Policy" />
+                          <select className="tarsyn-field" value={refundPolicy} onChange={e => setRefundPolicy(e.target.value)} style={inp}>
+                            {REFUND_POLICIES.map(r => <option key={r} value={r}>{r}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <FieldLabel label="Computed Deposit" />
+                          <div style={{ ...inp, background: C.creme, display: 'flex', alignItems: 'center', fontWeight: 700, color: C.bordeaux }}>
+                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  <Card title="Organizer Commission">
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {COMMISSIONS.map(c => (
+                        <button key={c} className="tarsyn-pill" onClick={() => setCommission(c)}
+                          style={{ flex: 1, padding: '9px 0', borderRadius: '12px', border: `2px solid ${commission === c ? C.bordeaux : C.roseMoyen}`, background: commission === c ? C.bordeaux : 'white', color: commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </Card>
+                </>
+              )}
+
+              {/* ── ROTATION TAB ─────────────────────────────── */}
+              {activeTab === 'rotation' && (
+                <>
+                  <Card title="Rotation & Payment Settings">
+                    <div className="tarsyn-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <FieldLabel label="Rotation Type" />
+                        <select className="tarsyn-field" value={rotationType} onChange={e => setRotationType(e.target.value)} style={inp}>
+                          {ROTATION_TYPES.map(r => <option key={r}>{r}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <FieldLabel label="Payment Method" />
+                        <select className="tarsyn-field" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={inp}>
+                          {PAYMENT_METHODS.map(p => <option key={p}>{p}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <FieldLabel label="Position Strategy" />
+                        <select className="tarsyn-field" value={positionStrategy} onChange={e => setPositionStrategy(e.target.value)} style={inp}>
+                          {POSITION_STRATEGIES.map(p => <option key={p}>{p}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card title="Position Preview">
+                    {numM > 0 && startDate ? (
+                      <div>
+                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview — {numMembers} members — {frequency}</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          {Array.from({ length: Math.min(numM, 6) }, (_, i) => {
+                            const payoutDate = new Date(startDate);
+                            payoutDate.setMonth(payoutDate.getMonth() + i * (frequencyMonths[frequency] || 1));
+                            return (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: C.creme, borderRadius: '10px', padding: '10px 14px' }}>
+                                <span style={{ background: C.bordeaux, color: 'white', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', flexShrink: 0 }}>#{i + 1}</span>
+                                <span style={{ color: C.texteFonce, fontSize: '13px', fontWeight: '600', flex: 1 }}>Member {i + 1}</span>
+                                <span style={{ color: C.texteGris, fontSize: '12px' }}>{payoutDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {numM > 6 && <p style={{ color: C.texteGris, fontSize: '12px', textAlign: 'center', margin: '10px 0 0' }}>+{numM - 6} more members...</p>}
+                      </div>
+                    ) : (
+                      <p style={{ color: C.texteGris, fontSize: '13px', margin: 0, textAlign: 'center' }}>Enter number of members and start date to see rotation preview.</p>
+                    )}
+                  </Card>
+                </>
+              )}
+
+              {/* ── RULES & PRIVACY TAB ──────────────────────── */}
+              {activeTab === 'rules' && (
+                <>
+                  <Card title="Rules">
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                      {RULES_TEMPLATES.map(t => (
+                        <button key={t.label} className="tarsyn-pill" onClick={() => { setRulesTemplate(t.label); if (t.text) setRules(t.text); }}
+                          style={{ padding: '6px 16px', borderRadius: '20px', border: `2px solid ${rulesTemplate === t.label ? C.bordeaux : C.roseMoyen}`, background: rulesTemplate === t.label ? C.bordeaux : 'white', color: rulesTemplate === t.label ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea className="tarsyn-field" value={rules} onChange={e => setRules(e.target.value)} rows={3}
+                      placeholder="Group rules..." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
+                  </Card>
+
+                  <Card title="Privacy Mode">
+                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                      {PRIVACY_MODES.map(p => (
+                        <div key={p.value} className="tarsyn-privacy-card" onClick={() => setPrivacyMode(p.value)}
+                          style={{ border: `2px solid ${privacyMode === p.value ? C.bordeaux : C.roseMoyen}`, borderRadius: '14px', padding: '12px 16px', cursor: 'pointer', background: privacyMode === p.value ? C.roseClair : 'white' }}>
+                          <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            {p.value}
+                            {privacyMode === p.value && <CheckCircle2 size={14} color={C.bordeaux} />}
+                          </p>
+                          <p style={{ color: C.texteGris, fontSize: '11px', margin: 0 }}>{p.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div onClick={() => setConfidential(p => !p)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '14px', cursor: 'pointer', transition: 'background 0.2s ease, border-color 0.2s ease' }}>
+                      <div style={{ width: '20px', height: '20px', borderRadius: '6px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, transition: 'background 0.2s ease, border-color 0.2s ease' }}>
+                        {confidential && <Check size={12} />}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
+                        <div style={{ fontSize: '11px', color: C.texteGris, marginTop: '2px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
+                      </div>
+                    </div>
+                  </Card>
+                </>
+              )}
+
+              {/* ── INVITE TAB ───────────────────────────────── */}
+              {activeTab === 'invite' && (
+                <Card title="Invite Members">
+                  <FieldLabel label="Invite by Email" />
+                  <div style={{ background: C.creme, border: `1.5px dashed ${C.roseMoyen}`, borderRadius: '14px', padding: '16px' }}>
+                    {emailList.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                        {emailList.map(email => (
+                          <span key={email} style={{ background: C.roseClair, color: C.bordeaux, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {email}
+                            <button onClick={() => removeEmail(email)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, padding: 0, display: 'flex', alignItems: 'center' }}>
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input className="tarsyn-field" type="email" value={emailInput} onChange={e => setEmailInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && addEmail()}
+                        placeholder="e.g. member@gmail.com"
+                        style={{ ...inp, flex: 1, background: 'white' }} />
+                      <button className="tarsyn-btn" onClick={addEmail}
+                        style={{ padding: '11px 18px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <UserPlus size={14} /> Add
+                      </button>
+                    </div>
+                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add</p>
                   </div>
-                  <p style={{ fontSize: '12px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add</p>
-                </div>
-              </div>
+                </Card>
+              )}
 
               {error && (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginBottom: '20px' }}>
-                  ⚠️ {error}
+                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginTop: '16px' }}>
+                  {error}
                 </div>
               )}
 
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {TABS.map((t, i) => (
+                    <span key={t.key} style={{ width: '6px', height: '6px', borderRadius: '50%', background: TABS.findIndex(x => x.key === activeTab) >= i ? C.bordeaux : C.roseMoyen }} />
+                  ))}
+                </div>
+                <button className="tarsyn-btn" onClick={handleReview} disabled={!isFormValid || saving}
+                  style={{ padding: '14px 28px', background: !isFormValid ? C.roseMoyen : C.bordeaux, color: !isFormValid ? C.texteGris : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {saving ? 'Creating...' : <>Review & Create <ArrowRight size={16} /></>}
+                </button>
+              </div>
               {!isFormValid && (
-                <p style={{ color: C.texteGris, fontSize: '13px', textAlign: 'center', marginBottom: '12px' }}>
-                  ⚠️ Complete all required fields (*) to continue.
+                <p style={{ color: C.texteGris, fontSize: '12px', textAlign: 'right', marginTop: '8px' }}>
+                  Complete all required fields (*) in Identity and Finance to continue.
                 </p>
               )}
-
-              <button onClick={handleReview} disabled={!isFormValid || saving}
-                style={{ width: '100%', padding: '15px', background: !isFormValid ? C.roseMoyen : C.bordeaux, color: !isFormValid ? C.texteGris : 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)` }}>
-                {saving ? '⏳ Creating...' : '📋 Review & Create'}
-              </button>
-
-              <p style={{ textAlign: 'center', fontSize: '12px', color: C.texteGris, marginTop: '16px' }}>
-                TARSYN — Your Community. Your Power. 🌍
-              </p>
             </div>
           </div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '0 0 2px 2px' }} />
         </div>
 
-        {/* LIVE SUMMARY CARD */}
-        <div style={{ position: 'sticky', top: '24px' }}>
-          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 24px rgba(107,45,78,0.12)', border: `1px solid ${C.roseClair}` }}>
-            <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 16px' }}>📊 Live Summary</h3>
+        {/* LIVE SUMMARY CARD — simplified content */}
+        <div className="tarsyn-live-summary">
+          <div style={{ background: 'white', borderRadius: '20px', padding: '22px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
+            <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 14px', letterSpacing: '-0.1px' }}>Live Summary</h3>
             {[
-              { label: 'Name', value: customName || selectedRegion?.name || '—' },
-              { label: 'Region', value: region ? `${selectedRegion?.flag} ${region}` : '—' },
+              { label: 'Group Name', value: customName || selectedRegion?.name || '—' },
               { label: 'Members', value: numMembers || '—' },
               { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '—' },
               { label: 'Frequency', value: frequency },
+              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—' }] : []),
               { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '—', highlight: true },
-              { label: 'Your Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—' },
-              { label: 'Cycle Duration', value: cycleDuration > 0 && numM > 0 ? `~${cycleDuration} months` : '—' },
+              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—' },
               { label: 'Start Date', value: startDate || '—' },
+              { label: 'Estimated End Date', value: estimatedEndDate },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
                 <span style={{ color: C.texteGris, fontSize: '12px' }}>{item.label}</span>
-                <span style={{ color: (item as any).highlight ? C.bordeaux : C.texteFonce, fontWeight: (item as any).highlight ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
+                <span className="tarsyn-summary-value" style={{ color: (item as any).highlight ? C.bordeaux : C.texteFonce, fontWeight: (item as any).highlight ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
               </div>
             ))}
             {totalPool > 0 && (
-              <div style={{ marginTop: '16px', background: `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-                <p style={{ color: C.roseClair, fontSize: '11px', margin: '0 0 4px' }}>TOTAL POOL</p>
-                <p style={{ color: C.dore, fontSize: '22px', fontWeight: '800', margin: '0' }}>{totalPool} {currency}</p>
+              <div style={{ marginTop: '16px', background: `linear-gradient(135deg, ${C.bordeaux}, #8B3A6A)`, borderRadius: '14px', padding: '16px', textAlign: 'center' }}>
+                <p style={{ color: C.roseClair, fontSize: '11px', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL POOL</p>
+                <p className="tarsyn-summary-value" style={{ color: C.dore, fontSize: '22px', fontWeight: '800', margin: '0' }}>{totalPool} {currency}</p>
               </div>
             )}
             <div style={{ marginTop: '16px' }}>
@@ -611,7 +770,7 @@ export default function CreateTontinePage() {
                 { label: 'Future Start Date', done: !!startDate && new Date(startDate) > new Date() },
               ].map(f => (
                 <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '14px' }}>{f.done ? '✅' : '○'}</span>
+                  {f.done ? <CheckCircle2 size={13} color="#2E7D32" /> : <Circle size={13} color={C.texteGris} />}
                   <span style={{ color: f.done ? '#2E7D32' : C.texteGris, fontSize: '12px', fontWeight: f.done ? '600' : '400' }}>{f.label}</span>
                 </div>
               ))}
