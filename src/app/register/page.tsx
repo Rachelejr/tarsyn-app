@@ -31,7 +31,6 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      // Sauvegarde le vrai nom dans Firebase Auth
       await updateProfile(result.user, { displayName: name.trim() });
       await setDoc(doc(db, 'users', result.user.uid), {
         name: name.trim(),
@@ -40,6 +39,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       });
       setSuccess(true);
+      setTimeout(() => { window.location.href = '/dashboard/create-workspace'; }, 1800);
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered.');
@@ -61,7 +61,7 @@ export default function RegisterPage() {
         role: 'admin',
         createdAt: new Date().toISOString(),
       }, { merge: true });
-      window.location.href = '/dashboard';
+      window.location.href = '/dashboard/create-workspace';
     } catch {
       setError('Google sign-up failed. Please try again.');
     }
@@ -77,10 +77,14 @@ export default function RegisterPage() {
             <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Account Created!</h2>
             <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.6',marginBottom:'24px'}}>
               Welcome to TARSYN, <strong style={{color:'#6B2D4E'}}>{name}</strong>!<br/>
-              You can now sign in and create your group.
+              Setting up your workspace...
             </p>
-            <a href="/login" style={{display:'block',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',borderRadius:'10px',fontSize:'15px',fontWeight:'700',textDecoration:'none',textAlign:'center'}}>
-              Go to Sign In
+            <div style={{display:'flex',justifyContent:'center'}}>
+              <div style={{width:'28px',height:'28px',border:'3px solid #EDD9E5',borderTopColor:'#6B2D4E',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <a href="/dashboard/create-workspace" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#C4748E',textDecoration:'underline'}}>
+              Continue now →
             </a>
           </div>
         </div>
