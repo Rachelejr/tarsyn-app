@@ -39,7 +39,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       });
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/dashboard/create-workspace'; }, 1800);
+      setTimeout(() => { window.location.href = '/dashboard/create-tontine'; }, 1800);
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered.');
@@ -61,7 +61,7 @@ export default function RegisterPage() {
         role: 'admin',
         createdAt: new Date().toISOString(),
       }, { merge: true });
-      window.location.href = '/dashboard/create-workspace';
+      window.location.href = '/dashboard/create-tontine';
     } catch {
       setError('Google sign-up failed. Please try again.');
     }
@@ -83,7 +83,7 @@ export default function RegisterPage() {
               <div style={{width:'28px',height:'28px',border:'3px solid #EDD9E5',borderTopColor:'#6B2D4E',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <a href="/dashboard/create-workspace" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#C4748E',textDecoration:'underline'}}>
+            <a href="/dashboard/create-tontine" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#C4748E',textDecoration:'underline'}}>
               Continue now →
             </a>
           </div>
