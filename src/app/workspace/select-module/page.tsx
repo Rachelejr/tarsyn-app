@@ -39,6 +39,7 @@ const MODULES: ModuleDef[] = [
   { icon:'🏠', title:'Orphanage', desc:'Children records, sponsors, care plans, donations', version:'V2', setupTime:'~8 min', category:'Charity', countries:'Select regions' },
   { icon:'🎉', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Community', newest:true, countries:'Global' },
   { icon:'🛒', title:'Commerce', desc:'Orders, inventory, group sales, vendor payouts', version:'V3', setupTime:'~10 min', category:'Commerce', newest:true, countries:'Select regions' },
+  { icon:'⚽', title:'Sport', desc:'Teams, leagues, matches, registrations, fees', version:'V3', setupTime:'~6 min', category:'Community', newest:true, countries:'Global' },
 ];
 
 const CATEGORIES = ['All', 'Finance', 'Community', 'Faith', 'Agriculture', 'Charity', 'Health', 'Commerce'];
@@ -80,6 +81,12 @@ export default function ChooseModulePage() {
         .module-card { transition: all 0.2s ease; }
         .module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(106,41,85,0.15); }
         .module-pill { transition: all 0.15s ease; cursor: pointer; }
+        .modules-landscape { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
+        .modules-sidebar { position: sticky; top: 24px; }
+        @media (max-width: 900px) {
+          .modules-landscape { grid-template-columns: 1fr !important; }
+          .modules-sidebar { position: relative !important; top: 0 !important; }
+        }
       `}</style>
 
       <div style={{ background: `linear-gradient(160deg, ${C.bordeaux} 0%, #4A1F38 100%)`, padding: '56px 32px 40px', textAlign: 'center' }}>
@@ -87,75 +94,86 @@ export default function ChooseModulePage() {
         <p style={{ color: 'rgba(250,240,230,0.8)', fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
       </div>
 
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 24px 0' }}>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search modules..."
-          style={{ width: '100%', padding: '14px 18px', borderRadius: '14px', border: `1.5px solid ${C.border}`, fontSize: '15px', outline: 'none', boxSizing: 'border-box', marginBottom: '18px' }}
-        />
+      <div style={{ maxWidth: '1320px', margin: '28px auto 0', padding: '0 24px' }}>
+        <div className="modules-landscape">
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-          {CATEGORIES.map(c => (
-            <button key={c} className="module-pill" onClick={() => setCategory(c)}
-              style={{ padding: '8px 16px', borderRadius: '20px', border: `1.5px solid ${category === c ? C.bordeaux : C.border}`, background: category === c ? C.bordeaux : 'white', color: category === c ? 'white' : C.texteGris, fontSize: '13px', fontWeight: 600 }}>
-              {c}
-            </button>
-          ))}
-        </div>
+          <div className="modules-sidebar">
+            <div style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '18px', padding: '20px' }}>
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search modules..."
+                style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${C.border}`, fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '18px' }}
+              />
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-          {QUICK_FILTERS.map(f => (
-            <button key={f} className="module-pill" onClick={() => setQuickFilter(quickFilter === f ? null : f)}
-              style={{ padding: '7px 14px', borderRadius: '20px', border: `1.5px solid ${quickFilter === f ? C.dore : C.border}`, background: quickFilter === f ? C.rose : 'white', color: C.bordeaux, fontSize: '12px', fontWeight: 700 }}>
-              {f}
-            </button>
-          ))}
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '20px', border: `1.5px dashed ${C.border}`, fontSize: '12px', color: C.texteGris }}>
-            Country support shown per module
-          </span>
-        </div>
-      </div>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: C.texteGris, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 8px' }}>Category</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '20px' }}>
+                {CATEGORIES.map(c => (
+                  <button key={c} className="module-pill" onClick={() => setCategory(c)}
+                    style={{ textAlign: 'left', padding: '9px 12px', borderRadius: '10px', border: `1.5px solid ${category === c ? C.bordeaux : 'transparent'}`, background: category === c ? C.bordeaux : C.creme, color: category === c ? 'white' : C.texteFonce, fontSize: '13px', fontWeight: 600 }}>
+                    {c}
+                  </button>
+                ))}
+              </div>
 
-      <div style={{ maxWidth: '960px', margin: '24px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
-        {filtered.map(m => (
-          <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '18px', padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div style={{ fontSize: '32px' }}>{m.icon}</div>
-              <span style={{ fontSize: '11px', background: C.rose, color: C.bordeaux, padding: '3px 10px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
-            </div>
-            <h3 style={{ color: C.texteFonce, fontSize: '17px', fontWeight: 700, margin: '0 0 6px' }}>{m.title}</h3>
-            <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 14px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: C.texteGris, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 8px' }}>Quick Filters</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+                {QUICK_FILTERS.map(f => (
+                  <button key={f} className="module-pill" onClick={() => setQuickFilter(quickFilter === f ? null : f)}
+                    style={{ textAlign: 'left', padding: '9px 12px', borderRadius: '10px', border: `1.5px solid ${quickFilter === f ? C.dore : C.border}`, background: quickFilter === f ? C.rose : 'white', color: C.bordeaux, fontSize: '13px', fontWeight: 700 }}>
+                    {f}
+                  </button>
+                ))}
+              </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-              {m.recommended && <span style={{ fontSize: '10px', background: '#E7F4EA', color: '#3C7A4E', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Recommended</span>}
-              {m.popular && <span style={{ fontSize: '10px', background: '#FFF3D6', color: '#9A6A00', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Popular</span>}
-              {m.newest && <span style={{ fontSize: '10px', background: '#E6EEFB', color: '#2F5BA8', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>New</span>}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '16px' }}>
-              <span>Setup: {m.setupTime}</span>
-              <span>{m.countries}</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setActivating(m)}
-                style={{ flex: 1, padding: '11px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                Activate
-              </button>
-              <button onClick={() => router.push(`/modules/${m.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`)}
-                style={{ flex: 1, padding: '11px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
-                Learn More
-              </button>
+              <p style={{ fontSize: '11px', color: C.texteGris, margin: 0, lineHeight: 1.5 }}>
+                Country support shown on each module card.
+              </p>
             </div>
           </div>
-        ))}
 
-        {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: C.texteGris }}>
-            No modules match your search.
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+            {filtered.map(m => (
+              <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '18px', padding: '22px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '32px' }}>{m.icon}</div>
+                  <span style={{ fontSize: '11px', background: C.rose, color: C.bordeaux, padding: '3px 10px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
+                </div>
+                <h3 style={{ color: C.texteFonce, fontSize: '17px', fontWeight: 700, margin: '0 0 6px' }}>{m.title}</h3>
+                <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 14px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                  {m.recommended && <span style={{ fontSize: '10px', background: '#E7F4EA', color: '#3C7A4E', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Recommended</span>}
+                  {m.popular && <span style={{ fontSize: '10px', background: '#FFF3D6', color: '#9A6A00', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Popular</span>}
+                  {m.newest && <span style={{ fontSize: '10px', background: '#E6EEFB', color: '#2F5BA8', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>New</span>}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '16px' }}>
+                  <span>Setup: {m.setupTime}</span>
+                  <span>{m.countries}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setActivating(m)}
+                    style={{ flex: 1, padding: '11px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                    Activate
+                  </button>
+                  <button onClick={() => router.push(`/modules/${m.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`)}
+                    style={{ flex: 1, padding: '11px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filtered.length === 0 && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: C.texteGris }}>
+                No modules match your search.
+              </div>
+            )}
           </div>
-        )}
+
+        </div>
       </div>
 
       {activating && (
