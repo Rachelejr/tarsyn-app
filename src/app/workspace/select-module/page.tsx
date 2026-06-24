@@ -24,33 +24,31 @@ type ModuleDef = {
   version: string;
   setupTime: string;
   category: string;
-  countries: string;
   languages: string;
   subscriptionLevel: string;
   memberLimit: string;
   badgeSupport: boolean;
   reportsSupport: boolean;
   offlineSupport: boolean;
-  availability: 'Global' | 'Region Limited';
   status: ModuleStatus;
   compatibleWith: string[];
 };
 
 const MODULES: ModuleDef[] = [
-  { icon:'🤝', title:'Tontine / Sol', desc:'Cycles, rotation, receipts, organizer commission', version:'V1', setupTime:'~5 min', category:'Finance', countries:'150+ countries', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Organization'] },
-  { icon:'🏛️', title:'Association', desc:'Members, dues, events, votes, reports', version:'V1', setupTime:'~7 min', category:'Community', countries:'Global', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Investment'] },
-  { icon:'⛪', title:'Church', desc:'Tithes, offerings, members, departments, badges', version:'V1', setupTime:'~10 min', category:'Faith', countries:'150+ countries', languages:'120+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:true, availability:'Global', status:'available', compatibleWith:['Foundation'] },
-  { icon:'💼', title:'Investment', desc:'Projects, capital, returns, financial reports', version:'V1', setupTime:'~8 min', category:'Investment', countries:'Global', languages:'25+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Association'] },
-  { icon:'🌾', title:'Agriculture', desc:'Cooperatives, harvests, group purchases', version:'V2', setupTime:'~6 min', category:'Agriculture', countries:'Select regions', languages:'15+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:true, availability:'Region Limited', status:'available', compatibleWith:['Cooperative'] },
-  { icon:'🤲', title:'Foundation', desc:'Donations, projects, impact reports, grants', version:'V2', setupTime:'~6 min', category:'Foundation', countries:'Global', languages:'25+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Church'] },
-  { icon:'🏠', title:'Orphanage', desc:'Children records, sponsors, care plans, donations', version:'V2', setupTime:'~8 min', category:'Foundation', countries:'Select regions', languages:'15+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:true, availability:'Region Limited', status:'available', compatibleWith:['Foundation'] },
-  { icon:'🤝', title:'Cooperative', desc:'Shared resources, member shares, collective purchases', version:'V2', setupTime:'~6 min', category:'Cooperative', countries:'Select regions', languages:'15+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, availability:'Region Limited', status:'available', compatibleWith:['Agriculture'] },
-  { icon:'🏢', title:'Organization', desc:'Members, structure, governance, reports', version:'V2', setupTime:'~7 min', category:'Organization', countries:'Global', languages:'25+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Tontine / Sol'] },
-  { icon:'🎓', title:'Education', desc:'Schools, courses, students, grades, enrollment', version:'V2', setupTime:'~9 min', category:'Education', countries:'Select regions', languages:'25+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:true, availability:'Region Limited', status:'coming-soon', compatibleWith:['Organization'] },
-  { icon:'🏥', title:'Health', desc:'Health mutuals, coverage, claims', version:'V3', setupTime:'~9 min', category:'Health', countries:'Select regions', languages:'15+ languages', subscriptionLevel:'Enterprise', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, availability:'Region Limited', status:'coming-soon', compatibleWith:['Foundation'] },
-  { icon:'🎉', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Youth', countries:'Global', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:false, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Sport'] },
-  { icon:'🛒', title:'Commerce', desc:'Orders, inventory, group sales, vendor payouts', version:'V3', setupTime:'~10 min', category:'Commerce', countries:'Select regions', languages:'15+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, availability:'Region Limited', status:'coming-soon', compatibleWith:['Cooperative'] },
-  { icon:'⚽', title:'Sport', desc:'Teams, leagues, matches, registrations, fees', version:'V3', setupTime:'~6 min', category:'Sports', countries:'Global', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:false, offlineSupport:false, availability:'Global', status:'available', compatibleWith:['Youth Club'] },
+  { icon:'🤝', title:'Tontine / Sol', desc:'Cycles, rotation, receipts, organizer commission', version:'V1', setupTime:'~5 min', category:'Finance', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, status:'available', compatibleWith:['Organization'] },
+  { icon:'🏛️', title:'Association', desc:'Members, dues, events, votes, reports', version:'V1', setupTime:'~7 min', category:'Community', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:false, status:'available', compatibleWith:['Investment'] },
+  { icon:'⛪', title:'Church', desc:'Tithes, offerings, members, departments, badges', version:'V1', setupTime:'~10 min', category:'Faith', languages:'120+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:true, status:'available', compatibleWith:['Foundation'] },
+  { icon:'💼', title:'Investment', desc:'Projects, capital, returns, financial reports', version:'V1', setupTime:'~8 min', category:'Investment', languages:'25+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, status:'available', compatibleWith:['Association'] },
+  { icon:'🌾', title:'Agriculture', desc:'Cooperatives, harvests, group purchases', version:'V2', setupTime:'~6 min', category:'Agriculture', languages:'15+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:true, status:'available', compatibleWith:['Cooperative'] },
+  { icon:'🤲', title:'Foundation', desc:'Donations, projects, impact reports, grants', version:'V2', setupTime:'~6 min', category:'Foundation', languages:'25+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, status:'available', compatibleWith:['Church'] },
+  { icon:'🏠', title:'Orphanage', desc:'Children records, sponsors, care plans, donations', version:'V2', setupTime:'~8 min', category:'Foundation', languages:'15+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:true, status:'available', compatibleWith:['Foundation'] },
+  { icon:'🤝', title:'Cooperative', desc:'Shared resources, member shares, collective purchases', version:'V2', setupTime:'~6 min', category:'Cooperative', languages:'15+ languages', subscriptionLevel:'Starter', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, status:'available', compatibleWith:['Agriculture'] },
+  { icon:'🏢', title:'Organization', desc:'Members, structure, governance, reports', version:'V2', setupTime:'~7 min', category:'Organization', languages:'25+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:false, status:'available', compatibleWith:['Tontine / Sol'] },
+  { icon:'🎓', title:'Education', desc:'Schools, courses, students, grades, enrollment', version:'V2', setupTime:'~9 min', category:'Education', languages:'25+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:true, offlineSupport:true, status:'coming-soon', compatibleWith:['Organization'] },
+  { icon:'🏥', title:'Health', desc:'Health mutuals, coverage, claims', version:'V3', setupTime:'~9 min', category:'Health', languages:'15+ languages', subscriptionLevel:'Enterprise', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, status:'coming-soon', compatibleWith:['Foundation'] },
+  { icon:'🎉', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Youth', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:false, offlineSupport:false, status:'available', compatibleWith:['Sport'] },
+  { icon:'🛒', title:'Commerce', desc:'Orders, inventory, group sales, vendor payouts', version:'V3', setupTime:'~10 min', category:'Commerce', languages:'15+ languages', subscriptionLevel:'Pro', memberLimit:'Unlimited', badgeSupport:false, reportsSupport:true, offlineSupport:false, status:'coming-soon', compatibleWith:['Cooperative'] },
+  { icon:'⚽', title:'Sport', desc:'Teams, leagues, matches, registrations, fees', version:'V3', setupTime:'~6 min', category:'Sports', languages:'25+ languages', subscriptionLevel:'Free', memberLimit:'Unlimited', badgeSupport:true, reportsSupport:false, offlineSupport:false, status:'available', compatibleWith:['Youth Club'] },
 ];
 
 const CATEGORIES = ['All', 'Finance', 'Community', 'Faith', 'Agriculture', 'Foundation', 'Health', 'Commerce', 'Organization', 'Education', 'Youth', 'Sports', 'Investment', 'Cooperative'];
@@ -73,7 +71,7 @@ export default function ChooseModulePage() {
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return MODULES.filter(m => {
-      const haystack = [m.title, m.desc, m.category, m.countries, m.languages, m.subscriptionLevel].join(' ').toLowerCase();
+      const haystack = [m.title, m.desc, m.category, m.languages, m.subscriptionLevel].join(' ').toLowerCase();
       const matchesQuery = haystack.includes(q);
       const matchesCategory = category === 'All' || m.category === category;
       return matchesQuery && matchesCategory;
@@ -151,16 +149,7 @@ export default function ChooseModulePage() {
                   <span style={{ fontSize: '9px', background: C.bg, color: C.primary, padding: '2px 7px', borderRadius: '14px', fontWeight: 700 }}>{m.version}</span>
                 </div>
                 <h3 style={{ color: C.textDark, fontSize: '13.5px', fontWeight: 800, margin: '0 0 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</h3>
-                <p style={{ color: C.textGris, fontSize: '11px', margin: '0 0 7px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.desc}</p>
-
-                <span style={{
-                  fontSize: '9px', fontWeight: 700, marginBottom: '10px',
-                  color: m.availability === 'Global' ? '#2E7D5C' : '#9A6A00',
-                  background: m.availability === 'Global' ? '#EFF6F2' : '#FFF3E0',
-                  padding: '3px 7px', borderRadius: '8px', display: 'inline-block', width: 'fit-content',
-                }}>
-                  {m.availability}
-                </span>
+                <p style={{ color: C.textGris, fontSize: '11px', margin: '0 0 10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.desc}</p>
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                   <button className="btn-primary" disabled={m.status !== 'available'} onClick={() => m.status === 'available' && setActivating(m)}
@@ -195,7 +184,6 @@ export default function ChooseModulePage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', color: C.textGris, background: C.bg, borderRadius: '10px', padding: '12px', marginBottom: '14px' }}>
               <div>Setup time: <strong style={{ color: C.textDark }}>{learnMore.setupTime}</strong></div>
-              <div>Coverage: <strong style={{ color: C.textDark }}>{learnMore.countries}</strong></div>
               <div>Languages: <strong style={{ color: C.textDark }}>{learnMore.languages}</strong></div>
               <div>Tier: <strong style={{ color: C.textDark }}>{learnMore.subscriptionLevel}</strong></div>
               <div>Members: <strong style={{ color: C.textDark }}>{learnMore.memberLimit}</strong></div>
