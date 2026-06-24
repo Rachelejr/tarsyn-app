@@ -3,13 +3,12 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-// ── PREMIUM PALETTE — Royal Ocean Blue + Turquoise + Soft Gold ──
 const C = {
-  primary:   '#123E63', // Royal Ocean Blue
+  primary:   '#123E63',
   primaryHover: '#0E5E86',
-  turquoise: '#14B8B0', // Premium Turquoise
-  gold:      '#D4A857', // Soft Gold
-  bg:        '#FAF7F0', // Warm Ivory
+  turquoise: '#14B8B0',
+  gold:      '#D4A857',
+  bg:        '#FAF7F0',
   surface:   '#FFFFFF',
   border:    '#E8ECEF',
   textDark:  '#1A2B49',
@@ -165,27 +164,35 @@ export default function ChooseModulePage() {
             </div>
           </div>
 
-          {/* MODULE GRID */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+          {/* MODULE GRID — landscape cards, single wide column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {filtered.map(m => (
-              <div key={m.title} className="module-card" style={{ background: C.surface, border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ fontSize: '38px' }}>{m.icon}</div>
-                  <span style={{ fontSize: '11px', background: C.bg, color: C.primary, padding: '3px 10px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
-                </div>
-                <h3 style={{ color: C.textDark, fontSize: '17px', fontWeight: 800, margin: '0 0 2px' }}>{m.title}</h3>
-                <p style={{ color: C.turquoise, fontSize: '12px', fontWeight: 600, margin: '0 0 8px' }}>{m.subtitle}</p>
-                <p style={{ color: C.textGris, fontSize: '13px', margin: '0 0 12px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
+              <div key={m.title} className="module-card" style={{ background: C.surface, border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
-                  {m.tags.map(tag => (
-                    <span key={tag} style={{ fontSize: '10px', background: TAG_STYLES[tag]?.bg || '#F1F1F1', color: TAG_STYLES[tag]?.color || C.textGris, padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>
-                      {tag}
-                    </span>
-                  ))}
+                <div style={{ flex: '0 0 200px', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '34px' }}>{m.icon}</div>
+                    <span style={{ fontSize: '11px', background: C.bg, color: C.primary, padding: '3px 10px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
+                  </div>
+                  <h3 style={{ color: C.textDark, fontSize: '16px', fontWeight: 800, margin: '0 0 2px' }}>{m.title}</h3>
+                  <p style={{ color: C.turquoise, fontSize: '12px', fontWeight: 600, margin: 0 }}>{m.subtitle}</p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: C.textGris, marginBottom: '10px', background: C.bg, borderRadius: '10px', padding: '10px' }}>
+                <div style={{ flex: '1 1 320px', minWidth: '260px' }}>
+                  <p style={{ color: C.textGris, fontSize: '13px', margin: '0 0 8px', lineHeight: 1.5 }}>{m.desc}</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                    {m.tags.map(tag => (
+                      <span key={tag} style={{ fontSize: '10px', background: TAG_STYLES[tag]?.bg || '#F1F1F1', color: TAG_STYLES[tag]?.color || C.textGris, padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '10px', color: C.textGris, margin: 0 }}>
+                    Works well with: <strong style={{ color: C.primary }}>{m.compatibleWith.join(', ')}</strong>
+                  </p>
+                </div>
+
+                <div style={{ flex: '0 0 260px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', color: C.textGris, background: C.bg, borderRadius: '10px', padding: '12px' }}>
                   <div><strong style={{ color: C.textDark }}>{m.setupTime}</strong> setup</div>
                   <div><strong style={{ color: C.textDark }}>{m.countries}</strong></div>
                   <div><strong style={{ color: C.textDark }}>{m.languages}</strong></div>
@@ -198,17 +205,13 @@ export default function ChooseModulePage() {
                   </div>
                 </div>
 
-                <p style={{ fontSize: '10px', color: C.textGris, margin: '0 0 14px' }}>
-                  Works well with: <strong style={{ color: C.primary }}>{m.compatibleWith.join(', ')}</strong>
-                </p>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ flex: '0 0 140px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <button className="btn-primary" onClick={() => setActivating(m)}
-                    style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ padding: '10px', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
                     Activate
                   </button>
                   <button className="btn-secondary" onClick={() => router.push(`/modules/${m.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`)}
-                    style={{ flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                     Learn More
                   </button>
                 </div>
@@ -225,7 +228,6 @@ export default function ChooseModulePage() {
         </div>
       </div>
 
-      {/* ACTIVATION MODAL */}
       {activating && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(26,43,73,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '18px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
