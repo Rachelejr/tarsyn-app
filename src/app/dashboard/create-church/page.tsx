@@ -8,17 +8,18 @@ import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, X, Plus,
 } from 'lucide-react';
 
-// ── CHURCH MODULE V2.0 — OFFICIAL VISUAL IDENTITY (Approved Direction) ──
+// ── CHURCH MODULE — SIMPLIFIED PALETTE ──
+// Single primary color (pale green) + baby pink as the only secondary touch.
 const C = {
-  primary:    '#8C72C4',
-  secondary:  '#BFA8E8',
-  accent:     '#E7D7FF',
-  bg:         '#F7F5FC',
+  primary:    '#8AB897', // pale, soft green
+  secondary:  '#8AB897', // kept equal to primary — one main color only
+  accent:     '#F2B8CE', // baby pink — the one secondary touch
+  bg:         '#F4FAF5', // pale green-tinted background
   cardBg:     '#FFFFFF',
-  borderSoft: '#E7D7FF',
-  borderMed:  '#CBB6EC',
-  textDark:   '#2C2440',
-  textGris:   '#7A6F94',
+  borderSoft: '#DCEEE0',
+  borderMed:  '#B9DCC3',
+  textDark:   '#26352B',
+  textGris:   '#6E8475',
   success:    '#5A8A6E',
   danger:     '#A14444',
 };
@@ -62,25 +63,25 @@ const TABS = [
 ];
 
 const inp: React.CSSProperties = {
-  width: '100%', padding: '11px 14px',
-  border: `1.5px solid ${C.borderMed}`, borderRadius: '12px',
-  fontSize: '14px', color: C.textDark, background: C.bg,
+  width: '100%', padding: '8px 12px',
+  border: `1.5px solid ${C.borderMed}`, borderRadius: '10px',
+  fontSize: '13px', color: C.textDark, background: C.bg,
   boxSizing: 'border-box', outline: 'none',
   transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
 };
 
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>
-      {label} {required && <span style={{ color: C.danger, fontSize: '12px' }}>*</span>}
+    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: C.textDark, marginBottom: '5px' }}>
+      {label} {required && <span style={{ color: C.danger, fontSize: '11px' }}>*</span>}
     </label>
   );
 }
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: C.cardBg, border: `1px solid ${C.borderSoft}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
-      <p style={{ fontSize: '12px', fontWeight: 700, color: C.primary, textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 14px' }}>{title}</p>
+    <div style={{ background: C.cardBg, border: `1px solid ${C.borderSoft}`, borderRadius: '14px', padding: '12px 14px', marginBottom: '10px' }}>
+      <p style={{ fontSize: '11px', fontWeight: 700, color: C.primary, textTransform: 'uppercase', letterSpacing: '1.1px', margin: '0 0 10px' }}>{title}</p>
       {children}
     </div>
   );
@@ -264,11 +265,11 @@ export default function CreateChurchPage() {
     <style jsx global>{`
       .church-field:focus {
         border-color: ${C.primary} !important;
-        box-shadow: 0 0 0 3px rgba(140,114,196,0.18);
+        box-shadow: 0 0 0 3px rgba(138,184,151,0.25);
         background: white !important;
       }
       .church-btn { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
-      .church-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(140,114,196,0.25); filter: brightness(1.03); }
+      .church-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(138,184,151,0.30); filter: brightness(1.03); }
       .church-btn:active:not(:disabled) { transform: translateY(0); }
       .church-pill { transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
       .church-pill:hover { transform: translateY(-1px); }
@@ -279,6 +280,10 @@ export default function CreateChurchPage() {
         .church-summary { position: relative !important; top: 0 !important; }
         .church-row-2 { grid-template-columns: 1fr !important; }
         .church-row-3 { grid-template-columns: 1fr !important; }
+        .church-row-4 { grid-template-columns: 1fr 1fr !important; }
+      }
+      @media (max-width: 480px) {
+        .church-row-4 { grid-template-columns: 1fr !important; }
       }
     `}</style>
   );
@@ -286,7 +291,7 @@ export default function CreateChurchPage() {
   if (saved) return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '480px', width: '100%', boxShadow: '0 12px 48px rgba(140,114,196,0.18)', textAlign: 'center' }}>
+      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '480px', width: '100%', boxShadow: '0 12px 48px rgba(138,184,151,0.25)', textAlign: 'center' }}>
         <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
           <CheckCircle2 size={32} color={C.primary} strokeWidth={2} />
         </div>
@@ -320,9 +325,9 @@ export default function CreateChurchPage() {
 
         <div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.primary}, ${C.secondary}, ${C.accent})`, borderRadius: '2px 2px 0 0' }} />
-          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.borderMed}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(140,114,196,0.10)', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.borderMed}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(138,184,151,0.12)', overflow: 'hidden' }}>
 
-            <div style={{ background: `linear-gradient(150deg, ${C.primary} 0%, ${C.secondary} 100%)`, padding: '20px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+            <div style={{ background: `linear-gradient(150deg, ${C.primary} 0%, ${C.secondary} 100%)`, padding: '14px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px' }}>
               <div>
                 <button className="church-btn" onClick={() => router.push('/dashboard')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.accent, fontSize: '13px', fontWeight: 600, marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -338,7 +343,7 @@ export default function CreateChurchPage() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.borderSoft}`, overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: '4px', padding: '6px 22px 0', borderBottom: `1px solid ${C.borderSoft}`, overflowX: 'auto' }}>
               {TABS.map(t => (
                 <button key={t.key} className="church-tab" onClick={() => setActiveTab(t.key)}
                   style={{
@@ -354,25 +359,19 @@ export default function CreateChurchPage() {
               ))}
             </div>
 
-            <div style={{ padding: '20px 28px' }}>
+            <div style={{ padding: '14px 22px' }}>
 
               {activeTab === 'identity' && (
                 <>
                   <Card title="General Information">
-                    <div className="church-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                      <div>
+                    <div className="church-row-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <div style={{ gridColumn: 'span 2' }}>
                         <FieldLabel label="Church Name" required />
                         <input className="church-field" value={churchName} onChange={e => setChurchName(e.target.value)} placeholder="e.g. New Hope Baptist Church" style={inp} />
                       </div>
                       <div>
                         <FieldLabel label="Short Name" />
-                        <input className="church-field" value={shortName} onChange={e => setShortName(e.target.value)} placeholder="e.g. NHBC" style={inp} />
-                      </div>
-                    </div>
-                    <div className="church-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                      <div>
-                        <FieldLabel label="Legal Name" />
-                        <input className="church-field" value={legalName} onChange={e => setLegalName(e.target.value)} placeholder="Full legal entity name" style={inp} />
+                        <input className="church-field" value={shortName} onChange={e => setShortName(e.target.value)} placeholder="NHBC" style={inp} />
                       </div>
                       <div>
                         <FieldLabel label="Denomination" />
@@ -381,9 +380,13 @@ export default function CreateChurchPage() {
                         </select>
                       </div>
                     </div>
-                    <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    <div className="church-row-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                       <div>
-                        <FieldLabel label="Registration Number" />
+                        <FieldLabel label="Legal Name" />
+                        <input className="church-field" value={legalName} onChange={e => setLegalName(e.target.value)} style={inp} />
+                      </div>
+                      <div>
+                        <FieldLabel label="Registration #" />
                         <input className="church-field" value={registrationNumber} onChange={e => setRegistrationNumber(e.target.value)} style={inp} />
                       </div>
                       <div>
@@ -395,7 +398,7 @@ export default function CreateChurchPage() {
                         <input className="church-field" type="date" value={foundedDate} onChange={e => setFoundedDate(e.target.value)} style={inp} />
                       </div>
                     </div>
-                    <div className="church-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="church-row-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
                       <div>
                         <FieldLabel label="Primary Language" />
                         <select className="church-field" value={primaryLanguage} onChange={e => setPrimaryLanguage(e.target.value)} style={inp}>
@@ -403,17 +406,27 @@ export default function CreateChurchPage() {
                         </select>
                       </div>
                       <div>
-                        <FieldLabel label="Secondary Language (optional)" />
+                        <FieldLabel label="Secondary Language" />
                         <select className="church-field" value={secondaryLanguage} onChange={e => setSecondaryLanguage(e.target.value)} style={inp}>
                           <option value="">—</option>
                           {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
                       </div>
+                      <div>
+                        <FieldLabel label="Church Type" />
+                        <select className="church-field" value={churchType} onChange={e => setChurchType(e.target.value)} style={inp}>
+                          {CHURCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <FieldLabel label="Seating Capacity" />
+                        <input className="church-field" type="number" value={seatingCapacity} onChange={e => setSeatingCapacity(e.target.value)} min={0} style={inp} />
+                      </div>
                     </div>
                   </Card>
 
-                  <Card title="Location">
-                    <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <Card title="Location & Profile">
+                    <div className="church-row-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                       <div>
                         <FieldLabel label="Country" required />
                         <input className="church-field" value={country} onChange={e => setCountry(e.target.value)} placeholder="e.g. United States" style={inp} />
@@ -426,39 +439,24 @@ export default function CreateChurchPage() {
                         <FieldLabel label="City" />
                         <input className="church-field" value={city} onChange={e => setCity(e.target.value)} style={inp} />
                       </div>
-                    </div>
-                    <div className="church-row-2" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
-                      <div>
-                        <FieldLabel label="Address" />
-                        <input className="church-field" value={address} onChange={e => setAddress(e.target.value)} style={inp} />
-                      </div>
                       <div>
                         <FieldLabel label="ZIP Code" />
                         <input className="church-field" value={zipCode} onChange={e => setZipCode(e.target.value)} style={inp} />
                       </div>
                     </div>
-                  </Card>
-
-                  <Card title="Profile">
-                    <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    <div className="church-row-2" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '10px' }}>
                       <div>
-                        <FieldLabel label="Church Type" />
-                        <select className="church-field" value={churchType} onChange={e => setChurchType(e.target.value)} style={inp}>
-                          {CHURCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
+                        <FieldLabel label="Address" />
+                        <input className="church-field" value={address} onChange={e => setAddress(e.target.value)} style={inp} />
                       </div>
                       <div>
                         <FieldLabel label="Estimated Members" />
                         <input className="church-field" type="number" value={estimatedMembers} onChange={e => setEstimatedMembers(e.target.value)} min={0} style={inp} />
                       </div>
-                      <div>
-                        <FieldLabel label="Seating Capacity" />
-                        <input className="church-field" type="number" value={seatingCapacity} onChange={e => setSeatingCapacity(e.target.value)} min={0} style={inp} />
-                      </div>
                     </div>
                     <div>
                       <FieldLabel label="Description (optional)" />
-                      <textarea className="church-field" value={description} onChange={e => setDescription(e.target.value.slice(0, 280))} rows={3}
+                      <textarea className="church-field" value={description} onChange={e => setDescription(e.target.value.slice(0, 280))} rows={2}
                         placeholder="A few words about your congregation..." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
                     </div>
                   </Card>
@@ -731,7 +729,7 @@ export default function CreateChurchPage() {
                   ))}
                 </div>
                 <button className="church-btn" onClick={handleCreate} disabled={!isFormValid || saving}
-                  style={{ padding: '13px 26px', background: !isFormValid ? C.borderSoft : C.primary, color: !isFormValid ? '#9C8FB5' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: 700, cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : '0 4px 20px rgba(140,114,196,0.35)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  style={{ padding: '13px 26px', background: !isFormValid ? C.borderSoft : C.primary, color: !isFormValid ? '#8FA897' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: 700, cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : '0 4px 20px rgba(138,184,151,0.35)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {saving ? 'Creating...' : <>Create Church <ArrowRight size={16} /></>}
                 </button>
               </div>
@@ -744,7 +742,7 @@ export default function CreateChurchPage() {
         </div>
 
         <div className="church-summary">
-          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(140,114,196,0.18)', border: `1px solid ${C.borderSoft}` }}>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(138,184,151,0.25)', border: `1px solid ${C.borderSoft}` }}>
             <h3 style={{ color: C.primary, fontSize: '15px', fontWeight: 800, margin: '0 0 10px' }}>Live Summary</h3>
 
             <div style={{ marginBottom: '16px' }}>
