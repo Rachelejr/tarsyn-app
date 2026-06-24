@@ -3,14 +3,12 @@ import { useState, useEffect } from 'react';
 
 // ============ 25 LANGUES + OTHER ============
 const LANGUAGES = [
-  // Amériques / Caraïbes
   { code: 'en',    label: '🇺🇸 English'           },
   { code: 'fr',    label: '🇫🇷 Français'           },
   { code: 'ht',    label: '🇭🇹 Kreyòl ayisyen'     },
   { code: 'kac',   label: '🇦🇬 Kreyòl Antiyè'      },
   { code: 'es',    label: '🇪🇸 Español'            },
   { code: 'pt',    label: '🇧🇷 Português'          },
-  // Afrique
   { code: 'ar',    label: '🇲🇦 العربية'            },
   { code: 'wo',    label: '🇸🇳 Wolof'              },
   { code: 'bm',    label: '🇲🇱 Bambara'            },
@@ -23,20 +21,16 @@ const LANGUAGES = [
   { code: 'so',    label: '🇸🇴 Somali'             },
   { code: 'mg',    label: '🇲🇬 Malagasy'           },
   { code: 'rw',    label: '🇷🇼 Kinyarwanda'        },
-  // Asie
   { code: 'hi',    label: '🇮🇳 हिन्दी (Hindi)'    },
   { code: 'tl',    label: '🇵🇭 Filipino'           },
   { code: 'id',    label: '🇮🇩 Bahasa Indonesia'   },
   { code: 'vi',    label: '🇻🇳 Tiếng Việt'        },
-  // Europe
   { code: 'nl',    label: '🇳🇱 Nederlands'         },
   { code: 'de',    label: '🇩🇪 Deutsch'            },
   { code: 'it',    label: '🇮🇹 Italiano'           },
-  // Autre
   { code: 'other', label: '➕ Other / Autre'        },
 ];
 
-// Traductions basiques pour démonstration
 const T: Record<string, Record<string, string>> = {
   en:  { hero1:'The Smart Way to Manage', hero2:'Your Community', cta:'Create Free Account', signin:'Sign In', trusted:'TRUSTED BY 2,400+ COMMUNITIES', sub:'Track contributions, manage members, generate receipts and reports automatically.', auto:'AUTO MODE', expert:'EXPERT MODE', startAuto:'Start with Auto Mode', startExpert:'Start with Expert Mode' },
   fr:  { hero1:'La Façon Intelligente de Gérer', hero2:'Votre Communauté', cta:'Créer un Compte Gratuit', signin:'Se Connecter', trusted:'UTILISÉ PAR 2 400+ COMMUNAUTÉS', sub:'Suivez les contributions, gérez les membres, générez des reçus et rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en Mode Auto', startExpert:'Commencer en Mode Expert' },
@@ -46,6 +40,7 @@ const T: Record<string, Record<string, string>> = {
 };
 const t = (lang: string, key: string) => T[lang]?.[key] || T['en'][key] || key;
 
+// ── MODULES — expanded with the 6 missing ones ──────────────────
 const MODULES = [
   {icon:'🤝',title:'Tontine / Sol',desc:'Cycles, rotation, receipts, organizer commission',tag:'V1 — PRIORITY'},
   {icon:'🏛️',title:'Association',desc:'Members, dues, events, votes, reports',tag:'V1'},
@@ -53,13 +48,20 @@ const MODULES = [
   {icon:'⛪',title:'Church',desc:'Tithes, offerings, projects, announcements',tag:'V1'},
   {icon:'🌾',title:'Agriculture',desc:'Cooperatives, harvests, group purchases',tag:'V2'},
   {icon:'🏥',title:'Health',desc:'Health mutuals, coverage, claims',tag:'V3'},
+  {icon:'🏢',title:'Organization',desc:'Members, structure, governance, reports',tag:'V2'},
+  {icon:'🤲',title:'Foundation',desc:'Donations, projects, impact reports, grants',tag:'V2'},
+  {icon:'🏠',title:'Orphanage',desc:'Children records, sponsors, care plans, donations',tag:'V2'},
+  {icon:'🎉',title:'Youth Club',desc:'Activities, members, events, fees',tag:'V3'},
+  {icon:'🤝',title:'Cooperative',desc:'Shared resources, member shares, collective purchases',tag:'V2'},
+  {icon:'🛒',title:'Commerce',desc:'Orders, inventory, group sales, vendor payouts',tag:'V3'},
 ];
 
+// ── TESTIMONIALS — anonymized, photo + quote only ────────────────
 const TESTIMONIALS = [
-  {initials:'MJ',name:'Marie Jean',country:'🇭🇹 Haiti',text:'TARSYN transformed how we manage our Sol group. Everything is automatic now!',bg:'#C4748E',img:'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=face'},
-  {initials:'KD',name:'Kofi Diallo',country:'🇸🇳 Senegal',text:'Our tontine has 30 members and TARSYN handles all the rotations perfectly.',bg:'#6B2D4E',img:'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=80&h=80&fit=crop&crop=face'},
-  {initials:'RA',name:'Rachel Amara',country:'🇨🇦 Canada',text:'Finally an app that understands our community. Receipts are generated automatically!',bg:'#D4AF7A',img:'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=80&h=80&fit=crop&crop=face'},
-  {initials:'PM',name:'Pierre Moreau',country:'🇫🇷 France',text:'We manage our association with ease. The reports save us hours every month.',bg:'#4A7C59',img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'},
+  {text:'TARSYN transformed how we manage our Sol group. Everything is automatic now!',img:'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=face'},
+  {text:'Our tontine has 30 members and TARSYN handles all the rotations perfectly.',img:'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=80&h=80&fit=crop&crop=face'},
+  {text:'Finally an app that understands our community. Receipts are generated automatically!',img:'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=80&h=80&fit=crop&crop=face'},
+  {text:'We manage our association with ease. The reports save us hours every month.',img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'},
 ];
 
 const COMMUNITY_IMGS = [
@@ -158,7 +160,6 @@ export default function HomePage() {
         select option{padding:8px;}
       `}</style>
 
-      {/* ── MODAL LANGUE OTHER ── */}
       {showLangModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
           <div style={{background:'white',borderRadius:'16px',padding:'32px',maxWidth:'400px',width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}}>
@@ -232,8 +233,8 @@ export default function HomePage() {
           </div>
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginTop:'52px',flexWrap:'wrap',gap:'4px'}}>
             {TESTIMONIALS.map((a,idx)=>(
-              <div key={a.initials} style={{width:'46px',height:'46px',borderRadius:'50%',overflow:'hidden',border:'3px solid rgba(212,175,122,0.6)',marginLeft:idx>0?'-12px':'0',zIndex:10-idx,boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
-                <img src={a.img} alt={a.initials} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              <div key={idx} style={{width:'46px',height:'46px',borderRadius:'50%',overflow:'hidden',border:'3px solid rgba(212,175,122,0.6)',marginLeft:idx>0?'-12px':'0',zIndex:10-idx,boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
+                <img src={a.img} alt="community member" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
               </div>
             ))}
             <span style={{color:'rgba(250,240,230,0.75)',fontSize:'13px',marginLeft:'18px',fontWeight:'500'}}>+2,400 communities worldwide</span>
@@ -250,7 +251,6 @@ export default function HomePage() {
         <p style={{color:'#7A5068',fontSize:'15px',marginBottom:'44px'}}>Pick the mode that fits your community</p>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'28px',maxWidth:'860px',margin:'0 auto'}}>
 
-          {/* AUTO MODE */}
           <div className="mode-card"
             onMouseEnter={()=>setHoverMode('auto')}
             onMouseLeave={()=>setHoverMode(null)}
@@ -267,7 +267,6 @@ export default function HomePage() {
                   <span style={{color:'#4A2040',fontSize:'14px',fontWeight:'500'}}>{f.key}</span>
                 </div>
               ))}
-              {/* ✅ Bouton fonctionnel → /register?mode=auto */}
               <a href="/register?mode=auto" style={{display:'block',marginTop:'28px',padding:'15px',background:'#6B2D4E',borderRadius:'12px',color:'#FAF0E6',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s'}}
                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='#8B3D62';(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='#6B2D4E';(e.currentTarget as HTMLElement).style.transform='translateY(0)';}}>
@@ -276,7 +275,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* EXPERT MODE */}
           <div className="mode-card"
             onMouseEnter={()=>setHoverMode('expert')}
             onMouseLeave={()=>setHoverMode(null)}
@@ -293,7 +291,6 @@ export default function HomePage() {
                   <span style={{color:'#4A2040',fontSize:'14px',fontWeight:'500'}}>{f.key}</span>
                 </div>
               ))}
-              {/* ✅ Bouton fonctionnel → /register?mode=expert */}
               <a href="/register?mode=expert" style={{display:'block',marginTop:'28px',padding:'15px',background:'#D4AF7A',borderRadius:'12px',color:'#6B2D4E',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s'}}
                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='#c49a5a';(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='#D4AF7A';(e.currentTarget as HTMLElement).style.transform='translateY(0)';}}>
@@ -355,17 +352,17 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── MODULES ── */}
+      {/* ── MODULES — now 12 modules instead of 6 ── */}
       <div style={{padding:'64px 32px',textAlign:'center',background:'#EDD9E5'}}>
         <h3 style={{color:'#6B2D4E',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>One Platform — Every Community</h3>
         <p style={{color:'#7A5068',marginBottom:'44px',fontSize:'15px'}}>Each module has its own isolated space, rules and reports</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:'16px',maxWidth:'820px',margin:'0 auto'}}>
-          {MODULES.map(m=>(
-            <div key={m.title}
-              onMouseEnter={()=>setHoverCard(m.title)}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:'16px',maxWidth:'960px',margin:'0 auto'}}>
+          {MODULES.map((m,idx)=>(
+            <div key={`${m.title}-${idx}`}
+              onMouseEnter={()=>setHoverCard(`${m.title}-${idx}`)}
               onMouseLeave={()=>setHoverCard(null)}
               onClick={()=>window.location.href='/register'}
-              style={{background:'white',border:`1.5px solid ${hoverCard===m.title?'#6B2D4E':'#D9C0CC'}`,borderRadius:'14px',padding:'20px',display:'flex',alignItems:'center',gap:'14px',textAlign:'left',transform:hoverCard===m.title?'translateY(-4px)':'translateY(0)',boxShadow:hoverCard===m.title?'0 8px 28px rgba(107,45,78,0.14)':'0 2px 8px rgba(107,45,78,0.05)',transition:'all 0.2s ease',cursor:'pointer'}}>
+              style={{background:'white',border:`1.5px solid ${hoverCard===`${m.title}-${idx}`?'#6B2D4E':'#D9C0CC'}`,borderRadius:'14px',padding:'20px',display:'flex',alignItems:'center',gap:'14px',textAlign:'left',transform:hoverCard===`${m.title}-${idx}`?'translateY(-4px)':'translateY(0)',boxShadow:hoverCard===`${m.title}-${idx}`?'0 8px 28px rgba(107,45,78,0.14)':'0 2px 8px rgba(107,45,78,0.05)',transition:'all 0.2s ease',cursor:'pointer'}}>
               <div style={{fontSize:'28px'}}>{m.icon}</div>
               <div style={{flex:1}}>
                 <div style={{fontWeight:'700',color:'#2C1A24',fontSize:'15px'}}>{m.title}</div>
@@ -377,19 +374,15 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── TESTIMONIALS ── */}
+      {/* ── TESTIMONIALS — anonymized: photo + quote only, no name/country ── */}
       <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#5A2848 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FAF0E6',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
         <p style={{color:'rgba(250,240,230,0.6)',marginBottom:'44px',fontSize:'14px'}}>Real stories from real communities worldwide</p>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
           {mounted&&<div key={activeT} className="tcard" style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(212,175,122,0.3)',borderRadius:'18px',padding:'36px'}}>
             <p style={{color:'#FAF0E6',fontSize:'16px',lineHeight:'1.8',marginBottom:'28px',fontStyle:'italic'}}>"{TESTIMONIALS[activeT].text}"</p>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'14px'}}>
-              <img src={TESTIMONIALS[activeT].img} alt={TESTIMONIALS[activeT].name} style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover',border:'2px solid #D4AF7A'}}/>
-              <div style={{textAlign:'left'}}>
-                <div style={{color:'#FAF0E6',fontWeight:'700',fontSize:'14px'}}>{TESTIMONIALS[activeT].name}</div>
-                <div style={{color:'#D4AF7A',fontSize:'12px',marginTop:'2px'}}>{TESTIMONIALS[activeT].country}</div>
-              </div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <img src={TESTIMONIALS[activeT].img} alt="community member" style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover',border:'2px solid #D4AF7A'}}/>
             </div>
           </div>}
           <div style={{display:'flex',justifyContent:'center',gap:'8px',marginTop:'24px'}}>
@@ -438,20 +431,6 @@ export default function HomePage() {
             </button>
           </div>
         )}
-      </div>
-
-      {/* ── CTA FINAL ── */}
-      <div style={{background:'#2C1A24',padding:'64px 32px',textAlign:'center'}}>
-        <h3 style={{color:'#FAF0E6',fontSize:'34px',fontWeight:'800',marginBottom:'12px'}}>Ready to organize your community?</h3>
-        <p style={{color:'rgba(250,240,230,0.55)',marginBottom:'36px',fontSize:'15px'}}>Join thousands of communities already using TARSYN worldwide</p>
-        <div style={{display:'flex',gap:'16px',justifyContent:'center',flexWrap:'wrap'}}>
-          <a href="/register" className="btn-gold" style={{padding:'15px 36px',background:'#D4AF7A',borderRadius:'12px',color:'#6B2D4E',textDecoration:'none',fontSize:'15px',fontWeight:'800',display:'inline-block'}}>
-            {t(lang,'cta')}
-          </a>
-          <a href="/login" className="btn-outline" style={{padding:'15px 36px',border:'2px solid rgba(212,175,122,0.5)',borderRadius:'12px',color:'#D4AF7A',textDecoration:'none',fontSize:'15px',display:'inline-block'}}>
-            {t(lang,'signin')}
-          </a>
-        </div>
       </div>
 
       {/* ── FOOTER ── */}
