@@ -89,19 +89,19 @@ export default function ChooseModulePage() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, padding: '0 0 32px' }}>
       <style>{`
-        .module-card { transition: all 0.15s ease; border-top: 2px solid ${C.turquoise}; height: 168px; overflow: hidden; }
-        .module-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(18,62,99,0.12); }
+        .module-card { transition: all 0.15s ease; border-top: 2px solid ${C.turquoise}; height: 190px; overflow: hidden; }
+        .module-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(18,62,99,0.13); }
         .module-pill { transition: all 0.15s ease; cursor: pointer; }
-        .modules-layout { display: grid; grid-template-columns: 190px 1fr; gap: 16px; align-items: start; }
+        .modules-layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start; }
         .modules-sidebar { position: sticky; top: 14px; }
-        .modules-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+        .modules-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
         .btn-primary { background: ${C.primary}; color: white; transition: background 0.15s ease; }
         .btn-primary:hover { background: ${C.primaryHover}; }
         .btn-primary:disabled { background: ${C.border}; color: ${C.textGris}; cursor: not-allowed; }
         .btn-secondary { background: white; color: ${C.primary}; border: 1.5px solid ${C.turquoise}; transition: background 0.15s ease, color 0.15s ease; }
         .btn-secondary:hover { background: ${C.turquoise}; color: white; }
-        @media (max-width: 1400px) { .modules-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 1100px) {
+        @media (max-width: 1300px) { .modules-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 1024px) {
           .modules-layout { grid-template-columns: 1fr !important; }
           .modules-sidebar { position: relative !important; top: 0 !important; }
           .modules-grid { grid-template-columns: repeat(3, 1fr); }
@@ -134,7 +134,7 @@ export default function ChooseModulePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '300px', overflowY: 'auto' }}>
                   {CATEGORIES.map(c => (
                     <button key={c} className="module-pill" onClick={() => setCategory(c)}
-                      style={{ textAlign: 'left', padding: '5px 8px', borderRadius: '6px', border: 'none', background: category === c ? C.turquoise : 'transparent', color: category === c ? 'white' : C.textDark, fontSize: '11px', fontWeight: category === c ? 700 : 500 }}>
+                      style={{ textAlign: 'left', padding: '6px 9px', borderRadius: '6px', border: 'none', background: category === c ? C.turquoise : 'transparent', color: category === c ? 'white' : C.textDark, fontSize: '11.5px', fontWeight: category === c ? 700 : 500 }}>
                       {c}
                     </button>
                   ))}
@@ -145,30 +145,30 @@ export default function ChooseModulePage() {
 
           <div className="modules-grid">
             {filtered.map(m => (
-              <div key={m.title} className="module-card" style={{ background: C.surface, border: `1.5px solid ${C.border}`, borderRadius: '12px', padding: '10px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                  <div style={{ fontSize: '22px' }}>{m.icon}</div>
-                  <span style={{ fontSize: '8px', background: C.bg, color: C.primary, padding: '2px 6px', borderRadius: '14px', fontWeight: 700 }}>{m.version}</span>
+              <div key={m.title} className="module-card" style={{ background: C.surface, border: `1.5px solid ${C.border}`, borderRadius: '12px', padding: '15px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '25px' }}>{m.icon}</div>
+                  <span style={{ fontSize: '9px', background: C.bg, color: C.primary, padding: '2px 7px', borderRadius: '14px', fontWeight: 700 }}>{m.version}</span>
                 </div>
-                <h3 style={{ color: C.textDark, fontSize: '12px', fontWeight: 800, margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</h3>
-                <p style={{ color: C.textGris, fontSize: '10px', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.desc}</p>
+                <h3 style={{ color: C.textDark, fontSize: '13.5px', fontWeight: 800, margin: '0 0 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</h3>
+                <p style={{ color: C.textGris, fontSize: '11px', margin: '0 0 7px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.desc}</p>
 
                 <span style={{
-                  fontSize: '8px', fontWeight: 700, marginBottom: '6px',
+                  fontSize: '9px', fontWeight: 700, marginBottom: '10px',
                   color: m.availability === 'Global' ? '#2E7D5C' : '#9A6A00',
                   background: m.availability === 'Global' ? '#EFF6F2' : '#FFF3E0',
-                  padding: '2px 6px', borderRadius: '8px', display: 'inline-block', width: 'fit-content',
+                  padding: '3px 7px', borderRadius: '8px', display: 'inline-block', width: 'fit-content',
                 }}>
                   {m.availability}
                 </span>
 
-                <div style={{ display: 'flex', gap: '5px', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                   <button className="btn-primary" disabled={m.status !== 'available'} onClick={() => m.status === 'available' && setActivating(m)}
-                    style={{ flex: 1, padding: '5px', border: 'none', borderRadius: '7px', fontSize: '9.5px', fontWeight: 700, cursor: m.status === 'available' ? 'pointer' : 'not-allowed' }}>
+                    style={{ flex: 1, minHeight: '44px', padding: '8px', border: 'none', borderRadius: '8px', fontSize: '10.5px', fontWeight: 700, cursor: m.status === 'available' ? 'pointer' : 'not-allowed' }}>
                     {STATUS_LABEL[m.status]}
                   </button>
                   <button className="btn-secondary" onClick={() => setLearnMore(m)}
-                    style={{ flex: 1, padding: '5px', borderRadius: '7px', fontSize: '9.5px', fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ flex: 1, minHeight: '44px', padding: '8px', borderRadius: '8px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}>
                     Learn More
                   </button>
                 </div>
