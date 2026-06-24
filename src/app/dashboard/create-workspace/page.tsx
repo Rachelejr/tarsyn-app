@@ -156,4 +156,3 @@ export default function CreateWorkspacePage() {
     </div>
   );
 }
-'@ | Out-File -FilePath src\app\dashboard\create-workspace\page.tsx -Encoding utf8
