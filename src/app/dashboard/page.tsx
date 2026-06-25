@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,19 +61,19 @@ export default function Dashboard() {
       <div style={{maxWidth:'900px',margin:'0 auto',padding:'40px 24px'}}>
         <div style={{marginBottom:'32px'}}>
           <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:800,margin:'0 0 4px'}}>
-            Welcome, {adminName} 👋
+            Welcome, {adminName} ðŸ‘‹
           </h1>
           <p style={{color:'#7A5068',fontSize:'15px',margin:0}}>
-            {group ? `${group.name} · ${group.module} · ${group.status}` : 'No group yet'}
+            {group ? `${group.name} Â· ${group.module} Â· ${group.status}` : 'No group yet'}
           </p>
         </div>
 
         {!group ? (
           <div style={{background:'white',borderRadius:'20px',padding:'48px',textAlign:'center',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-            <div style={{fontSize:'48px',marginBottom:'16px'}}>🏠</div>
+            <div style={{fontSize:'48px',marginBottom:'16px'}}>ðŸ </div>
             <h2 style={{color:'#6B2D4E',fontSize:'22px',fontWeight:800,margin:'0 0 8px'}}>Create your first group</h2>
             <p style={{color:'#7A5068',fontSize:'14px',margin:'0 0 24px'}}>Set up your tontine or sol group to get started.</p>
-            <button onClick={() => router.push('/dashboard/create-group')}
+            <button onClick={() => router.push('/dashboard/create-tontine')}
               style={{background:'#6B2D4E',color:'#FAF0E6',padding:'14px 32px',borderRadius:'12px',border:'none',fontSize:'16px',fontWeight:700,cursor:'pointer'}}>
               + Create Group
             </button>
@@ -83,9 +83,9 @@ export default function Dashboard() {
             {/* Stats */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
               {[
-                {label:'Total Members',value:members.length,icon:'👥'},
-                {label:'Active Members',value:members.filter(m=>m.status==='active').length,icon:'✅'},
-                {label:'Pending Members',value:members.filter(m=>m.status==='pending').length,icon:'⏳'},
+                {label:'Total Members',value:members.length,icon:'ðŸ‘¥'},
+                {label:'Active Members',value:members.filter(m=>m.status==='active').length,icon:'âœ…'},
+                {label:'Pending Members',value:members.filter(m=>m.status==='pending').length,icon:'â³'},
               ].map((s,i) => (
                 <div key={i} style={{background:'white',borderRadius:'16px',padding:'20px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)',display:'flex',alignItems:'center',gap:'16px'}}>
                   <span style={{fontSize:'28px'}}>{s.icon}</span>
@@ -97,12 +97,12 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Actions — Row 1 */}
+            {/* Actions â€” Row 1 */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'16px'}}>
               {[
-                {title:'Record Contribution',icon:'💰',path:'/dashboard/record-contribution',color:'#6B2D4E'},
-                {title:'Add Member',icon:'👤',path:'/dashboard/add-member',color:'#4A2D5E'},
-                {title:'Overview',icon:'⚡',path:'/dashboard/overview',color:'#2C1A3E'},
+                {title:'Record Contribution',icon:'ðŸ’°',path:'/dashboard/record-contribution',color:'#6B2D4E'},
+                {title:'Add Member',icon:'ðŸ‘¤',path:'/dashboard/add-member',color:'#4A2D5E'},
+                {title:'Overview',icon:'âš¡',path:'/dashboard/overview',color:'#2C1A3E'},
               ].map((a,i) => (
                 <div key={i} onClick={() => router.push(a.path)}
                   style={{background:a.color,borderRadius:'16px',padding:'28px',cursor:'pointer',boxShadow:'0 4px 16px rgba(107,45,78,0.2)'}}>
@@ -112,13 +112,13 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Actions — Row 2 */}
+            {/* Actions â€” Row 2 */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'24px'}}>
               {[
-                {title:'Chat',icon:'💬',path:'/dashboard/chat',color:'#8A4B6E'},
-                {title:'Reminders',icon:'🔔',path:'/dashboard/reminders',color:'#7A3B5E'},
-                {title:'Documents',icon:'📁',path:'/dashboard/documents',color:'#3D1F4E'},
-                {title:'Subscription',icon:'💳',path:'/dashboard/subscription',color:'#5A2D6E'},
+                {title:'Chat',icon:'ðŸ’¬',path:'/dashboard/chat',color:'#8A4B6E'},
+                {title:'Reminders',icon:'ðŸ””',path:'/dashboard/reminders',color:'#7A3B5E'},
+                {title:'Documents',icon:'ðŸ“',path:'/dashboard/documents',color:'#3D1F4E'},
+                {title:'Subscription',icon:'ðŸ’³',path:'/dashboard/subscription',color:'#5A2D6E'},
               ].map((a,i) => (
                 <div key={i} onClick={() => router.push(a.path)}
                   style={{background:a.color,borderRadius:'16px',padding:'28px',cursor:'pointer',boxShadow:'0 4px 16px rgba(107,45,78,0.2)'}}>
