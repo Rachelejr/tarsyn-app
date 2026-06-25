@@ -158,10 +158,10 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
         <span style={{ color: C.texteGris, fontSize: '11px' }}>▾</span>
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)', zIndex: 20, maxHeight: '260px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)', zIndex: 30, maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
           <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search language..."
-            style={{ border: 'none', borderBottom: `1px solid ${C.roseClair}`, padding: '10px 12px', fontSize: '13px', outline: 'none' }} />
-          <div style={{ overflowY: 'auto' }}>
+            style={{ border: 'none', borderBottom: `1px solid ${C.roseClair}`, padding: '10px 12px', fontSize: '13px', outline: 'none', flexShrink: 0 }} />
+          <div style={{ overflowY: 'auto', flex: 1, scrollbarWidth: 'thin' }}>
             {filtered.length === 0 && <div style={{ padding: '10px 12px', fontSize: '13px', color: C.texteGris }}>No match</div>}
             {filtered.map(o => (
               <div key={o} onClick={() => { onChange(o); setOpen(false); setQuery(''); }}
@@ -208,7 +208,6 @@ export default function CreateTontinePage() {
   const [emailInput, setEmailInput] = useState('');
   const [emailList, setEmailList] = useState<string[]>([]);
 
-  // Initial Deposit (NEW)
   const [depositMode, setDepositMode] = useState('No Deposit');
   const [depositMultiplier, setDepositMultiplier] = useState('1× Contribution');
   const [depositCustomAmount, setDepositCustomAmount] = useState('');
@@ -380,7 +379,6 @@ export default function CreateTontinePage() {
     `}</style>
   );
 
-  // ── SUCCESS SCREEN ──────────────────────────────────────────────
   if (savedGroup) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
@@ -430,7 +428,6 @@ export default function CreateTontinePage() {
     </div>
   );
 
-  // ── REVIEW SCREEN ──────────────────────────────────────────────
   if (showReview) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
@@ -475,16 +472,13 @@ export default function CreateTontinePage() {
     </div>
   );
 
-  // ── MAIN FORM (LANDSCAPE) ────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' }}>
       {sharedStyles}
       <div className="tarsyn-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
 
-        {/* FORM */}
         <div>
-          <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '2px 2px 0 0' }} />
-          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.roseMoyen}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
 
             <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A6A 100%)`, padding: '20px 28px' }}>
               <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
@@ -495,7 +489,6 @@ export default function CreateTontinePage() {
               <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
             </div>
 
-            {/* MINI STEP NAVIGATION */}
             <div className="tarsyn-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
               {TABS.map(t => (
                 <button key={t.key} className="tarsyn-tab" onClick={() => setActiveTab(t.key)}
@@ -514,7 +507,6 @@ export default function CreateTontinePage() {
 
             <div style={{ padding: '20px 28px' }}>
 
-              {/* ── IDENTITY TAB ─────────────────────────────── */}
               {activeTab === 'identity' && (
                 <Card title="Region & Identity">
                   <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -542,7 +534,6 @@ export default function CreateTontinePage() {
                 </Card>
               )}
 
-              {/* ── FINANCE TAB ──────────────────────────────── */}
               {activeTab === 'finance' && (
                 <>
                   <Card title="Financial Settings">
@@ -615,6 +606,11 @@ export default function CreateTontinePage() {
                           <div style={{ ...inp, background: C.creme, display: 'flex', alignItems: 'center', fontWeight: 700, color: C.bordeaux }}>
                             {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—'}
                           </div>
+                          {depositAmount === 0 && (
+                            <p style={{ fontSize: '11px', color: '#DC2626', margin: '6px 0 0' }}>
+                              Enter a contribution amount above to calculate the deposit.
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -648,7 +644,6 @@ export default function CreateTontinePage() {
                 </>
               )}
 
-              {/* ── ROTATION TAB ─────────────────────────────── */}
               {activeTab === 'rotation' && (
                 <>
                   <Card title="Rotation & Payment Settings">
@@ -700,13 +695,12 @@ export default function CreateTontinePage() {
                 </>
               )}
 
-              {/* ── RULES & PRIVACY TAB ──────────────────────── */}
               {activeTab === 'rules' && (
                 <>
                   <Card title="Rules">
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                       {RULES_TEMPLATES.map(t => (
-                        <button key={t.label} className="tarsyn-pill" onClick={() => { setRulesTemplate(t.label); if (t.text) setRules(t.text); }}
+                        <button key={t.label} className="tarsyn-pill" onClick={() => { setRulesTemplate(t.label); setRules(t.text); }}
                           style={{ padding: '6px 16px', borderRadius: '20px', border: `2px solid ${rulesTemplate === t.label ? C.bordeaux : C.roseMoyen}`, background: rulesTemplate === t.label ? C.bordeaux : 'white', color: rulesTemplate === t.label ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
                           {t.label}
                         </button>
@@ -718,32 +712,34 @@ export default function CreateTontinePage() {
 
                   <Card title="Privacy Mode">
                     <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-                      {PRIVACY_MODES.map(p => (
-                        <div key={p.value} className="tarsyn-privacy-card" onClick={() => setPrivacyMode(p.value)}
-                          style={{ border: `2px solid ${privacyMode === p.value ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', padding: '8px 12px', cursor: 'pointer', background: privacyMode === p.value ? C.roseClair : 'white' }}>
-                          <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            {p.value}
-                            {privacyMode === p.value && <CheckCircle2 size={13} color={C.bordeaux} />}
-                          </p>
-                          <p style={{ color: C.texteGris, fontSize: '10px', margin: 0 }}>{p.desc}</p>
-                        </div>
-                      ))}
+                      {PRIVACY_MODES.map(p => {
+                        const isActive = privacyMode === p.value;
+                        return (
+                          <button key={p.value} type="button" className="tarsyn-privacy-card" onClick={() => setPrivacyMode(p.value)}
+                            style={{ border: `2px solid ${isActive ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', padding: '8px 12px', cursor: 'pointer', background: isActive ? C.roseClair : 'white', textAlign: 'left', font: 'inherit' }}>
+                            <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              {p.value}
+                              {isActive && <CheckCircle2 size={13} color={C.bordeaux} />}
+                            </p>
+                            <p style={{ color: C.texteGris, fontSize: '10px', margin: 0 }}>{p.desc}</p>
+                          </button>
+                        );
+                      })}
                     </div>
-                    <div onClick={() => setConfidential(p => !p)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', cursor: 'pointer', transition: 'background 0.2s ease, border-color 0.2s ease' }}>
-                      <div style={{ width: '18px', height: '18px', borderRadius: '5px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0, transition: 'background 0.2s ease, border-color 0.2s ease' }}>
+                    <button type="button" onClick={() => setConfidential(p => !p)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', width: '100%', background: confidential ? C.roseClair : '#FDFAF8', border: `1.5px solid ${confidential ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}>
+                      <div style={{ width: '18px', height: '18px', borderRadius: '5px', border: `2px solid ${confidential ? C.bordeaux : C.roseMoyen}`, background: confidential ? C.bordeaux : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
                         {confidential && <Check size={11} />}
                       </div>
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
                         <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
                       </div>
-                    </div>
+                    </button>
                   </Card>
                 </>
               )}
 
-              {/* ── INVITE TAB ───────────────────────────────── */}
               {activeTab === 'invite' && (
                 <Card title="Invite Members">
                   <FieldLabel label="Invite by Email" />
@@ -797,10 +793,8 @@ export default function CreateTontinePage() {
               </p>
             </div>
           </div>
-          <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.bordeaux}, ${C.dore}, ${C.bordeaux})`, borderRadius: '0 0 2px 2px' }} />
         </div>
 
-        {/* LIVE SUMMARY CARD — simplified content */}
         <div className="tarsyn-live-summary">
           <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
             <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 10px', letterSpacing: '-0.1px' }}>Live Summary</h3>
