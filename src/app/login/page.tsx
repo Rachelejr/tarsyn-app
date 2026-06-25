@@ -31,7 +31,7 @@ export default function LoginPage() {
         }
       }
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
-        window.location.href = '/dashboard';
+        window.location.href = '/dashboard/create-tontine';
       } else {
         window.location.href = '/member';
       }
@@ -254,7 +254,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* FORGOT PASSWORD LINK */}
           <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
             <a href="/forgot-password" style={{ color: '#6B2D4E', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
               Forgot password?
