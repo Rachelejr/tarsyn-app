@@ -51,8 +51,9 @@ function ConnectWorkspaceInner() {
           country: d.data().country,
         }));
         setWorkspaces(list);
-      } catch {
-        setError('Could not load your workspaces. Please try again.');
+      } catch (err: any) {
+        console.error('WORKSPACE LOAD ERROR:', err);
+        setError(`Could not load your workspaces: ${err.code || err.message || 'unknown error'}`);
       } finally {
         setLoading(false);
       }
@@ -69,8 +70,9 @@ function ConnectWorkspaceInner() {
         activeModules: arrayUnion(moduleSlug),
       });
       router.push(`/dashboard/create-tontine?workspaceId=${selectedId}`);
-    } catch {
-      setError('Could not connect this module to the workspace. Please try again.');
+    } catch (err: any) {
+      console.error('CONNECT MODULE ERROR:', err);
+      setError(`Could not connect this module: ${err.code || err.message || 'unknown error'}`);
       setConnecting(false);
     }
   };
