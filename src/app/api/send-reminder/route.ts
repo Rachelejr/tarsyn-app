@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'TARSYN <noreply@yourdomain.com>',
+      from: 'TARSYN <noreply@tarsyn-app.com>',
       to: memberEmail,
       subject: `💰 Reminder: Contribution due — ${groupName}`,
       html: `
