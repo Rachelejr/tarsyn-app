@@ -39,7 +39,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       });
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/dashboard/create-tontine'; }, 1800);
+      setTimeout(() => { window.location.href = '/dashboard/create-workspace'; }, 1800);
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered.');
@@ -61,7 +61,7 @@ export default function RegisterPage() {
         role: 'admin',
         createdAt: new Date().toISOString(),
       }, { merge: true });
-      window.location.href = '/dashboard/create-tontine';
+      window.location.href = '/dashboard/create-workspace';
     } catch {
       setError('Google sign-up failed. Please try again.');
     }
@@ -83,7 +83,7 @@ export default function RegisterPage() {
               <div style={{width:'28px',height:'28px',border:'3px solid #EDD9E5',borderTopColor:'#6B2D4E',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <a href="/dashboard/create-tontine" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#C4748E',textDecoration:'underline'}}>
+            <a href="/dashboard/create-workspace" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#C4748E',textDecoration:'underline'}}>
               Continue now →
             </a>
           </div>
@@ -122,26 +122,26 @@ export default function RegisterPage() {
             <div style={{marginBottom:'16px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Password *</label>
               <div style={{position:'relative'}}>
-                <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{...inp,paddingRight:'44px'}}/>
+                <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="********" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowPass(!showPass)}
-                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#7A5068'}}>
-                  {showPass?'🙈':'👁️'}
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#7A5068',fontWeight:600}}>
+                  {showPass?'Hide':'Show'}
                 </button>
               </div>
             </div>
             <div style={{marginBottom:'24px'}}>
               <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Confirm Password *</label>
               <div style={{position:'relative'}}>
-                <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="••••••••" style={{...inp,paddingRight:'44px'}}/>
+                <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="********" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowConfirm(!showConfirm)}
-                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#7A5068'}}>
-                  {showConfirm?'🙈':'👁️'}
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#7A5068',fontWeight:600}}>
+                  {showConfirm?'Hide':'Show'}
                 </button>
               </div>
             </div>
             <button type="submit" disabled={loading}
               style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
-              {loading ? '⏳ Creating account...' : '✨ Create Account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
