@@ -7,12 +7,12 @@ import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const C = {
   bordeaux: '#6A2955',
-  creme:    '#FAF0E6',
-  dore:     '#D4AF7A',
-  rose:     '#EDD9E5',
-  texteGris:'#7A5068',
-  texteFonce:'#2C1A24',
-  border:   '#D9C0CC',
+  bordeauxDark: '#4A1F38',
+  dore: '#D4AF7A',
+  creme: '#FAF0E6',
+  texteGris: '#7A5068',
+  texteFonce: '#2C1A24',
+  border: '#D9C0CC',
 };
 
 type ModuleDef = {
@@ -39,14 +39,15 @@ const MODULES: ModuleDef[] = [
   { icon:'🏢', title:'Organization', desc:'Members, structure, governance, reports', version:'V2', setupTime:'~7 min', category:'Community', countries:'Global' },
   { icon:'🏥', title:'Health', desc:'Health mutuals, coverage, claims', version:'V3', setupTime:'~9 min', category:'Health', newest:true, countries:'Select regions' },
   { icon:'🏠', title:'Orphanage', desc:'Children records, sponsors, care plans, donations', version:'V2', setupTime:'~8 min', category:'Charity', countries:'Select regions' },
-  { icon:'🎉', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Community', newest:true, countries:'Global' },
+  { icon:'🎉', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Youth', newest:true, countries:'Global' },
   { icon:'🛒', title:'Commerce', desc:'Orders, inventory, group sales, vendor payouts', version:'V3', setupTime:'~10 min', category:'Commerce', newest:true, countries:'Select regions' },
+  { icon:'📚', title:'Education', desc:'Schools, courses, students, grades, enrollment', version:'V2', setupTime:'~7 min', category:'Education', countries:'Select regions' },
+  { icon:'⚽', title:'Sport', desc:'Teams, leagues, matches, registrations, fees', version:'V3', setupTime:'~6 min', category:'Sports', countries:'Global' },
 ];
 
-const CATEGORIES = ['All', 'Finance', 'Community', 'Faith', 'Agriculture', 'Charity', 'Health', 'Commerce'];
-const QUICK_FILTERS = ['Recommended', 'Popular', 'Newest'] as const;
+const CATEGORIES = ['All', 'Finance', 'Community', 'Faith', 'Agriculture', 'Charity', 'Health', 'Commerce', 'Organization', 'Education', 'Youth', 'Sports'];
+const COMING_SOON = ['Education', 'Health'];
 
-// Mappe un slug de module vers sa page de creation reelle (si elle existe deja)
 const MODULE_ROUTES: Record<string, string> = {
   'tontine-sol': '/dashboard/create-tontine',
   'church': '/dashboard/create-church',
@@ -59,7 +60,6 @@ function ChooseModuleInner() {
 
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
-  const [quickFilter, setQuickFilter] = useState<string | null>(null);
   const [activating, setActivating] = useState<ModuleDef | null>(null);
   const [attaching, setAttaching] = useState(false);
   const [attachError, setAttachError] = useState('');
@@ -68,14 +68,9 @@ function ChooseModuleInner() {
     return MODULES.filter(m => {
       const matchesQuery = m.title.toLowerCase().includes(query.toLowerCase()) || m.desc.toLowerCase().includes(query.toLowerCase());
       const matchesCategory = category === 'All' || m.category === category;
-      const matchesQuick =
-        !quickFilter ||
-        (quickFilter === 'Recommended' && m.recommended) ||
-        (quickFilter === 'Popular' && m.popular) ||
-        (quickFilter === 'Newest' && m.newest);
-      return matchesQuery && matchesCategory && matchesQuick;
+      return matchesQuery && matchesCategory;
     });
-  }, [query, category, quickFilter]);
+  }, [query, category]);
 
   const slugify = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -88,7 +83,6 @@ function ChooseModuleInner() {
     }
   };
 
-  // Cas A : un workspace existe deja (on vient de le creer) -> on attache direct, pas de modale
   const handleActivateDirect = async (m: ModuleDef) => {
     const slug = slugify(m.title);
     setAttaching(true);
@@ -99,12 +93,11 @@ function ChooseModuleInner() {
       });
       goToModulePage(slug, workspaceId);
     } catch (err) {
-      setAttachError("Could not activate this module. Please try again.");
+      setAttachError('Could not activate this module. Please try again.');
       setAttaching(false);
     }
   };
 
-  // Cas B : pas de workspace en contexte -> modale Create New / Connect to Existing
   const handleActivateChoice = (mode: 'new' | 'existing') => {
     if (!activating) return;
     const slug = slugify(activating.title);
@@ -116,6 +109,7 @@ function ChooseModuleInner() {
   };
 
   const handleActivateClick = (m: ModuleDef) => {
+    if (COMING_SOON.includes(m.category) && (m.title === 'Education' || m.title === 'Health')) return;
     if (workspaceId) {
       handleActivateDirect(m);
     } else {
@@ -124,98 +118,104 @@ function ChooseModuleInner() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '0 0 64px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme }}>
       <style>{`
         .module-card { transition: all 0.2s ease; }
-        .module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(106,41,85,0.15); }
-        .module-pill { transition: all 0.15s ease; cursor: pointer; }
+        .module-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(106,41,85,0.14); }
+        .cat-item { transition: all 0.15s ease; cursor: pointer; }
       `}</style>
 
-      <div style={{ background: `linear-gradient(160deg, ${C.bordeaux} 0%, #4A1F38 100%)`, padding: '56px 32px 40px', textAlign: 'center' }}>
-        <h1 style={{ color: 'white', fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
-        <p style={{ color: 'rgba(250,240,230,0.8)', fontSize: '15px', margin: 0 }}>
+      <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, ${C.bordeauxDark} 100%)`, padding: '40px 32px 32px', textAlign: 'center' }}>
+        <h1 style={{ color: 'white', fontSize: '30px', fontWeight: 800, margin: '0 0 6px' }}>Choose Your Module</h1>
+        <p style={{ color: C.dore, fontSize: '14px', margin: 0, fontWeight: 600 }}>
           {workspaceId ? 'Activating a module for your new workspace.' : 'Start with one module and expand later.'}
         </p>
       </div>
 
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 24px 0' }}>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search modules..."
-          style={{ width: '100%', padding: '14px 18px', borderRadius: '14px', border: `1.5px solid ${C.border}`, fontSize: '15px', outline: 'none', boxSizing: 'border-box', marginBottom: '18px' }}
-        />
+      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '28px 24px 64px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-          {CATEGORIES.map(c => (
-            <button key={c} className="module-pill" onClick={() => setCategory(c)}
-              style={{ padding: '8px 16px', borderRadius: '20px', border: `1.5px solid ${category === c ? C.bordeaux : C.border}`, background: category === c ? C.bordeaux : 'white', color: category === c ? 'white' : C.texteGris, fontSize: '13px', fontWeight: 600 }}>
-              {c}
-            </button>
-          ))}
+        {/* Sidebar categories */}
+        <div style={{ width: '220px', flexShrink: 0, background: 'white', borderRadius: '16px', border: `1.5px solid ${C.border}`, padding: '18px', position: 'sticky', top: '20px' }}>
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search..."
+            style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${C.border}`, fontSize: '13px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+          />
+          <div style={{ fontSize: '11px', fontWeight: 800, color: C.texteGris, letterSpacing: '0.06em', marginBottom: '8px' }}>CATEGORY</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {CATEGORIES.map(c => (
+              <div key={c} className="cat-item" onClick={() => setCategory(c)}
+                style={{
+                  padding: '9px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                  background: category === c ? C.bordeaux : 'transparent',
+                  color: category === c ? 'white' : C.texteFonce,
+                }}>
+                {c}
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-          {QUICK_FILTERS.map(f => (
-            <button key={f} className="module-pill" onClick={() => setQuickFilter(quickFilter === f ? null : f)}
-              style={{ padding: '7px 14px', borderRadius: '20px', border: `1.5px solid ${quickFilter === f ? C.dore : C.border}`, background: quickFilter === f ? C.rose : 'white', color: C.bordeaux, fontSize: '12px', fontWeight: 700 }}>
-              {f}
-            </button>
-          ))}
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '20px', border: `1.5px dashed ${C.border}`, fontSize: '12px', color: C.texteGris }}>
-            🌍 Country support shown per module
-          </span>
+        {/* Module grid */}
+        <div style={{ flex: 1 }}>
+          {attachError && (
+            <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '10px', padding: '10px 16px', fontSize: '13px', marginBottom: '16px' }}>
+              {attachError}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+            {filtered.map(m => {
+              const isComingSoon = m.title === 'Education' || m.title === 'Health';
+              return (
+                <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '28px' }}>{m.icon}</div>
+                    <span style={{ fontSize: '10px', background: '#F3E4DC', color: C.bordeaux, padding: '3px 9px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
+                  </div>
+                  <h3 style={{ color: C.texteFonce, fontSize: '16px', fontWeight: 700, margin: '0 0 5px' }}>{m.title}</h3>
+                  <p style={{ color: C.texteGris, fontSize: '12.5px', margin: '0 0 12px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
+                    {m.recommended && <span style={{ fontSize: '10px', background: C.dore, color: 'white', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Recommended</span>}
+                    {m.popular && <span style={{ fontSize: '10px', background: C.bordeaux, color: 'white', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Popular</span>}
+                    {m.newest && <span style={{ fontSize: '10px', border: `1px solid ${C.bordeaux}`, color: C.bordeaux, padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>New</span>}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '14px' }}>
+                    <span>Setup: {m.setupTime}</span>
+                    <span>{m.countries}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleActivateClick(m)} disabled={attaching || isComingSoon}
+                      style={{
+                        flex: 1, padding: '10px', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700,
+                        background: isComingSoon ? C.border : C.bordeaux,
+                        color: isComingSoon ? C.texteGris : 'white',
+                        cursor: isComingSoon ? 'not-allowed' : (attaching ? 'wait' : 'pointer'),
+                      }}>
+                      {isComingSoon ? 'Coming Soon' : (attaching ? 'Activating...' : 'Activate')}
+                    </button>
+                    <button onClick={() => router.push(`/modules/${slugify(m.title)}`)}
+                      style={{ flex: 1, padding: '10px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '9px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>
+                      Learn More
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: C.texteGris }}>
+                No modules match your search.
+              </div>
+            )}
+          </div>
         </div>
-
-        {attachError && (
-          <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '10px', padding: '10px 16px', fontSize: '13px', marginTop: '12px' }}>
-            {attachError}
-          </div>
-        )}
       </div>
 
-      <div style={{ maxWidth: '960px', margin: '24px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
-        {filtered.map(m => (
-          <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '18px', padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div style={{ fontSize: '32px' }}>{m.icon}</div>
-              <span style={{ fontSize: '11px', background: C.rose, color: C.bordeaux, padding: '3px 10px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
-            </div>
-            <h3 style={{ color: C.texteFonce, fontSize: '17px', fontWeight: 700, margin: '0 0 6px' }}>{m.title}</h3>
-            <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 14px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-              {m.recommended && <span style={{ fontSize: '10px', background: '#E7F4EA', color: '#3C7A4E', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Recommended</span>}
-              {m.popular && <span style={{ fontSize: '10px', background: '#FFF3D6', color: '#9A6A00', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Popular</span>}
-              {m.newest && <span style={{ fontSize: '10px', background: '#E6EEFB', color: '#2F5BA8', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>New</span>}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '16px' }}>
-              <span>⏱ Setup: {m.setupTime}</span>
-              <span>{m.countries}</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => handleActivateClick(m)} disabled={attaching}
-                style={{ flex: 1, padding: '11px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: attaching ? 'wait' : 'pointer', opacity: attaching ? 0.7 : 1 }}>
-                {attaching ? 'Activating...' : 'Activate'}
-              </button>
-              <button onClick={() => router.push(`/modules/${slugify(m.title)}`)}
-                style={{ flex: 1, padding: '11px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
-                Learn More
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: C.texteGris }}>
-            No modules match your search.
-          </div>
-        )}
-      </div>
-
-      {/* Modale uniquement si aucun workspace n'est deja en contexte */}
       {activating && !workspaceId && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,26,36,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
