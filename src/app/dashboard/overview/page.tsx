@@ -99,7 +99,6 @@ export default function Overview() {
     <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
       <style>{`.card:hover{transform:translateY(-2px)!important;box-shadow:0 8px 24px rgba(107,45,78,0.2)!important;}`}</style>
 
-      {/* EDIT GROUP NAME MODAL */}
       {editingGroup && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%' }}>
@@ -133,25 +132,24 @@ export default function Overview() {
           </div>
         </div>
         <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: '1px solid rgba(212,175,122,0.5)', color: '#D4AF7A', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-          â† Dashboard
+          ← Dashboard
         </button>
       </nav>
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
 
         <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 800, margin: '0 0 6px' }}>âš¡ TARSYN Handles the Rest</h1>
-          <p style={{ color: '#7A5068', fontSize: '15px', margin: 0 }}>Rotation, reminders, reports â€” all automatic.</p>
+          <h1 style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 800, margin: '0 0 6px' }}>⚡ TARSYN Handles the Rest</h1>
+          <p style={{ color: '#7A5068', fontSize: '15px', margin: 0 }}>Rotation, reminders, reports — all automatic.</p>
         </div>
 
-        {/* STATS */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px', marginBottom: '32px' }}>
           {[
-            { label: 'Total Members', value: members.length, icon: 'ðŸ‘¥', color: '#6B2D4E' },
-            { label: 'Active Members', value: activeMembers, icon: 'âœ…', color: '#2E7D32' },
-            { label: 'Total Collected', value: `${totalPaid} ${payments[0]?.currency || ''}`, icon: 'ðŸ’°', color: '#C68000' },
-            { label: 'Confirmed Payments', value: confirmedPayments, icon: 'âœ”ï¸', color: '#1565C0' },
-            { label: 'Pending Payments', value: pendingPayments, icon: 'â³', color: '#E65100' },
+            { label: 'Total Members', value: members.length, icon: '👥', color: '#6B2D4E' },
+            { label: 'Active Members', value: activeMembers, icon: '✅', color: '#2E7D32' },
+            { label: 'Total Collected', value: `${totalPaid} ${payments[0]?.currency || ''}`, icon: '💰', color: '#C68000' },
+            { label: 'Confirmed Payments', value: confirmedPayments, icon: '✔️', color: '#1565C0' },
+            { label: 'Pending Payments', value: pendingPayments, icon: '⏳', color: '#E65100' },
           ].map((s, i) => (
             <div key={i} className="card" style={{ background: 'white', borderRadius: '16px', padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ fontSize: '28px' }}>{s.icon}</span>
@@ -163,9 +161,8 @@ export default function Overview() {
           ))}
         </div>
 
-        {/* GROUPS */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>ðŸ˜ï¸ My Groups</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>🏘️ My Groups</h3>
           {groups.length === 0 ? (
             <p style={{ color: '#7A5068', fontSize: '14px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
           ) : (
@@ -173,10 +170,10 @@ export default function Overview() {
               {groups.map((g, i) => (
                 <div key={i} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px' }}>
                   <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '15px', margin: '0 0 4px' }}>{g.name}</p>
-                  <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 12px' }}>{g.frequency} Â· {g.status}</p>
+                  <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 12px' }}>{g.frequency} · {g.status}</p>
                   <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }}
                     style={{ background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                    âœï¸ Edit Name
+                    ✏️ Edit Name
                   </button>
                 </div>
               ))}
@@ -184,9 +181,8 @@ export default function Overview() {
           )}
         </div>
 
-        {/* MEMBER MANAGEMENT */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>ðŸ‘¥ Member Management</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>👥 Member Management</h3>
           {members.length === 0 ? (
             <p style={{ color: '#7A5068', fontSize: '14px' }}>No members yet.</p>
           ) : (
@@ -205,7 +201,7 @@ export default function Overview() {
                       <td style={{ padding: '12px', color: '#6B2D4E', fontWeight: 700 }}>#{m.position}</td>
                       <td style={{ padding: '12px', color: '#7A5068', fontFamily: 'monospace', fontSize: '13px' }}>{m.tynId}</td>
                       <td style={{ padding: '12px', color: '#2C1A3E', fontWeight: 600 }}>{m.name}</td>
-                      <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{m.payoutDate || 'â€”'}</td>
+                      <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{m.payoutDate || '—'}</td>
                       <td style={{ padding: '12px' }}>
                         <span style={{
                           background: m.status === 'active' ? '#E8F5E9' : m.status === 'paused' ? '#E3F2FD' : '#FFF3E0',
@@ -221,18 +217,18 @@ export default function Overview() {
                             {m.status !== 'active' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id}
                                 style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                                âœ… Activate
+                                ✅ Activate
                               </button>
                             )}
                             {m.status !== 'paused' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id}
                                 style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                                â¸ï¸ Pause
+                                ⏸️ Pause
                               </button>
                             )}
                             <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id}
                               style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                              {deletingMember === m.id ? '...' : 'ðŸ—‘ï¸ Delete'}
+                              {deletingMember === m.id ? '...' : '🗑️ Delete'}
                             </button>
                           </div>
                         )}
@@ -245,30 +241,29 @@ export default function Overview() {
           )}
         </div>
 
-        {/* PAYMENT PROOFS */}
         {pendingProofs.length > 0 && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>ðŸ“Ž Payment Proofs</h3>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>📎 Payment Proofs</h3>
             <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 20px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {pendingProofs.map((p, i) => (
                 <div key={p.id} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
                     <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>{p.memberName}</p>
-                    <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{p.amount} {p.currency} Â· {p.paymentDate} Â· {p.paymentMethod}</p>
+                    <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{p.amount} {p.currency} · {p.paymentDate} · {p.paymentMethod}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <a href={p.proofUrl} target="_blank" rel="noopener noreferrer"
                       style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none' }}>
-                      ðŸ‘ï¸ View
+                      👁️ View
                     </a>
                     <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id}
                       style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                      âœ… Validate
+                      ✅ Validate
                     </button>
                     <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id}
                       style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                      âŒ Reject
+                      ❌ Reject
                     </button>
                   </div>
                 </div>
@@ -277,9 +272,8 @@ export default function Overview() {
           </div>
         )}
 
-        {/* RECENT PAYMENTS */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>ðŸ’° Recent Contributions</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>💰 Recent Contributions</h3>
           {payments.length === 0 ? (
             <p style={{ color: '#7A5068', fontSize: '14px' }}>No payments recorded yet.</p>
           ) : (
@@ -295,7 +289,7 @@ export default function Overview() {
                 <tbody>
                   {payments.slice(0, 10).map((p, i) => (
                     <tr key={p.id} style={{ borderBottom: '1px solid #FAF0E6', background: i % 2 === 0 ? 'transparent' : '#FDFAF7' }}>
-                      <td style={{ padding: '12px', color: '#6B2D4E', fontFamily: 'monospace', fontSize: '12px' }}>{p.receiptNumber || 'â€”'}</td>
+                      <td style={{ padding: '12px', color: '#6B2D4E', fontFamily: 'monospace', fontSize: '12px' }}>{p.receiptNumber || '—'}</td>
                       <td style={{ padding: '12px', color: '#2C1A3E', fontWeight: 600 }}>{p.memberName}</td>
                       <td style={{ padding: '12px', color: '#2E7D32', fontWeight: 700 }}>{p.amount} {p.currency}</td>
                       <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{p.paymentMethod}</td>
@@ -313,12 +307,11 @@ export default function Overview() {
           )}
         </div>
 
-        {/* QUICK ACTIONS */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>
           {[
-            { title: 'Record Payment', icon: 'ðŸ’°', path: '/dashboard/record-contribution', color: '#6B2D4E' },
-            { title: 'Add Member', icon: 'ðŸ‘¤', path: '/dashboard/add-member', color: '#4A2D5E' },
-            { title: 'Send Reminder', icon: 'ðŸ””', path: '/dashboard/reminders', color: '#2C1A3E' },
+            { title: 'Record Payment', icon: '💰', path: '/dashboard/record-contribution', color: '#6B2D4E' },
+            { title: 'Add Member', icon: '👤', path: '/dashboard/add-member', color: '#4A2D5E' },
+            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders', color: '#2C1A3E' },
           ].map((a, i) => (
             <div key={i} className="card" onClick={() => router.push(a.path)}
               style={{ background: a.color, borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(107,45,78,0.2)' }}>
