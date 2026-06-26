@@ -46,7 +46,6 @@ const MODULES: ModuleDef[] = [
 ];
 
 const CATEGORIES = ['All', 'Finance', 'Community', 'Faith', 'Agriculture', 'Charity', 'Health', 'Commerce', 'Organization', 'Education', 'Youth', 'Sports'];
-const COMING_SOON = ['Education', 'Health'];
 
 const MODULE_ROUTES: Record<string, string> = {
   'tontine-sol': '/dashboard/create-tontine',
@@ -109,7 +108,8 @@ function ChooseModuleInner() {
   };
 
   const handleActivateClick = (m: ModuleDef) => {
-    if (COMING_SOON.includes(m.category) && (m.title === 'Education' || m.title === 'Health')) return;
+    const isComingSoon = m.title === 'Education' || m.title === 'Health';
+    if (isComingSoon) return;
     if (workspaceId) {
       handleActivateDirect(m);
     } else {
@@ -122,7 +122,6 @@ function ChooseModuleInner() {
       <style>{`
         .module-card { transition: all 0.2s ease; }
         .module-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(106,41,85,0.14); }
-        .cat-item { transition: all 0.15s ease; cursor: pointer; }
       `}</style>
 
       <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, ${C.bordeauxDark} 100%)`, padding: '40px 32px 32px', textAlign: 'center' }}>
@@ -132,87 +131,76 @@ function ChooseModuleInner() {
         </p>
       </div>
 
-      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '28px 24px 64px', display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '28px 24px 64px' }}>
 
-        {/* Sidebar categories */}
-        <div style={{ width: '220px', flexShrink: 0, background: 'white', borderRadius: '16px', border: `1.5px solid ${C.border}`, padding: '18px', position: 'sticky', top: '20px' }}>
+        {/* Search + dropdown filters */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search..."
-            style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: `1.5px solid ${C.border}`, fontSize: '13px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+            placeholder="Search modules..."
+            style={{ flex: 1, minWidth: '220px', padding: '12px 16px', borderRadius: '12px', border: `1.5px solid ${C.border}`, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
           />
-          <div style={{ fontSize: '11px', fontWeight: 800, color: C.texteGris, letterSpacing: '0.06em', marginBottom: '8px' }}>CATEGORY</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {CATEGORIES.map(c => (
-              <div key={c} className="cat-item" onClick={() => setCategory(c)}
-                style={{
-                  padding: '9px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
-                  background: category === c ? C.bordeaux : 'transparent',
-                  color: category === c ? 'white' : C.texteFonce,
-                }}>
-                {c}
-              </div>
-            ))}
-          </div>
+          <select value={category} onChange={e => setCategory(e.target.value)}
+            style={{ padding: '12px 16px', borderRadius: '12px', border: `1.5px solid ${C.border}`, fontSize: '14px', outline: 'none', background: 'white', color: C.texteFonce, fontWeight: 600, cursor: 'pointer' }}>
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
 
-        {/* Module grid */}
-        <div style={{ flex: 1 }}>
-          {attachError && (
-            <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '10px', padding: '10px 16px', fontSize: '13px', marginBottom: '16px' }}>
-              {attachError}
+        {attachError && (
+          <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '10px', padding: '10px 16px', fontSize: '13px', marginBottom: '16px' }}>
+            {attachError}
+          </div>
+        )}
+
+        {/* Module grid - paysage */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '18px' }}>
+          {filtered.map(m => {
+            const isComingSoon = m.title === 'Education' || m.title === 'Health';
+            return (
+              <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '28px' }}>{m.icon}</div>
+                  <span style={{ fontSize: '10px', background: '#F3E4DC', color: C.bordeaux, padding: '3px 9px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
+                </div>
+                <h3 style={{ color: C.texteFonce, fontSize: '16px', fontWeight: 700, margin: '0 0 5px' }}>{m.title}</h3>
+                <p style={{ color: C.texteGris, fontSize: '12.5px', margin: '0 0 12px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
+                  {m.recommended && <span style={{ fontSize: '10px', background: C.dore, color: 'white', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Recommended</span>}
+                  {m.popular && <span style={{ fontSize: '10px', background: C.bordeaux, color: 'white', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Popular</span>}
+                  {m.newest && <span style={{ fontSize: '10px', border: `1px solid ${C.bordeaux}`, color: C.bordeaux, padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>New</span>}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '14px' }}>
+                  <span>Setup: {m.setupTime}</span>
+                  <span>{m.countries}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleActivateClick(m)} disabled={attaching || isComingSoon}
+                    style={{
+                      flex: 1, padding: '10px', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700,
+                      background: isComingSoon ? C.border : C.bordeaux,
+                      color: isComingSoon ? C.texteGris : 'white',
+                      cursor: isComingSoon ? 'not-allowed' : (attaching ? 'wait' : 'pointer'),
+                    }}>
+                    {isComingSoon ? 'Coming Soon' : (attaching ? 'Activating...' : 'Activate')}
+                  </button>
+                  <button onClick={() => router.push(`/modules/${slugify(m.title)}`)}
+                    style={{ flex: 1, padding: '10px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '9px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {filtered.length === 0 && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: C.texteGris }}>
+              No modules match your search.
             </div>
           )}
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-            {filtered.map(m => {
-              const isComingSoon = m.title === 'Education' || m.title === 'Health';
-              return (
-                <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '28px' }}>{m.icon}</div>
-                    <span style={{ fontSize: '10px', background: '#F3E4DC', color: C.bordeaux, padding: '3px 9px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
-                  </div>
-                  <h3 style={{ color: C.texteFonce, fontSize: '16px', fontWeight: 700, margin: '0 0 5px' }}>{m.title}</h3>
-                  <p style={{ color: C.texteGris, fontSize: '12.5px', margin: '0 0 12px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
-                    {m.recommended && <span style={{ fontSize: '10px', background: C.dore, color: 'white', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Recommended</span>}
-                    {m.popular && <span style={{ fontSize: '10px', background: C.bordeaux, color: 'white', padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>Popular</span>}
-                    {m.newest && <span style={{ fontSize: '10px', border: `1px solid ${C.bordeaux}`, color: C.bordeaux, padding: '3px 8px', borderRadius: '10px', fontWeight: 700 }}>New</span>}
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '14px' }}>
-                    <span>Setup: {m.setupTime}</span>
-                    <span>{m.countries}</span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => handleActivateClick(m)} disabled={attaching || isComingSoon}
-                      style={{
-                        flex: 1, padding: '10px', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700,
-                        background: isComingSoon ? C.border : C.bordeaux,
-                        color: isComingSoon ? C.texteGris : 'white',
-                        cursor: isComingSoon ? 'not-allowed' : (attaching ? 'wait' : 'pointer'),
-                      }}>
-                      {isComingSoon ? 'Coming Soon' : (attaching ? 'Activating...' : 'Activate')}
-                    </button>
-                    <button onClick={() => router.push(`/modules/${slugify(m.title)}`)}
-                      style={{ flex: 1, padding: '10px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '9px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>
-                      Learn More
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {filtered.length === 0 && (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 0', color: C.texteGris }}>
-                No modules match your search.
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
