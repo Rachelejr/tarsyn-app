@@ -1,7 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { auth, db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const C = {
   gold:      '#C9941F',
@@ -56,15 +58,37 @@ export default function CreateWorkspacePage() {
 
   const isValid = name.trim().length >= 2 && country && timezone && orgType;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setError('');
     if (name.trim().length < 2) return setError('Organization name is required.');
     if (!country) return setError('Country is required.');
     if (!timezone) return setError('Timezone is required.');
     if (!orgType) return setError('Organization type is required.');
 
+    const user = auth.currentUser;
+    if (!user) {
+      setError('You must be signed in to create a workspace.');
+      return;
+    }
+
     setSaving(true);
-    router.push('/workspace/select-module');
+    try {
+      const docRef = await addDoc(collection(db, 'workspaces'), {
+        name: name.trim(),
+        country,
+        timezone,
+        currency,
+        language,
+        orgType,
+        ownerId: user.uid,
+        members: [user.uid],
+        createdAt: serverTimestamp(),
+      });
+      router.push(`/workspace/select-module?workspaceId=${docRef.id}`);
+    } catch (err) {
+      setError('Something went wrong while creating the workspace. Please try again.');
+      setSaving(false);
+    }
   };
 
   return (
