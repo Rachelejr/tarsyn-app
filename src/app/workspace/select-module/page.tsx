@@ -6,13 +6,12 @@ import { db } from '@/lib/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const C = {
-  bordeaux: '#6A2955',
-  bordeauxDark: '#4A1F38',
-  dore: '#D4AF7A',
   creme: '#FAF0E6',
-  texteGris: '#7A5068',
-  texteFonce: '#2C1A24',
-  border: '#D9C0CC',
+  dore: '#D4AF7A',
+  doreDark: '#B8945F',
+  texteFonce: '#3A2E1A',
+  texteGris: '#8A7858',
+  border: '#E8D9BC',
 };
 
 type ModuleDef = {
@@ -112,19 +111,36 @@ function ChooseModuleInner() {
     }
   };
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && filtered.length > 0) {
+      handleActivateClick(filtered[0]);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: C.creme }}>
       <style>{`
         .module-card { transition: all 0.15s ease; }
-        .module-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(106,41,85,0.14); }
+        .module-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(184,148,95,0.20); }
         .cat-item { transition: all 0.12s ease; cursor: pointer; }
       `}</style>
 
-      <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, ${C.bordeauxDark} 100%)`, padding: '24px 32px 20px', textAlign: 'center' }}>
-        <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 800, margin: '0 0 4px' }}>Choose Your Module</h1>
-        <p style={{ color: C.dore, fontSize: '12.5px', margin: 0, fontWeight: 600 }}>
-          {workspaceId ? 'Activating a module for your new workspace.' : 'Start with one module and expand later.'}
-        </p>
+      <div style={{ background: `linear-gradient(135deg, ${C.dore} 0%, ${C.doreDark} 100%)`, padding: '20px 32px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: C.doreDark, fontWeight: 800 }}>✦</div>
+            <div>
+              <div style={{ color: C.creme, fontSize: '17px', fontWeight: 800, letterSpacing: '2px' }}>TARSYN</div>
+              <div style={{ color: 'rgba(250,240,230,0.75)', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <h1 style={{ color: C.creme, fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Choose Your Module</h1>
+            <p style={{ color: 'rgba(250,240,230,0.85)', fontSize: '11.5px', margin: 0, fontWeight: 600 }}>
+              {workspaceId ? 'Activating a module for your new workspace.' : 'Start with one module and expand later.'}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '18px 20px', display: 'flex', gap: '18px', alignItems: 'flex-start' }}>
@@ -133,7 +149,8 @@ function ChooseModuleInner() {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search..."
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search... (Enter to activate)"
             style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: `1.5px solid ${C.border}`, fontSize: '12px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
           />
           <div style={{ fontSize: '10px', fontWeight: 800, color: C.texteGris, letterSpacing: '0.06em', marginBottom: '6px' }}>CATEGORY</div>
@@ -142,7 +159,7 @@ function ChooseModuleInner() {
               <div key={c} className="cat-item" onClick={() => setCategory(c)}
                 style={{
                   padding: '6px 10px', borderRadius: '7px', fontSize: '12px', fontWeight: 600,
-                  background: category === c ? C.bordeaux : 'transparent',
+                  background: category === c ? C.dore : 'transparent',
                   color: category === c ? 'white' : C.texteFonce,
                 }}>
                 {c}
@@ -165,7 +182,7 @@ function ChooseModuleInner() {
                 <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '12px', padding: '13px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <div style={{ fontSize: '20px' }}>{m.icon}</div>
-                    <span style={{ fontSize: '9px', background: '#F3E4DC', color: C.bordeaux, padding: '2px 7px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
+                    <span style={{ fontSize: '9px', background: C.creme, color: C.doreDark, padding: '2px 7px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
                   </div>
                   <h3 style={{ color: C.texteFonce, fontSize: '13px', fontWeight: 700, margin: '0 0 3px' }}>{m.title}</h3>
                   <p style={{ color: C.texteGris, fontSize: '10.5px', margin: '0 0 10px', lineHeight: 1.35, flex: 1 }}>{m.desc}</p>
@@ -174,14 +191,14 @@ function ChooseModuleInner() {
                     <button onClick={() => handleActivateClick(m)} disabled={attaching || isComingSoon}
                       style={{
                         flex: 1, padding: '7px', border: 'none', borderRadius: '7px', fontSize: '10.5px', fontWeight: 700,
-                        background: isComingSoon ? C.border : C.bordeaux,
+                        background: isComingSoon ? C.border : C.dore,
                         color: isComingSoon ? C.texteGris : 'white',
                         cursor: isComingSoon ? 'not-allowed' : (attaching ? 'wait' : 'pointer'),
                       }}>
                       {isComingSoon ? 'Soon' : (attaching ? '...' : 'Activate')}
                     </button>
                     <button onClick={() => router.push(`/modules/${slugify(m.title)}`)}
-                      style={{ flex: 1, padding: '7px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '7px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}>
+                      style={{ flex: 1, padding: '7px', background: 'white', color: C.doreDark, border: `1.5px solid ${C.dore}`, borderRadius: '7px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}>
                       Learn More
                     </button>
                   </div>
@@ -199,18 +216,18 @@ function ChooseModuleInner() {
       </div>
 
       {activating && !workspaceId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,26,36,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(58,46,26,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: '36px', marginBottom: '10px' }}>{activating.icon}</div>
             <h3 style={{ color: C.texteFonce, fontSize: '18px', fontWeight: 800, margin: '0 0 6px' }}>Activate {activating.title}</h3>
             <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 24px' }}>How do you want to set this up?</p>
 
             <button onClick={() => handleActivateChoice('new')}
-              style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px' }}>
+              style={{ width: '100%', padding: '14px', background: C.dore, color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px' }}>
               Create New Workspace
             </button>
             <button onClick={() => handleActivateChoice('existing')}
-              style={{ width: '100%', padding: '14px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginBottom: '14px' }}>
+              style={{ width: '100%', padding: '14px', background: 'white', color: C.doreDark, border: `1.5px solid ${C.dore}`, borderRadius: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginBottom: '14px' }}>
               Connect to Existing Workspace
             </button>
             <button onClick={() => setActivating(null)}
