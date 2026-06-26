@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'login' | '2fa'>('login');
@@ -53,7 +54,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email: uEmail, otp }),
       });
     } catch {
-      // OTP stocké dans Firestore même si email échoue
+      // OTP stocke dans Firestore meme si email echoue
     }
   };
 
@@ -62,6 +63,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       setUserId(result.user.uid);
       setUserEmail(result.user.email!);
@@ -69,11 +71,11 @@ export default function LoginPage() {
       setStep('2fa');
     } catch (err: any) {
       const msg: Record<string, string> = {
-        'auth/user-not-found': 'Aucun compte trouvé.',
+        'auth/user-not-found': 'Aucun compte trouve.',
         'auth/wrong-password': 'Mot de passe incorrect.',
         'auth/invalid-email': 'Email invalide.',
         'auth/invalid-credential': 'Email ou mot de passe incorrect.',
-        'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
+        'auth/too-many-requests': 'Trop de tentatives. Reessayez plus tard.',
       };
       setError(msg[err.code] || `Erreur: ${err.code}`);
     } finally {
@@ -87,19 +89,19 @@ export default function LoginPage() {
     try {
       const entered = code.join('');
       const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
-      if (!otpDoc.exists()) { setError('Code expiré. Demandez un nouveau code.'); setLoading(false); return; }
+      if (!otpDoc.exists()) { setError('Code expire. Demandez un nouveau code.'); setLoading(false); return; }
       const { otp, expires } = otpDoc.data();
       if (Date.now() > expires) {
         await deleteDoc(doc(db, 'otp_codes', userId));
-        setError('Code expiré. Demandez un nouveau code.');
+        setError('Code expire. Demandez un nouveau code.');
         setLoading(false);
         return;
       }
-      if (entered !== otp) { setError('Code incorrect. Réessayez.'); setLoading(false); return; }
+      if (entered !== otp) { setError('Code incorrect. Reessayez.'); setLoading(false); return; }
       await deleteDoc(doc(db, 'otp_codes', userId));
       await redirectByRole(userId, userEmail);
     } catch {
-      setError('Erreur de vérification. Réessayez.');
+      setError('Erreur de verification. Reessayez.');
     } finally {
       setLoading(false);
     }
@@ -109,7 +111,7 @@ export default function LoginPage() {
     setError('');
     setCode(['', '', '', '', '', '']);
     await sendOTP(userId, userEmail);
-    setResendMsg('Nouveau code envoyé !');
+    setResendMsg('Nouveau code envoye !');
     setTimeout(() => setResendMsg(''), 4000);
   };
 
@@ -117,6 +119,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
@@ -147,8 +150,8 @@ export default function LoginPage() {
       <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Vérification 2FA</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code à 6 chiffres a été envoyé à</p>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Verification 2FA</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code a 6 chiffres a ete envoye a</p>
           <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
 
           {error && (
@@ -189,7 +192,7 @@ export default function LoginPage() {
             onClick={handleVerify2FA}
             disabled={loading || code.join('').length !== 6}
             style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
-            {loading ? 'Vérification...' : 'Vérifier et se connecter'}
+            {loading ? 'Verification...' : 'Verifier et se connecter'}
           </button>
 
           <button onClick={handleResend}
@@ -242,19 +245,28 @@ export default function LoginPage() {
               <input
                 style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="********"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}>
-                {showPassword ? '🙈' : '👁️'}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '0.8rem', padding: 0, fontWeight: 600 }}>
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
 
-          <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#555', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#6B2D4E' }}
+              />
+              Keep me signed in
+            </label>
             <a href="/forgot-password" style={{ color: '#6B2D4E', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
               Forgot password?
             </a>
@@ -282,7 +294,7 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
           Pas encore de compte ?{' '}
           <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
-            Créer un compte
+            Creer un compte
           </a>
         </div>
       </div>
