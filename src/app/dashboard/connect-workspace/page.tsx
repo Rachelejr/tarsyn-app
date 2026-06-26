@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const C = {
@@ -34,8 +35,7 @@ function ConnectWorkspaceInner() {
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    const fetchWorkspaces = async () => {
-      const user = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setError('You must be signed in to view your workspaces.');
         setLoading(false);
@@ -56,8 +56,8 @@ function ConnectWorkspaceInner() {
       } finally {
         setLoading(false);
       }
-    };
-    fetchWorkspaces();
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleConnect = async () => {
@@ -98,7 +98,7 @@ function ConnectWorkspaceInner() {
             <p style={{ textAlign: 'center', color: C.textGris, fontSize: '14px', padding: '20px 0' }}>Loading your workspaces...</p>
           )}
 
-          {!loading && workspaces.length === 0 && !error && (
+          {!loading && !error && workspaces.length === 0 && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <p style={{ color: C.textGris, fontSize: '14px', marginBottom: '16px' }}>
                 You don't have any workspace yet.
