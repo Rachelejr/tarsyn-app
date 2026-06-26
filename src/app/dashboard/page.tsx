@@ -115,7 +115,6 @@ export default function Dashboard() {
             {/* Actions - Row 2 */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'24px'}}>
               {[
-                {title:'Chat',icon:'💬',path:'/dashboard/chat',color:'#8A4B6E'},
                 {title:'Reminders',icon:'🔔',path:'/dashboard/reminders',color:'#7A3B5E'},
                 {title:'Documents',icon:'📁',path:'/dashboard/documents',color:'#3D1F4E'},
                 {title:'Subscription',icon:'💳',path:'/dashboard/subscription',color:'#5A2D6E'},
