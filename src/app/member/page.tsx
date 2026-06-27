@@ -6,6 +6,7 @@ import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import TrialGuard from '@/components/TrialGuard';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -19,7 +20,7 @@ const C = {
 
 const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Other'];
 
-export default function MemberPage() {
+function MemberContent() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -247,7 +248,6 @@ export default function MemberPage() {
             </div>
           )}
 
-          {/* Drag and drop upload zone */}
           <div
             className="upload-zone"
             onClick={() => fileInputRef.current?.click()}
@@ -386,5 +386,13 @@ export default function MemberPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MemberPage() {
+  return (
+    <TrialGuard>
+      <MemberContent />
+    </TrialGuard>
   );
 }
