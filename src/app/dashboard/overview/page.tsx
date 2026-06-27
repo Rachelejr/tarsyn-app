@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import TrialGuard from '@/components/TrialGuard';
 
-export default function Overview() {
+function OverviewContent() {
   const router = useRouter();
   const [groups, setGroups] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -322,5 +323,13 @@ export default function Overview() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Overview() {
+  return (
+    <TrialGuard>
+      <OverviewContent />
+    </TrialGuard>
   );
 }
