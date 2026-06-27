@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -68,6 +68,14 @@ export default function ReceiptPage() {
     if (!payment) return;
     setSaving(true);
     try {
+      let memberUserId: string | null = null;
+      if (payment.memberId) {
+        const memberSnap = await getDoc(doc(db, 'members', payment.memberId));
+        if (memberSnap.exists()) {
+          memberUserId = memberSnap.data().userId || null;
+        }
+      }
+
       await addDoc(collection(db, 'documents'), {
         name: `Receipt ${payment.receiptNumber}.pdf`,
         type: 'application/pdf',
@@ -77,6 +85,7 @@ export default function ReceiptPage() {
         organizerId: payment.organizerId,
         uploadedBy: payment.organizerId,
         source: 'admin',
+        visibleTo: memberUserId ? [memberUserId] : [],
         createdAt: serverTimestamp(),
       });
       setSaved(true);

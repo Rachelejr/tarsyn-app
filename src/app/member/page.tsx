@@ -18,7 +18,7 @@ const C = {
   border: '#E8D5E0',
 };
 
-const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Other'];
+const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Receipts', 'Other'];
 
 function MemberContent() {
   const router = useRouter();
@@ -40,10 +40,15 @@ function MemberContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const fetchAll = async (organizerIdArg: string) => {
+  const fetchAll = async (organizerIdArg: string, currentUid: string) => {
     const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerIdArg));
     const dsnap = await getDocs(dq);
-    setDocs(dsnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+    const allDocs = dsnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const visibleDocs = allDocs.filter((d: any) => {
+      if (!d.visibleTo || d.visibleTo.length === 0) return true;
+      return d.visibleTo.includes(currentUid);
+    });
+    setDocs(visibleDocs.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
   };
 
   useEffect(() => {
@@ -63,7 +68,7 @@ function MemberContent() {
           const gsnap = await getDocs(gq);
           if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name);
 
-          await fetchAll(oid);
+          await fetchAll(oid, u.uid);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
@@ -135,11 +140,12 @@ function MemberContent() {
           organizerId,
           uploadedBy: uid,
           source: 'member',
+          visibleTo: [],
           createdAt: serverTimestamp(),
         });
       }
 
-      await fetchAll(organizerId);
+      await fetchAll(organizerId, uid);
       setShowUploadModal(false);
       setPendingFiles([]);
       setUploadCategory('General');
@@ -320,6 +326,11 @@ function MemberContent() {
                           <span style={{ fontSize: '9px', background: d.source === 'admin' ? '#E3F2FD' : '#F3E4DC', color: d.source === 'admin' ? '#1565C0' : C.bordeaux, padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
                             {d.source === 'admin' ? 'ADMIN' : 'YOU'}
                           </span>
+                          {d.visibleTo && d.visibleTo.length > 0 && (
+                            <span style={{ fontSize: '9px', background: '#FFF3D6', color: '#9A6A00', padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
+                              PRIVATE
+                            </span>
+                          )}
                         </div>
                         <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>
                           {formatSize(d.size)} · {d.category} · {formatDate(d.createdAt)}
