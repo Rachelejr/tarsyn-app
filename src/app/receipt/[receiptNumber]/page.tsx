@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -23,6 +23,9 @@ export default function ReceiptPage() {
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchReceipt = async () => {
@@ -61,6 +64,39 @@ export default function ReceiptPage() {
     }
   };
 
+  const handleSaveToDocuments = async () => {
+    if (!payment) return;
+    setSaving(true);
+    try {
+      await addDoc(collection(db, 'documents'), {
+        name: `Receipt ${payment.receiptNumber}.pdf`,
+        type: 'application/pdf',
+        size: 0,
+        url: window.location.href,
+        category: 'Receipts',
+        organizerId: payment.organizerId,
+        uploadedBy: payment.organizerId,
+        source: 'admin',
+        createdAt: serverTimestamp(),
+      });
+      setSaved(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.creme }}>
@@ -90,13 +126,21 @@ export default function ReceiptPage() {
         }
       `}</style>
 
-      <div className="no-print" style={{ maxWidth: '500px', margin: '0 auto 16px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+      <div className="no-print" style={{ maxWidth: '500px', margin: '0 auto 16px', display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         <button onClick={() => router.back()}
-          style={{ padding: '10px 18px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
+          style={{ padding: '10px 16px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
           ← Back
         </button>
+        <button onClick={handleCopyLink}
+          style={{ padding: '10px 16px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
+          {copied ? 'Copied!' : 'Copy Link'}
+        </button>
+        <button onClick={handleSaveToDocuments} disabled={saving || saved}
+          style={{ padding: '10px 16px', background: saved ? '#E8F5E9' : C.dore, color: saved ? '#2E7D32' : 'white', border: 'none', borderRadius: '10px', cursor: saved ? 'default' : 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
+          {saved ? 'Saved to Documents ✓' : (saving ? 'Saving...' : 'Save to Member Documents')}
+        </button>
         <button onClick={() => window.print()}
-          style={{ padding: '10px 18px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
+          style={{ padding: '10px 16px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
           Print / Save as PDF
         </button>
       </div>
