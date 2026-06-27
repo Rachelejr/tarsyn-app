@@ -32,7 +32,7 @@ export default function LoginPage() {
         }
       }
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
-        window.location.href = '/dashboard/create-tontine';
+        window.location.href = '/dashboard/overview';
       } else {
         window.location.href = '/member';
       }
