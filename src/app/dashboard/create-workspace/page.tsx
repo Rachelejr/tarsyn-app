@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 const C = {
   gold:      '#C9941F',
@@ -73,6 +73,10 @@ export default function CreateWorkspacePage() {
 
     setSaving(true);
     try {
+      const now = new Date();
+      const trialEnd = new Date(now);
+      trialEnd.setDate(trialEnd.getDate() + 30);
+
       const docRef = await addDoc(collection(db, 'workspaces'), {
         name: name.trim(),
         country,
@@ -83,6 +87,8 @@ export default function CreateWorkspacePage() {
         ownerId: user.uid,
         members: [user.uid],
         createdAt: serverTimestamp(),
+        trialEndsAt: Timestamp.fromDate(trialEnd),
+        subscriptionStatus: 'trial',
       });
       router.push(`/workspace/select-module?workspaceId=${docRef.id}`);
     } catch (err) {
@@ -199,7 +205,7 @@ export default function CreateWorkspacePage() {
           </button>
 
           <p style={{ textAlign: 'center', fontSize: '12px', color: C.textGris, marginTop: '16px' }}>
-            You'll choose your modules next. Your plan determines how many you can activate.
+            Your 30-day free trial starts now. You'll choose your modules next.
           </p>
         </div>
       </div>
