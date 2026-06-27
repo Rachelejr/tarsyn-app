@@ -32,7 +32,7 @@ export default function TrialGuard({ children }: { children: React.ReactNode }) 
         });
 
         if (trialExpired) {
-          router.push('/subscribe');
+          router.push('/dashboard/subscription');
           return;
         }
       } catch (e) {
