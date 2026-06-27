@@ -290,7 +290,12 @@ function OverviewContent() {
                 <tbody>
                   {payments.slice(0, 10).map((p, i) => (
                     <tr key={p.id} style={{ borderBottom: '1px solid #FAF0E6', background: i % 2 === 0 ? 'transparent' : '#FDFAF7' }}>
-                      <td style={{ padding: '12px', color: '#6B2D4E', fontFamily: 'monospace', fontSize: '12px' }}>{p.receiptNumber || '—'}</td>
+                      <td style={{ padding: '12px' }}>
+                        <a href={`/receipt/${p.receiptNumber}`} target="_blank" rel="noreferrer"
+                          style={{ color: '#6B2D4E', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, textDecoration: 'underline' }}>
+                          {p.receiptNumber || '—'}
+                        </a>
+                      </td>
                       <td style={{ padding: '12px', color: '#2C1A3E', fontWeight: 600 }}>{p.memberName}</td>
                       <td style={{ padding: '12px', color: '#2E7D32', fontWeight: 700 }}>{p.amount} {p.currency}</td>
                       <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{p.paymentMethod}</td>
