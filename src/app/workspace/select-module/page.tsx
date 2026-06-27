@@ -104,7 +104,8 @@ function ChooseModuleInner() {
 
   const handleActivateClick = (m: ModuleDef) => {
     if (COMING_SOON_TITLES.includes(m.title)) return;
-    if (attachingSlug) return;
+    const slug = slugify(m.title);
+    if (attachingSlug === slug) return;
     if (workspaceId) {
       handleActivateDirect(m);
     } else {
@@ -152,7 +153,7 @@ function ChooseModuleInner() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            placeholder="Search... (Enter to activate)"
+            placeholder="Search modules..."
             style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: `1.5px solid ${C.border}`, fontSize: '12px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
           />
           <div style={{ fontSize: '10px', fontWeight: 800, color: C.texteGris, letterSpacing: '0.06em', marginBottom: '6px' }}>CATEGORY</div>
@@ -182,7 +183,6 @@ function ChooseModuleInner() {
               const slug = slugify(m.title);
               const isComingSoon = COMING_SOON_TITLES.includes(m.title);
               const isThisAttaching = attachingSlug === slug;
-              const anyAttaching = attachingSlug !== null;
               return (
                 <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '12px', padding: '13px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -193,13 +193,12 @@ function ChooseModuleInner() {
                   <p style={{ color: C.texteGris, fontSize: '10.5px', margin: '0 0 10px', lineHeight: 1.35, flex: 1 }}>{m.desc}</p>
 
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => handleActivateClick(m)} disabled={anyAttaching || isComingSoon}
+                    <button onClick={() => handleActivateClick(m)} disabled={isThisAttaching || isComingSoon}
                       style={{
                         flex: 1, padding: '7px', border: 'none', borderRadius: '7px', fontSize: '10.5px', fontWeight: 700,
                         background: isComingSoon ? C.border : C.doreDark,
                         color: isComingSoon ? C.texteGris : 'white',
-                        opacity: (anyAttaching && !isThisAttaching) ? 0.5 : 1,
-                        cursor: isComingSoon ? 'not-allowed' : (anyAttaching ? 'wait' : 'pointer'),
+                        cursor: isComingSoon ? 'not-allowed' : (isThisAttaching ? 'wait' : 'pointer'),
                       }}>
                       {isComingSoon ? 'Soon' : (isThisAttaching ? '...' : 'Activate')}
                     </button>
