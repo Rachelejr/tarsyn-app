@@ -1,4 +1,4 @@
-import {
+﻿import {
   collection,
   doc,
   addDoc,
@@ -11,6 +11,8 @@ import {
   onSnapshot,
   serverTimestamp,
   updateDoc,
+  deleteDoc,
+  writeBatch,
   increment,
   Unsubscribe,
 } from 'firebase/firestore';
@@ -36,7 +38,7 @@ export interface ChatMessage {
 }
 
 // ---------------------------------------------------------------------------
-// Crée (ou réutilise) un chat de groupe, en synchronisant participantIds avec
+// Cree (ou reutilise) un chat de groupe, en synchronisant participantIds avec
 // la liste actuelle des membres actifs du groupe.
 // ---------------------------------------------------------------------------
 export async function getOrCreateGroupChat(groupId: string, groupName: string): Promise<string> {
@@ -67,7 +69,7 @@ export async function getOrCreateGroupChat(groupId: string, groupName: string): 
 }
 
 // ---------------------------------------------------------------------------
-// Crée (ou réutilise) un chat privé 1-à-1 entre deux utilisateurs.
+// Cree (ou reutilise) un chat prive 1-a-1 entre deux utilisateurs.
 // ---------------------------------------------------------------------------
 export async function getOrCreatePrivateChat(
   userId: string,
@@ -98,8 +100,8 @@ export async function getOrCreatePrivateChat(
 }
 
 // ---------------------------------------------------------------------------
-// Écoute en temps réel la liste des chats d'un utilisateur, triés par
-// dernière activité.
+// Ecoute en temps reel la liste des chats d'un utilisateur, tries par
+// derniere activite.
 // ---------------------------------------------------------------------------
 export function listenToUserChats(
   userId: string,
@@ -117,7 +119,7 @@ export function listenToUserChats(
 }
 
 // ---------------------------------------------------------------------------
-// Écoute en temps réel les messages d'un chat, triés par date croissante.
+// Ecoute en temps reel les messages d'un chat, tries par date croissante.
 // ---------------------------------------------------------------------------
 export function listenToMessages(
   chatId: string,
@@ -131,7 +133,7 @@ export function listenToMessages(
 }
 
 // ---------------------------------------------------------------------------
-// Envoie un message dans un chat et met à jour lastMessage + updatedAt.
+// Envoie un message dans un chat et met a jour lastMessage + updatedAt.
 // ---------------------------------------------------------------------------
 export async function sendMessage(
   chatId: string,
@@ -158,7 +160,7 @@ export async function sendMessage(
 
 // ---------------------------------------------------------------------------
 // Marque tous les messages d'un chat comme lus par cet utilisateur.
-// Ne doit jamais bloquer l'UI : erreurs uniquement loggées.
+// Ne doit jamais bloquer l'UI : erreurs uniquement loggees.
 // ---------------------------------------------------------------------------
 export async function markChatAsRead(chatId: string, userId: string): Promise<void> {
   try {
@@ -174,4 +176,27 @@ export async function markChatAsRead(chatId: string, userId: string): Promise<vo
   } catch (err) {
     console.error('[chat] Failed to mark chat as read:', err);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Supprime tous les messages d'un chat (reset complet de la conversation)
+// et remet lastMessage a null. Utilise un batch pour rester rapide et
+// rester dans la limite Firestore (500 ops max par batch).
+// ---------------------------------------------------------------------------
+export async function clearChat(chatId: string): Promise<void> {
+  const messagesSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
+  const docs = messagesSnap.docs;
+
+  for (let i = 0; i < docs.length; i += 450) {
+    const batch = writeBatch(db);
+    docs.slice(i, i + 450).forEach((d) => {
+      batch.delete(doc(db, 'chats', chatId, 'messages', d.id));
+    });
+    await batch.commit();
+  }
+
+  await updateDoc(doc(db, 'chats', chatId), {
+    lastMessage: null,
+    updatedAt: serverTimestamp(),
+  });
 }
