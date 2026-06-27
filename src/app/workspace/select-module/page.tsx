@@ -55,7 +55,7 @@ function ChooseModuleInner() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [activating, setActivating] = useState<ModuleDef | null>(null);
-  const [attaching, setAttaching] = useState(false);
+  const [attachingSlug, setAttachingSlug] = useState<string | null>(null);
   const [attachError, setAttachError] = useState('');
 
   const filtered = useMemo(() => {
@@ -79,7 +79,7 @@ function ChooseModuleInner() {
 
   const handleActivateDirect = async (m: ModuleDef) => {
     const slug = slugify(m.title);
-    setAttaching(true);
+    setAttachingSlug(slug);
     setAttachError('');
     try {
       await updateDoc(doc(db, 'workspaces', workspaceId), {
@@ -88,7 +88,7 @@ function ChooseModuleInner() {
       goToModulePage(slug, workspaceId);
     } catch (err) {
       setAttachError('Could not activate this module. Please try again.');
-      setAttaching(false);
+      setAttachingSlug(null);
     }
   };
 
@@ -104,6 +104,7 @@ function ChooseModuleInner() {
 
   const handleActivateClick = (m: ModuleDef) => {
     if (COMING_SOON_TITLES.includes(m.title)) return;
+    if (attachingSlug) return;
     if (workspaceId) {
       handleActivateDirect(m);
     } else {
@@ -126,20 +127,21 @@ function ChooseModuleInner() {
       `}</style>
 
       <div style={{ background: `linear-gradient(135deg, ${C.dore} 0%, ${C.doreDark} 100%)`, padding: '20px 32px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: C.doreDark, fontWeight: 800 }}>✦</div>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: C.doreDark, fontWeight: 800, flexShrink: 0 }}>✦</div>
             <div>
               <div style={{ color: C.creme, fontSize: '17px', fontWeight: 800, letterSpacing: '2px' }}>TARSYN</div>
               <div style={{ color: 'rgba(250,240,230,0.75)', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
+          <div style={{ flex: 1, textAlign: 'center' }}>
             <h1 style={{ color: C.creme, fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Choose Your Module</h1>
-            <p style={{ color: 'rgba(250,240,230,0.85)', fontSize: '11.5px', margin: 0, fontWeight: 600 }}>
+            <p style={{ color: 'rgba(250,240,230,0.9)', fontSize: '11.5px', margin: 0, fontWeight: 600 }}>
               {workspaceId ? 'Activating a module for your new workspace.' : 'Start with one module and expand later.'}
             </p>
           </div>
+          <div style={{ width: '120px', flexShrink: 0 }} />
         </div>
       </div>
 
@@ -177,7 +179,10 @@ function ChooseModuleInner() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {filtered.map(m => {
+              const slug = slugify(m.title);
               const isComingSoon = COMING_SOON_TITLES.includes(m.title);
+              const isThisAttaching = attachingSlug === slug;
+              const anyAttaching = attachingSlug !== null;
               return (
                 <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '12px', padding: '13px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -188,17 +193,18 @@ function ChooseModuleInner() {
                   <p style={{ color: C.texteGris, fontSize: '10.5px', margin: '0 0 10px', lineHeight: 1.35, flex: 1 }}>{m.desc}</p>
 
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => handleActivateClick(m)} disabled={attaching || isComingSoon}
+                    <button onClick={() => handleActivateClick(m)} disabled={anyAttaching || isComingSoon}
                       style={{
                         flex: 1, padding: '7px', border: 'none', borderRadius: '7px', fontSize: '10.5px', fontWeight: 700,
-                        background: isComingSoon ? C.border : C.dore,
+                        background: isComingSoon ? C.border : C.doreDark,
                         color: isComingSoon ? C.texteGris : 'white',
-                        cursor: isComingSoon ? 'not-allowed' : (attaching ? 'wait' : 'pointer'),
+                        opacity: (anyAttaching && !isThisAttaching) ? 0.5 : 1,
+                        cursor: isComingSoon ? 'not-allowed' : (anyAttaching ? 'wait' : 'pointer'),
                       }}>
-                      {isComingSoon ? 'Soon' : (attaching ? '...' : 'Activate')}
+                      {isComingSoon ? 'Soon' : (isThisAttaching ? '...' : 'Activate')}
                     </button>
-                    <button onClick={() => router.push(`/modules/${slugify(m.title)}`)}
-                      style={{ flex: 1, padding: '7px', background: 'white', color: C.doreDark, border: `1.5px solid ${C.dore}`, borderRadius: '7px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}>
+                    <button onClick={() => router.push(`/modules/${slug}`)}
+                      style={{ flex: 1, padding: '7px', background: C.creme, color: C.doreDark, border: `1.5px solid ${C.doreDark}`, borderRadius: '7px', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer' }}>
                       Learn More
                     </button>
                   </div>
@@ -223,11 +229,11 @@ function ChooseModuleInner() {
             <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 24px' }}>How do you want to set this up?</p>
 
             <button onClick={() => handleActivateChoice('new')}
-              style={{ width: '100%', padding: '14px', background: C.dore, color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px' }}>
+              style={{ width: '100%', padding: '14px', background: C.doreDark, color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px' }}>
               Create New Workspace
             </button>
             <button onClick={() => handleActivateChoice('existing')}
-              style={{ width: '100%', padding: '14px', background: 'white', color: C.doreDark, border: `1.5px solid ${C.dore}`, borderRadius: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginBottom: '14px' }}>
+              style={{ width: '100%', padding: '14px', background: 'white', color: C.doreDark, border: `1.5px solid ${C.doreDark}`, borderRadius: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginBottom: '14px' }}>
               Connect to Existing Workspace
             </button>
             <button onClick={() => setActivating(null)}
