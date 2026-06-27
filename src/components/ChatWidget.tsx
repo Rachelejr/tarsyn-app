@@ -4,20 +4,31 @@ import { useEffect, useRef, useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { listenToUserChats, listenToMessages, sendMessage, markChatAsRead, getOrCreatePrivateChat, ChatSummary, ChatMessage } from '@/lib/chat';
+import { listenToUserChats, listenToMessages, sendMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, ChatSummary, ChatMessage } from '@/lib/chat';
 
 const C = {
   bordeaux: '#6B2D4E',
   bordeauxDark: '#4A2D5E',
-  bubbleMine: '#F3E3CE',
   bg: '#FAF0E6',
   white: '#FFFFFF',
+  border: '#E8D5E0',
   textGris: '#7A5068',
   textDark: '#2C1A3E',
   dore: '#D4AF7A',
 };
 
-const EMOJIS = ['😀','😂','😍','👍','🙏','❤️','😢','😮','🎉','🔥','💰','✅'];
+const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [
+  { label: 'Smileys', icon: '😀', emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕'] },
+  { label: 'Gestures', icon: '👋', emojis: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💪'] },
+  { label: 'Hearts', icon: '❤️', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️'] },
+  { label: 'People', icon: '🧑', emojis: ['👶','🧒','👦','👧','🧑','👨','👩','🧓','👴','👵','👮','🕵️','💂','👷','🤴','👸','🤵','👰','🤰','🤱','👼','🎅','🤶'] },
+  { label: 'Animals', icon: '🐶', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🐺','🐴','🦄','🐝','🦋','🐢','🐍','🐙','🐠','🐬','🐳'] },
+  { label: 'Food', icon: '🍕', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍑','🥭','🍍','🥥','🍅','🥑','🥦','🥕','🍞','🧀','🥚','🍳','🥓','🍗','🍔','🍟','🍕','🌮','🍝','🍜','🍣','🍰','🎂','🍫','🍿','☕','🍵','🍷','🍺'] },
+  { label: 'Activities', icon: '⚽', emojis: ['⚽','🏀','🏈','⚾','🎾','🏐','🎱','🏓','🏸','🥊','🎽','🎿','🏆','🥇','🥈','🥉','🎖️'] },
+  { label: 'Travel', icon: '🚗', emojis: ['🚗','🚕','🚙','🚌','🚓','🚑','🚒','🛵','🏍️','🚲','✈️','🚀','🚁','⛵','🚢','🚆','🚊'] },
+  { label: 'Objects', icon: '💡', emojis: ['⌚','📱','💻','🖥️','📷','📹','☎️','📺','💡','🔦','📚','💰','💳','✉️','📦','📝','✏️','📌','🔒','🔑'] },
+  { label: 'Symbols', icon: '✨', emojis: ['✨','🎉','🎊','🎈','🎁','🏆','⭐','🌟','💫','🔥','💯','✅','❌','⚠️','🚫','💢','💥','♻️','✔️','☑️'] },
+];
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -28,9 +39,12 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<{userId:string;name:string;email:string}[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -99,6 +113,19 @@ export default function ChatWidget() {
 
   const addEmoji = (emoji: string) => setText((t) => t + emoji);
 
+  const handleClearChat = async () => {
+    if (!activeChatId) return;
+    if (!confirm('Clear this entire conversation? This cannot be undone.')) return;
+    setClearing(true);
+    setShowMenu(false);
+    try {
+      await clearChat(activeChatId);
+    } catch (e) {
+      console.error(e);
+    }
+    setClearing(false);
+  };
+
   const formatTime = (ts: any) => {
     if (!ts?.toDate) return '';
     return ts.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -118,12 +145,12 @@ export default function ChatWidget() {
       {open && (
         <div style={{ width: '340px', height: '480px', background: C.white, borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-          <div style={{ background: C.bordeaux, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'white' }}>
+          <div style={{ background: C.white, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: C.bordeaux, borderBottom: `1px solid ${C.border}` }}>
             {activeChatId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button onClick={() => { setActiveChatId(null); setMessages([]); }}
-                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.bordeauxDark, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', color: C.dore }}>
+                <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', color: C.bordeaux, border: `1px solid ${C.border}` }}>
                   {activeChatName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <span style={{ fontWeight: 700, fontSize: '14px' }}>{activeChatName}</span>
@@ -131,13 +158,26 @@ export default function ChatWidget() {
             ) : (
               <span style={{ fontWeight: 700, fontSize: '15px' }}>💬 Chats</span>
             )}
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
               {!activeChatId && (
                 <button onClick={() => setShowSearch(!showSearch)}
-                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '16px', cursor: 'pointer' }}>➕</button>
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '16px', cursor: 'pointer' }}>➕</button>
+              )}
+              {activeChatId && (
+                <button onClick={() => setShowMenu(!showMenu)}
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer' }}>⋮</button>
               )}
               <button onClick={() => setOpen(false)}
-                style={{ background: 'none', border: 'none', color: C.dore, fontSize: '16px', cursor: 'pointer' }}>✕</button>
+                style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '16px', cursor: 'pointer' }}>✕</button>
+
+              {showMenu && activeChatId && (
+                <div style={{ position: 'absolute', right: 0, top: '28px', background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', minWidth: '170px', zIndex: 30, overflow: 'hidden', border: `1px solid ${C.border}` }}>
+                  <button onClick={handleClearChat} disabled={clearing}
+                    style={{ width: '100%', padding: '10px 14px', background: C.white, border: 'none', color: '#C62828', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
+                    {clearing ? 'Clearing...' : 'Clear conversation'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -167,7 +207,7 @@ export default function ChatWidget() {
                     style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', borderBottom: `1px solid ${C.bg}` }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = C.bg)}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                    <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: C.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.dore, fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                    <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.bordeaux, fontWeight: 700, fontSize: '14px', flexShrink: 0, border: `1px solid ${C.border}` }}>
                       {chat.type === 'group' ? '👥' : chat.name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -194,8 +234,9 @@ export default function ChatWidget() {
                     <div key={m.id} style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
                       <div style={{
                         maxWidth: '75%', padding: '8px 11px', borderRadius: isMine ? '8px 8px 2px 8px' : '8px 8px 8px 2px',
-                        background: isMine ? C.bubbleMine : C.white,
-                        boxShadow: '0 1px 1px rgba(0,0,0,0.1)',
+                        background: C.white,
+                        border: `1px solid ${C.border}`,
+                        boxShadow: '0 1px 1px rgba(0,0,0,0.05)',
                       }}>
                         <p style={{ margin: 0, fontSize: '13px', color: C.textDark, wordBreak: 'break-word' }}>{m.text}</p>
                         <p style={{ margin: '3px 0 0', fontSize: '10px', color: C.textGris, textAlign: 'right' }}>{formatTime(m.createdAt)}</p>
@@ -207,14 +248,33 @@ export default function ChatWidget() {
               </div>
 
               {showEmoji && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', padding: '8px', background: C.white, borderTop: `1px solid ${C.bg}` }}>
-                  {EMOJIS.map((e) => (
-                    <span key={e} onClick={() => addEmoji(e)} style={{ fontSize: '20px', cursor: 'pointer' }}>{e}</span>
-                  ))}
+                <div style={{ background: C.white, borderTop: `1px solid ${C.border}` }}>
+                  <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, overflowX: 'auto' }}>
+                    {EMOJI_CATEGORIES.map((cat, i) => (
+                      <button key={cat.label} onClick={() => setActiveCategory(i)}
+                        style={{
+                          padding: '6px 9px', background: activeCategory === i ? C.bg : C.white,
+                          border: 'none', borderBottom: activeCategory === i ? `2px solid ${C.bordeaux}` : '2px solid transparent',
+                          fontSize: '15px', cursor: 'pointer', flexShrink: 0,
+                        }}>
+                        {cat.icon}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', padding: '6px', maxHeight: '120px', overflowY: 'auto' }}>
+                    {EMOJI_CATEGORIES[activeCategory].emojis.map((emoji, i) => (
+                      <span key={i} onClick={() => addEmoji(emoji)}
+                        style={{ fontSize: '18px', cursor: 'pointer', textAlign: 'center', padding: '3px', borderRadius: '6px' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = C.bg)}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        {emoji}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', background: C.white, borderTop: `1px solid ${C.bg}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', background: C.white, borderTop: `1px solid ${C.border}` }}>
                 <button onClick={() => setShowEmoji(!showEmoji)}
                   style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', padding: '0 2px' }}>😊</button>
                 <input
@@ -222,7 +282,7 @@ export default function ChatWidget() {
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Type a message"
-                  style={{ flex: 1, padding: '9px 12px', borderRadius: '20px', border: `1px solid ${C.bg}`, fontSize: '13px', outline: 'none' }}
+                  style={{ flex: 1, padding: '9px 12px', borderRadius: '20px', border: `1px solid ${C.border}`, fontSize: '13px', outline: 'none', background: C.bg }}
                 />
                 <button onClick={handleSend}
                   style={{ background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', fontSize: '15px', flexShrink: 0 }}>
