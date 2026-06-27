@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -26,12 +26,7 @@ export default function RecordContribution() {
     const loadMembers = async () => {
       const user = auth.currentUser;
       if (!user) return;
-      const q = query(collection(db, 'groups'), where('adminId', '==', user.uid));
-      const snap = await getDocs(q);
-      if (snap.empty) return;
-      const groupId = snap.docs[0].id;
-      const mq = query(collection(db, 'members'), where('groupId', '==', groupId));
-      const ms = await getDocs(mq);
+      const ms = await getDocs(query(collection(db, 'members'), where('organizerId', '==', user.uid)));
       setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
     };
     loadMembers();
@@ -54,16 +49,14 @@ export default function RecordContribution() {
   const handleConfirm = async () => {
     setShowModal(false);
     setLoading(true);
+    setError('');
     try {
       const user = auth.currentUser;
       if (!user) { router.push('/login'); return; }
-      const q = query(collection(db, 'groups'), where('adminId', '==', user.uid));
-      const snap = await getDocs(q);
-      const groupId = snap.docs[0].id;
       const member = members.find(m => m.id === selectedMember);
       const receiptNumber = 'REC-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-6);
       await addDoc(collection(db, 'payments'), {
-        groupId,
+        organizerId: user.uid,
         memberId: selectedMember,
         memberName: member?.name,
         memberTynId: member?.tynId,
