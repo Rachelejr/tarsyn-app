@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -44,6 +44,12 @@ export default function Dashboard() {
 
   return (
     <div style={{minHeight:'100vh',background:'#FAF0E6',fontFamily:'Inter, sans-serif'}}>
+      <style>{`
+        .action-card { transition: all 0.18s ease; cursor: pointer; }
+        .action-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(107,45,78,0.16) !important; }
+        .row-hover:hover { background: #FBF3EC !important; }
+      `}</style>
+
       <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <div onClick={() => router.push('/')} style={{display:'flex',alignItems:'center',gap:'10px',cursor:'pointer'}}>
           <div style={{width:'36px',height:'36px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#6B2D4E',fontSize:'14px'}}>T</div>
@@ -97,32 +103,32 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Actions - Row 1 */}
+            {/* Actions - Row 1 (3 cards) */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'16px'}}>
               {[
-                {title:'Record Contribution',icon:'💰',path:'/dashboard/record-contribution',color:'#6B2D4E'},
-                {title:'Add Member',icon:'👤',path:'/dashboard/add-member',color:'#4A2D5E'},
-                {title:'Overview',icon:'⚡',path:'/dashboard/overview',color:'#2C1A3E'},
+                {title:'Record Contribution',icon:'💰',path:'/dashboard/record-contribution'},
+                {title:'Add Member',icon:'👤',path:'/dashboard/add-member'},
+                {title:'Overview',icon:'⚡',path:'/dashboard/overview'},
               ].map((a,i) => (
-                <div key={i} onClick={() => router.push(a.path)}
-                  style={{background:a.color,borderRadius:'16px',padding:'28px',cursor:'pointer',boxShadow:'0 4px 16px rgba(107,45,78,0.2)'}}>
+                <div key={i} className="action-card" onClick={() => router.push(a.path)}
+                  style={{background:'white',border:'1.5px solid #E8D5C4',borderRadius:'16px',padding:'28px',boxShadow:'0 2px 10px rgba(107,45,78,0.06)'}}>
                   <span style={{fontSize:'32px',display:'block',marginBottom:'12px'}}>{a.icon}</span>
-                  <p style={{color:'#D4AF7A',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
+                  <p style={{color:'#6B2D4E',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
                 </div>
               ))}
             </div>
 
-            {/* Actions - Row 2 */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'24px'}}>
+            {/* Actions - Row 2 (3 cards, centered under row 1) */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
               {[
-                {title:'Reminders',icon:'🔔',path:'/dashboard/reminders',color:'#7A3B5E'},
-                {title:'Documents',icon:'📁',path:'/dashboard/documents',color:'#3D1F4E'},
-                {title:'Subscription',icon:'💳',path:'/dashboard/subscription',color:'#5A2D6E'},
+                {title:'Reminders',icon:'🔔',path:'/dashboard/reminders'},
+                {title:'Documents',icon:'📁',path:'/dashboard/documents'},
+                {title:'Subscription',icon:'💳',path:'/dashboard/subscription'},
               ].map((a,i) => (
-                <div key={i} onClick={() => router.push(a.path)}
-                  style={{background:a.color,borderRadius:'16px',padding:'28px',cursor:'pointer',boxShadow:'0 4px 16px rgba(107,45,78,0.2)'}}>
+                <div key={i} className="action-card" onClick={() => router.push(a.path)}
+                  style={{background:'white',border:'1.5px solid #E8D5C4',borderRadius:'16px',padding:'28px',boxShadow:'0 2px 10px rgba(107,45,78,0.06)'}}>
                   <span style={{fontSize:'32px',display:'block',marginBottom:'12px'}}>{a.icon}</span>
-                  <p style={{color:'#D4AF7A',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
+                  <p style={{color:'#6B2D4E',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
                 </div>
               ))}
             </div>
@@ -148,8 +154,8 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {members.sort((a,b) => a.position - b.position).map((m,i) => (
-                      <tr key={m.id} style={{borderBottom:'1px solid #FAF0E6',background:i%2===0?'transparent':'#FDFAF7'}}>
+                    {members.sort((a,b) => a.position - b.position).map((m) => (
+                      <tr key={m.id} className="row-hover" style={{borderBottom:'1px solid #FAF0E6'}}>
                         <td style={{padding:'12px',color:'#6B2D4E',fontWeight:700}}>#{m.position}</td>
                         <td style={{padding:'12px',color:'#7A5068',fontFamily:'monospace',fontSize:'13px'}}>{m.tynId}</td>
                         <td style={{padding:'12px',color:'#2C1A3E',fontWeight:600}}>{m.name}</td>

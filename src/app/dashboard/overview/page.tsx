@@ -1,11 +1,77 @@
-﻿'use client';
+'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import TrialGuard from '@/components/TrialGuard';
+
+// ── Animated counter hook ─────────────────────────────────────────────
+function useCountUp(target: number, duration = 700) {
+  const [value, setValue] = useState(0);
+  const startRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof target !== 'number' || isNaN(target)) return;
+    startRef.current = null;
+    let raf = 0;
+    const step = (timestamp: number) => {
+      if (startRef.current === null) startRef.current = timestamp;
+      const progress = Math.min((timestamp - startRef.current) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+
+  return value;
+}
+
+function StatCard({ label, value, icon, gradient, glow, delay }: { label: string; value: number | string; icon: string; gradient: string; glow: string; delay: number }) {
+  const isNumeric = typeof value === 'number';
+  const animated = useCountUp(isNumeric ? value : 0);
+  return (
+    <div
+      className="stat-card fade-up"
+      style={{
+        background: '#FFFFFF',
+        borderRadius: '16px',
+        padding: '16px 18px',
+        boxShadow: '0 4px 16px rgba(107,45,78,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        animationDelay: `${delay}ms`,
+      }}
+    >
+      <div
+        style={{
+          width: '42px',
+          height: '42px',
+          borderRadius: '12px',
+          background: gradient,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '18px',
+          boxShadow: `0 5px 14px ${glow}`,
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </div>
+      <div>
+        <p style={{ color: '#9A7E8C', fontSize: '10px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '1.1px', fontWeight: 700 }}>{label}</p>
+        <p style={{ color: '#2C1A3E', fontSize: '21px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
+          {isNumeric ? animated : value}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function OverviewContent() {
   const router = useRouter();
@@ -98,11 +164,59 @@ function OverviewContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
-      <style>{`.card:hover{transform:translateY(-2px)!important;box-shadow:0 8px 24px rgba(107,45,78,0.2)!important;}`}</style>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up {
+          opacity: 0;
+          animation: fadeUp 0.45s ease forwards;
+        }
+        .stat-card, .panel-card, .action-card {
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .stat-card:hover {
+          transform: translateY(-2px) scale(1.012);
+          box-shadow: 0 8px 22px rgba(107,45,78,0.14) !important;
+        }
+        .panel-card:hover {
+          box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important;
+        }
+        .action-card:hover {
+          transform: translateY(-3px) scale(1.015);
+          box-shadow: 0 10px 26px rgba(201,151,77,0.35) !important;
+        }
+        .row-hover:hover {
+          background: #FBF3EC !important;
+        }
+        .pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 11px;
+          border-radius: 18px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+        }
+        .btn-action {
+          transition: transform 0.15s ease, filter 0.15s ease;
+        }
+        .btn-action:hover {
+          filter: brightness(0.96);
+        }
+        .btn-action:active {
+          transform: scale(0.96);
+        }
+        .modal-fade {
+          animation: fadeUp 0.25s ease forwards;
+        }
+      `}</style>
 
       {editingGroup && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,26,30,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Group Name</h3>
             <input
               value={newGroupName}
@@ -111,11 +225,11 @@ function OverviewContent() {
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
             />
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setEditingGroup(null); setNewGroupName(''); }}
+              <button onClick={() => { setEditingGroup(null); setNewGroupName(''); }} className="btn-action"
                 style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button onClick={handleSaveGroupName} disabled={savingGroup}
+              <button onClick={handleSaveGroupName} disabled={savingGroup} className="btn-action"
                 style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                 {savingGroup ? 'Saving...' : 'Save'}
               </button>
@@ -124,57 +238,58 @@ function OverviewContent() {
         </div>
       )}
 
-      <nav style={{ background: '#6B2D4E', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.15)' }}>
-        <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '36px', height: '36px', background: '#D4AF7A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '14px' }}>T</div>
+      <nav style={{
+        background: 'linear-gradient(135deg, #6B2D4E 0%, #4A2D5E 100%)',
+        padding: '12px 28px',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center',
+        columnGap: '16px',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+      }}>
+        <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#D4AF7A,#C9974D)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(212,175,122,0.4)' }}>T</div>
           <div>
-            <div style={{ color: '#D4AF7A', fontWeight: 800, fontSize: '18px', lineHeight: '1' }}>TARSYN</div>
-            <div style={{ color: 'rgba(250,240,230,0.6)', fontSize: '10px', letterSpacing: '2px' }}>YOUR COMMUNITY</div>
+            <div style={{ color: '#D4AF7A', fontWeight: 800, fontSize: '16px', lineHeight: '1' }}>TARSYN</div>
+            <div style={{ color: 'rgba(250,240,230,0.6)', fontSize: '9px', letterSpacing: '2px' }}>YOUR COMMUNITY</div>
           </div>
         </div>
-        <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: '1px solid rgba(212,175,122,0.5)', color: '#D4AF7A', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+
+        <div className="fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
+          <h1 style={{ color: '#F0DCE8', fontSize: '17px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>⚡ TARSYN Handles the Rest</h1>
+          <p style={{ color: 'rgba(250,240,230,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports — all automatic.</p>
+        </div>
+
+        <button onClick={() => router.push('/dashboard')} className="btn-action" style={{ background: 'rgba(212,175,122,0.08)', border: '1px solid rgba(212,175,122,0.5)', color: '#D4AF7A', padding: '5px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', justifySelf: 'end' }}>
           ← Dashboard
         </button>
       </nav>
 
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
 
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 800, margin: '0 0 6px' }}>⚡ TARSYN Handles the Rest</h1>
-          <p style={{ color: '#7A5068', fontSize: '15px', margin: 0 }}>Rotation, reminders, reports — all automatic.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
+          <StatCard label="Total Members" value={members.length} icon="👥" gradient="linear-gradient(135deg,#6B2D4E,#4A2D5E)" glow="rgba(107,45,78,0.35)" delay={0} />
+          <StatCard label="Active Members" value={activeMembers} icon="✅" gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
+          <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon="💰" gradient="linear-gradient(135deg,#D4AF7A,#C9974D)" glow="rgba(201,151,77,0.35)" delay={100} />
+          <StatCard label="Confirmed Payments" value={confirmedPayments} icon="✔️" gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
+          <StatCard label="Pending Payments" value={pendingPayments} icon="⏳" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px', marginBottom: '32px' }}>
-          {[
-            { label: 'Total Members', value: members.length, icon: '👥', color: '#6B2D4E' },
-            { label: 'Active Members', value: activeMembers, icon: '✅', color: '#2E7D32' },
-            { label: 'Total Collected', value: `${totalPaid} ${payments[0]?.currency || ''}`, icon: '💰', color: '#C68000' },
-            { label: 'Confirmed Payments', value: confirmedPayments, icon: '✔️', color: '#1565C0' },
-            { label: 'Pending Payments', value: pendingPayments, icon: '⏳', color: '#E65100' },
-          ].map((s, i) => (
-            <div key={i} className="card" style={{ background: 'white', borderRadius: '16px', padding: '20px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '28px' }}>{s.icon}</span>
-              <div>
-                <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{s.label}</p>
-                <p style={{ color: s.color, fontSize: '22px', fontWeight: 800, margin: 0 }}>{s.value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>🏘️ My Groups</h3>
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>🏘️ My Groups</h3>
           {groups.length === 0 ? (
-            <p style={{ color: '#7A5068', fontSize: '14px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
+            <p style={{ color: '#9A7E8C', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '10px' }}>
               {groups.map((g, i) => (
-                <div key={i} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px' }}>
-                  <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '15px', margin: '0 0 4px' }}>{g.name}</p>
-                  <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 12px' }}>{g.frequency} · {g.status}</p>
-                  <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }}
-                    style={{ background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                    ✏️ Edit Name
+                <div key={i} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                  <div>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 2px' }}>{g.name}</p>
+                    <p style={{ color: '#9A7E8C', fontSize: '11px', margin: 0 }}>{g.frequency} · {g.status}</p>
+                  </div>
+                  <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
+                    style={{ background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                    ✏️ Edit
                   </button>
                 </div>
               ))}
@@ -182,53 +297,52 @@ function OverviewContent() {
           )}
         </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>👥 Member Management</h3>
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>👥 Member Management</h3>
           {members.length === 0 ? (
-            <p style={{ color: '#7A5068', fontSize: '14px' }}>No members yet.</p>
+            <p style={{ color: '#9A7E8C', fontSize: '13px' }}>No members yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #FAF0E6' }}>
                     {['#', 'TYN-ID', 'Name', 'Payout Date', 'Status', 'Actions'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#7A5068', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
+                      <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#9A7E8C', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {members.sort((a, b) => a.position - b.position).map((m, i) => (
-                    <tr key={m.id} style={{ borderBottom: '1px solid #FAF0E6', background: i % 2 === 0 ? 'transparent' : '#FDFAF7' }}>
-                      <td style={{ padding: '12px', color: '#6B2D4E', fontWeight: 700 }}>#{m.position}</td>
-                      <td style={{ padding: '12px', color: '#7A5068', fontFamily: 'monospace', fontSize: '13px' }}>{m.tynId}</td>
-                      <td style={{ padding: '12px', color: '#2C1A3E', fontWeight: 600 }}>{m.name}</td>
-                      <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{m.payoutDate || '—'}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{
+                    <tr key={m.id} className="row-hover" style={{ borderBottom: '1px solid #FAF0E6', transition: 'background 0.15s ease' }}>
+                      <td style={{ padding: '10px 10px', color: '#6B2D4E', fontWeight: 700, fontSize: '13px' }}>#{m.position}</td>
+                      <td style={{ padding: '10px 10px', color: '#9A7E8C', fontFamily: 'monospace', fontSize: '12px' }}>{m.tynId}</td>
+                      <td style={{ padding: '10px 10px', color: '#2C1A3E', fontWeight: 600, fontSize: '13px' }}>{m.name}</td>
+                      <td style={{ padding: '10px 10px', color: '#9A7E8C', fontSize: '12px' }}>{m.payoutDate || '—'}</td>
+                      <td style={{ padding: '10px 10px' }}>
+                        <span className="pill" style={{
                           background: m.status === 'active' ? '#E8F5E9' : m.status === 'paused' ? '#E3F2FD' : '#FFF3E0',
                           color: m.status === 'active' ? '#2E7D32' : m.status === 'paused' ? '#1565C0' : '#E65100',
-                          padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600
                         }}>
                           {m.status || 'pending'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '10px 10px' }}>
                         {m.role !== 'admin' && (
-                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                             {m.status !== 'active' && (
-                              <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id}
-                                style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                              <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id} className="btn-action pill"
+                                style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
                                 ✅ Activate
                               </button>
                             )}
                             {m.status !== 'paused' && (
-                              <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id}
-                                style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                              <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id} className="btn-action pill"
+                                style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
                                 ⏸️ Pause
                               </button>
                             )}
-                            <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id}
-                              style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                            <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id} className="btn-action pill"
+                              style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
                               {deletingMember === m.id ? '...' : '🗑️ Delete'}
                             </button>
                           </div>
@@ -243,27 +357,27 @@ function OverviewContent() {
         </div>
 
         {pendingProofs.length > 0 && (
-          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' }}>📎 Payment Proofs</h3>
-            <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 20px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>📎 Payment Proofs</h3>
+            <p style={{ color: '#9A7E8C', fontSize: '12px', margin: '0 0 12px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {pendingProofs.map((p, i) => (
-                <div key={p.id} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div key={p.id} style={{ background: '#FAF0E6', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
-                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>{p.memberName}</p>
-                    <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{p.amount} {p.currency} · {p.paymentDate} · {p.paymentMethod}</p>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: '0 0 2px' }}>{p.memberName}</p>
+                    <p style={{ color: '#9A7E8C', fontSize: '11px', margin: 0 }}>{p.amount} {p.currency} · {p.paymentDate} · {p.paymentMethod}</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <a href={p.proofUrl} target="_blank" rel="noopener noreferrer"
-                      style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="btn-action pill"
+                      style={{ background: '#E3F2FD', color: '#1565C0', textDecoration: 'none' }}>
                       👁️ View
                     </a>
-                    <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id}
-                      style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                    <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id} className="btn-action pill"
+                      style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
                       ✅ Validate
                     </button>
-                    <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id}
-                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                    <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id} className="btn-action pill"
+                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
                       ❌ Reject
                     </button>
                   </div>
@@ -273,35 +387,35 @@ function OverviewContent() {
           </div>
         )}
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 20px' }}>💰 Recent Contributions</h3>
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>💰 Recent Contributions</h3>
           {payments.length === 0 ? (
-            <p style={{ color: '#7A5068', fontSize: '14px' }}>No payments recorded yet.</p>
+            <p style={{ color: '#9A7E8C', fontSize: '13px' }}>No payments recorded yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #FAF0E6' }}>
                     {['Receipt', 'Member', 'Amount', 'Method', 'Date', 'Status'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#7A5068', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
+                      <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#9A7E8C', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {payments.slice(0, 10).map((p, i) => (
-                    <tr key={p.id} style={{ borderBottom: '1px solid #FAF0E6', background: i % 2 === 0 ? 'transparent' : '#FDFAF7' }}>
-                      <td style={{ padding: '12px' }}>
+                    <tr key={p.id} className="row-hover" style={{ borderBottom: '1px solid #FAF0E6', transition: 'background 0.15s ease' }}>
+                      <td style={{ padding: '10px 10px' }}>
                         <a href={`/receipt/${p.receiptNumber}`} target="_blank" rel="noreferrer"
-                          style={{ color: '#6B2D4E', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, textDecoration: 'underline' }}>
+                          style={{ color: '#6B2D4E', fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, textDecoration: 'underline' }}>
                           {p.receiptNumber || '—'}
                         </a>
                       </td>
-                      <td style={{ padding: '12px', color: '#2C1A3E', fontWeight: 600 }}>{p.memberName}</td>
-                      <td style={{ padding: '12px', color: '#2E7D32', fontWeight: 700 }}>{p.amount} {p.currency}</td>
-                      <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{p.paymentMethod}</td>
-                      <td style={{ padding: '12px', color: '#7A5068', fontSize: '13px' }}>{p.paymentDate}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ background: p.status === 'confirmed' ? '#E8F5E9' : p.status === 'pending' ? '#FFF3E0' : '#FFEBEE', color: p.status === 'confirmed' ? '#2E7D32' : p.status === 'pending' ? '#E65100' : '#C62828', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                      <td style={{ padding: '10px 10px', color: '#2C1A3E', fontWeight: 600, fontSize: '13px' }}>{p.memberName}</td>
+                      <td style={{ padding: '10px 10px', color: '#2E7D32', fontWeight: 700, fontSize: '13px' }}>{p.amount} {p.currency}</td>
+                      <td style={{ padding: '10px 10px', color: '#9A7E8C', fontSize: '12px' }}>{p.paymentMethod}</td>
+                      <td style={{ padding: '10px 10px', color: '#9A7E8C', fontSize: '12px' }}>{p.paymentDate}</td>
+                      <td style={{ padding: '10px 10px' }}>
+                        <span className="pill" style={{ background: p.status === 'confirmed' ? '#E8F5E9' : p.status === 'pending' ? '#FFF3E0' : '#FFEBEE', color: p.status === 'confirmed' ? '#2E7D32' : p.status === 'pending' ? '#E65100' : '#C62828' }}>
                           {p.status || 'confirmed'}
                         </span>
                       </td>
@@ -313,16 +427,39 @@ function OverviewContent() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', paddingBottom: '24px' }}>
           {[
-            { title: 'Record Payment', icon: '💰', path: '/dashboard/record-contribution', color: '#6B2D4E' },
-            { title: 'Add Member', icon: '👤', path: '/dashboard/add-member', color: '#4A2D5E' },
-            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders', color: '#2C1A3E' },
+            { title: 'Record Payment', icon: '💰', path: '/dashboard/record-contribution' },
+            { title: 'Add Member', icon: '👤', path: '/dashboard/add-member' },
+            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
           ].map((a, i) => (
-            <div key={i} className="card" onClick={() => router.push(a.path)}
-              style={{ background: a.color, borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(107,45,78,0.2)' }}>
-              <span style={{ fontSize: '32px', marginBottom: '12px', display: 'block' }}>{a.icon}</span>
-              <p style={{ color: '#D4AF7A', fontWeight: 700, fontSize: '15px', margin: 0 }}>{a.title}</p>
+            <div key={i} className="action-card" onClick={() => router.push(a.path)}
+              style={{
+                background: 'linear-gradient(135deg, #FAF0E6 0%, #F3E4D4 100%)',
+                border: '1px solid #E8D5C0',
+                borderRadius: '16px',
+                padding: '18px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 14px rgba(201,151,77,0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg,#D4AF7A,#C9974D)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                boxShadow: '0 4px 12px rgba(201,151,77,0.4)',
+                flexShrink: 0,
+              }}>
+                {a.icon}
+              </div>
+              <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: 0 }}>{a.title}</p>
             </div>
           ))}
         </div>
