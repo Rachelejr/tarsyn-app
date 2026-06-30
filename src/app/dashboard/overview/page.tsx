@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -7,7 +7,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import TrialGuard from '@/components/TrialGuard';
 
-// ── Animated counter hook ─────────────────────────────────────────────
 function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
   const startRef = useRef<number | null>(null);
@@ -431,6 +430,7 @@ function OverviewContent() {
           {[
             { title: 'Record Payment', icon: '💰', path: '/dashboard/record-contribution' },
             { title: 'Add Member', icon: '👤', path: '/dashboard/add-member' },
+            { title: 'Digital Register', icon: '📋', path: '/dashboard/contribution-log' },
             { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}

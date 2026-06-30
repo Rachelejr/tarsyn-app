@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,10 @@ const COUNTRIES = [
   'United Kingdom','Germany','Italy','Spain','Portugal','Brazil',
   'Mexico','Colombia','Jamaica','Trinidad','Other'
 ];
+
+const inputStyle = { width: '100%', padding: '8px 11px', border: '1.5px solid #E8D5E0', borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' as const, background: 'white' };
+const labelStyle = { display: 'block', color: '#6B2D4E', fontSize: '12px', fontWeight: 600, marginBottom: '3px' };
+const sectionTitle = { color: '#C8A24B', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' as const, letterSpacing: '1px', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: '8px' };
 
 export default function AddMember() {
   const router = useRouter();
@@ -148,28 +152,27 @@ export default function AddMember() {
 
   if (savedMember) return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '480px', width: '100%', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-        <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Member Added!</h2>
-        <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>
+      <div style={{ background: 'white', borderRadius: '18px', padding: '28px', maxWidth: '420px', width: '100%', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
+        <div style={{ fontSize: '38px', marginBottom: '8px' }}>✅</div>
+        <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 6px' }}>Member Added!</h2>
+        <p style={{ color: '#7A5068', fontSize: '12.5px', margin: '0 0 14px' }}>
           {savedMember.email ? `✉️ Invitation sent to ${savedMember.email}` : 'No email provided — share the invite code manually.'}
         </p>
-        <div style={{ background: '#FAF0E6', borderRadius: '16px', padding: '20px', margin: '24px 0', textAlign: 'left' }}>
-          <p style={{ margin: '0 0 8px', color: '#2C1A3E', fontWeight: 700, fontSize: '16px' }}>{savedMember.name}</p>
-          <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>TYN-ID: <strong style={{ color: '#6B2D4E', fontFamily: 'monospace' }}>{savedMember.tynId}</strong></p>
-          <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Country: {savedMember.country}</p>
-          <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Position: #{savedMember.position}</p>
-          <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Payout Date: {savedMember.payoutDate}</p>
-          <p style={{ margin: '0 0 6px', color: '#7A5068', fontSize: '13px' }}>Invite Code: <strong style={{ color: '#6B2D4E', fontFamily: 'monospace' }}>{savedMember.inviteCode}</strong></p>
-          <p style={{ margin: 0, color: '#7A5068', fontSize: '13px' }}>Status: <span style={{ background: '#FFF3E0', color: '#E65100', padding: '2px 8px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>{savedMember.status}</span></p>
+        <div style={{ background: '#FAF0E6', borderRadius: '12px', padding: '12px', margin: '14px 0', textAlign: 'left' }}>
+          <p style={{ margin: '0 0 4px', color: '#2C1A3E', fontWeight: 700, fontSize: '14px' }}>{savedMember.name}</p>
+          <p style={{ margin: '0 0 3px', color: '#7A5068', fontSize: '12px' }}>TYN-ID: <strong style={{ color: '#6B2D4E', fontFamily: 'monospace' }}>{savedMember.tynId}</strong></p>
+          <p style={{ margin: '0 0 3px', color: '#7A5068', fontSize: '12px' }}>Country: {savedMember.country}</p>
+          <p style={{ margin: '0 0 3px', color: '#7A5068', fontSize: '12px' }}>Position: #{savedMember.position}</p>
+          <p style={{ margin: '0 0 3px', color: '#7A5068', fontSize: '12px' }}>Invite Code: <strong style={{ color: '#6B2D4E', fontFamily: 'monospace' }}>{savedMember.inviteCode}</strong></p>
+          <p style={{ margin: 0, color: '#7A5068', fontSize: '12px' }}>Status: <span style={{ background: '#FFF3E0', color: '#E65100', padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>{savedMember.status}</span></p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => setSavedMember(null)}
-            style={{ flex: 1, background: '#6B2D4E', color: '#FAF0E6', padding: '12px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+            style={{ flex: 1, background: '#6B2D4E', color: '#FAF0E6', padding: '10px', borderRadius: '9px', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
             Add Another
           </button>
           <button onClick={() => router.push('/dashboard')}
-            style={{ flex: 1, background: '#FAF0E6', color: '#6B2D4E', padding: '12px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+            style={{ flex: 1, background: '#FAF0E6', color: '#6B2D4E', padding: '10px', borderRadius: '9px', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
             Dashboard
           </button>
         </div>
@@ -178,123 +181,101 @@ export default function AddMember() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', padding: '24px', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ maxWidth: '540px', margin: '0 auto' }}>
-        <div style={{ background: 'white', borderRadius: '24px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF0E6', padding: '20px', fontFamily: 'Inter, sans-serif' }}>
+      <style>{`
+        .tn-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .tn-grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        @media (max-width: 900px) { .tn-grid3 { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .tn-grid3, .tn-grid2 { grid-template-columns: 1fr; } }
+      `}</style>
 
-          <div onClick={() => router.push('/dashboard')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
-            <div style={{ width: '32px', height: '32px', background: '#6B2D4E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF7A', fontWeight: 800, fontSize: '13px' }}>T</div>
-            <span style={{ color: '#6B2D4E', fontWeight: 800, fontSize: '16px' }}>TARSYN</span>
-          </div>
+      <div style={{ maxWidth: '880px', margin: '0 auto' }}>
+        <div onClick={() => router.push('/dashboard')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#6B2D4E', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}>
+          ← Back to Dashboard
+        </div>
 
-          <h1 style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 800, margin: '0 0 4px' }}>Add Member</h1>
-          <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 32px' }}>TYN-ID generated automatically • Position {position} auto-assigned</p>
+        <div style={{ background: 'white', borderRadius: '18px', padding: '24px 28px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
-          {error && <p style={{ color: '#E53935', fontSize: '13px', marginBottom: '16px', background: '#FFEBEE', padding: '10px 14px', borderRadius: '8px' }}>{error}</p>}
+          <h1 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Add Member</h1>
+          <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 16px' }}>TYN-ID generated automatically · Position {position} auto-assigned</p>
 
-          <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 16px' }}>Identity</p>
+          {error && <p style={{ color: '#E53935', fontSize: '12px', marginBottom: '12px', background: '#FFEBEE', padding: '8px 12px', borderRadius: '8px' }}>{error}</p>}
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Full Name *</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Member full name"
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          <p style={sectionTitle}>👤 Personal Information</p>
+          <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Phone</label>
-              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 234 567 8900"
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              <label style={labelStyle}>Full Name *</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Member full name" style={inputStyle} />
             </div>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Email</label>
-              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com"
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              <label style={labelStyle}>Phone</label>
+              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 234 567 8900" style={inputStyle} />
             </div>
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Country *</label>
-            <select value={country} onChange={e => setCountry(e.target.value)}
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}>
-              <option value="">Select country...</option>
-              {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Member Type</label>
-              <select value={memberType} onChange={e => setMemberType(e.target.value)}
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}>
+              <label style={labelStyle}>Email</label>
+              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Country *</label>
+              <select value={country} onChange={e => setCountry(e.target.value)} style={inputStyle}>
+                <option value="">Select country...</option>
+                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Member Type</label>
+              <select value={memberType} onChange={e => setMemberType(e.target.value)} style={inputStyle}>
                 {['Regular', 'VIP', 'Founder', 'Organizer', 'Guest'].map(t => <option key={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Role</label>
-              <select value={role} onChange={e => setRole(e.target.value)}
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}>
+              <label style={labelStyle}>Role</label>
+              <select value={role} onChange={e => setRole(e.target.value)} style={inputStyle}>
                 {['member', 'assistant', 'secretary', 'treasurer', 'auditor'].map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
           </div>
 
-          <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 16px' }}>Payout</p>
+          <div style={{ height: '1px', background: '#F4E8D8', margin: '14px 0' }} />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          <p style={sectionTitle}>🔄 Payout & Contribution</p>
+          <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Position *</label>
-              <input value={position} onChange={e => setPosition(e.target.value)} type="number" min="1"
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              <label style={labelStyle}>Position *</label>
+              <input value={position} onChange={e => setPosition(e.target.value)} type="number" min="1" style={inputStyle} />
             </div>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Payout Date *</label>
-              <input value={payoutDate} onChange={e => setPayoutDate(e.target.value)} type="date"
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
-            </div>
-          </div>
-
-          <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 16px' }}>Contribution</p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-            <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Expected Amount</label>
-              <input value={expectedAmount} onChange={e => setExpectedAmount(e.target.value)} type="number" min="0" placeholder="0.00"
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              <label style={labelStyle}>Payout Date *</label>
+              <input value={payoutDate} onChange={e => setPayoutDate(e.target.value)} type="date" style={inputStyle} />
             </div>
             <div>
-              <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Currency</label>
-              <select value={currency} onChange={e => setCurrency(e.target.value)}
-                style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}>
+              <label style={labelStyle}>Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value)} style={inputStyle}>
+                <option value="pending">Pending</option>
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Expected Amount</label>
+              <input value={expectedAmount} onChange={e => setExpectedAmount(e.target.value)} type="number" min="0" placeholder="0.00" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Currency</label>
+              <select value={currency} onChange={e => setCurrency(e.target.value)} style={inputStyle}>
                 {['USD', 'CAD', 'EUR', 'GBP', 'HTG', 'XOF', 'XAF', 'BRL'].map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Status</label>
-            <select value={status} onChange={e => setStatus(e.target.value)}
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}>
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-            </select>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Notes</label>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..." rows={3}
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
+            <div>
+              <label style={labelStyle}>Notes</label>
+              <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..." style={inputStyle} />
+            </div>
           </div>
 
           <button onClick={handleAdd} disabled={loading}
-            style={{ width: '100%', background: loading ? '#9B6B8E' : '#6B2D4E', color: '#FAF0E6', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '16px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer' }}>
+            style={{ width: '100%', background: loading ? '#9B6B8E' : '#6B2D4E', color: '#FAF0E6', padding: '11px', borderRadius: '10px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px' }}>
             {loading ? 'Adding...' : 'Add Member'}
-          </button>
-
-          <button onClick={() => router.push('/dashboard')}
-            style={{ width: '100%', background: 'transparent', color: '#7A5068', padding: '12px', borderRadius: '12px', border: 'none', fontSize: '14px', cursor: 'pointer', marginTop: '12px' }}>
-            Back to Dashboard
           </button>
         </div>
       </div>

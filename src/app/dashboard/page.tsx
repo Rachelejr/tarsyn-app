@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -64,7 +64,7 @@ export default function Dashboard() {
         </button>
       </nav>
 
-      <div style={{maxWidth:'900px',margin:'0 auto',padding:'40px 24px'}}>
+      <div style={{maxWidth:'960px',margin:'0 auto',padding:'40px 24px'}}>
         <div style={{marginBottom:'32px'}}>
           <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:800,margin:'0 0 4px'}}>
             Welcome, {adminName} 👋
@@ -103,24 +103,13 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Actions - Row 1 (3 cards) */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'16px'}}>
+            {/* Actions - unified flexible grid (7 cards) */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:'16px',marginBottom:'24px'}}>
               {[
                 {title:'Record Contribution',icon:'💰',path:'/dashboard/record-contribution'},
                 {title:'Add Member',icon:'👤',path:'/dashboard/add-member'},
+                {title:'Digital Register',icon:'📋',path:'/dashboard/contribution-log'},
                 {title:'Overview',icon:'⚡',path:'/dashboard/overview'},
-              ].map((a,i) => (
-                <div key={i} className="action-card" onClick={() => router.push(a.path)}
-                  style={{background:'white',border:'1.5px solid #E8D5C4',borderRadius:'16px',padding:'28px',boxShadow:'0 2px 10px rgba(107,45,78,0.06)'}}>
-                  <span style={{fontSize:'32px',display:'block',marginBottom:'12px'}}>{a.icon}</span>
-                  <p style={{color:'#6B2D4E',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Actions - Row 2 (3 cards, centered under row 1) */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
-              {[
                 {title:'Reminders',icon:'🔔',path:'/dashboard/reminders'},
                 {title:'Documents',icon:'📁',path:'/dashboard/documents'},
                 {title:'Subscription',icon:'💳',path:'/dashboard/subscription'},
