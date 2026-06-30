@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   MapPin, Wallet, Repeat, FileText, UserPlus,
@@ -286,18 +286,26 @@ export default function CreateTontinePage() {
     setShowReview(false);
     setSaving(true);
     try {
+      const user = auth.currentUser;
+      if (!user) { router.push('/login'); return; }
+
       const tontineCode = generateCode('TTN');
       const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
       const inviteLink = `https://tarsyn-app.com/join/${inviteCode}`;
 
-      const docRef = await addDoc(collection(db, 'tontines'), {
+      const docRef = await addDoc(collection(db, 'groups'), {
+        organizerId: user.uid,
         tontineCode, region,
         regionFlag: selectedRegion?.flag || '🌍',
         regionalName: selectedRegion?.name || 'Rotating Savings',
         name: customName || selectedRegion?.name || 'Tontine',
+        module: 'Tontine',
         numMembers: parseInt(numMembers),
+        amountPerMember: parseFloat(contribution),
         contribution: parseFloat(contribution),
-        currency, frequency, startDate, commission, commissionThreshold: parseFloat(commissionThreshold),
+        currency, frequency, paymentFrequency: frequency,
+        startDate, commission, commissionRate: parseFloat(commission),
+        commissionThreshold: parseFloat(commissionThreshold),
         rotationType, paymentMethod, positionStrategy,
         privacyMode, adminVisibility,
         rulesTemplate, rules, confidential, language,
@@ -308,7 +316,7 @@ export default function CreateTontinePage() {
         estimatedPool: totalPool,
         estimatedDuration: cycleDuration,
         organizerRevenue,
-        status: 'draft',
+        status: 'active',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -485,7 +493,7 @@ export default function CreateTontinePage() {
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ArrowLeft size={14} /> Back to Dashboard
               </button>
-              <h1 style={{ color: 'white', fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+              <h1 style={{ color: C.creme, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
               <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
             </div>
 
