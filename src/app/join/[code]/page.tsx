@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -136,7 +136,7 @@ export default function JoinPage() {
         <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>
           You have joined <strong style={{ color: '#6B2D4E' }}>{group?.name || 'TARSYN'}</strong> successfully!
         </p>
-        <button onClick={() => router.push('/member')}
+        <button onClick={() => router.push('/member?groupId=' + (member.groupId || ''))}
           style={{ width: '100%', background: '#6B2D4E', color: '#FAF0E6', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
           Go to My Portal
         </button>
