@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
@@ -22,12 +22,14 @@ const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Receipts
 
 function MemberContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const targetGroupId = searchParams.get('groupId');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [uid, setUid] = useState('');
-  const [organizerId, setOrganizerId] = useState('');
+  const [allMemberships, setAllMemberships] = useState<any[]>([]);
+  const [activeMember, setActiveMember] = useState<any>(null);
   const [groupName, setGroupName] = useState('');
-  const [memberInfo, setMemberInfo] = useState<any>(null);
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -40,8 +42,8 @@ function MemberContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const fetchAll = async (organizerIdArg: string, currentUid: string) => {
-    const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerIdArg));
+  const fetchDocs = async (organizerId: string, currentUid: string) => {
+    const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerId));
     const dsnap = await getDocs(dq);
     const allDocs = dsnap.docs.map(d => ({ id: d.id, ...d.data() }));
     const visibleDocs = allDocs.filter((d: any) => {
@@ -49,6 +51,15 @@ function MemberContent() {
       return d.visibleTo.includes(currentUid);
     });
     setDocs(visibleDocs.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+  };
+
+  const selectMembership = async (membership: any, currentUid: string) => {
+    setActiveMember(membership);
+    const gq = query(collection(db, 'groups'), where('organizerId', '==', membership.organizerId));
+    const gsnap = await getDocs(gq);
+    if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name);
+    else setGroupName(membership.groupName || 'Your Group');
+    await fetchDocs(membership.organizerId, currentUid);
   };
 
   useEffect(() => {
@@ -59,22 +70,22 @@ function MemberContent() {
         const memberQ = query(collection(db, 'members'), where('userId', '==', u.uid));
         const memberSnap = await getDocs(memberQ);
         if (!memberSnap.empty) {
-          const mData = memberSnap.docs[0].data();
-          setMemberInfo(mData);
-          const oid = mData.organizerId;
-          setOrganizerId(oid);
+          const memberships = memberSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setAllMemberships(memberships);
 
-          const gq = query(collection(db, 'groups'), where('organizerId', '==', oid));
-          const gsnap = await getDocs(gq);
-          if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name);
-
-          await fetchAll(oid, u.uid);
+          // Si un groupId est passé en paramètre (après join), on cible ce groupe
+          let target = memberships[0];
+          if (targetGroupId) {
+            const found = memberships.find((m: any) => m.groupId === targetGroupId);
+            if (found) target = found;
+          }
+          await selectMembership(target, u.uid);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
     });
     return () => unsub();
-  }, [router]);
+  }, [router, targetGroupId]);
 
   const getFileIcon = (type: string) => {
     if (type?.includes('pdf')) return { label: 'PDF', color: '#C62828' };
@@ -120,32 +131,24 @@ function MemberContent() {
   };
 
   const handleConfirmUpload = async () => {
-    if (pendingFiles.length === 0 || !organizerId || !uid) return;
+    if (pendingFiles.length === 0 || !activeMember?.organizerId || !uid) return;
     setUploading(true);
     setError('');
     try {
       for (const file of pendingFiles) {
-        const path = `documents/${organizerId}/${uid}_${Date.now()}_${file.name}`;
+        const path = 'documents/' + activeMember.organizerId + '/' + uid + '_' + Date.now() + '_' + file.name;
         const storageRef = ref(storage, path);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
-
         await addDoc(collection(db, 'documents'), {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          url,
-          storagePath: path,
-          category: uploadCategory,
-          organizerId,
-          uploadedBy: uid,
-          source: 'member',
-          visibleTo: [],
+          name: file.name, type: file.type, size: file.size, url,
+          storagePath: path, category: uploadCategory,
+          organizerId: activeMember.organizerId,
+          uploadedBy: uid, source: 'member', visibleTo: [],
           createdAt: serverTimestamp(),
         });
       }
-
-      await fetchAll(organizerId, uid);
+      await fetchDocs(activeMember.organizerId, uid);
       setShowUploadModal(false);
       setPendingFiles([]);
       setUploadCategory('General');
@@ -158,7 +161,7 @@ function MemberContent() {
 
   const handleDelete = async (d: any) => {
     if (d.uploadedBy !== uid) return;
-    if (!confirm(`Delete "${d.name}"?`)) return;
+    if (!confirm('Delete "' + d.name + '"?')) return;
     setDeletingId(d.id);
     try {
       if (d.storagePath) {
@@ -192,12 +195,7 @@ function MemberContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <style>{`
-        .cat-pill { transition: all 0.15s ease; cursor: pointer; }
-        .doc-row { transition: all 0.15s ease; }
-        .doc-row:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(107,45,78,0.08); }
-        .upload-zone { transition: all 0.2s ease; }
-      `}</style>
+      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,45,78,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}'}} />
 
       <nav style={{ background: C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -205,38 +203,57 @@ function MemberContent() {
           <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: `1px solid rgba(212,175,122,0.5)`, color: C.dore, padding: '7px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+          style={{ background: 'transparent', border: '1px solid rgba(212,175,122,0.5)', color: C.dore, padding: '7px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
           Sign Out
         </button>
       </nav>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 24px' }}>
 
-        <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #4A2D5E 100%)`, borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)' }}>
+        {allMemberships.length > 1 && (
+          <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ color: C.texteGris, fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>My Groups:</span>
+            {allMemberships.map((m: any) => (
+              <div key={m.id} className="group-tab"
+                onClick={() => selectMembership(m, uid)}
+                style={{
+                  padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 700,
+                  background: activeMember?.id === m.id ? C.bordeaux : 'white',
+                  color: activeMember?.id === m.id ? 'white' : C.bordeaux,
+                  border: '2px solid ' + (activeMember?.id === m.id ? C.bordeaux : C.border),
+                  boxShadow: '0 2px 8px rgba(107,45,78,0.08)',
+                }}>
+                {m.groupName || m.tynId || 'Group'}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ background: 'linear-gradient(135deg, ' + C.bordeaux + ' 0%, #4A2D5E 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)' }}>
           <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 800, margin: '0 0 16px' }}>{groupName || 'Your Group'}</h1>
-          {memberInfo && (
+          {activeMember && (
             <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>Position</p>
-                <p style={{ color: C.dore, fontWeight: 800, fontSize: '17px', margin: 0 }}>#{memberInfo.position || '—'}</p>
+                <p style={{ color: C.dore, fontWeight: 800, fontSize: '17px', margin: 0 }}>#{activeMember.position || '—'}</p>
               </div>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>Status</p>
                 <span style={{
-                  background: memberInfo.status === 'active' ? 'rgba(76,175,80,0.25)' : 'rgba(255,167,38,0.25)',
-                  color: memberInfo.status === 'active' ? '#A5D6A7' : '#FFCC80',
+                  background: activeMember.status === 'active' ? 'rgba(76,175,80,0.25)' : 'rgba(255,167,38,0.25)',
+                  color: activeMember.status === 'active' ? '#A5D6A7' : '#FFCC80',
                   padding: '4px 12px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700
                 }}>
-                  {memberInfo.status || 'pending'}
+                  {activeMember.status || 'pending'}
                 </span>
               </div>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>Payout Date</p>
-                <p style={{ color: 'white', fontWeight: 700, fontSize: '15px', margin: 0 }}>{memberInfo.payoutDate || '—'}</p>
+                <p style={{ color: 'white', fontWeight: 700, fontSize: '15px', margin: 0 }}>{activeMember.payoutDate || '—'}</p>
               </div>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>TYN-ID</p>
-                <p style={{ color: 'white', fontWeight: 700, margin: 0, fontFamily: 'monospace', fontSize: '14px' }}>{memberInfo.tynId || '—'}</p>
+                <p style={{ color: 'white', fontWeight: 700, margin: 0, fontFamily: 'monospace', fontSize: '14px' }}>{activeMember.tynId || '—'}</p>
               </div>
             </div>
           )}
@@ -249,43 +266,27 @@ function MemberContent() {
           </div>
 
           {error && (
-            <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>
-              {error}
-            </div>
+            <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>
           )}
 
-          <div
-            className="upload-zone"
-            onClick={() => fileInputRef.current?.click()}
+          <div className="upload-zone" onClick={() => fileInputRef.current?.click()}
             onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             style={{
-              border: `2px dashed ${isDragging ? C.bordeaux : C.border}`,
+              border: '2px dashed ' + (isDragging ? C.bordeaux : C.border),
               background: isDragging ? '#F8EEF3' : C.creme,
-              borderRadius: '16px',
-              padding: '28px 20px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              marginBottom: '22px',
+              borderRadius: '16px', padding: '28px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: '22px',
             }}>
             <div style={{ fontSize: '30px', marginBottom: '8px' }}>📤</div>
-            <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>
-              Click to upload or drag and drop
-            </p>
-            <p style={{ color: C.texteGris, fontSize: '12px', margin: 0 }}>
-              Supports multiple files · PDF, Word, Excel, Images
-            </p>
+            <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>Click to upload or drag and drop</p>
+            <p style={{ color: C.texteGris, fontSize: '12px', margin: 0 }}>Supports multiple files · PDF, Word, Excel, Images</p>
             <input ref={fileInputRef} type="file" multiple onChange={handleFileSelected} style={{ display: 'none' }} />
           </div>
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by file name..."
-              style={{ flex: 1, minWidth: '180px', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: '10px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
-            />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by file name..."
+              style={{ flex: 1, minWidth: '180px', padding: '10px 14px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
           </div>
 
           <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -295,7 +296,7 @@ function MemberContent() {
                   padding: '6px 14px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700,
                   background: filterCat === c ? C.bordeaux : 'white',
                   color: filterCat === c ? 'white' : C.texteGris,
-                  border: `1.5px solid ${filterCat === c ? C.bordeaux : C.border}`,
+                  border: '1.5px solid ' + (filterCat === c ? C.bordeaux : C.border),
                 }}>
                 {c}
               </span>
@@ -312,9 +313,9 @@ function MemberContent() {
               {filteredDocs.map((d: any) => {
                 const icon = getFileIcon(d.type);
                 return (
-                  <div key={d.id} className="doc-row" style={{ background: C.creme, border: `1px solid ${C.border}`, borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div key={d.id} className="doc-row" style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '220px' }}>
-                      <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: icon.color, border: `1px solid ${C.border}`, flexShrink: 0 }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: icon.color, border: '1px solid ' + C.border, flexShrink: 0 }}>
                         {icon.label}
                       </div>
                       <div>
@@ -326,11 +327,6 @@ function MemberContent() {
                           <span style={{ fontSize: '9px', background: d.source === 'admin' ? '#E3F2FD' : '#F3E4DC', color: d.source === 'admin' ? '#1565C0' : C.bordeaux, padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
                             {d.source === 'admin' ? 'ADMIN' : 'YOU'}
                           </span>
-                          {d.visibleTo && d.visibleTo.length > 0 && (
-                            <span style={{ fontSize: '9px', background: '#FFF3D6', color: '#9A6A00', padding: '2px 8px', borderRadius: '10px', fontWeight: 800 }}>
-                              PRIVATE
-                            </span>
-                          )}
                         </div>
                         <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>
                           {formatSize(d.size)} · {d.category} · {formatDate(d.createdAt)}
@@ -339,7 +335,7 @@ function MemberContent() {
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <a href={d.url} target="_blank" rel="noreferrer"
-                        style={{ background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
+                        style={{ background: 'white', color: C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
                         Preview
                       </a>
                       <a href={d.url} download={d.name}
@@ -347,7 +343,7 @@ function MemberContent() {
                         Download
                       </a>
                       <button onClick={() => handlePrint(d.url)}
-                        style={{ background: 'white', color: C.doreDark, border: `1.5px solid ${C.dore}`, padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                        style={{ background: 'white', color: C.doreDark, border: '1.5px solid ' + C.dore, padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                         Print
                       </button>
                       {d.uploadedBy === uid && (
@@ -369,23 +365,21 @@ function MemberContent() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,26,62,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '400px', width: '100%' }}>
             <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 6px' }}>
-              Upload {pendingFiles.length > 1 ? `${pendingFiles.length} files` : 'Document'}
+              Upload {pendingFiles.length > 1 ? pendingFiles.length + ' files' : 'Document'}
             </h3>
             <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '18px' }}>
               {pendingFiles.map((f, i) => (
                 <p key={i} style={{ color: C.texteGris, fontSize: '13px', margin: '4px 0', wordBreak: 'break-all' }}>📄 {f.name}</p>
               ))}
             </div>
-
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: C.texteFonce, marginBottom: '6px' }}>Category</label>
             <select value={uploadCategory} onChange={e => setUploadCategory(e.target.value)}
-              style={{ width: '100%', padding: '10px', border: `1.5px solid ${C.border}`, borderRadius: '10px', fontSize: '13px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}>
+              style={{ width: '100%', padding: '10px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '13px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}>
               {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => { setShowUploadModal(false); setPendingFiles([]); }} disabled={uploading}
-                style={{ flex: 1, padding: '11px', background: 'transparent', color: C.bordeaux, border: `2px solid ${C.bordeaux}`, borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '11px', background: 'transparent', color: C.bordeaux, border: '2px solid ' + C.bordeaux, borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
                 Cancel
               </button>
               <button onClick={handleConfirmUpload} disabled={uploading}
