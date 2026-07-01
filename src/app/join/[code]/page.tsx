@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { db } from '@/lib/firebase';
-import { auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { db, auth } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function JoinPage() {
@@ -15,7 +14,7 @@ export default function JoinPage() {
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [step, setStep] = useState<'profile' | 'done'>('profile');
+  const [step, setStep] = useState<'profile' | 'signin' | 'done'>('profile');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,29 +27,13 @@ export default function JoinPage() {
 
   useEffect(() => {
     const load = async () => {
-      console.log('[JOIN DEBUG] Starting load. Raw code param:', code, 'Type:', typeof code);
       try {
-        if (!code) {
-          console.log('[JOIN DEBUG] No code found in params!');
-          setDebugInfo('No code param');
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
+        if (!code) { setNotFound(true); setLoading(false); return; }
         const codeStr = String(code).trim().toUpperCase();
-        console.log('[JOIN DEBUG] Normalized codeStr:', codeStr);
         const q = query(collection(db, 'members'), where('inviteCode', '==', codeStr));
-        console.log('[JOIN DEBUG] About to call getDocs...');
         const snap = await getDocs(q);
-        console.log('[JOIN DEBUG] getDocs succeeded. Empty?', snap.empty, 'Size:', snap.size);
-        if (snap.empty) {
-          setDebugInfo(`No member found for code: ${codeStr}`);
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
+        if (snap.empty) { setNotFound(true); setLoading(false); return; }
         const memberData = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
-        console.log('[JOIN DEBUG] Member found:', memberData);
         setMember(memberData);
         setFullName(memberData.name || '');
         setEmail(memberData.email || '');
@@ -59,10 +42,7 @@ export default function JoinPage() {
           if (gDoc.exists()) setGroup({ id: gDoc.id, ...gDoc.data() });
         }
       } catch (e: any) {
-        console.error('[JOIN DEBUG] CAUGHT ERROR:', e);
-        console.error('[JOIN DEBUG] Error code:', e?.code);
-        console.error('[JOIN DEBUG] Error message:', e?.message);
-        setDebugInfo(`Error: ${e?.code || ''} ${e?.message || String(e)}`);
+        setDebugInfo('Error: ' + (e?.code || '') + ' ' + (e?.message || String(e)));
         setNotFound(true);
       }
       setLoading(false);
@@ -88,14 +68,50 @@ export default function JoinPage() {
       });
       setStep('done');
     } catch (err: any) {
-      const msgs: any = {
-        'auth/email-already-in-use': 'This email is already registered. Please sign in.',
-        'auth/invalid-email': 'Invalid email address.',
-        'auth/weak-password': 'Password is too weak.',
-      };
-      setError(msgs[err.code] || `Error: ${err.code}`);
+      if (err.code === 'auth/email-already-in-use') {
+        setStep('signin');
+      } else {
+        const msgs: any = {
+          'auth/invalid-email': 'Invalid email address.',
+          'auth/weak-password': 'Password is too weak.',
+        };
+        setError(msgs[err.code] || 'Error: ' + err.code);
+      }
     }
     setRegistering(false);
+  };
+
+  const handleSignIn = async () => {
+    setError('');
+    if (!email.trim() || !password) { setError('Email and password are required.'); return; }
+    setRegistering(true);
+    try {
+      const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+      await updateDoc(doc(db, 'members', member.id), {
+        userId: result.user.uid,
+        status: 'active',
+      });
+      setStep('done');
+    } catch (err: any) {
+      const msgs: any = {
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-credential': 'Incorrect email or password.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      };
+      setError(msgs[err.code] || 'Error: ' + err.code);
+    }
+    setRegistering(false);
+  };
+
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '12px 14px',
+    border: '1.5px solid #E8D5E0', borderRadius: '10px',
+    fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+  };
+  const lbl: React.CSSProperties = {
+    display: 'block', color: '#6B2D4E',
+    fontSize: '13px', fontWeight: 600, marginBottom: '6px',
   };
 
   if (loading) return (
@@ -106,10 +122,9 @@ export default function JoinPage() {
 
   if (notFound || !member) return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ fontSize: '48px' }}>❌</div>
       <h2 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
       <p style={{ color: '#7A5068', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
-      <p style={{ color: '#C62828', fontSize: '12px', margin: 0, fontFamily: 'monospace', maxWidth: '90%', textAlign: 'center', wordBreak: 'break-all' }}>{debugInfo}</p>
+      <p style={{ color: '#C62828', fontSize: '12px', margin: 0, fontFamily: 'monospace' }}>{debugInfo}</p>
       <button onClick={() => router.push('/')} style={{ background: '#6B2D4E', color: '#FAF0E6', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
     </div>
   );
@@ -117,12 +132,13 @@ export default function JoinPage() {
   if (step === 'done') return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-        <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
-        <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Account Created!</h2>
-        <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>Welcome to <strong style={{ color: '#6B2D4E' }}>{group?.name || 'TARSYN'}</strong>, {fullName}!</p>
-        <button onClick={() => router.push('/login')}
+        <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome!</h2>
+        <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>
+          You have joined <strong style={{ color: '#6B2D4E' }}>{group?.name || 'TARSYN'}</strong> successfully!
+        </p>
+        <button onClick={() => router.push('/member')}
           style={{ width: '100%', background: '#6B2D4E', color: '#FAF0E6', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
-          Sign In Now
+          Go to My Portal
         </button>
       </div>
     </div>
@@ -136,23 +152,23 @@ export default function JoinPage() {
 
       <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 16px 40px' }}>
 
-        <div style={{ background: 'white', borderRadius: '24px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
-          <h1 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome, {member.name}!</h1>
-          <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 24px' }}>You are a member of <strong style={{ color: '#6B2D4E' }}>{group?.name || 'your group'}</strong></p>
-
-          <div style={{ background: '#FAF0E6', borderRadius: '16px', padding: '20px', textAlign: 'left' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center', marginBottom: '20px' }}>
+          <h1 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: '0 0 6px' }}>Welcome, {member.name}!</h1>
+          <p style={{ color: '#7A5068', fontSize: '14px', margin: '0 0 20px' }}>
+            You are invited to join <strong style={{ color: '#6B2D4E' }}>{group?.name || 'your group'}</strong>
+          </p>
+          <div style={{ background: '#FAF0E6', borderRadius: '16px', padding: '16px', textAlign: 'left' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {[
                 { label: 'TYN-ID', value: member.tynId, mono: true },
-                { label: 'Position', value: `#${member.position}` },
+                { label: 'Position', value: '#' + member.position },
                 { label: 'Status', value: member.status || 'pending' },
                 { label: 'Payout Date', value: member.payoutDate || 'Not set' },
                 { label: 'Country', value: member.country },
                 { label: 'Member Type', value: member.memberType },
               ].map(item => (
-                <div key={item.label} style={{ background: 'white', borderRadius: '10px', padding: '12px' }}>
-                  <p style={{ color: '#7A5068', fontSize: '11px', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
+                <div key={item.label} style={{ background: 'white', borderRadius: '10px', padding: '10px' }}>
+                  <p style={{ color: '#7A5068', fontSize: '11px', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
                   <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: 0, fontFamily: (item as any).mono ? 'monospace' : 'inherit' }}>{item.value}</p>
                 </div>
               ))}
@@ -160,83 +176,105 @@ export default function JoinPage() {
           </div>
         </div>
 
-        <div style={{ background: 'white', borderRadius: '24px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 8px' }}>Create Your Account</h2>
-          <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 24px' }}>Set up your account to access your member portal.</p>
+        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
-          {error && (
-            <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>
-              {error}
-            </div>
+          {step === 'signin' ? (
+            <>
+              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Sign In to Join</h2>
+              <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 20px' }}>
+                You already have a TARSYN account. Sign in to join <strong>{group?.name}</strong>.
+              </p>
+
+              {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" style={inp} />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={lbl}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input value={password} onChange={e => setPassword(e.target.value)}
+                    type={showPassword ? 'text' : 'password'} placeholder="Your TARSYN password"
+                    style={{ ...inp, paddingRight: '44px' }} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </div>
+
+              <button onClick={handleSignIn} disabled={registering}
+                style={{ width: '100%', background: registering ? '#9B6B8E' : '#6B2D4E', color: '#FAF0E6', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+                {registering ? 'Signing in...' : 'Sign In & Join Group'}
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#7A5068', margin: 0 }}>
+                <span onClick={() => { setStep('profile'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
+                  Back to registration
+                </span>
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Create Your Account</h2>
+              <p style={{ color: '#7A5068', fontSize: '13px', margin: '0 0 20px' }}>Set up your account to access your member portal.</p>
+
+              {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Full Name</label>
+                <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" style={inp} />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="your@email.com" style={inp} />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input value={password} onChange={e => setPassword(e.target.value)}
+                    type={showPassword ? 'text' : 'password'} placeholder="Min. 6 characters"
+                    style={{ ...inp, paddingRight: '44px' }} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={lbl}>Confirm Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                    type={showConfirm ? 'text' : 'password'} placeholder="Repeat password"
+                    style={{ ...inp, paddingRight: '44px', borderColor: confirmPassword && password !== confirmPassword ? '#E53935' : '#E8D5E0' }} />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
+                    {showConfirm ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <p style={{ color: '#E53935', fontSize: '12px', margin: '4px 0 0' }}>Passwords do not match</p>
+                )}
+              </div>
+
+              <button onClick={handleRegister} disabled={registering}
+                style={{ width: '100%', background: registering ? '#9B6B8E' : '#6B2D4E', color: '#FAF0E6', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+                {registering ? 'Creating account...' : 'Create My Account'}
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#7A5068', margin: 0 }}>
+                Already have an account?{' '}
+                <span onClick={() => { setStep('signin'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
+                  Sign In
+                </span>
+              </p>
+            </>
           )}
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Full Name</label>
-            <input
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="Your full name"
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Email</label>
-            <input
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              type="email"
-              placeholder="your@email.com"
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                style={{ width: '100%', padding: '12px 44px 12px 14px', border: '1.5px solid #E8D5E0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#888' }}>
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', color: '#6B2D4E', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Confirm Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                type={showConfirm ? 'text' : 'password'}
-                placeholder="••••••••"
-                style={{ width: '100%', padding: '12px 44px 12px 14px', border: `1.5px solid ${confirmPassword && password !== confirmPassword ? '#E53935' : '#E8D5E0'}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-              />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#888' }}>
-                {showConfirm ? '🙈' : '👁️'}
-              </button>
-            </div>
-            {confirmPassword && password !== confirmPassword && (
-              <p style={{ color: '#E53935', fontSize: '12px', margin: '4px 0 0' }}>Passwords do not match</p>
-            )}
-          </div>
-
-          <button onClick={handleRegister} disabled={registering}
-            style={{ width: '100%', background: registering ? '#9B6B8E' : '#6B2D4E', color: '#FAF0E6', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer' }}>
-            {registering ? 'Creating account...' : 'Create My Account'}
-          </button>
-
-          <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px', color: '#7A5068' }}>
-            Already have an account?{' '}
-            <a href="/login" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>Sign In</a>
-          </p>
         </div>
       </div>
     </div>
