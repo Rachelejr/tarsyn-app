@@ -72,15 +72,15 @@ export default function AddMember() {
     if (!country) { setError('Country is required.'); return false; }
     if (!position || parseInt(position) < 1) { setError('Position must be a positive number.'); return false; }
     if (!payoutDate) { setError('Payout date is required.'); return false; }
-    const dupPosition = existingMembers.find(m => m.position === parseInt(position));
+    const dupPosition = existingMembers.find(m => m.position === parseInt(position) && m.groupId === groupId);
     if (dupPosition) { setError(`Position ${position} is already taken by ${dupPosition.name}.`); return false; }
     if (email) {
-      const dupEmail = existingMembers.find(m => m.email === email.trim());
-      if (dupEmail) { setError(`Email already used by ${dupEmail.name}.`); return false; }
+      const dupEmail = existingMembers.find(m => m.email === email.trim() && m.groupId === groupId);
+      if (dupEmail) { setError(`Email already used by ${dupEmail.name} in this group.`); return false; }
     }
     if (phone) {
-      const dupPhone = existingMembers.find(m => m.phone === phone.trim());
-      if (dupPhone) { setError(`Phone already used by ${dupPhone.name}.`); return false; }
+      const dupPhone = existingMembers.find(m => m.phone === phone.trim() && m.groupId === groupId);
+      if (dupPhone) { setError(`Phone already used by ${dupPhone.name} in this group.`); return false; }
     }
     return true;
   };
@@ -196,7 +196,6 @@ export default function AddMember() {
         </div>
 
         <div style={{ background: 'white', borderRadius: '18px', padding: '24px 28px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-
           <h1 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Add Member</h1>
           <p style={{ color: '#7A5068', fontSize: '12px', margin: '0 0 16px' }}>TYN-ID generated automatically · Position {position} auto-assigned</p>
 
