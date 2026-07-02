@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -42,6 +42,34 @@ export default function LoginPage() {
   };
 
   const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+  const detectDevice = () => {
+    if (typeof navigator === 'undefined') return 'Unknown device';
+    const ua = navigator.userAgent;
+    let os = 'Unknown OS';
+    if (ua.includes('Windows')) os = 'Windows';
+    else if (ua.includes('Mac')) os = 'macOS';
+    else if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+    else if (ua.includes('Linux')) os = 'Linux';
+    let browser = 'Unknown browser';
+    if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+    else if (ua.includes('Edg')) browser = 'Edge';
+    return `${browser} on ${os}`;
+  };
+
+  const logLoginHistory = async (uid: string) => {
+    try {
+      await addDoc(collection(db, 'login_history'), {
+        userId: uid,
+        device: detectDevice(),
+        action: 'Signed in',
+        createdAt: serverTimestamp(),
+      });
+    } catch (e) { /* silent - history is best-effort */ }
+  };
 
   const sendOTP = async (uid: string, uEmail: string) => {
     const otp = generateOTP();
@@ -99,6 +127,7 @@ export default function LoginPage() {
       }
       if (entered !== otp) { setError('Incorrect code. Please try again.'); setLoading(false); return; }
       await deleteDoc(doc(db, 'otp_codes', userId));
+      await logLoginHistory(userId);
       await redirectByRole(userId, userEmail);
     } catch {
       setError('Verification error. Please try again.');
@@ -164,7 +193,6 @@ export default function LoginPage() {
               {resendMsg}
             </div>
           )}
-          )}
 
           <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.75rem' }}>
             Enter your code
@@ -213,8 +241,12 @@ export default function LoginPage() {
     <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
-        <div
-@'
+        <div style={{ marginBottom: '2rem' }}>
+          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6B2D4E' }}>TARSYN</p>
+          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY</p>
+        </div>
+
+        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
         <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Access your TARSYN account</p>
 
         {error && (
