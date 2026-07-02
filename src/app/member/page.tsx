@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, query, where, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, query, where, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
@@ -43,6 +43,7 @@ function MemberContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
+  const [branding, setBranding] = useState<{ orgName?: string; primaryColor?: string; logoUrl?: string } | null>(null);
 
   const fetchDocs = async (organizerId: string, currentUid: string) => {
     const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerId));
@@ -61,6 +62,10 @@ function MemberContent() {
     const gsnap = await getDocs(gq);
     if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name);
     else setGroupName(membership.groupName || 'Your Group');
+    try {
+      const orgDoc = await getDoc(doc(db, 'users', membership.organizerId));
+      setBranding(orgDoc.data()?.branding || null);
+    } catch (e) { setBranding(null); }
     await fetchDocs(membership.organizerId, currentUid);
   };
 
@@ -197,10 +202,16 @@ function MemberContent() {
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
       <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,45,78,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}@media (max-width: 600px) { .tarsyn-mem-nav { padding: 12px 16px !important; } .tarsyn-mem-container { padding: 18px 14px !important; } }'}} />
 
-      <nav className="tarsyn-mem-nav" style={{ background: C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav className="tarsyn-mem-nav" style={{ background: branding?.primaryColor || C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.dore, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: C.bordeaux, fontWeight: 800 }}>T</div>
-          <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
+          {branding?.logoUrl ? (
+            <img src={branding.logoUrl} alt="Logo" style={{ maxHeight: '32px', maxWidth: '140px' }} />
+          ) : (
+            <>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.dore, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: C.bordeaux, fontWeight: 800 }}>T</div>
+              <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>{branding?.orgName || 'TARSYN'}</div>
+            </>
+          )}
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
           style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.dore, padding: '7px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
@@ -226,7 +237,7 @@ function MemberContent() {
           </div>
         )}
 
-        <div style={{ background: 'linear-gradient(135deg, ' + C.bordeaux + ' 0%, #4A1F38 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)' }}>
+        <div style={{ background: 'linear-gradient(135deg, ' + (branding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)' }}>
           <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 800, margin: '0 0 16px' }}>{groupName || 'Your Group'}</h1>
           {activeMember && (
             <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
