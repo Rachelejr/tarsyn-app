@@ -84,8 +84,21 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 900px) {
+          .tarsyn-groups-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .tarsyn-dash-container { padding: 16px 16px 0 !important; }
+        }
+        @media (max-width: 600px) {
+          .tarsyn-groups-grid { grid-template-columns: 1fr !important; }
+          .tarsyn-dash-header { padding: 12px 16px !important; }
+          .tarsyn-dash-header h1 { font-size: 17px !important; }
+          .tarsyn-dash-title-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px; }
+          .tarsyn-dash-title-row > button { width: 100%; }
+        }
+      `}} />
 
-      <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div className="tarsyn-dash-header" style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>
           <h1 style={{ color: C.orLight, fontSize: 20, fontWeight: 700, margin: 0, letterSpacing: 1 }}>TARSYN</h1>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, margin: '2px 0 0' }}>Community Savings Dashboard</p>
@@ -98,8 +111,8 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      <div style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: '24px 24px 0', boxSizing: 'border-box' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+      <div className="tarsyn-dash-container" style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: '24px 24px 0', boxSizing: 'border-box' }}>
+        <div className="tarsyn-dash-title-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, margin: 0 }}>My Groups</h2>
             <p style={{ fontSize: 12, color: C.muted, margin: '3px 0 0' }}>{groups.length} group{groups.length !== 1 ? 's' : ''}</p>
@@ -144,7 +157,7 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+          <div className="tarsyn-groups-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
             {groups.map((g) => (
               <div
                 key={g.id}
