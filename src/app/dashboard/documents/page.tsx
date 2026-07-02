@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -225,14 +225,14 @@ export default function DocumentsPage() {
   };
 
   const formatSize = (bytes: number) => {
-    if (!bytes) return '—';
+    if (!bytes) return '-';
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const formatDate = (ts: any) => {
-    if (!ts?.seconds) return '—';
+    if (!ts?.seconds) return '-';
     return new Date(ts.seconds * 1000).toLocaleDateString() + ' ' + new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
@@ -257,7 +257,7 @@ export default function DocumentsPage() {
   );
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
+    <div className="tarsyn-docs-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{__html: `
         .doc-row{transition:all .15s ease;cursor:pointer;}
         .doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(74,31,56,0.10);}
@@ -268,15 +268,26 @@ export default function DocumentsPage() {
         .star:hover{transform:scale(1.2);}
         .scroll-thin::-webkit-scrollbar{width:6px;}
         .scroll-thin::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px;}
+        @media (max-width: 900px) {
+          .tarsyn-docs-root { height: auto !important; min-height: 100vh; overflow: visible !important; }
+          .tarsyn-docs-main { flex-direction: column !important; height: auto !important; overflow: visible !important; }
+          .tarsyn-docs-list { width: 100% !important; max-height: 320px; }
+          .tarsyn-docs-detail { min-height: 400px; }
+        }
+        @media (max-width: 600px) {
+          .tarsyn-docs-topbar { padding: 12px 16px !important; }
+          .tarsyn-docs-topbar h1 { font-size: 15px !important; }
+          .tarsyn-docs-actions { flex-wrap: wrap !important; }
+        }
       `}} />
 
       {/* TOP BAR - group info */}
-      <div style={{ flexShrink: 0, background: C.bleu, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="tarsyn-docs-topbar" style={{ flexShrink: 0, background: C.bleu, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>←</button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}><</button>
           <div>
             <h1 style={{ color: 'white', fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} · {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
@@ -286,10 +297,10 @@ export default function DocumentsPage() {
       </div>
 
       {/* MAIN ROW - list (left) + selected doc (right) */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0, padding: '16px', gap: '16px' }}>
+      <div className="tarsyn-docs-main" style={{ flex: 1, display: 'flex', minHeight: 0, padding: '16px', gap: '16px' }}>
 
         {/* LEFT - Documents list */}
-        <div style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
+        <div className="tarsyn-docs-list" style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
           <div style={{ padding: '16px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -338,7 +349,7 @@ export default function DocumentsPage() {
                   <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: C.ivoire, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: icon.color, flexShrink: 0 }}>{icon.label}</div>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ color: C.texteFonce, fontWeight: 700, fontSize: '12.5px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</p>
-                    <p style={{ color: C.texteGris, fontSize: '11px', margin: '2px 0 0' }}>{formatSize(d.size)} · {d.category}</p>
+                    <p style={{ color: C.texteGris, fontSize: '11px', margin: '2px 0 0' }}>{formatSize(d.size)} - {d.category}</p>
                   </div>
                 </div>
               );
@@ -347,7 +358,7 @@ export default function DocumentsPage() {
         </div>
 
         {/* RIGHT - Selected document + tabs */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, gap: '16px' }}>
+        <div className="tarsyn-docs-detail" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, gap: '16px' }}>
 
           {!selectedDoc ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)' }}>
@@ -356,15 +367,15 @@ export default function DocumentsPage() {
           ) : (
             <>
               {/* Selected doc panel */}
-              <div style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <div className="tarsyn-docs-panel" style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: getFileIcon(selectedDoc.type).color, flexShrink: 0 }}>
                   {getFileIcon(selectedDoc.type).label}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: '160px' }}>
                   <p style={{ color: C.texteFonce, fontWeight: 800, fontSize: '15px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedDoc.name}</p>
-                  <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>{formatSize(selectedDoc.size)} · {selectedDoc.category} · v{selectedDoc.version || 1}</p>
+                  <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>{formatSize(selectedDoc.size)} - {selectedDoc.category} - v{selectedDoc.version || 1}</p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <div className="tarsyn-docs-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <a href={selectedDoc.url} target="_blank" rel="noreferrer" onClick={() => logAction('Previewed')}
                     style={{ background: C.ivoire, color: C.bleuFonce, border: `1.5px solid ${C.bleu}`, padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
                   <button onClick={handleDownload} style={{ background: C.bleu, color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Download</button>
@@ -393,7 +404,7 @@ export default function DocumentsPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '600px' }}>
                       {[
                         ['Name', selectedDoc.name],
-                        ['Type', selectedDoc.type || '—'],
+                        ['Type', selectedDoc.type || '-'],
                         ['Size', formatSize(selectedDoc.size)],
                         ['Category', selectedDoc.category],
                         ['Uploaded', formatDate(selectedDoc.createdAt)],
@@ -412,7 +423,7 @@ export default function DocumentsPage() {
                   {activeTab === 'reviews' && (
                     <div style={{ maxWidth: '420px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
-                        <span style={{ fontSize: '30px', color: C.or }}>{'★'.repeat(Math.round(avgRating)) + '☆'.repeat(5 - Math.round(avgRating))}</span>
+                        <span style={{ fontSize: '30px', color: C.or }}>{'*'.repeat(Math.round(avgRating)) + 'o'.repeat(5 - Math.round(avgRating))}</span>
                         <div>
                           <p style={{ fontWeight: 800, fontSize: '18px', color: C.texteFonce, margin: 0 }}>{avgRating.toFixed(1)} / 5</p>
                           <p style={{ fontSize: '12px', color: C.texteGris, margin: 0 }}>{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
@@ -423,7 +434,7 @@ export default function DocumentsPage() {
                         <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
                           {[1, 2, 3, 4, 5].map(n => (
                             <span key={n} className="star" onClick={() => submitReview(n)}
-                              style={{ fontSize: '26px', color: n <= myRating ? C.or : C.border }}>★</span>
+                              style={{ fontSize: '26px', color: n <= myRating ? C.or : C.border }}>*</span>
                           ))}
                         </div>
                       ) : (
