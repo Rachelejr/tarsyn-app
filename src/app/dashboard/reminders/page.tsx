@@ -75,14 +75,14 @@ export default function RemindersPage() {
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
-      <p style={{ color: '#6E93AC', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+      <p style={{ color: '#B24C72', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
     </div>
   );
 
   return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
       {/* Nav */}
-      <nav style={{ background: '#6E93AC', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav style={{ background: '#B24C72', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button onClick={() => router.push('/dashboard')}
             style={{ background: 'transparent', border: 'none', color: '#E9C77B', cursor: 'pointer', fontSize: '20px' }}>←</button>
@@ -95,25 +95,25 @@ export default function RemindersPage() {
       </nav>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px' }}>
-        <h1 style={{ color: '#6E93AC', fontSize: '28px', fontWeight: 800, margin: '0 0 4px' }}>
+        <h1 style={{ color: '#B24C72', fontSize: '28px', fontWeight: 800, margin: '0 0 4px' }}>
           🔔 Send Reminders
         </h1>
-        <p style={{ color: '#6E93AC', fontSize: '15px', margin: '0 0 32px' }}>
+        <p style={{ color: '#B24C72', fontSize: '15px', margin: '0 0 32px' }}>
           {group?.name} · Notify members about upcoming contributions
         </p>
 
         {/* Options */}
         <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ color: '#6E93AC', fontWeight: 700, margin: '0 0 16px' }}>Reminder Details (optional)</h3>
+          <h3 style={{ color: '#B24C72', fontWeight: 700, margin: '0 0 16px' }}>Reminder Details (optional)</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ color: '#6E93AC', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Amount Due</label>
+              <label style={{ color: '#B24C72', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Amount Due</label>
               <input value={amount} onChange={e => setAmount(e.target.value)}
                 placeholder="e.g. 150"
                 style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E8D5C4', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label style={{ color: '#6E93AC', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Due Date</label>
+              <label style={{ color: '#B24C72', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Due Date</label>
               <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
                 style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E8D5C4', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
@@ -122,9 +122,9 @@ export default function RemindersPage() {
 
         {/* Send All */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <p style={{ color: '#6E93AC', fontSize: '14px', margin: 0 }}>{members.length} members with email</p>
+          <p style={{ color: '#B24C72', fontSize: '14px', margin: 0 }}>{members.length} members with email</p>
           <button onClick={sendAll}
-            style={{ background: '#6E93AC', color: '#FBEEDD', padding: '10px 24px', borderRadius: '10px', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}>
+            style={{ background: '#B24C72', color: '#FBEEDD', padding: '10px 24px', borderRadius: '10px', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}>
             📨 Send to All
           </button>
         </div>
@@ -132,19 +132,19 @@ export default function RemindersPage() {
         {/* Members list */}
         {members.length === 0 ? (
           <div style={{ background: 'white', borderRadius: '16px', padding: '32px', textAlign: 'center' }}>
-            <p style={{ color: '#6E93AC' }}>No members with email addresses found.</p>
+            <p style={{ color: '#B24C72' }}>No members with email addresses found.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {members.sort((a, b) => a.position - b.position).map(m => (
               <div key={m.id} style={{ background: 'white', borderRadius: '14px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '40px', height: '40px', background: '#6E93AC', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E9C77B', fontWeight: 800, fontSize: '14px' }}>
+                  <div style={{ width: '40px', height: '40px', background: '#B24C72', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E9C77B', fontWeight: 800, fontSize: '14px' }}>
                     {m.name?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p style={{ color: '#4A6B85', fontWeight: 700, margin: '0 0 2px', fontSize: '15px' }}>{m.name}</p>
-                    <p style={{ color: '#6E93AC', fontSize: '13px', margin: 0 }}>{m.email} · #{m.position}</p>
+                    <p style={{ color: '#8F3A5A', fontWeight: 700, margin: '0 0 2px', fontSize: '15px' }}>{m.name}</p>
+                    <p style={{ color: '#B24C72', fontSize: '13px', margin: 0 }}>{m.email} · #{m.position}</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -155,7 +155,7 @@ export default function RemindersPage() {
                     onClick={() => sendReminder(m)}
                     disabled={sending === m.id || sent.includes(m.id)}
                     style={{
-                      background: sent.includes(m.id) ? '#E8F5E9' : '#6E93AC',
+                      background: sent.includes(m.id) ? '#E8F5E9' : '#B24C72',
                       color: sent.includes(m.id) ? '#2E7D32' : '#FBEEDD',
                       padding: '8px 18px', borderRadius: '8px', border: 'none',
                       fontWeight: 600, cursor: sent.includes(m.id) ? 'default' : 'pointer',

@@ -1,0 +1,55 @@
+  }, [router]);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const startEdit = (g: Group) => {
+    setEditingGroupId(g.id);
+    setEditValue(String(g.numMembers || ''));
+  };
+
+  const saveMaxMembers = async (groupId: string) => {
+    const value = parseInt(editValue);
+    if (!value || value < 2) { alert('Please enter a number of 2 or more.'); return; }
+    try {
+      await updateDoc(doc(db, 'groups', groupId), { numMembers: value });
+      setGroups(prev => prev.map(g => g.id === groupId ? { ...g, numMembers: value } : g));
+      setEditingGroupId(null);
+    } catch (e) {
+      console.error(e);
+      alert('Could not update. Please try again.');
+    }
+  };
+
+  if (!mounted || loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: C.muted, fontFamily: 'Inter, sans-serif' }}>Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+
+      <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div>
+          <h1 style={{ color: C.orLight, fontSize: 20, fontWeight: 700, margin: 0, letterSpacing: 1 }}>TARSYN</h1>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, margin: '2px 0 0' }}>Community Savings Dashboard</p>
+        </div>
+        <button
+          onClick={() => auth.signOut().then(() => router.push('/login'))}
+          style={{ background: 'rgba(255,255,255,0.08)', color: C.orLight, border: '1px solid ' + C.or, borderRadius: 8, padding: '7px 14px', fontSize: 13, cursor: 'pointer' }}
+        >
+          Sign Out
+        </button>
+      </div>
+
+      <div style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: '24px 24px 0', boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, margin: 0 }}>My Groups</h2>
+            <p style={{ fontSize: 12, color: C.muted, margin: '3px 0 0' }}>{groups.length} group{groups.length !== 1 ? 's' : ''}</p>
+          </div>
+          <button
+            onClick={() => router.push('/dashboard/create-tontine')}
+            style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(233,199,123,0.3)' }}

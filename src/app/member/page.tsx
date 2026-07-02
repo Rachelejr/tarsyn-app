@@ -10,12 +10,12 @@ import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
 
 const C = {
-  bordeaux: '#6E93AC',
+  bordeaux: '#B24C72',
   dore: '#E9C77B',
   doreDark: '#C9A55E',
   creme: '#FBEEDD',
-  texteGris: '#6E93AC',
-  texteFonce: '#4A6B85',
+  texteGris: '#B24C72',
+  texteFonce: '#8F3A5A',
   border: '#EAD9BE',
 };
 
@@ -195,7 +195,7 @@ function MemberContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(110,147,172,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}'}} />
+      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(178,76,114,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}'}} />
 
       <nav style={{ background: C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -219,14 +219,14 @@ function MemberContent() {
                   background: activeMember?.id === m.id ? C.bordeaux : 'white',
                   color: activeMember?.id === m.id ? 'white' : C.bordeaux,
                   border: '2px solid ' + (activeMember?.id === m.id ? C.bordeaux : C.border),
-                  boxShadow: '0 2px 8px rgba(110,147,172,0.08)' }}>
+                  boxShadow: '0 2px 8px rgba(178,76,114,0.08)' }}>
                 {m.groupName || m.tynId || 'Group'}
               </div>
             ))}
           </div>
         )}
 
-        <div style={{ background: 'linear-gradient(135deg, ' + C.bordeaux + ' 0%, #4A6B85 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(110,147,172,0.18)' }}>
+        <div style={{ background: 'linear-gradient(135deg, ' + C.bordeaux + ' 0%, #8F3A5A 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(178,76,114,0.18)' }}>
           <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 800, margin: '0 0 16px' }}>{groupName || 'Your Group'}</h1>
           {activeMember && (
             <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
@@ -252,7 +252,7 @@ function MemberContent() {
           )}
         </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 16px rgba(110,147,172,0.07)' }}>
+        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 16px rgba(178,76,114,0.07)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
             <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>Documents</h2>
             <span style={{ fontSize: '12px', color: C.texteGris, fontWeight: 600 }}>{filteredDocs.length} file{filteredDocs.length !== 1 ? 's' : ''}</span>
@@ -349,7 +349,7 @@ function MemberContent() {
       </div>
 
       {showUploadModal && pendingFiles.length > 0 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(38,64,79,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(92,35,64,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '400px', width: '100%' }}>
             <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 6px' }}>
               Upload {pendingFiles.length > 1 ? pendingFiles.length + ' files' : 'Document'}

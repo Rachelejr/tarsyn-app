@@ -7,13 +7,13 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { listenToUserChats, listenToMessages, sendMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, ChatSummary, ChatMessage } from '@/lib/chat';
 
 const C = {
-  bordeaux: '#6E93AC',
-  bordeauxDark: '#4A6B85',
+  bordeaux: '#B24C72',
+  bordeauxDark: '#8F3A5A',
   bg: '#FBEEDD',
   white: '#FFFFFF',
   border: '#EAD9BE',
-  textGris: '#6E93AC',
-  textDark: '#4A6B85',
+  textGris: '#B24C72',
+  textDark: '#8F3A5A',
   dore: '#E9C77B',
 };
 

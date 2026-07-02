@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 
 const C = {
-  bordeaux:   '#6E93AC',
+  bordeaux:   '#B24C72',
   dore:       '#E9C77B',
   creme:      '#FBEEDD',
   roseClair:  '#EAD9BE',
-  roseMoyen:  '#C7D9E5',
-  texteFonce: '#4A6B85',
-  texteGris:  '#6E93AC',
+  roseMoyen:  '#F0D5DF',
+  texteFonce: '#8F3A5A',
+  texteGris:  '#B24C72',
 };
 
 const REGIONS = [
@@ -123,15 +123,15 @@ const TABS = [
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
-  border: `1.5px solid #C7D9E5`, borderRadius: '12px',
-  fontSize: '14px', color: '#4A6B85', background: '#FBEEDD',
+  border: `1.5px solid #F0D5DF`, borderRadius: '12px',
+  fontSize: '14px', color: '#8F3A5A', background: '#FBEEDD',
   boxSizing: 'border-box', outline: 'none',
   transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
 };
 
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#4A6B85', marginBottom: '8px', letterSpacing: '0.1px' }}>
+    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#8F3A5A', marginBottom: '8px', letterSpacing: '0.1px' }}>
       {label} {required && <span style={{ color: '#DC2626', fontSize: '12px' }}>*</span>}
     </label>
   );
@@ -158,7 +158,7 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
         <span style={{ color: C.texteGris, fontSize: '11px' }}>▾</span>
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(110,147,172,0.18)', zIndex: 30, maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(178,76,114,0.18)', zIndex: 30, maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
           <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search language..."
             style={{ border: 'none', borderBottom: `1px solid ${C.roseClair}`, padding: '10px 12px', fontSize: '13px', outline: 'none', flexShrink: 0 }} />
           <div style={{ overflowY: 'auto', flex: 1, scrollbarWidth: 'thin' }}>
@@ -360,7 +360,7 @@ export default function CreateTontinePage() {
       .tarsyn-btn { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
       .tarsyn-btn:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 0 8px 22px rgba(110,147,172,0.25);
+        box-shadow: 0 8px 22px rgba(178,76,114,0.25);
         filter: brightness(1.03);
       }
       .tarsyn-btn:active:not(:disabled) { transform: translateY(0); }
@@ -390,7 +390,7 @@ export default function CreateTontinePage() {
   if (savedGroup) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '520px', width: '100%', boxShadow: '0 12px 48px rgba(110,147,172,0.10), 0 2px 8px rgba(110,147,172,0.06)', textAlign: 'center' }}>
+      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '520px', width: '100%', boxShadow: '0 12px 48px rgba(178,76,114,0.10), 0 2px 8px rgba(178,76,114,0.06)', textAlign: 'center' }}>
         <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
           <CheckCircle2 size={32} color={C.bordeaux} strokeWidth={2} />
         </div>
@@ -439,7 +439,7 @@ export default function CreateTontinePage() {
   if (showReview) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
-      <div style={{ background: 'white', borderRadius: '24px', padding: '40px', maxWidth: '500px', width: '100%', boxShadow: '0 12px 48px rgba(110,147,172,0.10), 0 2px 8px rgba(110,147,172,0.06)' }}>
+      <div style={{ background: 'white', borderRadius: '24px', padding: '40px', maxWidth: '500px', width: '100%', boxShadow: '0 12px 48px rgba(178,76,114,0.10), 0 2px 8px rgba(178,76,114,0.06)' }}>
         <h2 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: '800', margin: '0 0 8px' }}>Review Your Tontine</h2>
         <p style={{ color: C.texteGris, fontSize: '14px', margin: '0 0 24px' }}>Please confirm before creating.</p>
         <div style={{ background: C.creme, borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
@@ -486,9 +486,9 @@ export default function CreateTontinePage() {
       <div className="tarsyn-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
 
         <div>
-          <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(110,147,172,0.08)', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(178,76,114,0.08)', overflow: 'hidden' }}>
 
-            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #5C82A0 100%)`, padding: '20px 28px' }}>
+            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #A13F63 100%)`, padding: '20px 28px' }}>
               <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ArrowLeft size={14} /> Back to Dashboard
@@ -792,7 +792,7 @@ export default function CreateTontinePage() {
                   ))}
                 </div>
                 <button className="tarsyn-btn" onClick={handleReview} disabled={!isFormValid || saving}
-                  style={{ padding: '13px 26px', background: !isFormValid ? '#E8DCC8' : C.bordeaux, color: !isFormValid ? '#9C8F78' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(110,147,172,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  style={{ padding: '13px 26px', background: !isFormValid ? '#E8DCC8' : C.bordeaux, color: !isFormValid ? '#9C8F78' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(178,76,114,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {saving ? 'Creating...' : <>Create Tontine <ArrowRight size={16} /></>}
                 </button>
               </div>
@@ -804,7 +804,7 @@ export default function CreateTontinePage() {
         </div>
 
         <div className="tarsyn-live-summary">
-          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(110,147,172,0.14), 0 2px 8px rgba(110,147,172,0.06)', border: `1px solid ${C.roseClair}` }}>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(178,76,114,0.14), 0 2px 8px rgba(178,76,114,0.06)', border: `1px solid ${C.roseClair}` }}>
             <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 10px', letterSpacing: '-0.1px' }}>Live Summary</h3>
 
             <div style={{ marginBottom: '16px' }}>
@@ -834,7 +834,7 @@ export default function CreateTontinePage() {
               </div>
             ))}
             {totalPool > 0 && (
-              <div style={{ marginTop: '14px', background: `linear-gradient(135deg, ${C.bordeaux}, #5C82A0)`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ marginTop: '14px', background: `linear-gradient(135deg, ${C.bordeaux}, #A13F63)`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
                 <p style={{ color: C.roseClair, fontSize: '11px', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL POOL</p>
                 <p className="tarsyn-summary-value" style={{ color: C.dore, fontSize: '22px', fontWeight: '800', margin: '0' }}>{totalPool} {currency}</p>
               </div>

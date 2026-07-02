@@ -1,0 +1,55 @@
+﻿'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
+
+interface Group {
+  id: string;
+  name: string;
+  contributionAmount: number;
+  frequency: string;
+  status?: string;
+  memberCount?: number;
+  numMembers?: number;
+  currentCycle?: number;
+  totalCycles?: number;
+  createdAt?: { seconds: number };
+}
+
+const C = {
+  bordeaux: '#6E93AC',
+  bordeauxDark: '#4A6B85',
+  or: '#E9C77B',
+  orLight: '#F0DCA8',
+  creme: '#FBEEDD',
+  blanc: '#FFFFFF',
+  text: '#1a1a1a',
+  muted: '#6b7280',
+};
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { router.push('/login'); return; }
+      try {
+        const q = query(
+          collection(db, 'groups'),
+          where('organizerId', '==', user.uid),
+          
+        );
+        const snap = await getDocs(q);
+        const list: Group[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
+        setGroups(list);
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    });
+    return () => unsub();

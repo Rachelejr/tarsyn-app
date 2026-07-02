@@ -19,8 +19,8 @@ interface Group {
 }
 
 const C = {
-  bordeaux: '#6E93AC',
-  bordeauxDark: '#4A6B85',
+  bordeaux: '#B24C72',
+  bordeauxDark: '#8F3A5A',
   or: '#E9C77B',
   orLight: '#F0DCA8',
   creme: '#FBEEDD',
@@ -43,7 +43,8 @@ export default function DashboardPage() {
       try {
         const q = query(
           collection(db, 'groups'),
-          where('organizerId', '==', user.uid)
+          where('organizerId', '==', user.uid),
+          
         );
         const snap = await getDocs(q);
         const list: Group[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
@@ -211,7 +212,7 @@ export default function DashboardPage() {
 
         <div style={{ padding: '32px 0 24px', textAlign: 'center' }}>
           <p style={{ fontSize: 11, color: C.muted, margin: 0, lineHeight: 2, letterSpacing: 0.3 }}>
-            Powered by TARSYN (TM) - A product of Ma Production Luxenn Zara LLC - (C) 2026 All Rights Reserved - v1.0.0
+            Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
           </p>
         </div>
       </div>

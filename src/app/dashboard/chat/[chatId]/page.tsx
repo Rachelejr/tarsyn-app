@@ -12,9 +12,9 @@ const C = {
   creme: '#FBEEDD',
   white: '#FFFFFF',
   gold: '#E9C77B',
-  bordeaux: '#6E93AC',
-  texteGris: '#6E93AC',
-  texteFonce: '#4A6B85',
+  bordeaux: '#B24C72',
+  texteGris: '#B24C72',
+  texteFonce: '#8F3A5A',
   border: '#EAD9BE',
 };
 
