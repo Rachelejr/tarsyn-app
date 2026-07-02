@@ -17,9 +17,9 @@ export default function RegisterPage() {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '13px 16px',
-    border: '1.5px solid #F0D5DF', borderRadius: '10px',
+    border: '1.5px solid #D9C0CC', borderRadius: '10px',
     fontSize: '15px', background: '#FBEEDD',
-    outline: 'none', color: '#8F3A5A', boxSizing: 'border-box',
+    outline: 'none', color: '#4A1F38', boxSizing: 'border-box',
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -72,18 +72,18 @@ export default function RegisterPage() {
       <div style={{minHeight:'100vh',background:'#FBEEDD',display:'flex',flexDirection:'column'}}>
         <Nav/>
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
-          <div style={{background:'white',border:'1px solid #F0D5DF',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',textAlign:'center',boxShadow:'0 8px 40px rgba(178,76,114,0.10)'}}>
+          <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',textAlign:'center',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
             <div style={{fontSize:'64px',marginBottom:'16px'}}>🎉</div>
-            <h2 style={{color:'#B24C72',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Account Created!</h2>
-            <p style={{color:'#B24C72',fontSize:'14px',lineHeight:'1.6',marginBottom:'24px'}}>
-              Welcome to TARSYN, <strong style={{color:'#B24C72'}}>{name}</strong>!<br/>
+            <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Account Created!</h2>
+            <p style={{color:'#6B2D4E',fontSize:'14px',lineHeight:'1.6',marginBottom:'24px'}}>
+              Welcome to TARSYN, <strong style={{color:'#6B2D4E'}}>{name}</strong>!<br/>
               Setting up your workspace...
             </p>
             <div style={{display:'flex',justifyContent:'center'}}>
-              <div style={{width:'28px',height:'28px',border:'3px solid #EAD9BE',borderTopColor:'#B24C72',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+              <div style={{width:'28px',height:'28px',border:'3px solid #EAD9BE',borderTopColor:'#6B2D4E',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <a href="/dashboard/create-workspace" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#A13F63',textDecoration:'underline'}}>
+            <a href="/dashboard/create-workspace" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#8B3A5E',textDecoration:'underline'}}>
               Continue now →
             </a>
           </div>
@@ -97,11 +97,11 @@ export default function RegisterPage() {
     <div style={{minHeight:'100vh',background:'#FBEEDD',display:'flex',flexDirection:'column'}}>
       <Nav/>
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
-        <div style={{background:'white',border:'1px solid #F0D5DF',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(178,76,114,0.10)'}}>
+        <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
           <div style={{textAlign:'center',marginBottom:'32px'}}>
-            <div style={{width:'56px',height:'56px',background:'#B24C72',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>✦</div>
-            <h1 style={{color:'#B24C72',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
-            <p style={{color:'#B24C72',fontSize:'14px'}}>Join the <strong style={{color:'#E9C77B'}}>TARSYN</strong> community</p>
+            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>✦</div>
+            <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
+            <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join the <strong style={{color:'#E9C77B'}}>TARSYN</strong> community</p>
           </div>
 
           {error && (
@@ -112,51 +112,51 @@ export default function RegisterPage() {
 
           <form onSubmit={handleRegister}>
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#8F3A5A',marginBottom:'7px'}}>Full Name *</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A1F38',marginBottom:'7px'}}>Full Name *</label>
               <input type="text" required value={name} onChange={e=>setName(e.target.value)} placeholder="Your full name" style={inp}/>
             </div>
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#8F3A5A',marginBottom:'7px'}}>Email Address *</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A1F38',marginBottom:'7px'}}>Email Address *</label>
               <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={inp}/>
             </div>
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#8F3A5A',marginBottom:'7px'}}>Password *</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A1F38',marginBottom:'7px'}}>Password *</label>
               <div style={{position:'relative'}}>
                 <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="********" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowPass(!showPass)}
-                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#B24C72',fontWeight:600}}>
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#6B2D4E',fontWeight:600}}>
                   {showPass?'Hide':'Show'}
                 </button>
               </div>
             </div>
             <div style={{marginBottom:'24px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#8F3A5A',marginBottom:'7px'}}>Confirm Password *</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A1F38',marginBottom:'7px'}}>Confirm Password *</label>
               <div style={{position:'relative'}}>
                 <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="********" style={{...inp,paddingRight:'44px'}}/>
                 <button type="button" onClick={()=>setShowConfirm(!showConfirm)}
-                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#B24C72',fontWeight:600}}>
+                  style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#6B2D4E',fontWeight:600}}>
                   {showConfirm?'Hide':'Show'}
                 </button>
               </div>
             </div>
             <button type="submit" disabled={loading}
-              style={{width:'100%',padding:'14px',background:'#B24C72',color:'#FBEEDD',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
+              style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FBEEDD',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
-          <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#B24C72',fontSize:'12px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#6B2D4E',fontSize:'12px'}}>
             <div style={{flex:1,height:'1px',background:'#EAD9BE'}}></div>or<div style={{flex:1,height:'1px',background:'#EAD9BE'}}></div>
           </div>
 
           <button onClick={handleGoogle}
-            style={{width:'100%',padding:'13px',background:'white',border:'1.5px solid #F0D5DF',borderRadius:'10px',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',color:'#8F3A5A',fontWeight:'500'}}>
+            style={{width:'100%',padding:'13px',background:'white',border:'1.5px solid #D9C0CC',borderRadius:'10px',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',color:'#4A1F38',fontWeight:'500'}}>
             <GoogleIcon/>
             Continue with Google
           </button>
 
-          <p style={{textAlign:'center',marginTop:'28px',fontSize:'13px',color:'#B24C72'}}>
-            Already have an account? <a href="/login" style={{color:'#A13F63',fontWeight:'700',textDecoration:'none'}}>Sign in</a>
+          <p style={{textAlign:'center',marginTop:'28px',fontSize:'13px',color:'#6B2D4E'}}>
+            Already have an account? <a href="/login" style={{color:'#8B3A5E',fontWeight:'700',textDecoration:'none'}}>Sign in</a>
           </p>
         </div>
       </div>
@@ -167,8 +167,8 @@ export default function RegisterPage() {
 
 function Nav() {
   return (
-    <nav style={{background:'#B24C72',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
-      <div style={{width:'38px',height:'38px',background:'#E9C77B',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#B24C72'}}>✦</div>
+    <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
+      <div style={{width:'38px',height:'38px',background:'#E9C77B',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}>✦</div>
       <div>
         <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px'}}>TARSYN</div>
         <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
@@ -179,7 +179,7 @@ function Nav() {
 
 function Footer() {
   return (
-    <footer style={{background:'#B24C72',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
+    <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
       <span style={{color:'#E9C77B'}}>TARSYN</span> — © 2026 Your Community. Your Power.
     </footer>
   );

@@ -4,7 +4,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, serverTimestamp } from 'firebase/firestore';
 
 const C = {
-  bordeaux: '#B24C72', bordeauxDark: '#8F3A5A',
+  bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
   or: '#E9C77B', orLight: '#F0DCA8',
   creme: '#FBEEDD', blanc: '#FFFFFF',
   text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb',
@@ -162,7 +162,7 @@ export default function DocumentComments({ documentId, currentUserName, currentU
 }
 
 function CommentCard({ c, user, currentUserRole, editId, editText, setEditId, setEditText, handleEdit, handleDelete, handlePin, handleReaction, formatDate, pinned }: any) {
-  const C = { bordeaux: '#B24C72', or: '#E9C77B', orLight: '#F0DCA8', creme: '#FBEEDD', blanc: '#FFFFFF', text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb' };
+  const C = { bordeaux: '#6B2D4E', or: '#E9C77B', orLight: '#F0DCA8', creme: '#FBEEDD', blanc: '#FFFFFF', text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb' };
   const isAuthor = user?.uid === c.authorId;
   const isAdmin = currentUserRole === 'admin' || currentUserRole === 'superadmin';
 

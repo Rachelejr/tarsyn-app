@@ -6,7 +6,7 @@ import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } f
 import { onAuthStateChanged } from 'firebase/auth';
 
 const C = {
-  bordeaux: '#B24C72', bordeauxDark: '#8F3A5A',
+  bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
   or: '#E9C77B', orLight: '#F0DCA8',
   creme: '#FBEEDD', blanc: '#FFFFFF',
   text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb',

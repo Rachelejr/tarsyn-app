@@ -8,7 +8,7 @@ import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/fire
 const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
 
 const C = {
-  bleu: '#B24C72', bleuFonce: '#8F3A5A', or: '#E9C77B',
+  bleu: '#6B2D4E', bleuFonce: '#4A1F38', or: '#E9C77B',
   creme: '#FBEEDD', ivoire: '#FFFDF7', border: '#EAD9BE',
   texteGris: '#7A9490', texteFonce: '#3A2F1F',
 };
@@ -114,7 +114,7 @@ export default function MigrateTynIdPage() {
           This only needs to be run once. Safe to leave this page afterwards.
         </p>
 
-        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '20px', boxShadow: '0 2px 12px rgba(143,58,90,0.08)' }}>
+        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '20px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)' }}>
           <h3 style={{ color: C.texteFonce, fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>
             Preview — {preview.length} member(s) will change
           </h3>
@@ -146,7 +146,7 @@ export default function MigrateTynIdPage() {
         )}
 
         {log.length > 0 && (
-          <div style={{ background: '#5C2340', color: '#B8E4DE', borderRadius: '10px', padding: '16px', marginTop: '20px', fontSize: '12px', fontFamily: 'monospace', maxHeight: '260px', overflowY: 'auto' }}>
+          <div style={{ background: '#2C1020', color: '#B8E4DE', borderRadius: '10px', padding: '16px', marginTop: '20px', fontSize: '12px', fontFamily: 'monospace', maxHeight: '260px', overflowY: 'auto' }}>
             {log.map((l, i) => <div key={i}>{l}</div>)}
           </div>
         )}

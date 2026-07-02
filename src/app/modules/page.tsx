@@ -4,13 +4,13 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 const C = {
-  bordeaux: '#B24C72',
+  bordeaux: '#6B2D4E',
   creme:    '#FBEEDD',
   dore:     '#E9C77B',
   rose:     '#EAD9BE',
-  texteGris:'#B24C72',
-  texteFonce:'#8F3A5A',
-  border:   '#F0D5DF',
+  texteGris:'#6B2D4E',
+  texteFonce:'#4A1F38',
+  border:   '#D9C0CC',
 };
 
 type ModuleDef = {
@@ -78,12 +78,12 @@ export default function ChooseModulePage() {
     <div style={{ minHeight: '100vh', background: C.creme, padding: '0 0 64px' }}>
       <style>{`
         .module-card { transition: all 0.2s ease; }
-        .module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(178,76,114,0.15); }
+        .module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(107,45,78,0.15); }
         .module-pill { transition: all 0.15s ease; cursor: pointer; }
       `}</style>
 
       {/* Header */}
-      <div style={{ background: `linear-gradient(160deg, ${C.bordeaux} 0%, #8F3A5A 100%)`, padding: '56px 32px 40px', textAlign: 'center' }}>
+      <div style={{ background: `linear-gradient(160deg, ${C.bordeaux} 0%, #4A1F38 100%)`, padding: '56px 32px 40px', textAlign: 'center' }}>
         <h1 style={{ color: 'white', fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
         <p style={{ color: 'rgba(251,238,221,0.8)', fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
       </div>
@@ -163,7 +163,7 @@ export default function ChooseModulePage() {
 
       {/* Activation modal */}
       {activating && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(92,35,64,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: '36px', marginBottom: '10px' }}>{activating.icon}</div>
             <h3 style={{ color: C.texteFonce, fontSize: '18px', fontWeight: 800, margin: '0 0 6px' }}>Activate {activating.title}</h3>

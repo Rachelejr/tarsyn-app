@@ -46,7 +46,7 @@ export default function TrialGuard({ children }: { children: React.ReactNode }) 
   if (checking) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
-        <p style={{ color: '#B24C72', fontSize: '16px', fontWeight: 600 }}>Loading...</p>
+        <p style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 600 }}>Loading...</p>
       </div>
     );
   }

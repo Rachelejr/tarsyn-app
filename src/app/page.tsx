@@ -172,23 +172,23 @@ export default function HomePage() {
       {showLangModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
           <div style={{background:'white',borderRadius:'16px',padding:'32px',maxWidth:'400px',width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}}>
-            <h3 style={{color:'#B24C72',marginBottom:'8px',fontSize:'18px',fontWeight:'700'}}>➕ Add Your Language</h3>
-            <p style={{color:'#B24C72',fontSize:'13px',marginBottom:'20px'}}>Your language isn't in the list? Tell us — we'll add it!</p>
+            <h3 style={{color:'#6B2D4E',marginBottom:'8px',fontSize:'18px',fontWeight:'700'}}>➕ Add Your Language</h3>
+            <p style={{color:'#6B2D4E',fontSize:'13px',marginBottom:'20px'}}>Your language isn't in the list? Tell us — we'll add it!</p>
             <input type="text" placeholder="Ex: Fon, Twi, Soninke, Zarma..."
               value={customLang}
               onChange={e=>setCustomLang(e.target.value)}
-              style={{width:'100%',padding:'12px 14px',border:'1.5px solid #F0D5DF',borderRadius:'8px',fontSize:'14px',outline:'none',marginBottom:'16px',boxSizing:'border-box' as any}}/>
+              style={{width:'100%',padding:'12px 14px',border:'1.5px solid #D9C0CC',borderRadius:'8px',fontSize:'14px',outline:'none',marginBottom:'16px',boxSizing:'border-box' as any}}/>
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>{
                 if(customLang.trim()){
                   alert(`✅ Thank you! "${customLang}" has been submitted. We will add it soon!`);
                   setShowLangModal(false); setCustomLang('');
                 } else { alert('Please enter a language name.'); }
-              }} style={{flex:1,padding:'12px',background:'#B24C72',color:'white',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
+              }} style={{flex:1,padding:'12px',background:'#6B2D4E',color:'white',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
                 Submit Language
               </button>
               <button onClick={()=>{setShowLangModal(false);setLang('en');}}
-                style={{padding:'12px 16px',background:'#EAD9BE',border:'none',borderRadius:'8px',fontSize:'14px',color:'#B24C72',cursor:'pointer',fontWeight:'600'}}>
+                style={{padding:'12px 16px',background:'#EAD9BE',border:'none',borderRadius:'8px',fontSize:'14px',color:'#6B2D4E',cursor:'pointer',fontWeight:'600'}}>
                 Cancel
               </button>
             </div>
@@ -197,30 +197,30 @@ export default function HomePage() {
       )}
 
       {/* ── NAVBAR — only place Sign In / Create Account appear "by default" since it's sticky ── */}
-      <nav style={{background:'#FBEEDD',padding:'14px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 16px rgba(178,76,114,0.12)',borderBottom:'1px solid #F0D5DF'}}>
+      <nav style={{background:'#FBEEDD',padding:'14px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 16px rgba(107,45,78,0.12)',borderBottom:'1px solid #D9C0CC'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-          <div className="logo-icon" style={{width:'40px',height:'40px',background:'#8F3A5A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',cursor:'pointer',color:'#E9C77B'}}>✦</div>
+          <div className="logo-icon" style={{width:'40px',height:'40px',background:'#4A1F38',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',cursor:'pointer',color:'#E9C77B'}}>✦</div>
           <div>
-            <div style={{color:'#B24C72',fontSize:'20px',fontWeight:'800',letterSpacing:'3px'}}>TARSYN</div>
-            <div style={{color:'#A13F63',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
+            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px'}}>TARSYN</div>
+            <div style={{color:'#8B3A5E',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
           <select value={lang} onChange={e=>handleLangChange(e.target.value)}
-            style={{padding:'7px 12px',borderRadius:'8px',border:'1.5px solid #F0D5DF',background:'white',color:'#B24C72',fontSize:'13px',cursor:'pointer',outline:'none',fontWeight:'500',maxWidth:'200px'}}>
+            style={{padding:'7px 12px',borderRadius:'8px',border:'1.5px solid #D9C0CC',background:'white',color:'#6B2D4E',fontSize:'13px',cursor:'pointer',outline:'none',fontWeight:'500',maxWidth:'200px'}}>
             {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
           </select>
-          <a href="/login" className="nav-link" style={{padding:'9px 22px',border:'1.5px solid #B24C72',borderRadius:'8px',color:'#B24C72',textDecoration:'none',fontSize:'14px',fontWeight:'600'}}>
+          <a href="/login" className="nav-link" style={{padding:'9px 22px',border:'1.5px solid #6B2D4E',borderRadius:'8px',color:'#6B2D4E',textDecoration:'none',fontSize:'14px',fontWeight:'600'}}>
             {t(lang,'signin')}
           </a>
-          <a href="/register" className="btn-gold" style={{padding:'9px 22px',background:'#B24C72',borderRadius:'8px',color:'#FBEEDD',textDecoration:'none',fontSize:'14px',fontWeight:'700',display:'inline-block'}}>
+          <a href="/register" className="btn-gold" style={{padding:'9px 22px',background:'#6B2D4E',borderRadius:'8px',color:'#FBEEDD',textDecoration:'none',fontSize:'14px',fontWeight:'700',display:'inline-block'}}>
             {t(lang,'cta')}
           </a>
         </div>
       </nav>
 
       {/* ── HERO — keeps its own CTA (primary conversion point); navbar above is sticky so always visible too ── */}
-      <div style={{background:'linear-gradient(160deg,#8F3A5A 0%,#A13F63 50%,#7A2E4C 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+      <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}} className="floating">🤝</div>
         <div style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}} className="floating">💰</div>
         <div style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}} className="floating">🌍</div>
@@ -233,7 +233,7 @@ export default function HomePage() {
           <h2 style={{color:'#E9C77B',fontSize:'52px',fontWeight:'800',marginBottom:'28px',fontStyle:'italic',lineHeight:'1.15'}}>{t(lang,'hero2')}</h2>
           <p style={{color:'rgba(251,238,221,0.85)',fontSize:'18px',maxWidth:'580px',margin:'0 auto 44px',lineHeight:'1.8'}}>{t(lang,'sub')}</p>
           <div style={{display:'flex',gap:'16px',justifyContent:'center',flexWrap:'wrap'}}>
-            <a href="/register" className="btn-gold" style={{padding:'16px 40px',background:'#E9C77B',borderRadius:'12px',color:'#B24C72',textDecoration:'none',fontSize:'16px',fontWeight:'800',display:'inline-block',boxShadow:'0 4px 20px rgba(233,199,123,0.3)'}}>
+            <a href="/register" className="btn-gold" style={{padding:'16px 40px',background:'#E9C77B',borderRadius:'12px',color:'#6B2D4E',textDecoration:'none',fontSize:'16px',fontWeight:'800',display:'inline-block',boxShadow:'0 4px 20px rgba(233,199,123,0.3)'}}>
               {t(lang,'cta')}
             </a>
             <a href="/login" className="btn-outline" style={{padding:'16px 40px',border:'2px solid rgba(251,238,221,0.4)',borderRadius:'12px',color:'#FBEEDD',textDecoration:'none',fontSize:'16px',display:'inline-block'}}>
@@ -254,17 +254,17 @@ export default function HomePage() {
       {/* ── AUTO / EXPERT MODE ── */}
       <div style={{background:'#FBEEDD',padding:'72px 32px',textAlign:'center'}}>
         <div style={{marginBottom:'16px'}}>
-          <span style={{background:'#EAD9BE',color:'#B24C72',fontSize:'11px',fontWeight:'700',letterSpacing:'2px',padding:'6px 18px',borderRadius:'20px'}}>CHOOSE YOUR EXPERIENCE</span>
+          <span style={{background:'#EAD9BE',color:'#6B2D4E',fontSize:'11px',fontWeight:'700',letterSpacing:'2px',padding:'6px 18px',borderRadius:'20px'}}>CHOOSE YOUR EXPERIENCE</span>
         </div>
-        <h3 style={{color:'#B24C72',fontSize:'34px',fontWeight:'800',marginBottom:'8px'}}>{t(lang,'modeTitle')}</h3>
-        <p style={{color:'#B24C72',fontSize:'15px',marginBottom:'44px'}}>{t(lang,'modeSubtitle')}</p>
+        <h3 style={{color:'#6B2D4E',fontSize:'34px',fontWeight:'800',marginBottom:'8px'}}>{t(lang,'modeTitle')}</h3>
+        <p style={{color:'#6B2D4E',fontSize:'15px',marginBottom:'44px'}}>{t(lang,'modeSubtitle')}</p>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'28px',maxWidth:'860px',margin:'0 auto'}}>
 
           <div className="mode-card"
             onMouseEnter={()=>setHoverMode('auto')}
             onMouseLeave={()=>setHoverMode(null)}
-            style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='auto'?'0 20px 48px rgba(178,76,114,0.22)':'0 4px 20px rgba(178,76,114,0.08)',border:`2px solid ${hoverMode==='auto'?'#B24C72':'#EAD9BE'}`}}>
-            <div style={{background:'linear-gradient(135deg,#B24C72,#A13F63)',padding:'32px 24px 24px',textAlign:'center'}}>
+            style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='auto'?'0 20px 48px rgba(107,45,78,0.22)':'0 4px 20px rgba(107,45,78,0.08)',border:`2px solid ${hoverMode==='auto'?'#6B2D4E':'#EAD9BE'}`}}>
+            <div style={{background:'linear-gradient(135deg,#6B2D4E,#8B3A5E)',padding:'32px 24px 24px',textAlign:'center'}}>
               <div style={{fontSize:'44px',marginBottom:'14px'}}>🤲</div>
               <div style={{color:'#E9C77B',fontSize:'22px',fontWeight:'800',letterSpacing:'2px'}}>{t(lang,'auto')}</div>
               <div style={{color:'#FBEEDD',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>100% AUTOMATIC — FOR EVERYONE</div>
@@ -273,12 +273,12 @@ export default function HomePage() {
               {AUTO_FEATURES.map((f,i)=>(
                 <div key={i} className="feature-row" style={{display:'flex',alignItems:'center',gap:'14px',padding:'11px 8px',borderBottom:i<AUTO_FEATURES.length-1?'1px solid #F3E9D6':'none',transition:'all 0.2s'}}>
                   <span style={{fontSize:'20px'}}>{f.icon}</span>
-                  <span style={{color:'#7A2E4C',fontSize:'14px',fontWeight:'500'}}>{f.key}</span>
+                  <span style={{color:'#3A1830',fontSize:'14px',fontWeight:'500'}}>{f.key}</span>
                 </div>
               ))}
-              <a href="/register?mode=auto" style={{display:'block',marginTop:'28px',padding:'15px',background:'#B24C72',borderRadius:'12px',color:'#FBEEDD',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s'}}
-                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='#A13F63';(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='#B24C72';(e.currentTarget as HTMLElement).style.transform='translateY(0)';}}>
+              <a href="/register?mode=auto" style={{display:'block',marginTop:'28px',padding:'15px',background:'#6B2D4E',borderRadius:'12px',color:'#FBEEDD',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s'}}
+                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='#8B3A5E';(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='#6B2D4E';(e.currentTarget as HTMLElement).style.transform='translateY(0)';}}>
                 {t(lang,'startAuto')}
               </a>
             </div>
@@ -288,7 +288,7 @@ export default function HomePage() {
             onMouseEnter={()=>setHoverMode('expert')}
             onMouseLeave={()=>setHoverMode(null)}
             style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='expert'?'0 20px 48px rgba(233,199,123,0.25)':'0 4px 20px rgba(0,0,0,0.15)',border:`2px solid ${hoverMode==='expert'?'#E9C77B':'#E8D5DF'}`}}>
-            <div style={{background:'linear-gradient(135deg,#7A2E4C,#A13F63)',padding:'32px 24px 24px',textAlign:'center'}}>
+            <div style={{background:'linear-gradient(135deg,#3A1830,#8B3A5E)',padding:'32px 24px 24px',textAlign:'center'}}>
               <div style={{fontSize:'44px',marginBottom:'14px'}}>⚡</div>
               <div style={{color:'#E9C77B',fontSize:'22px',fontWeight:'800',letterSpacing:'2px'}}>{t(lang,'expert')}</div>
               <div style={{color:'#FBEEDD',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>FULL CONTROL — FOR ADMINS</div>
@@ -297,10 +297,10 @@ export default function HomePage() {
               {EXPERT_FEATURES.map((f,i)=>(
                 <div key={i} className="feature-row" style={{display:'flex',alignItems:'center',gap:'14px',padding:'11px 8px',borderBottom:i<EXPERT_FEATURES.length-1?'1px solid rgba(233,199,123,0.12)':'none',transition:'all 0.2s'}}>
                   <span style={{fontSize:'20px'}}>{f.icon}</span>
-                  <span style={{color:'#7A2E4C',fontSize:'14px',fontWeight:'500'}}>{f.key}</span>
+                  <span style={{color:'#3A1830',fontSize:'14px',fontWeight:'500'}}>{f.key}</span>
                 </div>
               ))}
-              <a href="/register?mode=expert" style={{display:'block',marginTop:'28px',padding:'15px',background:'#E9C77B',borderRadius:'12px',color:'#B24C72',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s'}}
+              <a href="/register?mode=expert" style={{display:'block',marginTop:'28px',padding:'15px',background:'#E9C77B',borderRadius:'12px',color:'#6B2D4E',textDecoration:'none',fontSize:'15px',fontWeight:'700',textAlign:'center',transition:'all 0.2s'}}
                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='#c49a5a';(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';}}
                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='#E9C77B';(e.currentTarget as HTMLElement).style.transform='translateY(0)';}}>
                 {t(lang,'startExpert')}
@@ -311,7 +311,7 @@ export default function HomePage() {
       </div>
 
       {/* ── COMMUNITY PHOTO SLIDER ── */}
-      <div style={{background:'#8F3A5A',padding:'56px 32px',textAlign:'center'}}>
+      <div style={{background:'#4A1F38',padding:'56px 32px',textAlign:'center'}}>
         <h3 style={{color:'#E9C77B',fontSize:'20px',fontWeight:'700',marginBottom:'6px',letterSpacing:'2px'}}>COMMUNITIES AROUND THE WORLD</h3>
         <p style={{color:'#FBEEDD',fontSize:'13px',opacity:0.55,marginBottom:'28px',letterSpacing:'1px'}}>Every nation. Every community. One platform.</p>
         <div style={{maxWidth:'720px',margin:'0 auto',borderRadius:'20px',overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,0.5)',position:'relative',cursor:'pointer'}}
@@ -324,7 +324,7 @@ export default function HomePage() {
                 style={{width:i===activeImg?'28px':'8px',height:'8px',borderRadius:'4px',background:i===activeImg?'#E9C77B':'rgba(255,255,255,0.4)',cursor:'pointer',transition:'all 0.3s ease'}}></div>
             ))}
           </div>
-          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'linear-gradient(to top,rgba(92,35,64,0.65) 0%,transparent 55%)',pointerEvents:'none'}}></div>
+          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'linear-gradient(to top,rgba(44,16,32,0.65) 0%,transparent 55%)',pointerEvents:'none'}}></div>
           <div style={{position:'absolute',top:'50%',right:'16px',transform:'translateY(-50%)',background:'rgba(0,0,0,0.4)',borderRadius:'50%',width:'36px',height:'36px',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'18px',cursor:'pointer',zIndex:2}}>›</div>
         </div>
       </div>
@@ -334,8 +334,8 @@ export default function HomePage() {
         <div style={{display:'flex',justifyContent:'center',gap:'64px',flexWrap:'wrap'}}>
           {[['2,400+','Communities Worldwide'],['25','Languages Supported'],['100%','Automatic & Secure'],['∞','Members — No Limit']].map(([v,l])=>(
             <div key={l} style={{textAlign:'center'}}>
-              <div style={{fontSize:'38px',fontWeight:'800',color:'#B24C72'}}>{v}</div>
-              <div style={{fontSize:'13px',color:'#B24C72',marginTop:'6px',fontWeight:'500'}}>{l}</div>
+              <div style={{fontSize:'38px',fontWeight:'800',color:'#6B2D4E'}}>{v}</div>
+              <div style={{fontSize:'13px',color:'#6B2D4E',marginTop:'6px',fontWeight:'500'}}>{l}</div>
             </div>
           ))}
         </div>
@@ -343,8 +343,8 @@ export default function HomePage() {
 
       {/* ── HOW IT WORKS ── */}
       <div style={{background:'#FBEEDD',padding:'64px 32px',textAlign:'center'}}>
-        <h3 style={{color:'#B24C72',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>How it works</h3>
-        <p style={{color:'#B24C72',marginBottom:'44px',fontSize:'15px'}}>3 simple steps to get started</p>
+        <h3 style={{color:'#6B2D4E',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>How it works</h3>
+        <p style={{color:'#6B2D4E',marginBottom:'44px',fontSize:'15px'}}>3 simple steps to get started</p>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'24px',maxWidth:'800px',margin:'0 auto'}}>
           {[
             {step:'1',icon:'📝',title:'Create your group',desc:'Sign up, choose your mode and invite your members in minutes.'},
@@ -352,10 +352,10 @@ export default function HomePage() {
             {step:'3',icon:'🔄',title:'TARSYN handles the rest',desc:'Rotation, reminders, reports — all automatic. You focus on your community.'},
           ].map(s=>(
             <div key={s.step} style={{background:'white',border:'1px solid #EAD9BE',borderRadius:'16px',padding:'28px 20px',textAlign:'center'}}>
-              <div style={{width:'48px',height:'48px',background:'#B24C72',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',color:'#E9C77B',fontWeight:'800',fontSize:'18px'}}>{s.step}</div>
+              <div style={{width:'48px',height:'48px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',color:'#E9C77B',fontWeight:'800',fontSize:'18px'}}>{s.step}</div>
               <div style={{fontSize:'32px',marginBottom:'12px'}}>{s.icon}</div>
-              <div style={{fontWeight:'700',color:'#8F3A5A',fontSize:'16px',marginBottom:'8px'}}>{s.title}</div>
-              <div style={{fontSize:'13px',color:'#B24C72',lineHeight:'1.6'}}>{s.desc}</div>
+              <div style={{fontWeight:'700',color:'#4A1F38',fontSize:'16px',marginBottom:'8px'}}>{s.title}</div>
+              <div style={{fontSize:'13px',color:'#6B2D4E',lineHeight:'1.6'}}>{s.desc}</div>
             </div>
           ))}
         </div>
@@ -366,7 +366,7 @@ export default function HomePage() {
           now happens only after account + workspace creation (see New User Flow). */}
 
       {/* ── TESTIMONIALS — anonymized: photo + quote only, no name/country ── */}
-      <div style={{background:'linear-gradient(160deg,#8F3A5A 0%,#A13F63 50%,#7A2E4C 100%)',padding:'64px 32px',textAlign:'center'}}>
+      <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
         <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'44px',fontSize:'14px'}}>Real stories from real communities worldwide</p>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
@@ -386,18 +386,18 @@ export default function HomePage() {
 
       {/* ── FAQ ── */}
       <div style={{background:'#FBEEDD',padding:'64px 32px'}}>
-        <h3 style={{color:'#B24C72',fontSize:'30px',fontWeight:'800',marginBottom:'8px',textAlign:'center'}}>Frequently Asked Questions</h3>
-        <p style={{color:'#B24C72',marginBottom:'44px',textAlign:'center',fontSize:'15px'}}>Everything you need to know about TARSYN</p>
+        <h3 style={{color:'#6B2D4E',fontSize:'30px',fontWeight:'800',marginBottom:'8px',textAlign:'center'}}>Frequently Asked Questions</h3>
+        <p style={{color:'#6B2D4E',marginBottom:'44px',textAlign:'center',fontSize:'15px'}}>Everything you need to know about TARSYN</p>
         <div style={{maxWidth:'700px',margin:'0 auto',display:'flex',flexDirection:'column',gap:'8px'}}>
           {FAQ.map((f,i)=>(
             <div key={i} className="faq-item" style={{border:'1px solid #EAD9BE',borderRadius:'12px',overflow:'hidden',background:'white'}}>
               <div onClick={()=>setOpenFaq(openFaq===i?null:i)}
                 style={{padding:'18px 20px',display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}>
-                <span style={{fontWeight:'600',color:'#8F3A5A',fontSize:'15px'}}>{f.q}</span>
-                <span style={{color:'#B24C72',fontSize:'20px',fontWeight:'700',lineHeight:'1'}}>{openFaq===i?'−':'+'}</span>
+                <span style={{fontWeight:'600',color:'#4A1F38',fontSize:'15px'}}>{f.q}</span>
+                <span style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'700',lineHeight:'1'}}>{openFaq===i?'−':'+'}</span>
               </div>
               {openFaq===i&&(
-                <div style={{padding:'0 20px 18px',fontSize:'14px',color:'#B24C72',lineHeight:'1.7',borderTop:'1px solid #F3E9D6'}}>{f.a}</div>
+                <div style={{padding:'0 20px 18px',fontSize:'14px',color:'#6B2D4E',lineHeight:'1.7',borderTop:'1px solid #F3E9D6'}}>{f.a}</div>
               )}
             </div>
           ))}
@@ -405,7 +405,7 @@ export default function HomePage() {
       </div>
 
       {/* ── EMAIL SIGNUP ── */}
-      <div style={{background:'#B24C72',padding:'56px 32px',textAlign:'center'}}>
+      <div style={{background:'#6B2D4E',padding:'56px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'26px',fontWeight:'800',marginBottom:'8px'}}>Stay updated with TARSYN</h3>
         <p style={{color:'rgba(251,238,221,0.65)',marginBottom:'28px',fontSize:'14px'}}>Get notified when new languages and features are added</p>
         {emailSent ? (
@@ -417,7 +417,7 @@ export default function HomePage() {
             <input type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)}
               style={{flex:1,minWidth:'200px',padding:'12px 16px',borderRadius:'10px',border:'none',fontSize:'14px',outline:'none'}}/>
             <button onClick={handleEmailSubmit}
-              style={{padding:'12px 24px',background:'#E9C77B',border:'none',borderRadius:'10px',color:'#B24C72',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
+              style={{padding:'12px 24px',background:'#E9C77B',border:'none',borderRadius:'10px',color:'#6B2D4E',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
               Notify Me
             </button>
           </div>

@@ -19,8 +19,8 @@ interface Group {
 }
 
 const C = {
-  bordeaux: '#B24C72',
-  bordeauxDark: '#8F3A5A',
+  bordeaux: '#6B2D4E',
+  bordeauxDark: '#4A1F38',
   or: '#E9C77B',
   orLight: '#F0DCA8',
   creme: '#FBEEDD',

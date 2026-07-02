@@ -6,7 +6,7 @@ const COMPANY_NAME = 'Ma Production Luxenn Zara LLC';
 const CURRENT_YEAR = new Date().getFullYear();
 
 const C = {
-  bg: '#B24C72',
+  bg: '#6B2D4E',
   textFaint: 'rgba(251,238,221,0.7)',
   textGold: '#E9C77B',
   divider: 'rgba(255,255,255,0.12)',

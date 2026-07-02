@@ -6,11 +6,11 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 const C = {
-  bordeaux: '#B24C72',
+  bordeaux: '#6B2D4E',
   dore: '#E9C77B',
   creme: '#FBEEDD',
-  texteGris: '#B24C72',
-  texteFonce: '#8F3A5A',
+  texteGris: '#6B2D4E',
+  texteFonce: '#4A1F38',
   border: '#EAD9BE',
 };
 
@@ -154,7 +154,7 @@ export default function ReceiptPage() {
         </button>
       </div>
 
-      <div style={{ maxWidth: '500px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 8px 32px rgba(178,76,114,0.10)', border: `1px solid ${C.border}` }}>
+      <div style={{ maxWidth: '500px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.10)', border: `1px solid ${C.border}` }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px', borderBottom: `2px dashed ${C.border}`, paddingBottom: '20px' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: C.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontWeight: 800, color: C.dore, fontSize: '20px' }}>T</div>

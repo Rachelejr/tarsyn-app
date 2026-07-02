@@ -110,34 +110,34 @@ export default function JoinPage() {
     fontSize: '14px', outline: 'none', boxSizing: 'border-box',
   };
   const lbl: React.CSSProperties = {
-    display: 'block', color: '#B24C72',
+    display: 'block', color: '#6B2D4E',
     fontSize: '13px', fontWeight: 600, marginBottom: '6px',
   };
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#B24C72', fontWeight: 600 }}>Loading...</p>
+      <p style={{ color: '#6B2D4E', fontWeight: 600 }}>Loading...</p>
     </div>
   );
 
   if (notFound || !member) return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-      <h2 style={{ color: '#B24C72', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
-      <p style={{ color: '#B24C72', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
+      <h2 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
+      <p style={{ color: '#6B2D4E', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
       <p style={{ color: '#C62828', fontSize: '12px', margin: 0, fontFamily: 'monospace' }}>{debugInfo}</p>
-      <button onClick={() => router.push('/')} style={{ background: '#B24C72', color: '#FBEEDD', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
+      <button onClick={() => router.push('/')} style={{ background: '#6B2D4E', color: '#FBEEDD', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
     </div>
   );
 
   if (step === 'done') return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 8px 32px rgba(178,76,114,0.12)' }}>
-        <h2 style={{ color: '#B24C72', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome!</h2>
-        <p style={{ color: '#B24C72', fontSize: '14px', margin: '0 0 24px' }}>
-          You have joined <strong style={{ color: '#B24C72' }}>{group?.name || 'TARSYN'}</strong> successfully!
+      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
+        <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome!</h2>
+        <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 24px' }}>
+          You have joined <strong style={{ color: '#6B2D4E' }}>{group?.name || 'TARSYN'}</strong> successfully!
         </p>
         <button onClick={() => router.push('/member?groupId=' + (member.groupId || ''))}
-          style={{ width: '100%', background: '#B24C72', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
+          style={{ width: '100%', background: '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
           Go to My Portal
         </button>
       </div>
@@ -146,16 +146,16 @@ export default function JoinPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
-      <nav style={{ background: '#B24C72', padding: '16px 24px' }}>
+      <nav style={{ background: '#6B2D4E', padding: '16px 24px' }}>
         <div style={{ color: '#E9C77B', fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
       </nav>
 
       <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 16px 40px' }}>
 
-        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(178,76,114,0.12)', textAlign: 'center', marginBottom: '20px' }}>
-          <h1 style={{ color: '#B24C72', fontSize: '22px', fontWeight: 800, margin: '0 0 6px' }}>Welcome, {member.name}!</h1>
-          <p style={{ color: '#B24C72', fontSize: '14px', margin: '0 0 20px' }}>
-            You are invited to join <strong style={{ color: '#B24C72' }}>{group?.name || 'your group'}</strong>
+        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center', marginBottom: '20px' }}>
+          <h1 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: '0 0 6px' }}>Welcome, {member.name}!</h1>
+          <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 20px' }}>
+            You are invited to join <strong style={{ color: '#6B2D4E' }}>{group?.name || 'your group'}</strong>
           </p>
           <div style={{ background: '#FBEEDD', borderRadius: '16px', padding: '16px', textAlign: 'left' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -168,20 +168,20 @@ export default function JoinPage() {
                 { label: 'Member Type', value: member.memberType },
               ].map(item => (
                 <div key={item.label} style={{ background: 'white', borderRadius: '10px', padding: '10px' }}>
-                  <p style={{ color: '#B24C72', fontSize: '11px', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
-                  <p style={{ color: '#B24C72', fontWeight: 700, fontSize: '13px', margin: 0, fontFamily: (item as any).mono ? 'monospace' : 'inherit' }}>{item.value}</p>
+                  <p style={{ color: '#6B2D4E', fontSize: '11px', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
+                  <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: 0, fontFamily: (item as any).mono ? 'monospace' : 'inherit' }}>{item.value}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(178,76,114,0.12)' }}>
+        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
           {step === 'signin' ? (
             <>
-              <h2 style={{ color: '#B24C72', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Sign In to Join</h2>
-              <p style={{ color: '#B24C72', fontSize: '13px', margin: '0 0 20px' }}>
+              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Sign In to Join</h2>
+              <p style={{ color: '#6B2D4E', fontSize: '13px', margin: '0 0 20px' }}>
                 You already have a TARSYN account. Sign in to join <strong>{group?.name}</strong>.
               </p>
 
@@ -206,20 +206,20 @@ export default function JoinPage() {
               </div>
 
               <button onClick={handleSignIn} disabled={registering}
-                style={{ width: '100%', background: registering ? '#C97B96' : '#B24C72', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+                style={{ width: '100%', background: registering ? '#C4748E' : '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
                 {registering ? 'Signing in...' : 'Sign In & Join Group'}
               </button>
 
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#B24C72', margin: 0 }}>
-                <span onClick={() => { setStep('profile'); setError(''); }} style={{ color: '#B24C72', fontWeight: 700, cursor: 'pointer' }}>
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B2D4E', margin: 0 }}>
+                <span onClick={() => { setStep('profile'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
                   Back to registration
                 </span>
               </p>
             </>
           ) : (
             <>
-              <h2 style={{ color: '#B24C72', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Create Your Account</h2>
-              <p style={{ color: '#B24C72', fontSize: '13px', margin: '0 0 20px' }}>Set up your account to access your member portal.</p>
+              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Create Your Account</h2>
+              <p style={{ color: '#6B2D4E', fontSize: '13px', margin: '0 0 20px' }}>Set up your account to access your member portal.</p>
 
               {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
 
@@ -263,13 +263,13 @@ export default function JoinPage() {
               </div>
 
               <button onClick={handleRegister} disabled={registering}
-                style={{ width: '100%', background: registering ? '#C97B96' : '#B24C72', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+                style={{ width: '100%', background: registering ? '#C4748E' : '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
                 {registering ? 'Creating account...' : 'Create My Account'}
               </button>
 
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#B24C72', margin: 0 }}>
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B2D4E', margin: 0 }}>
                 Already have an account?{' '}
-                <span onClick={() => { setStep('signin'); setError(''); }} style={{ color: '#B24C72', fontWeight: 700, cursor: 'pointer' }}>
+                <span onClick={() => { setStep('signin'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
                   Sign In
                 </span>
               </p>

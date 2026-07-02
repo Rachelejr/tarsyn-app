@@ -12,8 +12,8 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import DocumentComments from '@/components/DocumentComments';
 
 const C = {
-  bleu: '#B24C72',
-  bleuFonce: '#8F3A5A',
+  bleu: '#6B2D4E',
+  bleuFonce: '#4A1F38',
   or: '#E9C77B',
   creme: '#FBEEDD',
   ivoire: '#FFFDF7',
@@ -260,7 +260,7 @@ export default function DocumentsPage() {
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{__html: `
         .doc-row{transition:all .15s ease;cursor:pointer;}
-        .doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(143,58,90,0.10);}
+        .doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(74,31,56,0.10);}
         .doc-row.active{border-color:${C.bleu} !important;background:${C.creme} !important;}
         .tab-btn{transition:all .15s ease;cursor:pointer;}
         .cat-pill{transition:all .15s ease;cursor:pointer;}
@@ -289,7 +289,7 @@ export default function DocumentsPage() {
       <div style={{ flex: 1, display: 'flex', minHeight: 0, padding: '16px', gap: '16px' }}>
 
         {/* LEFT - Documents list */}
-        <div style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(143,58,90,0.08)', overflow: 'hidden' }}>
+        <div style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
           <div style={{ padding: '16px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -350,13 +350,13 @@ export default function DocumentsPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, gap: '16px' }}>
 
           {!selectedDoc ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(143,58,90,0.08)' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)' }}>
               <p style={{ color: C.texteGris, fontSize: '14px' }}>Select a document to view details.</p>
             </div>
           ) : (
             <>
               {/* Selected doc panel */}
-              <div style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(143,58,90,0.08)', display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <div style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: getFileIcon(selectedDoc.type).color, flexShrink: 0 }}>
                   {getFileIcon(selectedDoc.type).label}
                 </div>
@@ -375,7 +375,7 @@ export default function DocumentsPage() {
               </div>
 
               {/* Tabs */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(143,58,90,0.08)', overflow: 'hidden' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
                   {TABS.map(t => (
                     <div key={t.key} className="tab-btn" onClick={() => setActiveTab(t.key)}

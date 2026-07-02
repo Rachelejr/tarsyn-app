@@ -77,13 +77,13 @@ function ResetPasswordInner() {
     return (
       <Shell>
         <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '0.75rem' }}>🔑</div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#B24C72', margin: '0 0 0.5rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem', textAlign: 'center' }}>
           Invalid Link
         </h1>
         <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
           {error}
         </p>
-        <a href="/forgot-password" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '0.75rem', background: '#B24C72', color: '#FBEEDD', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}>
+        <a href="/forgot-password" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '0.75rem', background: '#6B2D4E', color: '#FBEEDD', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}>
           Request New Link
         </a>
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
@@ -99,13 +99,13 @@ function ResetPasswordInner() {
     return (
       <Shell>
         <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '0.75rem' }}>🔑</div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#B24C72', margin: '0 0 0.5rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem', textAlign: 'center' }}>
           Password Updated
         </h1>
         <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
           Your password has been changed successfully. You can now sign in.
         </p>
-        <a href="/login" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '0.75rem', background: '#B24C72', color: '#FBEEDD', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}>
+        <a href="/login" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '0.75rem', background: '#6B2D4E', color: '#FBEEDD', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}>
           Back to Sign In
         </a>
       </Shell>
@@ -115,11 +115,11 @@ function ResetPasswordInner() {
   return (
     <Shell>
       <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '0.75rem' }}>🔑</div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#B24C72', margin: '0 0 0.4rem', textAlign: 'center' }}>
+      <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.4rem', textAlign: 'center' }}>
         Reset Your Password
       </h1>
       <p style={{ color: '#888', margin: '0 0 1.25rem', fontSize: '0.88rem', textAlign: 'center' }}>
-        for <strong style={{ color: '#B24C72' }}>{email}</strong>
+        for <strong style={{ color: '#6B2D4E' }}>{email}</strong>
       </p>
 
       {error && (
@@ -164,7 +164,7 @@ function ResetPasswordInner() {
         </div>
 
         <button type="submit" disabled={loading}
-          style={{ width: '100%', padding: '0.7rem', background: '#B24C72', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
+          style={{ width: '100%', padding: '0.7rem', background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
           {loading ? 'Updating...' : 'Reset Password'}
         </button>
       </form>
@@ -181,7 +181,7 @@ function ResetPasswordInner() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ background: '#fff', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '380px', boxShadow: '0 8px 32px rgba(178,76,114,0.12)' }}>
+      <div style={{ background: '#fff', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '380px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
         {children}
       </div>
     </div>
