@@ -432,6 +432,9 @@ function OverviewContent() {
             { title: 'Add Member', icon: '👤', path: '/dashboard/add-member' },
             { title: 'Digital Register', icon: '📋', path: '/dashboard/contribution-log' },
             { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
+            { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
+            { title: 'Audit Log', icon: '📜', path: '/dashboard/audit-log' },
+            { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
               style={{
