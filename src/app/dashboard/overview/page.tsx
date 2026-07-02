@@ -435,6 +435,7 @@ function OverviewContent() {
             { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
             { title: 'Audit Log', icon: '📜', path: '/dashboard/audit-log' },
             { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
+            { title: 'Security', icon: 'lock', path: '/dashboard/security' },
             { title: 'Security', icon: '🔒', path: '/dashboard/security' },
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
