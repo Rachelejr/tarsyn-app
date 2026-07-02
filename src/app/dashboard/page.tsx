@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
 
 interface Group {
   id: string;
@@ -12,6 +12,7 @@ interface Group {
   frequency: string;
   status?: string;
   memberCount?: number;
+  numMembers?: number;
   currentCycle?: number;
   totalCycles?: number;
   createdAt?: { seconds: number };
@@ -33,6 +34,8 @@ export default function DashboardPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -40,8 +43,7 @@ export default function DashboardPage() {
       try {
         const q = query(
           collection(db, 'groups'),
-          where('organizerId', '==', user.uid),
-          
+          where('organizerId', '==', user.uid)
         );
         const snap = await getDocs(q);
         const list: Group[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
@@ -53,6 +55,24 @@ export default function DashboardPage() {
   }, [router]);
 
   useEffect(() => { setMounted(true); }, []);
+
+  const startEdit = (g: Group) => {
+    setEditingGroupId(g.id);
+    setEditValue(String(g.numMembers || ''));
+  };
+
+  const saveMaxMembers = async (groupId: string) => {
+    const value = parseInt(editValue);
+    if (!value || value < 2) { alert('Please enter a number of 2 or more.'); return; }
+    try {
+      await updateDoc(doc(db, 'groups', groupId), { numMembers: value });
+      setGroups(prev => prev.map(g => g.id === groupId ? { ...g, numMembers: value } : g));
+      setEditingGroupId(null);
+    } catch (e) {
+      console.error(e);
+      alert('Could not update. Please try again.');
+    }
+  };
 
   if (!mounted || loading) {
     return (
@@ -134,8 +154,25 @@ export default function DashboardPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <div style={{ background: C.creme, borderRadius: 10, padding: '10px 12px' }}>
-                    <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Members</p>
-                    <p style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: '3px 0 0' }}>{g.memberCount || 0}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Members</p>
+                      {editingGroupId !== g.id && (
+                        <button onClick={() => startEdit(g)} title="Edit max members"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.bordeaux, fontSize: 11, padding: 0, fontWeight: 700, textDecoration: 'underline' }}>Edit</button>
+                      )}
+                    </div>
+                    {editingGroupId === g.id ? (
+                      <div style={{ display: 'flex', gap: 4, marginTop: 4, alignItems: 'center' }}>
+                        <input type="number" min={2} value={editValue} onChange={e => setEditValue(e.target.value)}
+                          style={{ width: 50, fontSize: 13, padding: '3px 5px', borderRadius: 6, border: '1px solid ' + C.orLight }} />
+                        <button onClick={() => saveMaxMembers(g.id)}
+                          style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                        <button onClick={() => setEditingGroupId(null)}
+                          style={{ background: 'none', border: 'none', color: C.muted, fontSize: 11, cursor: 'pointer' }}>Cancel</button>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: '3px 0 0' }}>{g.memberCount || 0} / {g.numMembers || '?'}</p>
+                    )}
                   </div>
                   <div style={{ background: C.creme, borderRadius: 10, padding: '10px 12px' }}>
                     <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Cycle</p>
@@ -174,7 +211,7 @@ export default function DashboardPage() {
 
         <div style={{ padding: '32px 0 24px', textAlign: 'center' }}>
           <p style={{ fontSize: 11, color: C.muted, margin: 0, lineHeight: 2, letterSpacing: 0.3 }}>
-            Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
+            Powered by TARSYN (TM) - A product of Ma Production Luxenn Zara LLC - (C) 2026 All Rights Reserved - v1.0.0
           </p>
         </div>
       </div>
