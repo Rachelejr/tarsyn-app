@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
 
@@ -167,6 +167,12 @@ export default function HomePage() {
         .nav-link{transition:all 0.2s ease;}
         .nav-link:hover{opacity:0.8;}
         select option{padding:8px;}
+        @media (max-width: 640px) {
+          .tarsyn-hero { padding: 60px 20px 50px !important; }
+          .tarsyn-hero h1, .tarsyn-hero h2 { font-size: 32px !important; }
+          .tarsyn-hero-deco { display: none !important; }
+          .tarsyn-hero p { font-size: 15px !important; }
+        }
       `}</style>
 
       {showLangModal && (
@@ -220,11 +226,11 @@ export default function HomePage() {
       </nav>
 
       {/* ── HERO — keeps its own CTA (primary conversion point); navbar above is sticky so always visible too ── */}
-      <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}} className="floating">🤝</div>
-        <div style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}} className="floating">💰</div>
-        <div style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}} className="floating">🌍</div>
-        <div style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}} className="floating">⭐</div>
+      <div className="tarsyn-hero" style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}}>🤝</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}}>💰</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}}>🌍</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}}>⭐</div>
         <div style={{position:'relative',zIndex:1}}>
           <div style={{display:'inline-block',background:'rgba(233,199,123,0.15)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'20px',padding:'6px 18px',marginBottom:'24px'}}>
             <span style={{color:'#E9C77B',fontSize:'12px',fontWeight:'600',letterSpacing:'2px'}}>🌍 {t(lang,'trusted')}</span>
