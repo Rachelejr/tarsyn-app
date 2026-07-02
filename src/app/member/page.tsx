@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -384,7 +384,9 @@ function MemberContent() {
 export default function MemberPage() {
   return (
     <TrialGuard>
-      <MemberContent />
+      <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
+        <MemberContent />
+      </Suspense>
     </TrialGuard>
   );
 }

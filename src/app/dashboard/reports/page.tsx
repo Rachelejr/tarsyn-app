@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -14,7 +14,7 @@ const C = {
 interface Contribution { id: string; memberName: string; amount: number; method?: string; date?: string; status: string; receiptNumber?: string; groupId: string; }
 interface Member { id: string; fullName: string; status: string; expectedAmount?: number; }
 
-export default function ReportsPage() {
+function ReportsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId') || '';
@@ -143,5 +143,13 @@ export default function ReportsPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
+      <ReportsContent />
+    </Suspense>
   );
 }

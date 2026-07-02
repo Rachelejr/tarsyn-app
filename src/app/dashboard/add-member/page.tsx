@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
@@ -24,7 +24,7 @@ const inputStyle = {
 
 const labelStyle = { fontSize: 12, fontWeight: 600, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5, display: 'block', marginBottom: 6 };
 
-export default function AddMemberPage() {
+function AddMemberContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId') || '';
@@ -42,8 +42,6 @@ export default function AddMemberPage() {
 
   useEffect(() => {
     setMounted(true);
-    const id = 'TYN-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-    setTynId(id);
   }, []);
 
   useEffect(() => {
@@ -56,6 +54,16 @@ export default function AddMemberPage() {
     };
     fetchCount();
   }, [groupId]);
+
+  // TYN-ID = [Initiale prenom][Initiale nom]-[numero sequentiel 3 chiffres], ex: JD-001
+  useEffect(() => {
+    const parts = form.fullName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) { setTynId(''); return; }
+    const firstInitial = parts[0][0]?.toUpperCase() || '';
+    const lastInitial = parts.length > 1 ? parts[parts.length - 1][0]?.toUpperCase() || '' : firstInitial;
+    const seq = String(nextPosition).padStart(3, '0');
+    setTynId(firstInitial + lastInitial + '-' + seq);
+  }, [form.fullName, nextPosition]);
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -264,5 +272,13 @@ export default function AddMemberPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AddMemberPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
+      <AddMemberContent />
+    </Suspense>
   );
 }

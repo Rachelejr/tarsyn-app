@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -36,7 +36,7 @@ const categoryColor = (cat: string) => {
   return map[cat] || { bg: '#f3f4f6', color: '#6b7280' };
 };
 
-export default function AuditLogPage() {
+function AuditLogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId') || '';
@@ -183,5 +183,13 @@ export default function AuditLogPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AuditLogPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
+      <AuditLogContent />
+    </Suspense>
   );
 }
