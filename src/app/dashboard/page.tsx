@@ -1,166 +1,182 @@
 ﻿'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
-export default function Dashboard() {
+interface Group {
+  id: string;
+  name: string;
+  contributionAmount: number;
+  frequency: string;
+  status?: string;
+  memberCount?: number;
+  currentCycle?: number;
+  totalCycles?: number;
+  createdAt?: { seconds: number };
+}
+
+const C = {
+  bordeaux: '#6B2D4E',
+  bordeauxDark: '#3F1732',
+  or: '#C8A24B',
+  orLight: '#E7D29A',
+  creme: '#FAF0E6',
+  blanc: '#FFFFFF',
+  text: '#1a1a1a',
+  muted: '#6b7280',
+};
+
+export default function DashboardPage() {
   const router = useRouter();
-  const [adminName, setAdminName] = useState('');
-  const [group, setGroup] = useState<any>(null);
-  const [members, setMembers] = useState<any[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) { router.push('/login'); return; }
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { router.push('/login'); return; }
       try {
-        const userDoc = await getDoc(doc(db, 'users', u.uid));
-        const userName = userDoc.exists() ? userDoc.data()?.name : null;
-        setAdminName(userName || u.displayName || u.email?.split('@')[0] || 'Admin');
-
-        const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
-        const gsnap = await getDocs(gq);
-        if (!gsnap.empty) {
-          const g = { id: gsnap.docs[0].id, ...gsnap.docs[0].data() };
-          setGroup(g);
-          const mq = query(collection(db, 'members'), where('organizerId', '==', u.uid));
-          const ms = await getDocs(mq);
-          setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
-        }
-      } catch(e) { console.error(e); }
+        const q = query(
+          collection(db, 'groups'),
+          where('organizerId', '==', user.uid),
+          
+        );
+        const snap = await getDocs(q);
+        const list: Group[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
+        setGroups(list);
+      } catch (e) { console.error(e); }
       setLoading(false);
     });
     return () => unsub();
   }, [router]);
 
-  if (loading) return (
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#FAF0E6'}}>
-      <p style={{color:'#6B2D4E',fontSize:'18px',fontWeight:600}}>Loading...</p>
-    </div>
-  );
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted || loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: C.muted, fontFamily: 'Inter, sans-serif' }}>Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{minHeight:'100vh',background:'#FAF0E6',fontFamily:'Inter, sans-serif'}}>
-      <style>{`
-        .action-card { transition: all 0.18s ease; cursor: pointer; }
-        .action-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(107,45,78,0.16) !important; }
-        .row-hover:hover { background: #FBF3EC !important; }
-      `}</style>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
 
-      <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <div onClick={() => router.push('/')} style={{display:'flex',alignItems:'center',gap:'10px',cursor:'pointer'}}>
-          <div style={{width:'36px',height:'36px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#6B2D4E',fontSize:'14px'}}>T</div>
-          <div>
-            <div style={{color:'#D4AF7A',fontWeight:800,fontSize:'18px'}}>TARSYN</div>
-            <div style={{color:'rgba(250,240,230,0.6)',fontSize:'10px',letterSpacing:'2px'}}>YOUR COMMUNITY</div>
-          </div>
+      <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div>
+          <h1 style={{ color: C.orLight, fontSize: 20, fontWeight: 700, margin: 0, letterSpacing: 1 }}>TARSYN</h1>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, margin: '2px 0 0' }}>Community Savings Dashboard</p>
         </div>
-        <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{background:'transparent',border:'1px solid rgba(212,175,122,0.5)',color:'#D4AF7A',padding:'6px 16px',borderRadius:'8px',cursor:'pointer',fontSize:'13px'}}>
+        <button
+          onClick={() => auth.signOut().then(() => router.push('/login'))}
+          style={{ background: 'rgba(255,255,255,0.08)', color: C.orLight, border: '1px solid ' + C.or, borderRadius: 8, padding: '7px 14px', fontSize: 13, cursor: 'pointer' }}
+        >
           Sign Out
         </button>
-      </nav>
+      </div>
 
-      <div style={{maxWidth:'960px',margin:'0 auto',padding:'40px 24px'}}>
-        <div style={{marginBottom:'32px'}}>
-          <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:800,margin:'0 0 4px'}}>
-            Welcome, {adminName} 👋
-          </h1>
-          <p style={{color:'#7A5068',fontSize:'15px',margin:0}}>
-            {group ? `${group.name} · ${group.module} · ${group.status}` : 'No group yet'}
-          </p>
+      <div style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: '24px 24px 0', boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, margin: 0 }}>My Groups</h2>
+            <p style={{ fontSize: 12, color: C.muted, margin: '3px 0 0' }}>{groups.length} group{groups.length !== 1 ? 's' : ''}</p>
+          </div>
+          <button
+            onClick={() => router.push('/dashboard/create-tontine')}
+            style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(200,162,75,0.3)' }}
+          >
+            + New Group
+          </button>
         </div>
 
-        {!group ? (
-          <div style={{background:'white',borderRadius:'20px',padding:'48px',textAlign:'center',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-            <div style={{fontSize:'48px',marginBottom:'16px'}}>🏠</div>
-            <h2 style={{color:'#6B2D4E',fontSize:'22px',fontWeight:800,margin:'0 0 8px'}}>Create your first group</h2>
-            <p style={{color:'#7A5068',fontSize:'14px',margin:'0 0 24px'}}>Set up your tontine or sol group to get started.</p>
-            <button onClick={() => router.push('/dashboard/create-tontine')}
-              style={{background:'#6B2D4E',color:'#FAF0E6',padding:'14px 32px',borderRadius:'12px',border:'none',fontSize:'16px',fontWeight:700,cursor:'pointer'}}>
-              + Create Group
-            </button>
+        {groups.length === 0 ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+            <div style={{ background: C.blanc, border: '1px solid #e5e7eb', borderRadius: 18, padding: '48px 40px', textAlign: 'center', width: '100%', maxWidth: 580, boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+              <div style={{ width: 60, height: 60, borderRadius: 14, background: C.creme, border: '2px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <span style={{ color: C.or, fontWeight: 700, fontSize: 26 }}>G</span>
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: C.text, margin: '0 0 10px' }}>No groups available</h3>
+              <p style={{ fontSize: 14, color: C.muted, margin: '0 0 28px', lineHeight: 1.6 }}>
+                Create your first group to get started.
+              </p>
+              <button
+                onClick={() => router.push('/dashboard/create-tontine')}
+                style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '12px 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(200,162,75,0.3)' }}
+              >
+                + New Group
+              </button>
+            </div>
           </div>
         ) : (
-          <>
-            {/* Stats */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
-              {[
-                {label:'Total Members',value:members.length,icon:'👥'},
-                {label:'Active Members',value:members.filter(m=>m.status==='active').length,icon:'✅'},
-                {label:'Pending Members',value:members.filter(m=>m.status==='pending').length,icon:'⏳'},
-              ].map((s,i) => (
-                <div key={i} style={{background:'white',borderRadius:'16px',padding:'20px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)',display:'flex',alignItems:'center',gap:'16px'}}>
-                  <span style={{fontSize:'28px'}}>{s.icon}</span>
-                  <div>
-                    <p style={{color:'#7A5068',fontSize:'12px',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>{s.label}</p>
-                    <p style={{color:'#6B2D4E',fontSize:'22px',fontWeight:800,margin:0}}>{s.value}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+            {groups.map((g) => (
+              <div
+                key={g.id}
+                style={{ background: C.blanc, border: '1px solid #e5e7eb', borderRadius: 16, padding: '22px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: 14 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: C.creme, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: C.bordeaux, flexShrink: 0 }}>
+                      {g.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: 0 }}>{g.name}</h3>
+                      <p style={{ fontSize: 11, color: C.muted, margin: '2px 0 0', textTransform: 'capitalize' }}>{g.frequency || 'Monthly'}</p>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: g.status === 'active' ? '#d1fae5' : '#fef3c7', color: g.status === 'active' ? '#065f46' : '#92400e', whiteSpace: 'nowrap' }}>
+                    {g.status ? g.status.charAt(0).toUpperCase() + g.status.slice(1) : 'Active'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ background: C.creme, borderRadius: 10, padding: '10px 12px' }}>
+                    <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Members</p>
+                    <p style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: '3px 0 0' }}>{g.memberCount || 0}</p>
+                  </div>
+                  <div style={{ background: C.creme, borderRadius: 10, padding: '10px 12px' }}>
+                    <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Cycle</p>
+                    <p style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: '3px 0 0' }}>{g.currentCycle || 1} / {g.totalCycles || '?'}</p>
+                  </div>
+                  <div style={{ background: C.creme, borderRadius: 10, padding: '10px 12px' }}>
+                    <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Amount</p>
+                    <p style={{ fontSize: 17, fontWeight: 700, color: C.or, margin: '3px 0 0' }}>${g.contributionAmount || 0}</p>
+                  </div>
+                  <div style={{ background: C.creme, borderRadius: 10, padding: '10px 12px' }}>
+                    <p style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Created</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: C.text, margin: '3px 0 0' }}>
+                      {g.createdAt ? new Date(g.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Actions - unified flexible grid (7 cards) */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:'16px',marginBottom:'24px'}}>
-              {[
-                {title:'Record Contribution',icon:'💰',path:'/dashboard/record-contribution'},
-                {title:'Add Member',icon:'👤',path:'/dashboard/add-member'},
-                {title:'Digital Register',icon:'📋',path:'/dashboard/contribution-log'},
-                {title:'Overview',icon:'⚡',path:'/dashboard/overview'},
-                {title:'Reminders',icon:'🔔',path:'/dashboard/reminders'},
-                {title:'Documents',icon:'📁',path:'/dashboard/documents'},
-                {title:'Subscription',icon:'💳',path:'/dashboard/subscription'},
-              ].map((a,i) => (
-                <div key={i} className="action-card" onClick={() => router.push(a.path)}
-                  style={{background:'white',border:'1.5px solid #E8D5C4',borderRadius:'16px',padding:'28px',boxShadow:'0 2px 10px rgba(107,45,78,0.06)'}}>
-                  <span style={{fontSize:'32px',display:'block',marginBottom:'12px'}}>{a.icon}</span>
-                  <p style={{color:'#6B2D4E',fontWeight:700,fontSize:'15px',margin:0}}>{a.title}</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => router.push('/dashboard/overview?groupId=' + g.id)}
+                    style={{ flex: 1, background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 9, padding: '9px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Open
+                  </button>
+                  <button
+                    onClick={() => router.push('/dashboard/contribution-log?groupId=' + g.id)}
+                    style={{ background: C.creme, color: C.bordeaux, border: '1px solid ' + C.orLight, borderRadius: 9, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Register
+                  </button>
                 </div>
-              ))}
-            </div>
-
-            {/* Members Table */}
-            <div style={{background:'white',borderRadius:'20px',padding:'28px',boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-                <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:700,margin:0}}>Members</h3>
-                <button onClick={() => router.push('/dashboard/add-member')}
-                  style={{background:'#6B2D4E',color:'#FAF0E6',padding:'8px 16px',borderRadius:'8px',border:'none',fontSize:'13px',fontWeight:700,cursor:'pointer'}}>
-                  + Add Member
-                </button>
               </div>
-              {members.length === 0 ? (
-                <p style={{color:'#7A5068',fontSize:'14px'}}>No members yet. Add your first member!</p>
-              ) : (
-                <table style={{width:'100%',borderCollapse:'collapse'}}>
-                  <thead>
-                    <tr style={{borderBottom:'2px solid #FAF0E6'}}>
-                      {['#','TYN-ID','Name','Status'].map(h => (
-                        <th key={h} style={{textAlign:'left',padding:'8px 12px',color:'#7A5068',fontSize:'12px',textTransform:'uppercase',letterSpacing:'1px'}}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {members.sort((a,b) => a.position - b.position).map((m) => (
-                      <tr key={m.id} className="row-hover" style={{borderBottom:'1px solid #FAF0E6'}}>
-                        <td style={{padding:'12px',color:'#6B2D4E',fontWeight:700}}>#{m.position}</td>
-                        <td style={{padding:'12px',color:'#7A5068',fontFamily:'monospace',fontSize:'13px'}}>{m.tynId}</td>
-                        <td style={{padding:'12px',color:'#2C1A3E',fontWeight:600}}>{m.name}</td>
-                        <td style={{padding:'12px'}}>
-                          <span style={{background:m.status==='active'?'#E8F5E9':'#FFF3E0',color:m.status==='active'?'#2E7D32':'#E65100',padding:'4px 10px',borderRadius:'20px',fontSize:'12px',fontWeight:600}}>
-                            {m.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </>
+            ))}
+          </div>
         )}
+
+        <div style={{ padding: '32px 0 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 11, color: C.muted, margin: 0, lineHeight: 2, letterSpacing: 0.3 }}>
+            Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
+          </p>
+        </div>
       </div>
     </div>
   );

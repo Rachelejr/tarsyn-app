@@ -71,7 +71,7 @@ export default function LoginPage() {
       setStep('2fa');
     } catch (err: any) {
       const msg: Record<string, string> = {
-        'auth/user-not-found': 'Aucun compte trouve.',
+        'auth/user-not-found': 'No account found.',
         'auth/wrong-password': 'Mot de passe incorrect.',
         'auth/invalid-email': 'Email invalide.',
         'auth/invalid-credential': 'Email ou mot de passe incorrect.',
@@ -294,7 +294,7 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
           Pas encore de compte ?{' '}
           <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
-            Creer un compte
+            Create an account
           </a>
         </div>
       </div>
