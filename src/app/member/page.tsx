@@ -96,14 +96,14 @@ function MemberContent() {
   };
 
   const formatSize = (bytes: number) => {
-    if (!bytes) return '—';
+    if (!bytes) return '-';
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const formatDate = (createdAt: any) => {
-    if (!createdAt?.seconds) return '—';
+    if (!createdAt?.seconds) return '-';
     return new Date(createdAt.seconds * 1000).toLocaleDateString();
   };
 
@@ -195,10 +195,10 @@ function MemberContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,45,78,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}'}} />
+      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,45,78,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}@media (max-width: 600px) { .tarsyn-mem-nav { padding: 12px 16px !important; } .tarsyn-mem-container { padding: 18px 14px !important; } }'}} />
 
-      <nav style={{ background: C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <nav className="tarsyn-mem-nav" style={{ background: C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.dore, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: C.bordeaux, fontWeight: 800 }}>T</div>
           <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
         </div>
@@ -208,7 +208,7 @@ function MemberContent() {
         </button>
       </nav>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 24px' }}>
+      <div className="tarsyn-mem-container" style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 24px' }}>
 
         {allMemberships.length > 1 && (
           <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -232,7 +232,7 @@ function MemberContent() {
             <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>Position</p>
-                <p style={{ color: C.dore, fontWeight: 800, fontSize: '17px', margin: 0 }}>#{activeMember.position || '—'}</p>
+                <p style={{ color: C.dore, fontWeight: 800, fontSize: '17px', margin: 0 }}>#{activeMember.position || '-'}</p>
               </div>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>Status</p>
@@ -242,11 +242,11 @@ function MemberContent() {
               </div>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>Payout Date</p>
-                <p style={{ color: 'white', fontWeight: 700, fontSize: '15px', margin: 0 }}>{activeMember.payoutDate || '—'}</p>
+                <p style={{ color: 'white', fontWeight: 700, fontSize: '15px', margin: 0 }}>{activeMember.payoutDate || '-'}</p>
               </div>
               <div>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 3px' }}>TYN-ID</p>
-                <p style={{ color: 'white', fontWeight: 700, margin: 0, fontFamily: 'monospace', fontSize: '14px' }}>{activeMember.tynId || '—'}</p>
+                <p style={{ color: 'white', fontWeight: 700, margin: 0, fontFamily: 'monospace', fontSize: '14px' }}>{activeMember.tynId || '-'}</p>
               </div>
             </div>
           )}
@@ -269,7 +269,7 @@ function MemberContent() {
             style={{ border: '2px dashed ' + (isDragging ? C.bordeaux : C.border), background: isDragging ? '#F3E9D6' : C.creme, borderRadius: '16px', padding: '28px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: '22px' }}>
             <div style={{ fontSize: '30px', marginBottom: '8px' }}>+</div>
             <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>Click to upload or drag and drop</p>
-            <p style={{ color: C.texteGris, fontSize: '12px', margin: 0 }}>Supports multiple files · PDF, Word, Excel, Images</p>
+            <p style={{ color: C.texteGris, fontSize: '12px', margin: 0 }}>Supports multiple files - PDF, Word, Excel, Images</p>
             <input ref={fileInputRef} type="file" multiple onChange={handleFileSelected} style={{ display: 'none' }} />
           </div>
 
@@ -316,7 +316,7 @@ function MemberContent() {
                             </span>
                           </div>
                           <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>
-                            {formatSize(d.size)} · {d.category} · {formatDate(d.createdAt)}
+                            {formatSize(d.size)} - {d.category} - {formatDate(d.createdAt)}
                           </p>
                         </div>
                       </div>
