@@ -12,11 +12,11 @@ const C = {
   cream: '#F8F4EC',
   creamAccent: '#F4E8D8',
   white: '#FFFFFF',
-  burgundy: '#5B2348',
-  burgundyDark: '#3F1732',
-  burgundySoft: '#7B4366',
-  gold: '#C8A24B',
-  goldLight: '#E7D29A',
+  burgundy: '#4A6B85',
+  burgundyDark: '#4A6B85',
+  burgundySoft: '#6E93AC',
+  gold: '#E9C77B',
+  goldLight: '#F0DCA8',
   gray: '#666666',
   lightGray: '#D9D9D9',
 };
@@ -298,7 +298,7 @@ function RegisterContent() {
             <div key={item.label} className="side-item" onClick={() => router.push(item.path)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px',
-                background: item.active ? 'rgba(200,162,75,0.18)' : 'transparent',
+                background: item.active ? 'rgba(233,199,123,0.18)' : 'transparent',
                 color: item.active ? C.gold : 'rgba(255,255,255,0.75)', fontSize: '13px', fontWeight: item.active ? 700 : 600,
               }}>
               <span style={{ fontSize: '15px' }}>{item.icon}</span> {item.label}
@@ -327,44 +327,44 @@ function RegisterContent() {
 
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px 28px 50px' }}>
           <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Collected</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{totalCollected.toLocaleString()}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>{payments[0]?.currency || ''}</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Expected</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{expected.toLocaleString()}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>{payments[0]?.currency || ''}</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Paid (Cycle {currentCycle})</p>
               <p style={{ color: C.gold, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{paidThisCycle}/{members.length}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>members</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Pending</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{pendingCount}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>payments</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Late</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{lateCount}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>payments</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Commission</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{commission.toFixed(2)}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>{group?.commissionRate || 1}%</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Top Method</p>
               <p style={{ color: C.burgundyDark, fontSize: '16px', fontWeight: 800, margin: '4px 0 0', textTransform: 'capitalize' }}>{topMethod}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>payment type</p>
             </div>
           </div>
 
-          <div className="fade-up no-print" style={{ background: C.white, borderRadius: '12px', padding: '16px 18px', marginBottom: '16px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="fade-up no-print" style={{ background: C.white, borderRadius: '12px', padding: '16px 18px', marginBottom: '16px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <input
               type="text" placeholder="Search by name or TYN-ID..." value={search} onChange={e => setSearch(e.target.value)}
               style={{ flex: 1, minWidth: '200px', padding: '9px 14px', borderRadius: '8px', border: `1px solid ${C.lightGray}`, fontSize: '13px', outline: 'none' }}
@@ -413,7 +413,7 @@ function RegisterContent() {
             {importMsg && <span style={{ fontSize: '12px', color: C.burgundyDark, fontWeight: 600 }}>{importMsg}</span>}
           </div>
 
-          <div className="fade-up" style={{ background: C.white, borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(91,35,72,0.06)', marginBottom: '24px' }}>
+          <div className="fade-up" style={{ background: C.white, borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(74,107,133,0.06)', marginBottom: '24px' }}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
                 <thead>
@@ -466,7 +466,7 @@ function RegisterContent() {
           </div>
 
           <div className="fade-up no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 14px' }}>Financial Summary</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <span style={{ color: C.gray, fontSize: '12px' }}>Total Collected</span>
@@ -487,12 +487,12 @@ function RegisterContent() {
               </div>
             </div>
 
-            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 14px', textAlign: 'center' }}>Participation</p>
               <DonutChart data={statusCounts} />
             </div>
 
-            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(91,35,72,0.06)' }}>
+            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(74,107,133,0.06)' }}>
               <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 14px' }}>Recent Activity</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto' }}>
                 {recentActivity.length === 0 && <p style={{ color: C.gray, fontSize: '12px' }}>No recent activity.</p>}

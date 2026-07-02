@@ -10,13 +10,13 @@ import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
 
 const C = {
-  bordeaux: '#6B2D4E',
-  dore: '#D4AF7A',
-  doreDark: '#B8945F',
-  creme: '#FAF0E6',
-  texteGris: '#7A5068',
-  texteFonce: '#2C1A3E',
-  border: '#E8D5E0',
+  bordeaux: '#6E93AC',
+  dore: '#E9C77B',
+  doreDark: '#C9A55E',
+  creme: '#FBEEDD',
+  texteGris: '#6E93AC',
+  texteFonce: '#4A6B85',
+  border: '#EAD9BE',
 };
 
 const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Receipts', 'Other'];
@@ -195,7 +195,7 @@ function MemberContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,45,78,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}'}} />
+      <style dangerouslySetInnerHTML={{__html: '.cat-pill{transition:all 0.15s ease;cursor:pointer;}.doc-row{transition:all 0.15s ease;}.doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(110,147,172,0.08);}.upload-zone{transition:all 0.2s ease;}.group-tab{transition:all 0.15s ease;cursor:pointer;}'}} />
 
       <nav style={{ background: C.bordeaux, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -203,7 +203,7 @@ function MemberContent() {
           <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: '1px solid rgba(212,175,122,0.5)', color: C.dore, padding: '7px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+          style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.dore, padding: '7px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
           Sign Out
         </button>
       </nav>
@@ -219,14 +219,14 @@ function MemberContent() {
                   background: activeMember?.id === m.id ? C.bordeaux : 'white',
                   color: activeMember?.id === m.id ? 'white' : C.bordeaux,
                   border: '2px solid ' + (activeMember?.id === m.id ? C.bordeaux : C.border),
-                  boxShadow: '0 2px 8px rgba(107,45,78,0.08)' }}>
+                  boxShadow: '0 2px 8px rgba(110,147,172,0.08)' }}>
                 {m.groupName || m.tynId || 'Group'}
               </div>
             ))}
           </div>
         )}
 
-        <div style={{ background: 'linear-gradient(135deg, ' + C.bordeaux + ' 0%, #4A2D5E 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)' }}>
+        <div style={{ background: 'linear-gradient(135deg, ' + C.bordeaux + ' 0%, #4A6B85 100%)', borderRadius: '20px', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 8px 24px rgba(110,147,172,0.18)' }}>
           <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 800, margin: '0 0 16px' }}>{groupName || 'Your Group'}</h1>
           {activeMember && (
             <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
@@ -252,7 +252,7 @@ function MemberContent() {
           )}
         </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 16px rgba(107,45,78,0.07)' }}>
+        <div style={{ background: 'white', borderRadius: '20px', padding: '28px', boxShadow: '0 2px 16px rgba(110,147,172,0.07)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
             <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>Documents</h2>
             <span style={{ fontSize: '12px', color: C.texteGris, fontWeight: 600 }}>{filteredDocs.length} file{filteredDocs.length !== 1 ? 's' : ''}</span>
@@ -266,7 +266,7 @@ function MemberContent() {
             onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            style={{ border: '2px dashed ' + (isDragging ? C.bordeaux : C.border), background: isDragging ? '#F8EEF3' : C.creme, borderRadius: '16px', padding: '28px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: '22px' }}>
+            style={{ border: '2px dashed ' + (isDragging ? C.bordeaux : C.border), background: isDragging ? '#F3E9D6' : C.creme, borderRadius: '16px', padding: '28px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: '22px' }}>
             <div style={{ fontSize: '30px', marginBottom: '8px' }}>+</div>
             <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '14px', margin: '0 0 4px' }}>Click to upload or drag and drop</p>
             <p style={{ color: C.texteGris, fontSize: '12px', margin: 0 }}>Supports multiple files · PDF, Word, Excel, Images</p>
@@ -349,7 +349,7 @@ function MemberContent() {
       </div>
 
       {showUploadModal && pendingFiles.length > 0 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,26,62,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(38,64,79,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '400px', width: '100%' }}>
             <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 6px' }}>
               Upload {pendingFiles.length > 1 ? pendingFiles.length + ' files' : 'Document'}

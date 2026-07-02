@@ -8,17 +8,17 @@ import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, X, Plus,
 } from 'lucide-react';
 
-// ── CHURCH MODULE V2.0 — OFFICIAL VISUAL IDENTITY (Approved Direction) ──
+// ── CHURCH MODULE V2.0 — OFFICIAL VISUAL IDENTITY (turquoise + rose bebe) ──
 const C = {
-  primary:    '#8C72C4',
-  secondary:  '#BFA8E8',
-  accent:     '#E7D7FF',
-  bg:         '#F7F5FC',
+  primary:    '#4FB8AE',   // turquoise
+  secondary:  '#F7B8C6',   // rose bebe
+  accent:     '#D7F0EC',   // turquoise tres pale
+  bg:         '#FBF6F2',   // fond neutre chaud tres clair
   cardBg:     '#FFFFFF',
-  borderSoft: '#E7D7FF',
-  borderMed:  '#CBB6EC',
-  textDark:   '#2C2440',
-  textGris:   '#7A6F94',
+  borderSoft: '#F0D9DF',   // bordure rose pale
+  borderMed:  '#B8E4DE',   // bordure turquoise pale
+  textDark:   '#1F4A46',   // texte fonce turquoise
+  textGris:   '#7A9490',   // gris-turquoise pour texte secondaire
   success:    '#5A8A6E',
   danger:     '#A14444',
 };
@@ -264,11 +264,11 @@ export default function CreateChurchPage() {
     <style jsx global>{`
       .church-field:focus {
         border-color: ${C.primary} !important;
-        box-shadow: 0 0 0 3px rgba(140,114,196,0.18);
+        box-shadow: 0 0 0 3px rgba(79,184,174,0.18);
         background: white !important;
       }
       .church-btn { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
-      .church-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(140,114,196,0.25); filter: brightness(1.03); }
+      .church-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(79,184,174,0.25); filter: brightness(1.03); }
       .church-btn:active:not(:disabled) { transform: translateY(0); }
       .church-pill { transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
       .church-pill:hover { transform: translateY(-1px); }
@@ -286,7 +286,7 @@ export default function CreateChurchPage() {
   if (saved) return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '480px', width: '100%', boxShadow: '0 12px 48px rgba(140,114,196,0.18)', textAlign: 'center' }}>
+      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '480px', width: '100%', boxShadow: '0 12px 48px rgba(79,184,174,0.18)', textAlign: 'center' }}>
         <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
           <CheckCircle2 size={32} color={C.primary} strokeWidth={2} />
         </div>
@@ -320,7 +320,7 @@ export default function CreateChurchPage() {
 
         <div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.primary}, ${C.secondary}, ${C.accent})`, borderRadius: '2px 2px 0 0' }} />
-          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.borderMed}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(140,114,196,0.10)', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.borderMed}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(79,184,174,0.10)', overflow: 'hidden' }}>
 
             <div style={{ background: `linear-gradient(150deg, ${C.primary} 0%, ${C.secondary} 100%)`, padding: '20px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
               <div>
@@ -731,7 +731,7 @@ export default function CreateChurchPage() {
                   ))}
                 </div>
                 <button className="church-btn" onClick={handleCreate} disabled={!isFormValid || saving}
-                  style={{ padding: '13px 26px', background: !isFormValid ? C.borderSoft : C.primary, color: !isFormValid ? '#9C8FB5' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: 700, cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : '0 4px 20px rgba(140,114,196,0.35)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  style={{ padding: '13px 26px', background: !isFormValid ? C.borderSoft : C.primary, color: !isFormValid ? '#9C8FB5' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: 700, cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : '0 4px 20px rgba(79,184,174,0.35)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {saving ? 'Creating...' : <>Create Church <ArrowRight size={16} /></>}
                 </button>
               </div>
@@ -744,7 +744,7 @@ export default function CreateChurchPage() {
         </div>
 
         <div className="church-summary">
-          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(140,114,196,0.18)', border: `1px solid ${C.borderSoft}` }}>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(79,184,174,0.18)', border: `1px solid ${C.borderSoft}` }}>
             <h3 style={{ color: C.primary, fontSize: '15px', fontWeight: 800, margin: '0 0 10px' }}>Live Summary</h3>
 
             <div style={{ marginBottom: '16px' }}>

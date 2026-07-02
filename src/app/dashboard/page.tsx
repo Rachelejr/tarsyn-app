@@ -18,11 +18,11 @@ interface Group {
 }
 
 const C = {
-  bordeaux: '#6B2D4E',
-  bordeauxDark: '#3F1732',
-  or: '#C8A24B',
-  orLight: '#E7D29A',
-  creme: '#FAF0E6',
+  bordeaux: '#6E93AC',
+  bordeauxDark: '#4A6B85',
+  or: '#E9C77B',
+  orLight: '#F0DCA8',
+  creme: '#FBEEDD',
   blanc: '#FFFFFF',
   text: '#1a1a1a',
   muted: '#6b7280',
@@ -86,7 +86,7 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={() => router.push('/dashboard/create-tontine')}
-            style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(200,162,75,0.3)' }}
+            style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(233,199,123,0.3)' }}
           >
             + New Group
           </button>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
               </p>
               <button
                 onClick={() => router.push('/dashboard/create-tontine')}
-                style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '12px 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(200,162,75,0.3)' }}
+                style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '12px 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(233,199,123,0.3)' }}
               >
                 + New Group
               </button>

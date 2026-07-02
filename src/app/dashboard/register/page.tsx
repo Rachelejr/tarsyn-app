@@ -56,31 +56,31 @@ export default function RegisterPage() {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '13px 16px',
-    border: '1.5px solid #D9C0CC', borderRadius: '10px',
-    fontSize: '15px', background: '#FAF0E6',
-    outline: 'none', color: '#2C1A24', boxSizing: 'border-box',
+    border: '1.5px solid #C7D9E5', borderRadius: '10px',
+    fontSize: '15px', background: '#FBEEDD',
+    outline: 'none', color: '#4A6B85', boxSizing: 'border-box',
   };
   const eyeBtn: React.CSSProperties = {
     position: 'absolute', right: '14px', top: '50%',
     transform: 'translateY(-50%)', background: 'none',
-    border: 'none', cursor: 'pointer', fontSize: '18px', color: '#7A5068', padding: '0',
+    border: 'none', cursor: 'pointer', fontSize: '18px', color: '#6E93AC', padding: '0',
   };
 
   // ── ÉTAPE VÉRIFICATION EMAIL ───────────────────────────────
   if (step === 'verify') {
     return (
-      <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
+      <div style={{minHeight:'100vh',background:'#FBEEDD',display:'flex',flexDirection:'column'}}>
         <Nav/>
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
-          <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)',textAlign:'center'}}>
+          <div style={{background:'white',border:'1px solid #C7D9E5',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(110,147,172,0.10)',textAlign:'center'}}>
             <div style={{fontSize:'64px',marginBottom:'16px'}}>📧</div>
-            <h2 style={{color:'#6B2D4E',fontSize:'26px',fontWeight:'700',marginBottom:'12px'}}>Check your email!</h2>
-            <p style={{color:'#7A5068',fontSize:'14px',lineHeight:'1.7',marginBottom:'20px'}}>
+            <h2 style={{color:'#6E93AC',fontSize:'26px',fontWeight:'700',marginBottom:'12px'}}>Check your email!</h2>
+            <p style={{color:'#6E93AC',fontSize:'14px',lineHeight:'1.7',marginBottom:'20px'}}>
               We sent a verification link to<br/>
-              <strong style={{color:'#6B2D4E'}}>{email}</strong><br/>
+              <strong style={{color:'#6E93AC'}}>{email}</strong><br/>
               Click the link in the email to activate your account.
             </p>
-            <div style={{background:'#EDD9E5',borderRadius:'12px',padding:'16px',marginBottom:'24px',fontSize:'13px',color:'#6B2D4E',textAlign:'left'}}>
+            <div style={{background:'#EAD9BE',borderRadius:'12px',padding:'16px',marginBottom:'24px',fontSize:'13px',color:'#6E93AC',textAlign:'left'}}>
               <div style={{fontWeight:'700',marginBottom:'8px'}}>📋 Next steps:</div>
               <div style={{lineHeight:'1.8'}}>
                 1. Open your email inbox<br/>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
                 4. You'll receive a 2FA code for extra security
               </div>
             </div>
-            <a href="/login" style={{display:'block',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',borderRadius:'10px',fontSize:'15px',fontWeight:'700',textDecoration:'none',marginBottom:'12px'}}>
+            <a href="/login" style={{display:'block',padding:'14px',background:'#6E93AC',color:'#FBEEDD',borderRadius:'10px',fontSize:'15px',fontWeight:'700',textDecoration:'none',marginBottom:'12px'}}>
               Go to Sign In
             </a>
             <button onClick={async()=>{
@@ -98,7 +98,7 @@ export default function RegisterPage() {
                 if(user) await sendEmailVerification(user);
                 alert('✅ New verification email sent!');
               } catch { alert('Error sending email.'); }
-            }} style={{background:'none',border:'none',color:'#C4748E',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
+            }} style={{background:'none',border:'none',color:'#5C82A0',fontSize:'13px',cursor:'pointer',fontWeight:'600'}}>
               🔄 Resend verification email
             </button>
           </div>
@@ -110,22 +110,22 @@ export default function RegisterPage() {
 
   // ── ÉTAPE REGISTER ─────────────────────────────────────────
   return (
-    <div style={{minHeight:'100vh',background:'#FAF0E6',display:'flex',flexDirection:'column'}}>
+    <div style={{minHeight:'100vh',background:'#FBEEDD',display:'flex',flexDirection:'column'}}>
       <Nav/>
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
-        <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
+        <div style={{background:'white',border:'1px solid #C7D9E5',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(110,147,172,0.10)'}}>
           <div style={{textAlign:'center',marginBottom:'32px'}}>
-            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#D4AF7A'}}>✦</div>
-            <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
-            <p style={{color:'#7A5068',fontSize:'14px'}}>Join your <strong style={{color:'#D4AF7A'}}>TARSYN</strong> community</p>
+            <div style={{width:'56px',height:'56px',background:'#6E93AC',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>✦</div>
+            <h1 style={{color:'#6E93AC',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
+            <p style={{color:'#6E93AC',fontSize:'14px'}}>Join your <strong style={{color:'#E9C77B'}}>TARSYN</strong> community</p>
           </div>
 
           {/* Badge sécurité */}
-          <div style={{background:'#EDD9E5',borderRadius:'10px',padding:'10px 14px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'#6B2D4E'}}>
+          <div style={{background:'#EAD9BE',borderRadius:'10px',padding:'10px 14px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'#6E93AC'}}>
             <span style={{fontSize:'20px'}}>🔐</span>
             <div>
               <div style={{fontWeight:'700'}}>Secure account with 2FA</div>
-              <div style={{fontSize:'11px',color:'#7A5068'}}>Email verification + 2-factor auth on every login</div>
+              <div style={{fontSize:'11px',color:'#6E93AC'}}>Email verification + 2-factor auth on every login</div>
             </div>
           </div>
 
@@ -138,19 +138,19 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister}>
             {/* Full Name */}
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Full Name</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A6B85',marginBottom:'7px'}}>Full Name</label>
               <input type="text" required value={name} onChange={e=>setName(e.target.value)} placeholder="Marie Jean" style={inp}/>
             </div>
 
             {/* Email */}
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Email Address</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A6B85',marginBottom:'7px'}}>Email Address</label>
               <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={inp}/>
             </div>
 
             {/* Country */}
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Country</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A6B85',marginBottom:'7px'}}>Country</label>
               <select required value={pays} onChange={e=>setPays(e.target.value)} style={{...inp,cursor:'pointer'}}>
                 <option value="">— Select your country —</option>
                 {PAYS.map(p=><option key={p} value={p}>{p}</option>)}
@@ -159,7 +159,7 @@ export default function RegisterPage() {
 
             {/* Language */}
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Preferred Language</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A6B85',marginBottom:'7px'}}>Preferred Language</label>
               <select required value={langue} onChange={e=>setLangue(e.target.value)} style={{...inp,cursor:'pointer'}}>
                 <option value="">— Select a language —</option>
                 {LANGUAGES.map(l=><option key={l} value={l}>{l}</option>)}
@@ -168,8 +168,8 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>
-                Password <span style={{color:'#7A5068',fontWeight:'400',fontSize:'12px'}}>(8 characters minimum)</span>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A6B85',marginBottom:'7px'}}>
+                Password <span style={{color:'#6E93AC',fontWeight:'400',fontSize:'12px'}}>(8 characters minimum)</span>
               </label>
               <div style={{position:'relative'}}>
                 <input type={showPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="8 characters minimum" style={{...inp,paddingRight:'44px'}}/>
@@ -178,9 +178,9 @@ export default function RegisterPage() {
               {password.length > 0 && (
                 <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'4px'}}>
                   {[...Array(4)].map((_,i)=>(
-                    <div key={i} style={{flex:1,height:'4px',borderRadius:'2px',background:password.length>=(i+1)*2?password.length>=8?'#4A7C59':'#D4AF7A':'#EDD9E5',transition:'background 0.3s'}}></div>
+                    <div key={i} style={{flex:1,height:'4px',borderRadius:'2px',background:password.length>=(i+1)*2?password.length>=8?'#4A7C59':'#E9C77B':'#EAD9BE',transition:'background 0.3s'}}></div>
                   ))}
-                  <span style={{fontSize:'11px',color:password.length>=8?'#4A7C59':'#D4AF7A',marginLeft:'6px',whiteSpace:'nowrap'}}>
+                  <span style={{fontSize:'11px',color:password.length>=8?'#4A7C59':'#E9C77B',marginLeft:'6px',whiteSpace:'nowrap'}}>
                     {password.length<4?'Too short':password.length<6?'Weak':password.length<8?'Almost...':'Strong ✓'}
                   </span>
                 </div>
@@ -189,10 +189,10 @@ export default function RegisterPage() {
 
             {/* Confirm Password */}
             <div style={{marginBottom:'20px'}}>
-              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#2C1A24',marginBottom:'7px'}}>Confirm Password</label>
+              <label style={{display:'block',fontSize:'13px',fontWeight:'600',color:'#4A6B85',marginBottom:'7px'}}>Confirm Password</label>
               <div style={{position:'relative'}}>
                 <input type={showConfirm?'text':'password'} required value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="••••••••"
-                  style={{...inp,paddingRight:'44px',borderColor:confirm.length>0?(confirm===password?'#4A7C59':'#C0392B'):'#D9C0CC'}}/>
+                  style={{...inp,paddingRight:'44px',borderColor:confirm.length>0?(confirm===password?'#4A7C59':'#C0392B'):'#C7D9E5'}}/>
                 <button type="button" onClick={()=>setShowConfirm(!showConfirm)} style={eyeBtn}>{showConfirm?'🙈':'👁️'}</button>
               </div>
               {confirm.length > 0 && (
@@ -205,30 +205,30 @@ export default function RegisterPage() {
             {/* Terms & Conditions */}
             <div style={{marginBottom:'24px',display:'flex',alignItems:'flex-start',gap:'10px'}}>
               <input type="checkbox" id="terms" checked={agreed} onChange={e=>setAgreed(e.target.checked)}
-                style={{marginTop:'2px',accentColor:'#6B2D4E',width:'16px',height:'16px',cursor:'pointer'}}/>
-              <label htmlFor="terms" style={{fontSize:'12px',color:'#7A5068',lineHeight:'1.6',cursor:'pointer'}}>
-                I agree to TARSYN's <a href="#" style={{color:'#C4748E',fontWeight:'600'}}>Terms & Conditions</a> and <a href="#" style={{color:'#C4748E',fontWeight:'600'}}>Privacy Policy</a>. I understand that my data is protected and isolated from other groups.
+                style={{marginTop:'2px',accentColor:'#6E93AC',width:'16px',height:'16px',cursor:'pointer'}}/>
+              <label htmlFor="terms" style={{fontSize:'12px',color:'#6E93AC',lineHeight:'1.6',cursor:'pointer'}}>
+                I agree to TARSYN's <a href="#" style={{color:'#5C82A0',fontWeight:'600'}}>Terms & Conditions</a> and <a href="#" style={{color:'#5C82A0',fontWeight:'600'}}>Privacy Policy</a>. I understand that my data is protected and isolated from other groups.
               </label>
             </div>
 
             <button type="submit" disabled={loading}
-              style={{width:'100%',padding:'14px',background:'#6B2D4E',color:'#FAF0E6',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
+              style={{width:'100%',padding:'14px',background:'#6E93AC',color:'#FBEEDD',border:'none',borderRadius:'10px',fontSize:'15px',fontWeight:'700',cursor:'pointer',marginBottom:'14px',opacity:loading?0.7:1}}>
               {loading ? '⏳ Creating...' : '✦ Create My Account'}
             </button>
           </form>
 
-          <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#7A5068',fontSize:'12px'}}>
-            <div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>or continue with<div style={{flex:1,height:'1px',background:'#EDD9E5'}}></div>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',margin:'4px 0 14px',color:'#6E93AC',fontSize:'12px'}}>
+            <div style={{flex:1,height:'1px',background:'#EAD9BE'}}></div>or continue with<div style={{flex:1,height:'1px',background:'#EAD9BE'}}></div>
           </div>
 
           <button onClick={handleGoogle}
-            style={{width:'100%',padding:'13px',background:'white',border:'1.5px solid #D9C0CC',borderRadius:'10px',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',color:'#2C1A24',fontWeight:'500'}}>
+            style={{width:'100%',padding:'13px',background:'white',border:'1.5px solid #C7D9E5',borderRadius:'10px',fontSize:'14px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',color:'#4A6B85',fontWeight:'500'}}>
             <GoogleIcon/>
             Continue with Google
           </button>
 
-          <p style={{textAlign:'center',marginTop:'28px',fontSize:'13px',color:'#7A5068'}}>
-            Already have an account? <a href="/login" style={{color:'#C4748E',fontWeight:'700',textDecoration:'none'}}>Sign In</a>
+          <p style={{textAlign:'center',marginTop:'28px',fontSize:'13px',color:'#6E93AC'}}>
+            Already have an account? <a href="/login" style={{color:'#5C82A0',fontWeight:'700',textDecoration:'none'}}>Sign In</a>
           </p>
         </div>
       </div>
@@ -239,11 +239,11 @@ export default function RegisterPage() {
 
 function Nav() {
   return (
-    <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
-      <div style={{width:'38px',height:'38px',background:'#D4AF7A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6B2D4E'}}>✦</div>
+    <nav style={{background:'#6E93AC',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
+      <div style={{width:'38px',height:'38px',background:'#E9C77B',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'#6E93AC'}}>✦</div>
       <div>
         <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px'}}>TARSYN</div>
-        <div style={{color:'#D4AF7A',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
+        <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
       </div>
     </nav>
   );
@@ -251,8 +251,8 @@ function Nav() {
 
 function Footer() {
   return (
-    <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(250,240,230,0.6)',fontSize:'12px'}}>
-      <span style={{color:'#D4AF7A'}}>TARSYN</span> — © 2026 Your Community. Your Power.
+    <footer style={{background:'#6E93AC',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
+      <span style={{color:'#E9C77B'}}>TARSYN</span> — © 2026 Your Community. Your Power.
     </footer>
   );
 }

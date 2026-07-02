@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 
-const inputStyle = { width: '100%', padding: '8px 11px', border: '1.5px solid #E8D5E0', borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' as const, background: 'white' };
-const labelStyle = { display: 'block', color: '#6B2D4E', fontSize: '12px', fontWeight: 600, marginBottom: '3px' };
-const sectionTitle = { color: '#C8A24B', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' as const, letterSpacing: '1px', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: '8px' };
+const inputStyle = { width: '100%', padding: '8px 11px', border: '1.5px solid #EAD9BE', borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' as const, background: 'white' };
+const labelStyle = { display: 'block', color: '#6E93AC', fontSize: '12px', fontWeight: 600, marginBottom: '3px' };
+const sectionTitle = { color: '#E9C77B', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' as const, letterSpacing: '1px', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: '8px' };
 
 export default function RecordContribution() {
   const router = useRouter();
@@ -89,7 +89,7 @@ export default function RecordContribution() {
   const selectedMemberData = members.find(m => m.id === selectedMember);
 
   return (
-    <div style={{minHeight:'100vh',background:'#FAF0E6',padding:'20px',fontFamily:'Inter, sans-serif'}}>
+    <div style={{minHeight:'100vh',background:'#FBEEDD',padding:'20px',fontFamily:'Inter, sans-serif'}}>
       <style>{`
         .tn-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         @media (max-width: 900px) { .tn-grid3 { grid-template-columns: repeat(2, 1fr); } }
@@ -99,20 +99,20 @@ export default function RecordContribution() {
       {showModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999}}>
           <div style={{background:'white',borderRadius:'16px',padding:'24px',maxWidth:'380px',width:'90%'}}>
-            <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:'800',margin:'0 0 12px'}}>Confirm Payment</h3>
-            <div style={{background:'#FAF0E6',borderRadius:'10px',padding:'12px',marginBottom:'18px'}}>
-              <p style={{margin:'0 0 6px',color:'#2C1A3E',fontWeight:'600'}}>{selectedMemberData?.name}</p>
-              <p style={{margin:'0 0 6px',color:'#7A5068',fontSize:'13px'}}>{amount} {currency} — {paymentMethod}</p>
-              <p style={{margin:'0 0 6px',color:'#7A5068',fontSize:'13px'}}>{cycle} — {contributionType}</p>
-              <p style={{margin:'0',color:'#7A5068',fontSize:'13px'}}>{paymentDate}</p>
+            <h3 style={{color:'#6E93AC',fontSize:'18px',fontWeight:'800',margin:'0 0 12px'}}>Confirm Payment</h3>
+            <div style={{background:'#FBEEDD',borderRadius:'10px',padding:'12px',marginBottom:'18px'}}>
+              <p style={{margin:'0 0 6px',color:'#4A6B85',fontWeight:'600'}}>{selectedMemberData?.name}</p>
+              <p style={{margin:'0 0 6px',color:'#6E93AC',fontSize:'13px'}}>{amount} {currency} — {paymentMethod}</p>
+              <p style={{margin:'0 0 6px',color:'#6E93AC',fontSize:'13px'}}>{cycle} — {contributionType}</p>
+              <p style={{margin:'0',color:'#6E93AC',fontSize:'13px'}}>{paymentDate}</p>
             </div>
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={() => setShowModal(false)}
-                style={{flex:1,background:'#FAF0E6',color:'#6B2D4E',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'600',cursor:'pointer'}}>
+                style={{flex:1,background:'#FBEEDD',color:'#6E93AC',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'600',cursor:'pointer'}}>
                 Cancel
               </button>
               <button onClick={handleConfirm}
-                style={{flex:1,background:'#6B2D4E',color:'#FAF0E6',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'700',cursor:'pointer'}}>
+                style={{flex:1,background:'#6E93AC',color:'#FBEEDD',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'700',cursor:'pointer'}}>
                 Confirm
               </button>
             </div>
@@ -122,14 +122,14 @@ export default function RecordContribution() {
 
       <div style={{maxWidth:'880px',margin:'0 auto'}}>
         <div onClick={() => router.push('/dashboard')}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#6B2D4E', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#6E93AC', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}>
           ← Back to Dashboard
         </div>
 
-        <div style={{background:'white',borderRadius:'18px',padding:'24px 28px',boxShadow:'0 8px 32px rgba(107,45,78,0.12)'}}>
+        <div style={{background:'white',borderRadius:'18px',padding:'24px 28px',boxShadow:'0 8px 32px rgba(110,147,172,0.12)'}}>
 
-          <h1 style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',margin:'0 0 2px'}}>Record Contribution</h1>
-          <p style={{color:'#7A5068',fontSize:'12px',margin:'0 0 16px'}}>Log a payment for a member of your group.</p>
+          <h1 style={{color:'#6E93AC',fontSize:'20px',fontWeight:'800',margin:'0 0 2px'}}>Record Contribution</h1>
+          <p style={{color:'#6E93AC',fontSize:'12px',margin:'0 0 16px'}}>Log a payment for a member of your group.</p>
 
           {error && <p style={{color:'#E53935',fontSize:'12px',marginBottom:'12px',background:'#FFEBEE',padding:'8px 12px',borderRadius:'8px'}}>{error}</p>}
           {success && (
@@ -217,7 +217,7 @@ export default function RecordContribution() {
           </div>
 
           <button onClick={handleSubmit} disabled={loading}
-            style={{width:'100%',background:loading?'#9B6B8E':'#6B2D4E',color:'#FAF0E6',padding:'11px',borderRadius:'10px',border:'none',fontSize:'14px',fontWeight:'700',cursor:loading?'not-allowed':'pointer',marginTop:'4px'}}>
+            style={{width:'100%',background:loading?'#7FA0B8':'#6E93AC',color:'#FBEEDD',padding:'11px',borderRadius:'10px',border:'none',fontSize:'14px',fontWeight:'700',cursor:loading?'not-allowed':'pointer',marginTop:'4px'}}>
             {loading ? 'Recording...' : 'Record Payment'}
           </button>
         </div>

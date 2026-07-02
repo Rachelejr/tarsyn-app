@@ -6,9 +6,9 @@ import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } f
 import { onAuthStateChanged } from 'firebase/auth';
 
 const C = {
-  bordeaux: '#6B2D4E', bordeauxDark: '#3F1732',
-  or: '#C8A24B', orLight: '#E7D29A',
-  creme: '#FAF0E6', blanc: '#FFFFFF',
+  bordeaux: '#6E93AC', bordeauxDark: '#4A6B85',
+  or: '#E9C77B', orLight: '#F0DCA8',
+  creme: '#FBEEDD', blanc: '#FFFFFF',
   text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb',
 };
 
@@ -31,7 +31,7 @@ const categoryColor = (cat: string) => {
     Group: { bg: C.creme, color: '#92400e' },
     Auth: { bg: '#f3f4f6', color: '#374151' },
     Document: { bg: '#fef3c7', color: '#92400e' },
-    System: { bg: '#f3e8ff', color: '#6b21a8' },
+    System: { bg: '#f3e0e5', color: '#7B2D42' },
   };
   return map[cat] || { bg: '#f3f4f6', color: '#6b7280' };
 };

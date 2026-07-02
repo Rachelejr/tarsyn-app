@@ -5,11 +5,11 @@ import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 
 const C = {
-  bordeaux: '#6B2D4E',
-  bordeauxDark: '#3F1732',
-  or: '#C8A24B',
-  orLight: '#E7D29A',
-  creme: '#FAF0E6',
+  bordeaux: '#6E93AC',
+  bordeauxDark: '#4A6B85',
+  or: '#E9C77B',
+  orLight: '#F0DCA8',
+  creme: '#FBEEDD',
   blanc: '#FFFFFF',
   text: '#1a1a1a',
   muted: '#6b7280',

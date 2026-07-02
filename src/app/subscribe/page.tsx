@@ -40,7 +40,7 @@ export default function SubscribePage() {
               borderRadius: '20px',
               padding: '28px 24px',
               border: plan.highlight ? `2px solid ${C.gold}` : `1.5px solid ${C.border}`,
-              boxShadow: plan.highlight ? '0 12px 32px rgba(201,148,31,0.18)' : '0 4px 16px rgba(0,0,0,0.04)',
+              boxShadow: plan.highlight ? '0 12px 32px rgba(201,165,94,0.18)' : '0 4px 16px rgba(0,0,0,0.04)',
               position: 'relative',
             }}>
               {plan.highlight && (

@@ -6,9 +6,9 @@ const COMPANY_NAME = 'Ma Production Luxenn Zara LLC';
 const CURRENT_YEAR = new Date().getFullYear();
 
 const C = {
-  bg: '#6B4258',
-  textFaint: 'rgba(250,240,230,0.7)',
-  textGold: '#D4AF7A',
+  bg: '#6E93AC',
+  textFaint: 'rgba(251,238,221,0.7)',
+  textGold: '#E9C77B',
   divider: 'rgba(255,255,255,0.12)',
 };
 
@@ -40,7 +40,7 @@ export default function Footer({
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ color: C.textGold, fontWeight: 700, fontSize: '13px', letterSpacing: '1px' }}>TARSYN™</span>
           <span style={{ color: C.textFaint, fontSize: '12px' }}>
-            A product of <strong style={{ color: 'rgba(250,240,230,0.9)' }}>{COMPANY_NAME}</strong>
+            A product of <strong style={{ color: 'rgba(251,238,221,0.9)' }}>{COMPANY_NAME}</strong>
           </span>
           <span style={{ color: C.textFaint, fontSize: '11px' }}>· © {CURRENT_YEAR} All Rights Reserved</span>
           <span style={{ color: C.textFaint, fontSize: '11px' }}>· Version {APP_VERSION}</span>

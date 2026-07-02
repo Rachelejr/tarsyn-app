@@ -101,7 +101,7 @@ export default function CreateWorkspacePage() {
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
       <style>{`
         .gld-select, .gld-input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-        .gld-select:focus, .gld-input:focus { border-color: ${C.gold} !important; box-shadow: 0 0 0 3px rgba(201,148,31,0.15); }
+        .gld-select:focus, .gld-input:focus { border-color: ${C.gold} !important; box-shadow: 0 0 0 3px rgba(201,165,94,0.15); }
         .gld-continue { transition: background 0.15s ease, transform 0.1s ease; }
         .gld-continue:hover:not(:disabled) { background: ${C.goldDark} !important; transform: translateY(-1px); }
       `}</style>
@@ -109,7 +109,7 @@ export default function CreateWorkspacePage() {
       <div style={{ maxWidth: '950px', width: '100%' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(201,148,31,0.30)' }}>
+          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(201,165,94,0.30)' }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.6" />
               <path d="M3 12h18M12 3c2.5 2.5 3.5 6 0 18M12 3c-2.5 2.5-3.5 6 0 18" stroke="white" strokeWidth="1.4" />
@@ -199,7 +199,7 @@ export default function CreateWorkspacePage() {
               width: '100%', height: '56px', border: 'none', borderRadius: '14px', fontSize: '16px', fontWeight: 700,
               background: isValid ? C.gold : C.border, color: isValid ? 'white' : C.textGris,
               cursor: isValid ? 'pointer' : 'not-allowed',
-              boxShadow: isValid ? '0 8px 20px rgba(201,148,31,0.30)' : 'none',
+              boxShadow: isValid ? '0 8px 20px rgba(201,165,94,0.30)' : 'none',
             }}>
             {saving ? 'Creating workspace...' : 'Continue to Module Selection →'}
           </button>

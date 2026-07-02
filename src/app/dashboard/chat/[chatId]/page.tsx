@@ -9,13 +9,13 @@ import { db } from '@/lib/firebase';
 import { listenToMessages, sendMessage, markChatAsRead, clearChat, ChatMessage } from '@/lib/chat';
 
 const C = {
-  creme: '#FAF0E6',
+  creme: '#FBEEDD',
   white: '#FFFFFF',
-  gold: '#D4AF7A',
-  bordeaux: '#6B2D4E',
-  texteGris: '#7A5068',
-  texteFonce: '#2C1A3E',
-  border: '#E8D5E0',
+  gold: '#E9C77B',
+  bordeaux: '#6E93AC',
+  texteGris: '#6E93AC',
+  texteFonce: '#4A6B85',
+  border: '#EAD9BE',
 };
 
 const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [

@@ -98,41 +98,41 @@ export default function DocumentsPage() {
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF0E6' }}>
-      <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
+      <p style={{ color: '#6E93AC', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', fontFamily: 'Inter, sans-serif' }}>
-      <nav style={{ background: '#6B2D4E', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
+      <nav style={{ background: '#6E93AC', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button onClick={() => router.push('/dashboard')}
-            style={{ background: 'transparent', border: 'none', color: '#D4AF7A', cursor: 'pointer', fontSize: '20px' }}>←</button>
-          <div style={{ color: '#D4AF7A', fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
+            style={{ background: 'transparent', border: 'none', color: '#E9C77B', cursor: 'pointer', fontSize: '20px' }}>←</button>
+          <div style={{ color: '#E9C77B', fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: '1px solid rgba(212,175,122,0.5)', color: '#D4AF7A', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+          style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
           Sign Out
         </button>
       </nav>
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px' }}>
-        <h1 style={{ color: '#6B2D4E', fontSize: '28px', fontWeight: 800, margin: '0 0 4px' }}>📁 Document Center</h1>
-        <p style={{ color: '#7A5068', fontSize: '15px', margin: '0 0 32px' }}>{groupName} · Upload and manage group documents</p>
+        <h1 style={{ color: '#6E93AC', fontSize: '28px', fontWeight: 800, margin: '0 0 4px' }}>📁 Document Center</h1>
+        <p style={{ color: '#6E93AC', fontSize: '15px', margin: '0 0 32px' }}>{groupName} · Upload and manage group documents</p>
 
         <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 16px' }}>Upload Document</h3>
+          <h3 style={{ color: '#6E93AC', fontWeight: 700, margin: '0 0 16px' }}>Upload Document</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label style={{ color: '#7A5068', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Category</label>
+              <label style={{ color: '#6E93AC', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Category</label>
               <select value={category} onChange={e => setCategory(e.target.value)}
                 style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E8D5C4', fontSize: '14px', background: 'white' }}>
                 {categories.map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ color: '#7A5068', fontSize: '13px', display: 'block', marginBottom: '6px' }}>File</label>
+              <label style={{ color: '#6E93AC', fontSize: '13px', display: 'block', marginBottom: '6px' }}>File</label>
               <input type="file" onChange={handleUpload} disabled={uploading}
                 style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '1px solid #E8D5C4', fontSize: '13px', boxSizing: 'border-box' }} />
             </div>
@@ -140,11 +140,11 @@ export default function DocumentsPage() {
           {uploading && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#7A5068', fontSize: '13px' }}>Uploading...</span>
-                <span style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700 }}>{progress}%</span>
+                <span style={{ color: '#6E93AC', fontSize: '13px' }}>Uploading...</span>
+                <span style={{ color: '#6E93AC', fontSize: '13px', fontWeight: 700 }}>{progress}%</span>
               </div>
-              <div style={{ background: '#FAF0E6', borderRadius: '999px', height: '8px' }}>
-                <div style={{ background: '#6B2D4E', width: `${progress}%`, height: '8px', borderRadius: '999px', transition: 'width 0.3s' }} />
+              <div style={{ background: '#FBEEDD', borderRadius: '999px', height: '8px' }}>
+                <div style={{ background: '#6E93AC', width: `${progress}%`, height: '8px', borderRadius: '999px', transition: 'width 0.3s' }} />
               </div>
             </div>
           )}
@@ -155,20 +155,20 @@ export default function DocumentsPage() {
           if (catDocs.length === 0) return null;
           return (
             <div key={cat} style={{ marginBottom: '24px' }}>
-              <h3 style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '16px', margin: '0 0 12px' }}>{cat}</h3>
+              <h3 style={{ color: '#6E93AC', fontWeight: 700, fontSize: '16px', margin: '0 0 12px' }}>{cat}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {catDocs.map((d: any) => (
                   <div key={d.id} style={{ background: 'white', borderRadius: '14px', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                       <span style={{ fontSize: '28px' }}>{getFileIcon(d.type)}</span>
                       <div>
-                        <p style={{ color: '#2C1A3E', fontWeight: 700, margin: '0 0 2px', fontSize: '14px' }}>{d.name}</p>
-                        <p style={{ color: '#7A5068', fontSize: '12px', margin: 0 }}>{formatSize(d.size)} · {d.category}</p>
+                        <p style={{ color: '#4A6B85', fontWeight: 700, margin: '0 0 2px', fontSize: '14px' }}>{d.name}</p>
+                        <p style={{ color: '#6E93AC', fontSize: '12px', margin: 0 }}>{formatSize(d.size)} · {d.category}</p>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <a href={d.url} target="_blank" rel="noreferrer"
-                        style={{ background: '#6B2D4E', color: '#FAF0E6', padding: '7px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+                        style={{ background: '#6E93AC', color: '#FBEEDD', padding: '7px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
                         ⬇️ Download
                       </a>
                       <button onClick={() => handleDelete(d)}
@@ -186,7 +186,7 @@ export default function DocumentsPage() {
         {docs.length === 0 && !uploading && (
           <div style={{ background: 'white', borderRadius: '16px', padding: '48px', textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>📁</div>
-            <p style={{ color: '#7A5068', fontSize: '15px' }}>No documents yet. Upload your first file!</p>
+            <p style={{ color: '#6E93AC', fontSize: '15px' }}>No documents yet. Upload your first file!</p>
           </div>
         )}
       </div>

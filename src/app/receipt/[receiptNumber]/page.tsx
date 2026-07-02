@@ -6,12 +6,12 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 const C = {
-  bordeaux: '#6B2D4E',
-  dore: '#D4AF7A',
-  creme: '#FAF0E6',
-  texteGris: '#7A5068',
-  texteFonce: '#2C1A3E',
-  border: '#E8D5E0',
+  bordeaux: '#6E93AC',
+  dore: '#E9C77B',
+  creme: '#FBEEDD',
+  texteGris: '#6E93AC',
+  texteFonce: '#4A6B85',
+  border: '#EAD9BE',
 };
 
 export default function ReceiptPage() {
@@ -154,7 +154,7 @@ export default function ReceiptPage() {
         </button>
       </div>
 
-      <div style={{ maxWidth: '500px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.10)', border: `1px solid ${C.border}` }}>
+      <div style={{ maxWidth: '500px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 8px 32px rgba(110,147,172,0.10)', border: `1px solid ${C.border}` }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px', borderBottom: `2px dashed ${C.border}`, paddingBottom: '20px' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: C.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontWeight: 800, color: C.dore, fontSize: '20px' }}>T</div>

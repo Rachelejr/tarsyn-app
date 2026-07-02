@@ -7,14 +7,14 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { listenToUserChats, listenToMessages, sendMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, ChatSummary, ChatMessage } from '@/lib/chat';
 
 const C = {
-  bordeaux: '#6B2D4E',
-  bordeauxDark: '#4A2D5E',
-  bg: '#FAF0E6',
+  bordeaux: '#6E93AC',
+  bordeauxDark: '#4A6B85',
+  bg: '#FBEEDD',
   white: '#FFFFFF',
-  border: '#E8D5E0',
-  textGris: '#7A5068',
-  textDark: '#2C1A3E',
-  dore: '#D4AF7A',
+  border: '#EAD9BE',
+  textGris: '#6E93AC',
+  textDark: '#4A6B85',
+  dore: '#E9C77B',
 };
 
 const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [

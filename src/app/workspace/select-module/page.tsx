@@ -6,9 +6,9 @@ import { db } from '@/lib/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const C = {
-  creme: '#FAF0E6',
-  dore: '#D4AF7A',
-  doreDark: '#B8945F',
+  creme: '#FBEEDD',
+  dore: '#E9C77B',
+  doreDark: '#C9A55E',
   texteFonce: '#3A2E1A',
   texteGris: '#8A7858',
   border: '#E8D9BC',
@@ -133,12 +133,12 @@ function ChooseModuleInner() {
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: C.doreDark, fontWeight: 800, flexShrink: 0 }}>✦</div>
             <div>
               <div style={{ color: C.creme, fontSize: '17px', fontWeight: 800, letterSpacing: '2px' }}>TARSYN</div>
-              <div style={{ color: 'rgba(250,240,230,0.75)', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+              <div style={{ color: 'rgba(251,238,221,0.75)', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <h1 style={{ color: C.creme, fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Choose Your Module</h1>
-            <p style={{ color: 'rgba(250,240,230,0.9)', fontSize: '11.5px', margin: 0, fontWeight: 600 }}>
+            <p style={{ color: 'rgba(251,238,221,0.9)', fontSize: '11.5px', margin: 0, fontWeight: 600 }}>
               {workspaceId ? 'Activating a module for your new workspace.' : 'Start with one module and expand later.'}
             </p>
           </div>

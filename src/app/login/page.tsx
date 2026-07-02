@@ -147,12 +147,12 @@ export default function LoginPage() {
 
   if (step === '2fa') {
     return (
-      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(110,147,172,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Verification 2FA</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6E93AC', margin: '0 0 0.5rem' }}>Verification 2FA</h2>
           <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code a 6 chiffres a ete envoye a</p>
-          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
+          <p style={{ color: '#6E93AC', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
 
           {error && (
             <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
@@ -183,7 +183,7 @@ export default function LoginPage() {
                     if (prev) (prev as HTMLInputElement).focus();
                   }
                 }}
-                style={{ width: '46px', height: '56px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #E0D0C0', borderRadius: '10px', background: '#FAF0E6', color: '#6B2D4E', outline: 'none' }}
+                style={{ width: '46px', height: '56px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #E0D0C0', borderRadius: '10px', background: '#FBEEDD', color: '#6E93AC', outline: 'none' }}
               />
             ))}
           </div>
@@ -191,12 +191,12 @@ export default function LoginPage() {
           <button
             onClick={handleVerify2FA}
             disabled={loading || code.join('').length !== 6}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
+            style={{ width: '100%', padding: '0.85rem', background: '#6E93AC', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
             {loading ? 'Verification...' : 'Verifier et se connecter'}
           </button>
 
           <button onClick={handleResend}
-            style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>
+            style={{ background: 'none', border: 'none', color: '#E9C77B', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>
             Renvoyer le code
           </button>
           <button onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); }}
@@ -209,15 +209,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(110,147,172,0.12)' }}>
 
         <div style={{ marginBottom: '2rem' }}>
-          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6B2D4E' }}>TARSYN</p>
+          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6E93AC' }}>TARSYN</p>
           <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY</p>
         </div>
 
-        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6E93AC', margin: '0 0 0.25rem' }}>Sign In</h1>
         <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Access your TARSYN account</p>
 
         {error && (
@@ -230,7 +230,7 @@ export default function LoginPage() {
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Email</label>
             <input
-              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FBEEDD', color: '#333', outline: 'none', boxSizing: 'border-box' }}
               type="email"
               placeholder="votre@email.com"
               value={email}
@@ -243,7 +243,7 @@ export default function LoginPage() {
             <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
-                style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FBEEDD', color: '#333', outline: 'none', boxSizing: 'border-box' }}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="********"
                 value={password}
@@ -263,17 +263,17 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
-                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#6B2D4E' }}
+                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#6E93AC' }}
               />
               Keep me signed in
             </label>
-            <a href="/forgot-password" style={{ color: '#6B2D4E', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
+            <a href="/forgot-password" style={{ color: '#6E93AC', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
               Forgot password?
             </a>
           </div>
 
           <button type="submit" disabled={loading}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1, marginBottom: '1rem' }}>
+            style={{ width: '100%', padding: '0.85rem', background: '#6E93AC', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1, marginBottom: '1rem' }}>
             {loading ? 'Connexion...' : 'Sign In'}
           </button>
         </form>
@@ -281,7 +281,7 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>or</div>
 
         <button onClick={handleGoogle} disabled={loading}
-          style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+          style={{ width: '100%', padding: '0.85rem', background: '#FBEEDD', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
           <svg width="20" height="20" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
             <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
@@ -293,7 +293,7 @@ export default function LoginPage() {
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
           Pas encore de compte ?{' '}
-          <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
+          <a href="/register" style={{ color: '#6E93AC', fontWeight: 700, textDecoration: 'none' }}>
             Create an account
           </a>
         </div>
