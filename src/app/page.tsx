@@ -207,8 +207,8 @@ export default function HomePage() {
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div className="logo-icon" style={{width:'40px',height:'40px',background:'#4A1F38',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',cursor:'pointer',color:'#E9C77B'}}>✦</div>
           <div>
-            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px'}}>TARSYN</div>
-            <div style={{color:'#8B3A5E',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
+            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>TARSYN</div><img src="/tarsyn-logo.svg" alt="Tarsyn" style={{height:'28px'}}/>
+            <div style={{color:'#8B3A5E',fontSize:'9px',letterSpacing:'3px',fontStyle:'italic'}}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>

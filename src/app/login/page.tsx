@@ -242,8 +242,8 @@ export default function LoginPage() {
       <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
         <div style={{ marginBottom: '2rem' }}>
-          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6B2D4E' }}>TARSYN</p>
-          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY</p>
+          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6B2D4E', display: 'none' }}>TARSYN</p><img src="/tarsyn-logo.svg" alt="Tarsyn" style={{ height: '30px' }}/>
+          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em', fontStyle: 'italic' }}>YOUR COMMUNITY</p>
         </div>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
