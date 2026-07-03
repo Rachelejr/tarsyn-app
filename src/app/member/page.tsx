@@ -158,6 +158,7 @@ function MemberContent() {
   const openPendingFiles = (files: FileList | File[]) => {
     const arr = Array.from(files);
     if (arr.length === 0) return;
+    setError('');
     setPendingFiles(arr);
     setShowUploadModal(true);
   };
@@ -173,7 +174,13 @@ function MemberContent() {
   };
 
   const handleConfirmUpload = async () => {
-    if (pendingFiles.length === 0 || !activeMember?.organizerId || !uid) return;
+    if (pendingFiles.length === 0) return;
+    if (!uid) { setError('You are not signed in. Please refresh and sign in again.'); return; }
+    if (!activeMember?.organizerId) {
+      setError('Could not find your group information (missing organizerId on your member record). Please contact your organizer - this membership record may need to be fixed.');
+      console.error('Upload blocked: activeMember is', activeMember);
+      return;
+    }
     setUploading(true);
     setError('');
     try {
@@ -484,6 +491,9 @@ function MemberContent() {
             <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 6px' }}>
               Upload {pendingFiles.length > 1 ? pendingFiles.length + ' files' : 'Document'}
             </h3>
+            {error && (
+              <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '10px 14px', fontSize: '12.5px', marginBottom: '14px', lineHeight: 1.5 }}>{error}</div>
+            )}
             <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '18px' }}>
               {pendingFiles.map((f, i) => (
                 <p key={i} style={{ color: C.texteGris, fontSize: '13px', margin: '4px 0', wordBreak: 'break-all' }}>- {f.name}</p>
