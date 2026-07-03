@@ -43,7 +43,7 @@ function MemberContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
-  const [branding, setBranding] = useState<{ orgName?: string; primaryColor?: string; logoUrl?: string } | null>(null);
+  const [branding, setBranding] = useState<{ slogan?: string; primaryColor?: string; logoUrl?: string; showTarsynBadge?: boolean } | null>(null);
 
   const fetchDocs = async (organizerId: string, currentUid: string) => {
     const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerId));
@@ -58,13 +58,27 @@ function MemberContent() {
 
   const selectMembership = async (membership: any, currentUid: string) => {
     setActiveMember(membership);
-    const gq = query(collection(db, 'groups'), where('organizerId', '==', membership.organizerId));
-    const gsnap = await getDocs(gq);
-    if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name);
-    else setGroupName(membership.groupName || 'Your Group');
     try {
-      const orgDoc = await getDoc(doc(db, 'users', membership.organizerId));
-      setBranding(orgDoc.data()?.branding || null);
+      if (membership.groupId) {
+        const groupDoc = await getDoc(doc(db, 'groups', membership.groupId));
+        if (groupDoc.exists()) {
+          setGroupName(groupDoc.data().name || membership.groupName || 'Your Group');
+          setBranding(groupDoc.data().groupBrand || null);
+        } else {
+          setGroupName(membership.groupName || 'Your Group');
+          setBranding(null);
+        }
+      } else {
+        const gq = query(collection(db, 'groups'), where('organizerId', '==', membership.organizerId));
+        const gsnap = await getDocs(gq);
+        if (!gsnap.empty) {
+          setGroupName(gsnap.docs[0].data().name);
+          setBranding(gsnap.docs[0].data().groupBrand || null);
+        } else {
+          setGroupName(membership.groupName || 'Your Group');
+          setBranding(null);
+        }
+      }
     } catch (e) { setBranding(null); }
     await fetchDocs(membership.organizerId, currentUid);
   };
@@ -207,11 +221,14 @@ function MemberContent() {
           {branding?.logoUrl ? (
             <img src={branding.logoUrl} alt="Logo" style={{ maxHeight: '32px', maxWidth: '140px' }} />
           ) : (
-            <>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.dore, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: C.bordeaux, fontWeight: 800 }}>T</div>
-              <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>{branding?.orgName || 'TARSYN'}</div>
-            </>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.dore, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: C.bordeaux, fontWeight: 800 }}>T</div>
           )}
+          <div>
+            <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px', lineHeight: 1 }}>{groupName || 'TARSYN'}</div>
+            {branding?.slogan && (
+              <div style={{ color: 'rgba(233,199,123,0.7)', fontSize: '10px', letterSpacing: '0.05em', marginTop: '2px' }}>{branding.slogan}</div>
+            )}
+          </div>
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
           style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.dore, padding: '7px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
@@ -357,6 +374,12 @@ function MemberContent() {
             </div>
           )}
         </div>
+
+        {(!branding?.logoUrl || branding?.showTarsynBadge !== false) && (
+          <div style={{ textAlign: 'center', padding: '18px 0 4px' }}>
+            <span style={{ color: C.texteGris, fontSize: '11px', opacity: 0.7 }}>Powered by TARSYN</span>
+          </div>
+        )}
       </div>
 
       {showUploadModal && pendingFiles.length > 0 && (
