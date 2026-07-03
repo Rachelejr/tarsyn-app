@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
+
+const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
 
 const C = {
   bleu: '#6E93AC', bleuFonce: '#4A6B85', or: '#E9C77B',
@@ -21,16 +22,8 @@ export default function RepairMembersPage() {
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        try {
-          const snap = await getDoc(doc(db, 'users', u.uid));
-          const role = snap.exists() ? snap.data().role : null;
-          if (role === 'admin' || role === 'superadmin') setAuthorized(true);
-        } catch (e) {
-          setAuthorized(false);
-        }
-      }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (u && u.email === SUPER_ADMIN_EMAIL) setAuthorized(true);
       setChecking(false);
     });
     return () => unsub();
@@ -134,3 +127,4 @@ export default function RepairMembersPage() {
     </div>
   );
 }
+
