@@ -393,7 +393,7 @@ export default function DocumentsPage() {
                       style={{ padding: '13px 22px', fontSize: '13px', fontWeight: 700,
                         color: activeTab === t.key ? C.bleuFonce : C.texteGris,
                         borderBottom: activeTab === t.key ? `2.5px solid ${C.bleu}` : '2.5px solid transparent' }}>
-                      {t.icon} {t.label}
+                      {t.label}
                     </div>
                   ))}
                 </div>
