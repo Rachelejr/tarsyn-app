@@ -442,6 +442,7 @@ function OverviewContent() {
             { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
             { title: 'Security', icon: '🔒', path: '/dashboard/security' },
             { title: 'White Label', icon: 'palette', path: '/dashboard/branding' },
+            { title: 'Leave a Review', icon: 'star', path: '/leave-review' },
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
               style={{
