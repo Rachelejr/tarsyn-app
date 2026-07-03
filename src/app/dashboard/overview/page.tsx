@@ -441,6 +441,7 @@ function OverviewContent() {
             { title: 'Audit Log', icon: '📜', path: '/dashboard/audit-log' },
             { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
             { title: 'Security', icon: '🔒', path: '/dashboard/security' },
+            { title: 'White Label', icon: 'palette', path: '/dashboard/branding' },
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
               style={{
