@@ -100,7 +100,7 @@ export default function DashboardPage() {
 
       <div className="tarsyn-dash-header" style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>
-          <h1 style={{ color: C.orLight, fontSize: 20, fontWeight: 700, margin: 0, letterSpacing: 1 }}>TARSYN</h1>
+          <h1 style={{ color: C.orLight, display: 'none' }}>TARSYN</h1><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{ height: '22px' }}/>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, margin: '2px 0 0' }}>Community Savings Dashboard</p>
         </div>
         <button

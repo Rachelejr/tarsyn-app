@@ -252,10 +252,10 @@ function OverviewContent() {
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
       }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(233,199,123,0.4)' }}>T</div>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(233,199,123,0.4)', display: 'none' }}>T</div><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{ height: '22px' }}/>
           <div>
             <div style={{ color: '#E9C77B', fontWeight: 800, fontSize: '16px', lineHeight: '1' }}>TARSYN</div>
-            <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px' }}>YOUR COMMUNITY</div>
+            <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY</div>
           </div>
         </div>
 
