@@ -284,7 +284,7 @@ export default function DocumentsPage() {
       {/* TOP BAR - group info */}
       <div className="tarsyn-docs-topbar" style={{ flexShrink: 0, background: C.bleu, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}><</button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
           <div>
             <h1 style={{ color: 'white', fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
