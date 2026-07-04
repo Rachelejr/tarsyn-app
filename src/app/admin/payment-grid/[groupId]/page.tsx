@@ -89,7 +89,7 @@ export default function PaymentGridPage() {
         }
 
         const newGrid: Grid = {
-          organizerId: groupSnap.data()?.adminId || '',
+          organizerId: groupSnap.data()?.organizerId || groupSnap.data()?.adminId || '',
           groupId,
           cycleId: 'cycle-' + Date.now(),
           weeks,
