@@ -20,7 +20,11 @@ const C = {
   successBg: '#E4F0E9',
   danger: '#B0525F',
   dangerBg: '#F5E4E6',
+  warning: '#9C7A2E',
+  warningBg: '#FBF0D9',
 };
+
+const WEEKS_PER_PAGE = 6;
 
 interface Slot {
   slotNumber: string;
@@ -48,11 +52,21 @@ export default function PaymentGridPage() {
 
   const [grid, setGrid] = useState<Grid | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
   const [groupName, setGroupName] = useState('');
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
+
+  // Pending (unsaved) payments state — edits live here until "Save Payments" is clicked
+  const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
+  const [savingAll, setSavingAll] = useState(false);
+
+  // Period filter (native calendar inputs)
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Week window navigation
+  const [pageStart, setPageStart] = useState<number | null>(null);
 
   const gridId = groupId + '_current';
 
@@ -65,6 +79,7 @@ export default function PaymentGridPage() {
       }
     });
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
   async function loadGrid() {
@@ -82,7 +97,6 @@ export default function PaymentGridPage() {
 
       if (gridSnap.exists()) {
         loadedGrid = gridSnap.data() as Grid;
-        setGrid(loadedGrid);
       } else {
         const membersQuery = query(
           collection(db, 'members'),
@@ -120,9 +134,10 @@ export default function PaymentGridPage() {
         };
 
         await setDoc(doc(db, 'paymentGrids', gridId), loadedGrid);
-        setGrid(loadedGrid);
       }
 
+      setGrid(loadedGrid);
+      setPendingPayments(loadedGrid.payments || {});
       await loadMemberMeta(loadedGrid);
     } catch (err) {
       console.error('Error loading grid:', err);
@@ -163,7 +178,7 @@ export default function PaymentGridPage() {
             meta[id] = { status, joinedLabel };
           }
         } catch {
-          // Silent fail — this is display-only metadata, never blocks the grid.
+          // Silent fail — display-only metadata, never blocks the grid.
         }
       })
     );
@@ -171,51 +186,52 @@ export default function PaymentGridPage() {
     setMemberMeta(meta);
   }
 
-  async function togglePayment(slotNumber: string, weekIndex: string) {
-    if (!grid) return;
-    const key = slotNumber + '-' + weekIndex;
-    setSaving(key);
-
-    const currentValue = grid.payments[slotNumber]?.[weekIndex] || false;
-    const updatedPayments = {
-      ...grid.payments,
-      [slotNumber]: {
-        ...grid.payments[slotNumber],
-        [weekIndex]: !currentValue,
-      },
-    };
-
-    setGrid({ ...grid, payments: updatedPayments });
-
-    try {
-      await setDoc(
-        doc(db, 'paymentGrids', gridId),
-        { payments: updatedPayments },
-        { merge: true }
-      );
-
-      const slot = grid.slots[slotNumber];
-      if (slot?.memberId) {
-        await syncMemberView(slot.memberId);
-      }
-    } catch (err) {
-      console.error('Error saving payment:', err);
-    } finally {
-      setSaving(null);
-    }
+  // Local-only toggle — nothing is written to Firestore until Save Payments is clicked
+  function toggleQueuedPayment(slotNumber: string, weekIndex: string) {
+    setPendingPayments((prev) => {
+      const current = prev[slotNumber]?.[weekIndex] || false;
+      return {
+        ...prev,
+        [slotNumber]: {
+          ...prev[slotNumber],
+          [weekIndex]: !current,
+        },
+      };
+    });
   }
 
-  async function syncMemberView(memberId: string) {
-    if (!grid) return;
+  function markAllPaidForWeek(weekIdx: string, slotNums: string[]) {
+    setPendingPayments((prev) => {
+      const updated = { ...prev };
+      slotNums.forEach((slotNum) => {
+        updated[slotNum] = { ...updated[slotNum], [weekIdx]: true };
+      });
+      return updated;
+    });
+  }
 
-    const memberSlots = Object.values(grid.slots).filter(
-      (s) => s.memberId === memberId
-    );
+  function clearWeekPayments(weekIdx: string, slotNums: string[]) {
+    setPendingPayments((prev) => {
+      const updated = { ...prev };
+      slotNums.forEach((slotNum) => {
+        updated[slotNum] = { ...updated[slotNum], [weekIdx]: false };
+      });
+      return updated;
+    });
+  }
+
+  async function syncMemberView(
+    memberId: string,
+    slotsMap: Record<string, Slot>,
+    paymentsMap: Record<string, Record<string, boolean>>,
+    weeksMap: Record<string, string>
+  ) {
+    const memberSlots = Object.values(slotsMap).filter((s) => s.memberId === memberId);
     if (memberSlots.length === 0) return;
 
     const memberPayments: Record<string, Record<string, boolean>> = {};
     memberSlots.forEach((s) => {
-      memberPayments[s.slotNumber] = grid.payments[s.slotNumber] || {};
+      memberPayments[s.slotNumber] = paymentsMap[s.slotNumber] || {};
     });
 
     await setDoc(
@@ -223,11 +239,44 @@ export default function PaymentGridPage() {
       {
         memberName: memberSlots[0].memberName,
         slots: memberSlots.map((s) => s.slotNumber),
-        weeks: grid.weeks,
+        weeks: weeksMap,
         payments: memberPayments,
       },
       { merge: true }
     );
+  }
+
+  async function handleSaveAll() {
+    if (!grid) return;
+    setSavingAll(true);
+    try {
+      await setDoc(
+        doc(db, 'paymentGrids', gridId),
+        { payments: pendingPayments },
+        { merge: true }
+      );
+
+      const uniqueMemberIds = Array.from(
+        new Set(Object.values(grid.slots).map((s) => s.memberId))
+      ).filter(Boolean);
+
+      await Promise.all(
+        uniqueMemberIds.map((id) =>
+          syncMemberView(id, grid.slots, pendingPayments, grid.weeks)
+        )
+      );
+
+      setGrid((prev) => (prev ? { ...prev, payments: pendingPayments } : prev));
+    } catch (err) {
+      console.error('Error saving payments:', err);
+    } finally {
+      setSavingAll(false);
+    }
+  }
+
+  function handleDiscardAll() {
+    if (!grid) return;
+    setPendingPayments(grid.payments);
   }
 
   function getInitials(name: string) {
@@ -248,6 +297,12 @@ export default function PaymentGridPage() {
 
   function handlePrint() {
     window.print();
+  }
+
+  function handleSendReminders() {
+    alert(
+      'Send Reminders is not yet connected to email sending. This needs to be wired to your Resend setup (like /api/send-invite) before it can actually notify members.'
+    );
   }
 
   if (loading) {
@@ -278,98 +333,139 @@ export default function PaymentGridPage() {
       )
     : allSlotEntries;
 
-  const uniqueMemberIds = Array.from(
-    new Set(allSlotEntries.map(([, s]) => s.memberId))
-  );
+  const uniqueMemberIds = Array.from(new Set(allSlotEntries.map(([, s]) => s.memberId)));
   const totalMembers = uniqueMemberIds.length;
-  const activeCount = uniqueMemberIds.filter(
-    (id) => (memberMeta[id]?.status || 'active').toLowerCase() !== 'inactive'
-  ).length;
-  const inactiveCount = totalMembers - activeCount;
 
-  let totalPaidCells = 0;
-  let totalPossibleCells = 0;
   const today = new Date();
-  let currentWeekLabel = 'W0';
-  let currentWeekRange = '';
 
-  weekEntries.forEach(([idx, dateStr]) => {
-    allSlotEntries.forEach(([slotNum]) => {
-      totalPossibleCells++;
-      if (grid.payments[slotNum]?.[idx]) totalPaidCells++;
-    });
-    const weekDate = new Date(dateStr);
-    if (weekDate <= today) {
-      currentWeekLabel = 'W' + idx;
-      const endDate = new Date(weekDate);
-      endDate.setDate(endDate.getDate() + 6);
-      currentWeekRange =
-        weekDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }) +
-        ' \u2013 ' +
-        endDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-    }
+  // Filter weeks by selected calendar period
+  const filteredWeekEntries = weekEntries.filter(([, d]) => {
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo && d > dateTo) return false;
+    return true;
   });
+  const activeWeekEntries = filteredWeekEntries.length > 0 ? filteredWeekEntries : weekEntries;
 
-  const progressPct =
-    totalPossibleCells > 0
-      ? Math.round((totalPaidCells / totalPossibleCells) * 1000) / 10
-      : 0;
+  // Default window: centered on the current real-world week
+  let currentWeekIdxNum = 0;
+  weekEntries.forEach(([idx, dateStr]) => {
+    if (new Date(dateStr) <= today) currentWeekIdxNum = Number(idx);
+  });
+  const defaultPageStart =
+    Math.floor(currentWeekIdxNum / WEEKS_PER_PAGE) * WEEKS_PER_PAGE;
+  const effectivePageStart =
+    pageStart !== null ? pageStart : Math.min(defaultPageStart, Math.max(0, activeWeekEntries.length - WEEKS_PER_PAGE));
+
+  const visibleWeeks = activeWeekEntries.slice(
+    effectivePageStart,
+    effectivePageStart + WEEKS_PER_PAGE
+  );
+  const canGoPrev = effectivePageStart > 0;
+  const canGoNext = effectivePageStart + WEEKS_PER_PAGE < activeWeekEntries.length;
+
+  const focusWeekIdx = visibleWeeks[0]?.[0] ?? weekEntries[0]?.[0] ?? '0';
+
+  // Compact summary for the focus week
+  const focusSlotNums = allSlotEntries.map(([slotNum]) => slotNum);
+  const focusPaid = focusSlotNums.filter(
+    (slotNum) => pendingPayments[slotNum]?.[focusWeekIdx]
+  ).length;
+  const focusTotal = focusSlotNums.length;
+  const focusMissing = focusTotal - focusPaid;
+  const focusCompletion = focusTotal > 0 ? Math.round((focusPaid / focusTotal) * 100) : 0;
+
+  const hasChanges = JSON.stringify(pendingPayments) !== JSON.stringify(grid.payments);
+
+  const elapsedWeekEntries = weekEntries.filter(([, d]) => new Date(d) <= today);
+
+  function contributionRateForSlot(slotNum: string) {
+    if (elapsedWeekEntries.length === 0) return 0;
+    let paid = 0;
+    elapsedWeekEntries.forEach(([wIdx]) => {
+      if (pendingPayments[slotNum]?.[wIdx]) paid++;
+    });
+    return Math.round((paid / elapsedWeekEntries.length) * 100);
+  }
 
   const totalCollectedLabel = weeklyAmount
-    ? '$' + (totalPaidCells * weeklyAmount).toLocaleString()
-    : totalPaidCells + ' payments';
+    ? '$' +
+      allSlotEntries
+        .reduce((sum, [slotNum]) => {
+          const paidCount = weekEntries.filter(
+            ([wIdx]) => pendingPayments[slotNum]?.[wIdx]
+          ).length;
+          return sum + paidCount * weeklyAmount;
+        }, 0)
+        .toLocaleString()
+    : undefined;
 
-  function btnStyle(variant: 'primary' | 'secondary') {
-    if (variant === 'primary') {
-      return {
-        background: C.bordeaux,
-        color: C.ivoire,
-        border: 'none',
-        borderRadius: 10,
-        padding: '10px 18px',
-        fontSize: 13.5,
-        fontWeight: 600,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-      } as React.CSSProperties;
-    }
-    return {
-      background: C.ivoire,
-      color: C.texteFonce,
-      border: '1px solid ' + C.border,
+  function btnStyle(variant: 'primary' | 'secondary' | 'ghost', disabled?: boolean) {
+    const base: React.CSSProperties = {
       borderRadius: 10,
-      padding: '10px 16px',
+      padding: '9px 15px',
       fontSize: 13.5,
       fontWeight: 600,
-      cursor: 'pointer',
+      cursor: disabled ? 'not-allowed' : 'pointer',
       display: 'flex',
       alignItems: 'center',
       gap: 6,
-    } as React.CSSProperties;
+      opacity: disabled ? 0.55 : 1,
+      whiteSpace: 'nowrap',
+    };
+    if (variant === 'primary') {
+      return { ...base, background: C.bordeaux, color: C.ivoire, border: 'none' };
+    }
+    if (variant === 'ghost') {
+      return {
+        ...base,
+        background: 'transparent',
+        color: C.texteFonce,
+        border: '1px solid ' + C.border,
+        padding: '7px 12px',
+        fontSize: 12.5,
+      };
+    }
+    return {
+      ...base,
+      background: C.ivoire,
+      color: C.texteFonce,
+      border: '1px solid ' + C.border,
+    };
   }
 
-  const filterInputStyle: React.CSSProperties = {
+  const dateInputStyle: React.CSSProperties = {
     border: '1px solid ' + C.border,
     borderRadius: 10,
-    padding: '9px 14px',
-    fontSize: 13.5,
+    padding: '8px 12px',
+    fontSize: 13,
     color: C.texteFonce,
     background: C.ivoire,
     outline: 'none',
   };
 
-  function handleExport() {
+  function handleExportWeek(weekIdx: string) {
+    const dateForWeek = grid?.weeks[weekIdx] || '';
+    const rows: string[][] = [['Member', 'W' + weekIdx + ' (' + dateForWeek + ')']];
+    allSlotEntries.forEach(([slotNum, slot]) => {
+      rows.push([slot.memberName, pendingPayments[slotNum]?.[weekIdx] ? 'Paid' : 'Missing']);
+    });
+    downloadCsv(rows, 'week_W' + weekIdx + '_' + groupName.replace(/\s+/g, '_') + '.csv');
+  }
+
+  function handleExportAll() {
     const weekCols = weekEntries.map(([idx]) => 'W' + idx);
     const rows: string[][] = [['Member', ...weekCols]];
     slotEntries.forEach(([slotNum, slot]) => {
       const row = [slot.memberName];
       weekEntries.forEach(([weekIdx]) => {
-        row.push(grid.payments[slotNum]?.[weekIdx] ? 'Paid' : '');
+        row.push(pendingPayments[slotNum]?.[weekIdx] ? 'Paid' : '');
       });
       rows.push(row);
     });
+    downloadCsv(rows, groupName.replace(/\s+/g, '_') + '_payment_grid.csv');
+  }
+
+  function downloadCsv(rows: string[][], filename: string) {
     const csv = rows
       .map((r) => r.map((c) => '"' + c.replace(/"/g, '""') + '"').join(','))
       .join('\n');
@@ -377,13 +473,13 @@ export default function PaymentGridPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = groupName.replace(/\s+/g, '_') + '_payment_grid.csv';
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '32px 24px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 20px' }}>
       <style>{`
         .tarsyn-cell { transition: all 0.15s ease; }
         .tarsyn-cell:hover .tarsyn-box {
@@ -395,7 +491,7 @@ export default function PaymentGridPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 1700, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1360, margin: '0 auto' }}>
         {/* Header */}
         <div
           style={{
@@ -403,110 +499,271 @@ export default function PaymentGridPage() {
             justifyContent: 'space-between',
             alignItems: 'flex-start',
             flexWrap: 'wrap',
-            gap: 16,
-            marginBottom: 20,
+            gap: 14,
+            marginBottom: 16,
           }}
         >
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
             <div
               style={{
-                width: 52,
-                height: 52,
-                borderRadius: 14,
+                width: 46,
+                height: 46,
+                borderRadius: 12,
                 background: C.or,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 24,
+                fontSize: 21,
                 flexShrink: 0,
               }}
             >
               💳
             </div>
             <div>
-              <h1 style={{ color: C.bordeaux, fontSize: 26, fontWeight: 700, margin: 0 }}>
+              <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
                 Payment Grid — {groupName}
               </h1>
-              <p style={{ color: C.texteGris, margin: '4px 0 0', fontSize: 14 }}>
+              <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
               </p>
             </div>
           </div>
-          <div className="tarsyn-no-print" style={{ display: 'flex', gap: 10 }}>
-            <button onClick={handleExport} style={btnStyle('secondary')}>
-              ⬇ Export
+
+          {/* Primary action bar */}
+          <div className="tarsyn-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleSaveAll}
+              disabled={!hasChanges || savingAll}
+              style={btnStyle('primary', !hasChanges || savingAll)}
+            >
+              💾 {savingAll ? 'Saving...' : 'Save Payments'}
             </button>
+            <button onClick={handleExportAll} style={btnStyle('secondary')}>
+              📄 Export
+            </button>
+            <button onClick={handleSendReminders} style={btnStyle('secondary')}>
+              📧 Send Reminders
+            </button>
+            <button style={btnStyle('secondary')}>➕ Add / Edit Members</button>
             <button onClick={handlePrint} style={btnStyle('secondary')}>
               🖨 Print
             </button>
-            <button style={btnStyle('primary')}>👥 Add / Edit Members</button>
           </div>
         </div>
+
+        {/* Unsaved changes banner */}
+        {hasChanges && (
+          <div
+            className="tarsyn-no-print"
+            style={{
+              background: C.warningBg,
+              border: '1px solid ' + C.or,
+              borderRadius: 12,
+              padding: '10px 16px',
+              marginBottom: 16,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 10,
+            }}
+          >
+            <span style={{ color: C.warning, fontSize: 13.5, fontWeight: 600 }}>
+              ⚠ You have unsaved changes.
+            </span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleDiscardAll} style={btnStyle('ghost')}>
+                Discard
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={savingAll}
+                style={btnStyle('primary', savingAll)}
+              >
+                {savingAll ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Info card */}
         <div
           style={{
             background: C.ivoire,
             border: '1px solid ' + C.border,
-            borderRadius: 14,
-            padding: '16px 20px',
-            marginBottom: 20,
+            borderRadius: 12,
+            padding: '12px 16px',
+            marginBottom: 16,
             display: 'flex',
-            gap: 12,
+            gap: 10,
             alignItems: 'flex-start',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
           }}
         >
           <div
             style={{
-              width: 28,
-              height: 28,
+              width: 24,
+              height: 24,
               borderRadius: '50%',
               background: C.bordeaux,
               color: C.ivoire,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 14,
+              fontSize: 12,
               flexShrink: 0,
             }}
           >
             ℹ
           </div>
           <div>
-            <strong style={{ color: C.bordeaux, fontSize: 14 }}>Deposit</strong>
-            <p style={{ margin: '2px 0 0', color: C.texteFonce, fontSize: 13.5 }}>
-              Initial contribution used to start the group. This amount is informational
-              only and is not counted in weekly contributions.
+            <strong style={{ color: C.bordeaux, fontSize: 13.5 }}>Deposit</strong>
+            <p style={{ margin: '2px 0 0', color: C.texteFonce, fontSize: 12.5 }}>
+              Initial contribution used to start the group. Informational only, not counted
+              in weekly contributions.
             </p>
           </div>
         </div>
 
-        {/* Filter bar */}
+        {/* Period calendar + search */}
         <div
           className="tarsyn-no-print"
           style={{
             display: 'flex',
-            gap: 12,
+            gap: 10,
             alignItems: 'center',
             flexWrap: 'wrap',
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
-          <select style={filterInputStyle} defaultValue="20">
-            <option value="20">Week view (20 weeks)</option>
-          </select>
-          <div style={filterInputStyle}>
-            {weekEntries[0]?.[1]} – {weekEntries[weekEntries.length - 1]?.[1]}
-          </div>
+          <span style={{ fontSize: 13, color: C.texteFonce, fontWeight: 600 }}>
+            📅 Period:
+          </span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              setPageStart(0);
+            }}
+            style={dateInputStyle}
+          />
+          <span style={{ color: C.texteGris }}>→</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              setPageStart(0);
+            }}
+            style={dateInputStyle}
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => {
+                setDateFrom('');
+                setDateTo('');
+                setPageStart(null);
+              }}
+              style={btnStyle('ghost')}
+            >
+              Reset
+            </button>
+          )}
           <input
             type="text"
             placeholder="Search member..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ ...filterInputStyle, flex: 1, minWidth: 200 }}
+            style={{ ...dateInputStyle, flex: 1, minWidth: 180 }}
           />
-          <button style={btnStyle('secondary')}>▽ Filters</button>
+        </div>
+
+        {/* Compact summary bar */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            flexWrap: 'wrap',
+            marginBottom: 14,
+          }}
+        >
+          {[
+            { label: 'Members', value: String(totalMembers) },
+            { label: 'Week', value: 'W' + focusWeekIdx },
+            { label: 'Paid', value: String(focusPaid) },
+            { label: 'Missing', value: String(focusMissing) },
+            { label: 'Completion', value: focusCompletion + '%' },
+          ].map((item) => (
+            <div
+              key={item.label}
+              style={{
+                background: C.ivoire,
+                border: '1px solid ' + C.border,
+                borderRadius: 10,
+                padding: '8px 14px',
+                fontSize: 12.5,
+                color: C.texteGris,
+                display: 'flex',
+                gap: 6,
+                alignItems: 'baseline',
+              }}
+            >
+              <span>{item.label}:</span>
+              <strong style={{ color: C.bordeaux, fontSize: 14 }}>{item.value}</strong>
+            </div>
+          ))}
+        </div>
+
+        {/* Week navigation + quick actions */}
+        <div
+          className="tarsyn-no-print"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 10,
+            marginBottom: 10,
+          }}
+        >
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() =>
+                setPageStart(Math.max(0, effectivePageStart - WEEKS_PER_PAGE))
+              }
+              disabled={!canGoPrev}
+              style={btnStyle('ghost', !canGoPrev)}
+            >
+              ◀ Previous
+            </button>
+            <span style={{ fontSize: 12.5, color: C.texteGris }}>
+              {visibleWeeks.map(([idx]) => 'W' + idx).join(' · ')}
+            </span>
+            <button
+              onClick={() => setPageStart(effectivePageStart + WEEKS_PER_PAGE)}
+              disabled={!canGoNext}
+              style={btnStyle('ghost', !canGoNext)}
+            >
+              Next ▶
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => markAllPaidForWeek(focusWeekIdx, focusSlotNums)}
+              style={btnStyle('ghost')}
+            >
+              ☑ Mark All Paid (W{focusWeekIdx})
+            </button>
+            <button
+              onClick={() => clearWeekPayments(focusWeekIdx, focusSlotNums)}
+              style={btnStyle('ghost')}
+            >
+              ☐ Clear Week
+            </button>
+            <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle('ghost')}>
+              📄 Export Week
+            </button>
+          </div>
         </div>
 
         {/* Table */}
@@ -529,15 +786,15 @@ export default function PaymentGridPage() {
                     left: 0,
                     background: C.bordeaux,
                     color: C.ivoire,
-                    padding: '14px 20px',
+                    padding: '12px 16px',
                     textAlign: 'left',
                     zIndex: 3,
-                    minWidth: 260,
+                    minWidth: 240,
                   }}
                 >
                   Member
                 </th>
-                {weekEntries.map(([idx, date]) => (
+                {visibleWeeks.map(([idx, date]) => (
                   <th
                     key={idx}
                     style={{
@@ -545,15 +802,15 @@ export default function PaymentGridPage() {
                       top: 0,
                       background: C.bordeaux,
                       color: C.or,
-                      padding: '10px 14px',
+                      padding: '10px 12px',
                       fontSize: 12,
-                      minWidth: 74,
+                      minWidth: 90,
                       textAlign: 'center',
                       zIndex: 2,
                     }}
                   >
                     W{idx}
-                    <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 11 }}>
+                    <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 10.5 }}>
                       {date}
                     </div>
                   </th>
@@ -563,6 +820,7 @@ export default function PaymentGridPage() {
             <tbody>
               {slotEntries.map(([slotNum, slot]) => {
                 const meta = memberMeta[slot.memberId] || { status: 'active', joinedLabel: '' };
+                const rate = contributionRateForSlot(slotNum);
                 return (
                   <tr key={slotNum} style={{ borderBottom: '1px solid ' + C.border }}>
                     <td
@@ -570,23 +828,23 @@ export default function PaymentGridPage() {
                         position: 'sticky',
                         left: 0,
                         background: C.ivoire,
-                        padding: '14px 20px',
+                        padding: '12px 16px',
                         borderRight: '1px solid ' + C.border,
                         zIndex: 1,
                       }}
                     >
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <div
                           style={{
-                            width: 38,
-                            height: 38,
+                            width: 34,
+                            height: 34,
                             borderRadius: '50%',
                             background: avatarColor(slot.memberName),
                             color: C.ivoire,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: 700,
                             flexShrink: 0,
                           }}
@@ -594,15 +852,15 @@ export default function PaymentGridPage() {
                           {getInitials(slot.memberName)}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, color: C.texteFonce, fontSize: 14 }}>
+                          <div style={{ fontWeight: 600, color: C.texteFonce, fontSize: 13.5 }}>
                             #{slotNum} · {slot.memberName}
                           </div>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: 600,
-                                padding: '2px 8px',
+                                padding: '1px 7px',
                                 borderRadius: 20,
                                 background: meta.status === 'inactive' ? C.dangerBg : C.successBg,
                                 color: meta.status === 'inactive' ? C.danger : C.success,
@@ -610,24 +868,20 @@ export default function PaymentGridPage() {
                             >
                               ● {meta.status === 'inactive' ? 'Inactive' : 'Active'}
                             </span>
-                            {meta.joinedLabel && (
-                              <span style={{ fontSize: 11.5, color: C.texteGris }}>
-                                Joined {meta.joinedLabel}
-                              </span>
-                            )}
+                            <span style={{ fontSize: 10.5, color: C.texteGris }}>
+                              {rate}% paid
+                            </span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    {weekEntries.map(([weekIdx]) => {
-                      const isPaid = grid.payments[slotNum]?.[weekIdx] || false;
-                      const key = slotNum + '-' + weekIdx;
-                      const isSaving = saving === key;
+                    {visibleWeeks.map(([weekIdx]) => {
+                      const isPaid = pendingPayments[slotNum]?.[weekIdx] || false;
                       return (
                         <td
                           key={weekIdx}
                           className="tarsyn-cell"
-                          onClick={() => !isSaving && togglePayment(slotNum, weekIdx)}
+                          onClick={() => toggleQueuedPayment(slotNum, weekIdx)}
                           style={{
                             textAlign: 'center',
                             cursor: 'pointer',
@@ -646,8 +900,6 @@ export default function PaymentGridPage() {
                               justifyContent: 'center',
                               background: isPaid ? C.bordeaux : C.creme,
                               border: '1.5px solid ' + (isPaid ? C.bordeaux : C.border),
-                              opacity: isSaving ? 0.5 : 1,
-                              transform: isSaving ? 'scale(0.9)' : 'scale(1)',
                               transition: 'all 0.15s',
                             }}
                           >
@@ -667,88 +919,18 @@ export default function PaymentGridPage() {
           </table>
         </div>
 
-        {/* Summary cards */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 16,
-            marginTop: 24,
-          }}
-        >
-          {[
-            {
-              icon: '👥',
-              label: 'Total Members',
-              value: totalMembers,
-              sub: activeCount + ' active · ' + inactiveCount + ' inactive',
-            },
-            {
-              icon: '✅',
-              label: 'Total Collected',
-              value: totalCollectedLabel,
-              sub: progressPct + '% completion',
-            },
-            {
-              icon: '📅',
-              label: 'Current Week',
-              value: currentWeekLabel,
-              sub: currentWeekRange,
-            },
-            {
-              icon: '🎯',
-              label: 'Overall Progress',
-              value: progressPct + '%',
-              sub: totalPaidCells + ' / ' + totalPossibleCells + ' payments',
-            },
-          ].map((card) => (
-            <div
-              key={card.label}
-              style={{
-                background: C.ivoire,
-                border: '1px solid ' + C.border,
-                borderRadius: 14,
-                padding: '18px 20px',
-                display: 'flex',
-                gap: 14,
-                alignItems: 'center',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: C.creme,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 20,
-                  flexShrink: 0,
-                }}
-              >
-                {card.icon}
-              </div>
-              <div>
-                <div style={{ fontSize: 12.5, color: C.texteGris }}>{card.label}</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: C.bordeaux }}>
-                  {card.value}
-                </div>
-                <div style={{ fontSize: 11.5, color: C.texteGris, marginTop: 2 }}>
-                  {card.sub}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {totalCollectedLabel && (
+          <p style={{ marginTop: 10, fontSize: 12.5, color: C.texteGris }}>
+            Total collected to date: <strong style={{ color: C.bordeaux }}>{totalCollectedLabel}</strong>
+          </p>
+        )}
 
         {/* Footer */}
         <div
           className="tarsyn-no-print"
           style={{
-            marginTop: 32,
-            paddingTop: 20,
+            marginTop: 28,
+            paddingTop: 18,
             borderTop: '1px solid ' + C.border,
             textAlign: 'center',
             fontSize: 12.5,
