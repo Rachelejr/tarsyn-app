@@ -40,7 +40,7 @@ const MODULES: ModuleDef[] = [
 ];
 
 const CATEGORIES = ['All', 'Finance', 'Community', 'Faith', 'Agriculture', 'Charity', 'Organization', 'Education', 'Health', 'Youth', 'Commerce', 'Sports'];
-const COMING_SOON_TITLES = ['Association', 'Investment', 'Agriculture', 'Foundation', 'Orphanage', 'Cooperative', 'Organization', 'Education', 'Health', 'Youth Club', 'Commerce', 'Sport'];
+const COMING_SOON_TITLES = ['Education', 'Health'];
 
 const MODULE_ROUTES: Record<string, string> = {
   'tontine-sol': '/dashboard/create-tontine',
@@ -253,3 +253,4 @@ export default function ChooseModulePage() {
     </Suspense>
   );
 }
+
