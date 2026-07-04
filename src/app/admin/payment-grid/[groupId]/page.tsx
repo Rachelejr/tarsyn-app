@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useParams } from 'next/navigation';
 
 const C = {
@@ -39,7 +40,14 @@ export default function PaymentGridPage() {
   const gridId = groupId + '_current';
 
   useEffect(() => {
-    loadGrid();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadGrid();
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
   }, [groupId]);
 
   async function loadGrid() {
