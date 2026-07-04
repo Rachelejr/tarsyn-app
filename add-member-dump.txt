@@ -2,7 +2,6 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 
 const C = {
@@ -28,11 +27,7 @@ const labelStyle = { fontSize: 12, fontWeight: 600, color: C.muted, textTransfor
 function AddMemberContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlGroupId = searchParams.get('groupId') || '';
-
-  const [groups, setGroups] = useState<any[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(true);
-  const [selectedGroupId, setSelectedGroupId] = useState(urlGroupId);
+  const groupId = searchParams.get('groupId') || '';
 
   const [form, setForm] = useState({
     fullName: '', phone: '', email: '', country: '', memberType: 'Regular',
@@ -50,32 +45,15 @@ function AddMemberContent() {
   }, []);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) { setGroupsLoading(false); return; }
-      try {
-        const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
-        const gsnap = await getDocs(gq);
-        const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setGroups(groupList);
-        if (!urlGroupId && groupList.length === 1) {
-          setSelectedGroupId(groupList[0].id);
-        }
-      } catch (e) { console.error(e); }
-      setGroupsLoading(false);
-    });
-    return () => unsub();
-  }, [urlGroupId]);
-
-  useEffect(() => {
-    if (!selectedGroupId) return;
+    if (!groupId) return;
     const fetchCount = async () => {
-      const q = query(collection(db, 'members'), where('groupId', '==', selectedGroupId));
+      const q = query(collection(db, 'members'), where('groupId', '==', groupId));
       const snap = await getDocs(q);
       setNextPosition(snap.size + 1);
       setForm(f => ({ ...f, position: String(snap.size + 1) }));
     };
     fetchCount();
-  }, [selectedGroupId]);
+  }, [groupId]);
 
   // TYN-ID = [Initiale prenom][Initiale nom]-[numero sequentiel 3 chiffres], ex: JD-001
   useEffect(() => {
@@ -91,19 +69,19 @@ function AddMemberContent() {
 
   const handleSubmit = async () => {
     if (!form.fullName || !form.country) return alert('Full name and country are required.');
-    if (!selectedGroupId) return alert('Please select a group before adding a member.');
+    if (!groupId) return alert('No group selected.');
     const user = auth.currentUser;
     if (!user) return;
     setLoading(true);
     try {
-      const existing = await getDocs(query(collection(db, 'members'), where('groupId', '==', selectedGroupId)));
+      const existing = await getDocs(query(collection(db, 'members'), where('groupId', '==', groupId)));
       const members = existing.docs.map(d => d.data());
-      if (form.email && members.some((m: any) => m.email === form.email && m.groupId === selectedGroupId)) {
+      if (form.email && members.some((m: any) => m.email === form.email && m.groupId === groupId)) {
         alert('A member with this email already exists in this group.');
         setLoading(false); return;
       }
       await addDoc(collection(db, 'members'), {
-        ...form, tynId, groupId: selectedGroupId, organizerId: user.uid,
+        ...form, tynId, groupId, organizerId: user.uid,
         position: parseInt(form.position) || nextPosition,
         expectedAmount: parseFloat(form.expectedAmount) || 0,
         createdAt: serverTimestamp(),
@@ -123,7 +101,7 @@ function AddMemberContent() {
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 8px' }}>Member added successfully</h2>
           <p style={{ fontSize: 14, color: C.muted, margin: '0 0 28px', lineHeight: 1.6 }}>The member is now part of the active cycle.</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <button onClick={() => router.push('/dashboard/contribution-log?groupId=' + selectedGroupId)}
+            <button onClick={() => router.push('/dashboard/contribution-log?groupId=' + groupId)}
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
@@ -168,32 +146,6 @@ function AddMemberContent() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 18 }}>
-
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
-                Group
-              </h2>
-              {groupsLoading ? (
-                <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>Loading your groups...</p>
-              ) : groups.length === 0 ? (
-                <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>
-                  You have no groups yet.{' '}
-                  <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>
-                    Create a group first
-                  </span>
-                </p>
-              ) : (
-                <div>
-                  <label style={labelStyle}>Select Group *</label>
-                  <select style={inputStyle} value={selectedGroupId} onChange={e => setSelectedGroupId(e.target.value)}>
-                    <option value="">Choose a group...</option>
-                    {groups.map(g => (
-                      <option key={g.id} value={g.id}>{g.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
 
             <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
@@ -296,7 +248,6 @@ function AddMemberContent() {
               Member Summary
             </h3>
             {[
-              { label: 'Group', value: groups.find(g => g.id === selectedGroupId)?.name || '—' },
               { label: 'Name', value: form.fullName || '—' },
               { label: 'Country', value: form.country || '—' },
               { label: 'Currency', value: form.currency },
@@ -331,3 +282,4 @@ export default function AddMemberPage() {
     </Suspense>
   );
 }
+
