@@ -34,7 +34,6 @@ function MemberContent() {
   const [allMemberships, setAllMemberships] = useState<any[]>([]);
   const [activeMember, setActiveMember] = useState<any>(null);
   const [groupName, setGroupName] = useState('');
-  const [groupMemberCount, setGroupMemberCount] = useState(0);
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -74,22 +73,6 @@ function MemberContent() {
     } catch (e) { setActivity([]); }
   };
 
-  const fetchGroupMemberCount = async (membership: any) => {
-    try {
-      if (membership.groupId) {
-        const mq = query(collection(db, 'members'), where('groupId', '==', membership.groupId));
-        const msnap = await getDocs(mq);
-        setGroupMemberCount(msnap.size);
-      } else {
-        const mq = query(collection(db, 'members'), where('organizerId', '==', membership.organizerId));
-        const msnap = await getDocs(mq);
-        setGroupMemberCount(msnap.size);
-      }
-    } catch (e) {
-      setGroupMemberCount(0);
-    }
-  };
-
   const selectMembership = async (membership: any, currentUid: string) => {
     setActiveMember(membership);
     try {
@@ -116,7 +99,6 @@ function MemberContent() {
     } catch (e) { setBranding(null); }
     await fetchDocs(membership.organizerId, currentUid);
     await fetchActivity(membership.organizerId);
-    await fetchGroupMemberCount(membership);
   };
 
   useEffect(() => {
@@ -353,9 +335,7 @@ function MemberContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
                   <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>Position</p>
-                  <p style={{ color: C.dore, fontWeight: 800, fontSize: '16px', margin: 0 }}>
-                    #{activeMember.position || '-'}{groupMemberCount > 0 ? '/' + groupMemberCount : ''}
-                  </p>
+                  <p style={{ color: C.dore, fontWeight: 800, fontSize: '16px', margin: 0 }}>#{activeMember.position || '-'}</p>
                 </div>
                 <div>
                   <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>Status</p>
@@ -553,149 +533,5 @@ export default function MemberPage() {
       </Suspense>
     </TrialGuard>
   );
-}          </div>
-
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by file name..."
-            style={{ width: '100%', padding: '9px 14px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '13px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }} />
-
-          {filteredDocs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '36px 0' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>F</div>
-              <p style={{ color: C.texteGris, fontSize: '14px' }}>No documents match your search.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {filteredDocs.map((d: any) => {
-                const icon = getFileIcon(d.type);
-                return (
-                  <div key={d.id}>
-                    <div className="doc-row" style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '200px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: icon.color, border: '1px solid ' + C.border, flexShrink: 0 }}>
-                          {icon.label}
-                        </div>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap' }}>
-                            <p style={{ color: C.texteFonce, fontWeight: 700, margin: 0, fontSize: '13.5px' }}>{d.name}</p>
-                            {isNew(d.createdAt) && (
-                              <span style={{ fontSize: '9px', background: C.dore, color: 'white', padding: '2px 7px', borderRadius: '10px', fontWeight: 800 }}>NEW</span>
-                            )}
-                            <span style={{ fontSize: '9px', background: d.source === 'admin' ? '#E3F2FD' : '#F3E4DC', color: d.source === 'admin' ? '#1565C0' : C.bordeaux, padding: '2px 7px', borderRadius: '10px', fontWeight: 800 }}>
-                              {d.source === 'admin' ? 'ADMIN' : 'YOU'}
-                            </span>
-                          </div>
-                          <p style={{ color: C.texteGris, fontSize: '11.5px', margin: '3px 0 0' }}>
-                            {formatSize(d.size)} - {d.category} - {formatDate(d.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <a href={d.url} target="_blank" rel="noreferrer" style={{ background: 'white', color: C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
-                        <a href={d.url} download={d.name} style={{ background: C.bordeaux, color: 'white', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Download</a>
-                        <button onClick={() => handlePrint(d.url)} style={{ background: 'white', color: C.doreDark, border: '1.5px solid ' + C.dore, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Print</button>
-                        {d.uploadedBy === uid && (
-                          <button onClick={() => handleDelete(d)} disabled={deletingId === d.id} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
-                            {deletingId === d.id ? '...' : 'Delete'}
-                          </button>
-                        )}
-                        <button onClick={() => setExpandedDocId(expandedDocId === d.id ? null : d.id)}
-                          style={{ background: expandedDocId === d.id ? C.bordeaux : 'white', color: expandedDocId === d.id ? 'white' : C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
-                          Comments
-                        </button>
-                      </div>
-                    </div>
-                    {expandedDocId === d.id && (
-                      <div style={{ background: 'white', border: '1px solid ' + C.border, borderRadius: '0 0 14px 14px', padding: '18px', marginTop: '-4px' }}>
-                        <DocumentComments documentId={d.id} currentUserName={activeMember?.fullName || ''} currentUserRole='member' />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {(!effectiveBranding?.logo || effectiveBranding?.showTarsynBadge !== false) && (
-            <div style={{ textAlign: 'center', padding: '18px 0 4px' }}>
-              <span style={{ color: C.texteGris, fontSize: '11px', opacity: 0.7 }}>Powered by TARSYN</span>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT - Activity / Insights */}
-        <div className="tarsyn-mem-right" style={{ borderLeft: `1px solid ${C.border}`, padding: '20px', overflowY: 'auto', background: C.creme }}>
-          <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>Recent uploads</p>
-          {recentUploads.length === 0 ? (
-            <p style={{ color: C.muted, fontSize: '12px', marginBottom: '20px' }}>No documents yet.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              {recentUploads.map((d: any) => (
-                <div key={d.id} style={{ background: 'white', borderRadius: '10px', padding: '9px 12px' }}>
-                  <p style={{ color: C.texteFonce, fontSize: '11.5px', fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</p>
-                  <p style={{ color: C.muted, fontSize: '10.5px', margin: '2px 0 0' }}>{formatDate(d.createdAt)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>Activity log</p>
-          {activity.length === 0 ? (
-            <p style={{ color: C.muted, fontSize: '12px' }}>No recent activity.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {activity.map((a: any) => (
-                <div key={a.id} style={{ background: 'white', borderRadius: '10px', padding: '9px 12px' }}>
-                  <p style={{ color: C.texteFonce, fontSize: '11px', fontWeight: 600, margin: 0 }}>{a.action}</p>
-                  <p style={{ color: C.muted, fontSize: '10px', margin: '2px 0 0' }}>{formatDateTime(a.createdAt)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {showUploadModal && pendingFiles.length > 0 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '400px', width: '100%' }}>
-            <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 6px' }}>
-              Upload {pendingFiles.length > 1 ? pendingFiles.length + ' files' : 'Document'}
-            </h3>
-            {error && (
-              <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '10px 14px', fontSize: '12.5px', marginBottom: '14px', lineHeight: 1.5 }}>{error}</div>
-            )}
-            <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '18px' }}>
-              {pendingFiles.map((f, i) => (
-                <p key={i} style={{ color: C.texteGris, fontSize: '13px', margin: '4px 0', wordBreak: 'break-all' }}>- {f.name}</p>
-              ))}
-            </div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: C.texteFonce, marginBottom: '6px' }}>Category</label>
-            <select value={uploadCategory} onChange={e => setUploadCategory(e.target.value)}
-              style={{ width: '100%', padding: '10px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '13px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}>
-              {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setShowUploadModal(false); setPendingFiles([]); }} disabled={uploading}
-                style={{ flex: 1, padding: '11px', background: 'transparent', color: C.bordeaux, border: '2px solid ' + C.bordeaux, borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                Cancel
-              </button>
-              <button onClick={handleConfirmUpload} disabled={uploading}
-                style={{ flex: 1, padding: '11px', background: C.bordeaux, color: C.creme, border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                {uploading ? 'Uploading...' : 'Upload'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
-export default function MemberPage() {
-  return (
-    <TrialGuard>
-      <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
-        <MemberContent />
-      </Suspense>
-    </TrialGuard>
-  );
-}
