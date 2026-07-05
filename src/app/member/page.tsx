@@ -62,6 +62,7 @@ function MemberContent() {
     weeks: Record<string, string>;
     payments: Record<string, Record<string, boolean>>;
     slots: string[];
+    memberName: string;
   } | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
@@ -158,7 +159,7 @@ function MemberContent() {
         });
       });
 
-      setMyPayments({ paid, total, missingWeeks, weeks, payments, slots });
+      setMyPayments({ paid, total, missingWeeks, weeks, payments, slots, memberName: data.memberName || membership?.fullName || 'You' });
     } catch (e) {
       setMyPayments(null);
     } finally {
@@ -525,6 +526,63 @@ function MemberContent() {
 
         {/* CENTER - Documents (main) */}
         <div className="tarsyn-mem-center" style={{ padding: '20px', overflowY: 'auto' }}>
+
+          {/* My Payment Grid (full table, read-only, this member's rows only) */}
+          {myPayments && (
+            <div style={{ marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>My Payment Grid</h2>
+                <span style={{ fontSize: '12px', color: C.texteGris, fontWeight: 600 }}>
+                  {myPayments.paid}/{myPayments.total} weeks paid
+                </span>
+              </div>
+              <div style={{ background: C.ivoire, borderRadius: '14px', border: '1px solid ' + C.border, overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ position: 'sticky', left: 0, background: C.bordeaux, color: C.ivoire, padding: '12px 16px', textAlign: 'left', zIndex: 2, minWidth: 180 }}>
+                        Member
+                      </th>
+                      {weekKeysSorted.map((wIdx) => (
+                        <th key={wIdx} style={{ background: C.bordeaux, color: C.dore, padding: '10px 10px', fontSize: 11, minWidth: 64, textAlign: 'center' }}>
+                          W{wIdx}
+                          <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 9.5 }}>{myPayments.weeks[wIdx]}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myPayments.slots.map((slotNum, i) => (
+                      <tr key={slotNum} style={{ borderBottom: '1px solid ' + C.border }}>
+                        <td style={{ position: 'sticky', left: 0, background: C.ivoire, padding: '10px 16px', fontWeight: 600, color: C.texteFonce, fontSize: 13 }}>
+                          {myPayments.memberName}{myPayments.slots.length > 1 ? ' (part ' + (i + 1) + ')' : ''}
+                        </td>
+                        {weekKeysSorted.map((wIdx) => {
+                          const isPaid = myPayments.payments[slotNum]?.[wIdx] || false;
+                          const isFuture = new Date(myPayments.weeks[wIdx]) > new Date();
+                          return (
+                            <td key={wIdx} style={{ textAlign: 'center', padding: 6 }}>
+                              <div style={{
+                                width: 26, height: 26, margin: '0 auto', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: isPaid ? C.bordeaux : isFuture ? C.creme : C.dangerBg,
+                                border: '1.5px solid ' + (isPaid ? C.bordeaux : C.border),
+                              }}>
+                                {isPaid && <span style={{ color: C.dore, fontSize: 13, fontWeight: 700 }}>✓</span>}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p style={{ fontSize: '10.5px', color: C.muted, margin: '8px 0 0' }}>
+                View only — your organizer marks payments as received.
+              </p>
+            </div>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>Documents</h2>
             <span style={{ fontSize: '12px', color: C.texteGris, fontWeight: 600 }}>{filteredDocs.length} file{filteredDocs.length !== 1 ? 's' : ''}</span>
