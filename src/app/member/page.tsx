@@ -435,6 +435,12 @@ function MemberContent() {
             {activeMember && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
+                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>Member</p>
+                  <p style={{ color: 'white', fontWeight: 800, fontSize: '15px', margin: 0 }}>
+                    {activeMember.fullName || activeMember.name || 'Member'}
+                  </p>
+                </div>
+                <div>
                   <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>Position</p>
                   <p style={{ color: C.dore, fontWeight: 800, fontSize: '16px', margin: 0 }}>
                     #{activeMember.position || '-'}{groupMemberCount > 0 ? '/' + groupMemberCount : ''}
@@ -608,7 +614,7 @@ function MemberContent() {
 
           {filteredDocs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '36px 0' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>F</div>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📁</div>
               <p style={{ color: C.texteGris, fontSize: '14px' }}>No documents match your search.</p>
             </div>
           ) : (
