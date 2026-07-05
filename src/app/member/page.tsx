@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,6 +20,10 @@ const C = {
   texteFonce: '#4A1F38',
   border: '#EAD9BE',
   muted: '#8A7A88',
+  success: '#3F7D5C',
+  successBg: '#E4F0E9',
+  danger: '#B0525F',
+  dangerBg: '#F5E4E6',
 };
 
 const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Receipts', 'Other'];
@@ -50,6 +54,18 @@ function MemberContent() {
   const [branding, setBranding] = useState<{ slogan?: string; primaryColor?: string; secondaryColor?: string; logo?: string; showTarsynBadge?: boolean; enabled?: boolean } | null>(null);
   const [activity, setActivity] = useState<any[]>([]);
 
+  // --- Payment grid (member view) state ---
+  const [myPayments, setMyPayments] = useState<{
+    paid: number;
+    total: number;
+    missingWeeks: string[];
+    weeks: Record<string, string>;
+    payments: Record<string, Record<string, boolean>>;
+    slots: string[];
+  } | null>(null);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [showAllWeeks, setShowAllWeeks] = useState(false);
+
   const fetchDocs = async (organizerId: string, currentUid: string) => {
     const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerId));
     const dsnap = await getDocs(dq);
@@ -74,19 +90,79 @@ function MemberContent() {
     } catch (e) { setActivity([]); }
   };
 
+  // Robust member count: tries groupId first, then falls back to the group's
+  // real organizerId/adminId (groups sometimes use one or the other field).
   const fetchGroupMemberCount = async (membership: any) => {
     try {
+      let count = 0;
+
       if (membership.groupId) {
         const mq = query(collection(db, 'members'), where('groupId', '==', membership.groupId));
         const msnap = await getDocs(mq);
-        setGroupMemberCount(msnap.size);
-      } else {
+        count = msnap.size;
+
+        if (count === 0) {
+          const groupSnap = await getDoc(doc(db, 'groups', membership.groupId));
+          if (groupSnap.exists()) {
+            const gData = groupSnap.data();
+            const realOrganizerId = gData?.organizerId || gData?.adminId;
+            if (realOrganizerId) {
+              const mq2 = query(collection(db, 'members'), where('organizerId', '==', realOrganizerId));
+              const msnap2 = await getDocs(mq2);
+              count = msnap2.size;
+            }
+          }
+        }
+      } else if (membership.organizerId) {
         const mq = query(collection(db, 'members'), where('organizerId', '==', membership.organizerId));
         const msnap = await getDocs(mq);
-        setGroupMemberCount(msnap.size);
+        count = msnap.size;
       }
+
+      setGroupMemberCount(count);
     } catch (e) {
       setGroupMemberCount(0);
+    }
+  };
+
+  // Reads this member's payment status from paymentGrids/{groupId}_current/memberViews/{uid}
+  const fetchMyPayments = async (membership: any, currentUid: string) => {
+    if (!membership?.groupId) { setMyPayments(null); return; }
+    setPaymentsLoading(true);
+    try {
+      const gridId = membership.groupId + '_current';
+      const viewSnap = await getDoc(doc(db, 'paymentGrids', gridId, 'memberViews', currentUid));
+      if (!viewSnap.exists()) { setMyPayments(null); setPaymentsLoading(false); return; }
+
+      const data = viewSnap.data();
+      const weeks: Record<string, string> = data.weeks || {};
+      const payments: Record<string, Record<string, boolean>> = data.payments || {};
+      const slots: string[] = data.slots || [];
+
+      const weekKeys = Object.keys(weeks).sort((a, b) => Number(a) - Number(b));
+      const today = new Date();
+      let paid = 0;
+      let total = 0;
+      const missingWeeks: string[] = [];
+
+      weekKeys.forEach((wIdx) => {
+        const weekDate = new Date(weeks[wIdx]);
+        if (weekDate > today) return; // only count elapsed weeks
+        slots.forEach((slotNum) => {
+          total++;
+          if (payments[slotNum]?.[wIdx]) {
+            paid++;
+          } else {
+            missingWeeks.push('W' + wIdx);
+          }
+        });
+      });
+
+      setMyPayments({ paid, total, missingWeeks, weeks, payments, slots });
+    } catch (e) {
+      setMyPayments(null);
+    } finally {
+      setPaymentsLoading(false);
     }
   };
 
@@ -117,6 +193,7 @@ function MemberContent() {
     await fetchDocs(membership.organizerId, currentUid);
     await fetchActivity(membership.organizerId);
     await fetchGroupMemberCount(membership);
+    await fetchMyPayments(membership, currentUid);
   };
 
   useEffect(() => {
@@ -269,6 +346,10 @@ function MemberContent() {
     </div>
   );
 
+  const paymentPct = myPayments && myPayments.total > 0 ? Math.round((myPayments.paid / myPayments.total) * 100) : null;
+  const weekKeysSorted = myPayments ? Object.keys(myPayments.weeks).sort((a, b) => Number(a) - Number(b)) : [];
+  const weeksToShow = showAllWeeks ? weekKeysSorted : weekKeysSorted.slice(0, 8);
+
   return (
     <div className="tarsyn-mem-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{__html: `
@@ -279,6 +360,7 @@ function MemberContent() {
         .group-tab{transition:all 0.15s ease;cursor:pointer;}
         .qa-btn{transition:all 0.15s ease;cursor:pointer;}
         .qa-btn:hover{transform:translateY(-1px);}
+        .pay-cell{transition:all 0.15s ease;}
         @media (max-width: 1050px) {
           .tarsyn-mem-grid { grid-template-columns: 240px 1fr !important; }
           .tarsyn-mem-right { display: none !important; }
@@ -372,6 +454,59 @@ function MemberContent() {
                   <p style={{ color: 'white', fontWeight: 700, margin: 0, fontFamily: 'monospace', fontSize: '13px' }}>{activeMember.tynId || '-'}</p>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* My Payments card */}
+          <div style={{ background: 'white', border: '1px solid ' + C.border, borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+            <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>My Payments</p>
+            {paymentsLoading ? (
+              <p style={{ color: C.texteGris, fontSize: '12.5px', margin: 0 }}>Loading...</p>
+            ) : !myPayments ? (
+              <p style={{ color: C.texteGris, fontSize: '12.5px', margin: 0 }}>No payment data yet for this group.</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '22px', fontWeight: 800, color: C.bordeaux }}>{paymentPct}%</span>
+                  <span style={{ fontSize: '11.5px', color: C.texteGris }}>paid ({myPayments.paid}/{myPayments.total})</span>
+                </div>
+                <div style={{ height: '6px', borderRadius: '4px', background: C.creme, overflow: 'hidden', marginBottom: '10px' }}>
+                  <div style={{ height: '100%', width: paymentPct + '%', background: paymentPct === 100 ? C.success : C.dore }} />
+                </div>
+                {myPayments.missingWeeks.length > 0 ? (
+                  <p style={{ fontSize: '11px', color: C.danger, margin: '0 0 10px' }}>
+                    Missing: {myPayments.missingWeeks.slice(0, 6).join(', ')}{myPayments.missingWeeks.length > 6 ? '...' : ''}
+                  </p>
+                ) : (
+                  <p style={{ fontSize: '11px', color: C.success, margin: '0 0 10px', fontWeight: 700 }}>All caught up!</p>
+                )}
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {weeksToShow.map((wIdx) => {
+                    const isPaid = myPayments.slots.some((s) => myPayments.payments[s]?.[wIdx]);
+                    const weekDate = new Date(myPayments.weeks[wIdx]);
+                    const isFuture = weekDate > new Date();
+                    return (
+                      <div key={wIdx} className="pay-cell" title={myPayments.weeks[wIdx]}
+                        style={{
+                          width: '30px', height: '30px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '10px', fontWeight: 700,
+                          background: isFuture ? C.creme : isPaid ? C.successBg : C.dangerBg,
+                          color: isFuture ? C.muted : isPaid ? C.success : C.danger,
+                          border: '1px solid ' + C.border,
+                        }}>
+                        W{wIdx}
+                      </div>
+                    );
+                  })}
+                </div>
+                {weekKeysSorted.length > 8 && (
+                  <button onClick={() => setShowAllWeeks(!showAllWeeks)}
+                    style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '11px', fontWeight: 700, cursor: 'pointer', marginTop: '8px', padding: 0 }}>
+                    {showAllWeeks ? 'Show less' : 'Show all weeks'}
+                  </button>
+                )}
+              </>
             )}
           </div>
 
