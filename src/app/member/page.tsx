@@ -376,10 +376,8 @@ function MemberContent() {
 
       <nav className="tarsyn-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-          {effectiveBranding?.logo ? (
+          {effectiveBranding?.logo && (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
-          ) : (
-            <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: C.dore, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: C.bordeaux, fontWeight: 800 }}>T</div>
           )}
           <div>
             <div style={{ color: C.dore, fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'TARSYN'}</div>
