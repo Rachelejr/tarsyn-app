@@ -16,7 +16,8 @@
   increment,
   Unsubscribe,
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from './firebase';
 
 export interface ChatSummary {
   id: string;
@@ -33,14 +34,19 @@ export interface ChatMessage {
   senderId: string;
   senderName: string;
   text: string;
+  type?: 'text' | 'audio' | 'video';
+  mediaUrl?: string;
+  mediaDuration?: number;
   createdAt: any;
   readBy: string[];
 }
 
-// ---------------------------------------------------------------------------
-// Cree (ou reutilise) un chat de groupe, en synchronisant participantIds avec
-// la liste actuelle des membres actifs du groupe.
-// ---------------------------------------------------------------------------
+function formatDuration(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
 export async function getOrCreateGroupChat(groupId: string, groupName: string): Promise<string> {
   const chatsRef = collection(db, 'chats');
   const existingQ = query(chatsRef, where('type', '==', 'group'), where('groupId', '==', groupId));
@@ -68,9 +74,6 @@ export async function getOrCreateGroupChat(groupId: string, groupName: string): 
   return newChat.id;
 }
 
-// ---------------------------------------------------------------------------
-// Cree (ou reutilise) un chat prive 1-a-1 entre deux utilisateurs.
-// ---------------------------------------------------------------------------
 export async function getOrCreatePrivateChat(
   userId: string,
   otherUserId: string,
@@ -99,10 +102,6 @@ export async function getOrCreatePrivateChat(
   return newChat.id;
 }
 
-// ---------------------------------------------------------------------------
-// Ecoute en temps reel la liste des chats d'un utilisateur, tries par
-// derniere activite.
-// ---------------------------------------------------------------------------
 export function listenToUserChats(
   userId: string,
   callback: (chats: ChatSummary[]) => void
@@ -118,9 +117,6 @@ export function listenToUserChats(
   });
 }
 
-// ---------------------------------------------------------------------------
-// Ecoute en temps reel les messages d'un chat, tries par date croissante.
-// ---------------------------------------------------------------------------
 export function listenToMessages(
   chatId: string,
   callback: (messages: ChatMessage[]) => void
@@ -132,9 +128,6 @@ export function listenToMessages(
   });
 }
 
-// ---------------------------------------------------------------------------
-// Envoie un message dans un chat et met a jour lastMessage + updatedAt.
-// ---------------------------------------------------------------------------
 export async function sendMessage(
   chatId: string,
   senderId: string,
@@ -148,6 +141,7 @@ export async function sendMessage(
     senderId,
     senderName,
     text: trimmed,
+    type: 'text',
     createdAt: serverTimestamp(),
     readBy: [senderId],
   });
@@ -158,10 +152,38 @@ export async function sendMessage(
   });
 }
 
-// ---------------------------------------------------------------------------
-// Marque tous les messages d'un chat comme lus par cet utilisateur.
-// Ne doit jamais bloquer l'UI : erreurs uniquement loggees.
-// ---------------------------------------------------------------------------
+export async function sendMediaMessage(
+  chatId: string,
+  senderId: string,
+  senderName: string,
+  blob: Blob,
+  type: 'audio' | 'video',
+  durationSeconds: number
+): Promise<void> {
+  const path = 'chats/' + chatId + '/media/' + Date.now() + '_' + senderId + '.webm';
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, blob);
+  const url = await getDownloadURL(storageRef);
+
+  const label = (type === 'audio' ? 'Voice message' : 'Video message') + ' - ' + formatDuration(durationSeconds);
+
+  await addDoc(collection(db, 'chats', chatId, 'messages'), {
+    senderId,
+    senderName,
+    text: label,
+    type,
+    mediaUrl: url,
+    mediaDuration: durationSeconds,
+    createdAt: serverTimestamp(),
+    readBy: [senderId],
+  });
+
+  await updateDoc(doc(db, 'chats', chatId), {
+    lastMessage: { text: label, senderId, createdAt: serverTimestamp() },
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function markChatAsRead(chatId: string, userId: string): Promise<void> {
   try {
     const messagesSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
@@ -178,11 +200,6 @@ export async function markChatAsRead(chatId: string, userId: string): Promise<vo
   }
 }
 
-// ---------------------------------------------------------------------------
-// Supprime tous les messages d'un chat (reset complet de la conversation)
-// et remet lastMessage a null. Utilise un batch pour rester rapide et
-// rester dans la limite Firestore (500 ops max par batch).
-// ---------------------------------------------------------------------------
 export async function clearChat(chatId: string): Promise<void> {
   const messagesSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
   const docs = messagesSnap.docs;
