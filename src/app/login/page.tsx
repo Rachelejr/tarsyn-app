@@ -246,7 +246,7 @@ function LoginPageInner() {
               <input
                 style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
                 type={showPassword ? '🙈' : '👁️'}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
