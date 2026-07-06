@@ -1,0 +1,6 @@
+﻿          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>2FA Verification</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code has been sent to/p>
+          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>your email address</p>
+
+          {error && (

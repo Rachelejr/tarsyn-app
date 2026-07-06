@@ -150,9 +150,9 @@ function LoginPageInner() {
     return (
       <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸ”</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>2FA Verification</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code has been sent to/p>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code has been sent to</p>
           <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>your email address</p>
 
           {error && (
@@ -245,7 +245,7 @@ function LoginPageInner() {
             <div style={{ position: 'relative' }}>
               <input
                 style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? '🙈' : '👁️'}
                 placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -253,7 +253,7 @@ function LoginPageInner() {
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}>
-                {showPassword ? 'ðŸ™ˆ' : 'ðŸ‘ï¸'}
+                {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
           </div>
@@ -271,7 +271,7 @@ function LoginPageInner() {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>or</div>
+        <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>🔐</div>
 
         <button onClick={handleGoogle} disabled={loading}
           style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
@@ -285,7 +285,7 @@ function LoginPageInner() {
         </button>
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
-          Pas encore de compte ?{' '}
+          Don't have an account?{' '}
           <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
             Create an account
           </a>
