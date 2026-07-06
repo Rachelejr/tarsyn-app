@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -63,7 +63,7 @@ export default function MigrateTynIdPage() {
             memberId: m.id,
             fullName: m.fullName || '(no name)',
             groupName: group.name || groupDoc.id,
-            oldTynId: m.tynId || '—',
+            oldTynId: m.tynId || 'â€”',
             newTynId: newId,
           });
         }
@@ -83,9 +83,9 @@ export default function MigrateTynIdPage() {
       try {
         await updateDoc(doc(db, 'members', change.memberId), { tynId: change.newTynId });
         count++;
-        addLog(`✓ ${change.fullName}: ${change.oldTynId} → ${change.newTynId}`);
+        addLog(`âœ“ ${change.fullName}: ${change.oldTynId} â†’ ${change.newTynId}`);
       } catch (e: any) {
-        addLog(`✗ Failed for ${change.fullName}: ${e.message}`);
+        addLog(`âœ— Failed for ${change.fullName}: ${e.message}`);
       }
     }
     addLog(`Done. ${count}/${preview.length} member(s) updated.`);
@@ -100,8 +100,15 @@ export default function MigrateTynIdPage() {
   );
 
   if (!authorized) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.creme }}>
-      <p style={{ color: '#C62828', fontWeight: 700 }}>Access denied.</p>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: C.creme, gap: '12px', padding: '20px', textAlign: 'center' }}>
+      <p style={{ color: '#C62828', fontWeight: 700 }}>
+        {sessionExpired ? 'Your session has expired.' : 'Access denied.'}
+      </p>
+      {sessionExpired && (
+        <a href="/login?redirect=/admin/migrate-tynid" style={{ background: C.bleu, color: 'white', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
+          Sign in again
+        </a>
+      )}
     </div>
   );
 
@@ -116,16 +123,16 @@ export default function MigrateTynIdPage() {
 
         <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '20px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)' }}>
           <h3 style={{ color: C.texteFonce, fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>
-            Preview — {preview.length} member(s) will change
+            Preview â€” {preview.length} member(s) will change
           </h3>
           {preview.length === 0 ? (
-            <p style={{ color: C.texteGris, fontSize: '13px' }}>Nothing to migrate — all TYN-IDs are already up to date, or loading...</p>
+            <p style={{ color: C.texteGris, fontSize: '13px' }}>Nothing to migrate â€” all TYN-IDs are already up to date, or loading...</p>
           ) : (
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
               {preview.map((c, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${C.border}`, fontSize: '13px' }}>
                   <span style={{ color: C.texteFonce, fontWeight: 600 }}>{c.fullName} <span style={{ color: C.texteGris, fontWeight: 400 }}>({c.groupName})</span></span>
-                  <span style={{ color: C.texteGris }}>{c.oldTynId} → <strong style={{ color: C.bleuFonce }}>{c.newTynId}</strong></span>
+                  <span style={{ color: C.texteGris }}>{c.oldTynId} â†’ <strong style={{ color: C.bleuFonce }}>{c.newTynId}</strong></span>
                 </div>
               ))}
             </div>

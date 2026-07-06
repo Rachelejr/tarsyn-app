@@ -1,0 +1,32 @@
+﻿
+  src\app\login\page.tsx:16:  const [resendMsg, setResendMsg] = useState('');
+  src\app\login\page.tsx:17:  const [userId, setUserId] = useState('');
+  src\app\login\page.tsx:18:  const [userEmail, setUserEmail] = useState('');
+  src\app\login\page.tsx:19:
+  src\app\login\page.tsx:20:  const redirectByRole = async (uid: string, uEmail: string) => {
+  src\app\login\page.tsx:21:    try {
+  src\app\login\page.tsx:22:      let role = null;
+  src\app\login\page.tsx:23:      const userDoc = await getDoc(doc(db, 'users', uid));
+  src\app\login\page.tsx:24:      if (userDoc.exists()) {
+  src\app\login\page.tsx:25:        role = userDoc.data()?.role;
+  src\app\login\page.tsx:26:      } else {
+  src\app\login\page.tsx:27:        const q2 = query(collection(db, 'members'), where('email', '==', uEmail));
+  src\app\login\page.tsx:28:        const s2 = await getDocs(q2);
+  src\app\login\page.tsx:29:        if (!s2.empty) {
+  src\app\login\page.tsx:30:          role = s2.docs[0].data()?.role;
+  src\app\login\page.tsx:31:        }
+  src\app\login\page.tsx:32:      }
+  src\app\login\page.tsx:33:      if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
+  src\app\login\page.tsx:34:        window.location.href = '/dashboard/create-tontine';
+  src\app\login\page.tsx:35:      } else {
+> src\app\login\page.tsx:36:        window.location.href = '/member';
+  src\app\login\page.tsx:37:      }
+  src\app\login\page.tsx:38:    } catch {
+> src\app\login\page.tsx:39:      window.location.href = '/member';
+  src\app\login\page.tsx:40:    }
+  src\app\login\page.tsx:41:  };
+  src\app\login\page.tsx:42:
+  src\app\login\page.tsx:43:  const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+  src\app\login\page.tsx:44:
+
+

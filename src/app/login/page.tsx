@@ -1,11 +1,15 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginPageInner() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +35,7 @@ export default function LoginPage() {
         }
       }
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
-        window.location.href = '/dashboard/create-tontine';
+        window.location.href = redirectTo || '/dashboard/create-tontine';
       } else {
         window.location.href = '/member';
       }
@@ -53,7 +57,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email: uEmail, otp }),
       });
     } catch {
-      // OTP stocké dans Firestore même si email échoue
+      // OTP stockÃ© dans Firestore mÃªme si email Ã©choue
     }
   };
 
@@ -69,11 +73,11 @@ export default function LoginPage() {
       setStep('2fa');
     } catch (err: any) {
       const msg: Record<string, string> = {
-        'auth/user-not-found': 'Aucun compte trouvé.',
+        'auth/user-not-found': 'Aucun compte trouvÃ©.',
         'auth/wrong-password': 'Mot de passe incorrect.',
         'auth/invalid-email': 'Email invalide.',
         'auth/invalid-credential': 'Email ou mot de passe incorrect.',
-        'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
+        'auth/too-many-requests': 'Trop de tentatives. RÃ©essayez plus tard.',
       };
       setError(msg[err.code] || `Erreur: ${err.code}`);
     } finally {
@@ -87,19 +91,19 @@ export default function LoginPage() {
     try {
       const entered = code.join('');
       const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
-      if (!otpDoc.exists()) { setError('Code expiré. Demandez un nouveau code.'); setLoading(false); return; }
+      if (!otpDoc.exists()) { setError('Code expirÃ©. Demandez un nouveau code.'); setLoading(false); return; }
       const { otp, expires } = otpDoc.data();
       if (Date.now() > expires) {
         await deleteDoc(doc(db, 'otp_codes', userId));
-        setError('Code expiré. Demandez un nouveau code.');
+        setError('Code expirÃ©. Demandez un nouveau code.');
         setLoading(false);
         return;
       }
-      if (entered !== otp) { setError('Code incorrect. Réessayez.'); setLoading(false); return; }
+      if (entered !== otp) { setError('Code incorrect. RÃ©essayez.'); setLoading(false); return; }
       await deleteDoc(doc(db, 'otp_codes', userId));
       await redirectByRole(userId, userEmail);
     } catch {
-      setError('Erreur de vérification. Réessayez.');
+      setError('Erreur de vÃ©rification. RÃ©essayez.');
     } finally {
       setLoading(false);
     }
@@ -109,7 +113,7 @@ export default function LoginPage() {
     setError('');
     setCode(['', '', '', '', '', '']);
     await sendOTP(userId, userEmail);
-    setResendMsg('Nouveau code envoyé !');
+    setResendMsg('Nouveau code envoyÃ© !');
     setTimeout(() => setResendMsg(''), 4000);
   };
 
@@ -146,9 +150,9 @@ export default function LoginPage() {
     return (
       <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>Vérification 2FA</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code à 6 chiffres a été envoyé à</p>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸ”</div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>VÃ©rification 2FA</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code Ã  6 chiffres a Ã©tÃ© envoyÃ© Ã </p>
           <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
 
           {error && (
@@ -189,7 +193,7 @@ export default function LoginPage() {
             onClick={handleVerify2FA}
             disabled={loading || code.join('').length !== 6}
             style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
-            {loading ? 'Vérification...' : 'Vérifier et se connecter'}
+            {loading ? 'VÃ©rification...' : 'VÃ©rifier et se connecter'}
           </button>
 
           <button onClick={handleResend}
@@ -242,14 +246,14 @@ export default function LoginPage() {
               <input
                 style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}>
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? 'ðŸ™ˆ' : 'ðŸ‘ï¸'}
               </button>
             </div>
           </div>
@@ -283,10 +287,18 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
           Pas encore de compte ?{' '}
           <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
-            Créer un compte
+            CrÃ©er un compte
           </a>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
   );
 }

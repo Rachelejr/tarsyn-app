@@ -98,7 +98,7 @@ export default function RepairMembersPage() {
         {sessionExpired ? 'Your session has expired.' : 'Access denied.'}
       </p>
       {sessionExpired && (
-        <a href="/login" style={{ background: C.bleu, color: 'white', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
+        <a href="/login?redirect=/admin/repair-members" style={{ background: C.bleu, color: 'white', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
           Sign in again
         </a>
       )}
