@@ -19,18 +19,37 @@ export default function RepairMembersPage() {
   const [broken, setBroken] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [result, setResult] = useState<any>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  const checkRole = async (u: any, forceRefresh: boolean): Promise<boolean> => {
+    try {
+      if (forceRefresh) {
+        await u.getIdToken(true);
+      }
+      const snap = await getDoc(doc(db, 'users', u.uid));
+      const role = snap.exists() ? snap.data().role : null;
+      return role === 'admin' || role === 'superadmin';
+    } catch (e) {
+      return false;
+    }
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        try {
-          const snap = await getDoc(doc(db, 'users', u.uid));
-          const role = snap.exists() ? snap.data().role : null;
-          if (role === 'admin' || role === 'superadmin') setAuthorized(true);
-        } catch (e) {
-          setAuthorized(false);
-        }
+      if (!u) {
+        setAuthorized(false);
+        setChecking(false);
+        return;
       }
+      // First try normally.
+      let ok = await checkRole(u, false);
+      if (!ok) {
+        // Token may be stale — force a refresh and try once more before
+        // concluding the person really isn't authorized.
+        ok = await checkRole(u, true);
+        if (!ok) setSessionExpired(true);
+      }
+      setAuthorized(ok);
       setChecking(false);
     });
     return () => unsub();
@@ -74,8 +93,15 @@ export default function RepairMembersPage() {
   );
 
   if (!authorized) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.creme }}>
-      <p style={{ color: '#C62828', fontWeight: 700 }}>Access denied.</p>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: C.creme, gap: '12px', padding: '20px', textAlign: 'center' }}>
+      <p style={{ color: '#C62828', fontWeight: 700 }}>
+        {sessionExpired ? 'Your session has expired.' : 'Access denied.'}
+      </p>
+      {sessionExpired && (
+        <a href="/login" style={{ background: C.bleu, color: 'white', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
+          Sign in again
+        </a>
+      )}
     </div>
   );
 
