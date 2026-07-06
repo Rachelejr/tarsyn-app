@@ -57,7 +57,7 @@ function LoginPageInner() {
         body: JSON.stringify({ email: uEmail, otp }),
       });
     } catch {
-      // OTP stockÃ© dans Firestore mÃªme si email Ã©choue
+      // OTP stored in Firestore even if email fails
     }
   };
 
@@ -73,13 +73,13 @@ function LoginPageInner() {
       setStep('2fa');
     } catch (err: any) {
       const msg: Record<string, string> = {
-        'auth/user-not-found': 'Aucun compte trouvÃ©.',
+        'auth/user-not-found': 'No account found.',
         'auth/wrong-password': 'Mot de passe incorrect.',
         'auth/invalid-email': 'Email invalide.',
         'auth/invalid-credential': 'Email ou mot de passe incorrect.',
-        'auth/too-many-requests': 'Trop de tentatives. RÃ©essayez plus tard.',
+        'auth/too-many-requests': 'Too many attempts. Please try again later.',
       };
-      setError(msg[err.code] || `Erreur: ${err.code}`);
+      setError(msg[err.code] || `Error: ${err.code}`);
     } finally {
       setLoading(false);
     }
@@ -91,19 +91,19 @@ function LoginPageInner() {
     try {
       const entered = code.join('');
       const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
-      if (!otpDoc.exists()) { setError('Code expirÃ©. Demandez un nouveau code.'); setLoading(false); return; }
+      if (!otpDoc.exists()) { setError('Code expired. Request a new code.'); setLoading(false); return; }
       const { otp, expires } = otpDoc.data();
       if (Date.now() > expires) {
         await deleteDoc(doc(db, 'otp_codes', userId));
-        setError('Code expirÃ©. Demandez un nouveau code.');
+        setError('Code expired. Request a new code.');
         setLoading(false);
         return;
       }
-      if (entered !== otp) { setError('Code incorrect. RÃ©essayez.'); setLoading(false); return; }
+      if (entered !== otp) { setError('Incorrect code. Please try again.'); setLoading(false); return; }
       await deleteDoc(doc(db, 'otp_codes', userId));
       await redirectByRole(userId, userEmail);
     } catch {
-      setError('Erreur de vÃ©rification. RÃ©essayez.');
+      setError('Verification error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ function LoginPageInner() {
     setError('');
     setCode(['', '', '', '', '', '']);
     await sendOTP(userId, userEmail);
-    setResendMsg('Nouveau code envoyÃ© !');
+    setResendMsg('New code sent!');
     setTimeout(() => setResendMsg(''), 4000);
   };
 
@@ -129,7 +129,7 @@ function LoginPageInner() {
       await sendOTP(result.user.uid, result.user.email!);
       setStep('2fa');
     } catch (err: any) {
-      setError(`Erreur Google: ${err.code}`);
+      setError(`Google sign-in error: ${err.code}`);
     } finally {
       setLoading(false);
     }
@@ -151,9 +151,9 @@ function LoginPageInner() {
       <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸ”</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>VÃ©rification 2FA</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>Un code Ã  6 chiffres a Ã©tÃ© envoyÃ© Ã </p>
-          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>votre adresse email</p>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>2FA Verification</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code has been sent to/p>
+          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>your email address</p>
 
           {error && (
             <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
@@ -167,7 +167,7 @@ function LoginPageInner() {
           )}
 
           <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.75rem' }}>
-            Entrez votre code
+            Enter your code
           </label>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem' }}>
             {code.map((digit, i) => (
@@ -193,16 +193,16 @@ function LoginPageInner() {
             onClick={handleVerify2FA}
             disabled={loading || code.join('').length !== 6}
             style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
-            {loading ? 'VÃ©rification...' : 'VÃ©rifier et se connecter'}
+            {loading ? 'Verifying...' : 'Verify and sign in'}
           </button>
 
           <button onClick={handleResend}
             style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>
-            Renvoyer le code
+            Resend code
           </button>
           <button onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); }}
             style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem' }}>
-            Retour au login
+            Back to login
           </button>
         </div>
       </div>
@@ -233,7 +233,7 @@ function LoginPageInner() {
             <input
               style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
               type="email"
-              placeholder="votre@email.com"
+              placeholder="your@email.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -287,7 +287,7 @@ function LoginPageInner() {
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
           Pas encore de compte ?{' '}
           <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
-            CrÃ©er un compte
+            Create an account
           </a>
         </div>
       </div>
