@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
@@ -87,6 +87,7 @@ export default function PaymentGridPage() {
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState('');
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
+  const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
   const [showStartDateEditor, setShowStartDateEditor] = useState(false);
@@ -197,6 +198,7 @@ export default function PaymentGridPage() {
       });
 
       const refreshedSlots: Record<string, Slot> = {};
+      const collectedUserIds: Record<string, string> = {};
       await Promise.all(
         Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
           let displayName = slot.memberName;
@@ -205,6 +207,7 @@ export default function PaymentGridPage() {
             if (memberSnap.exists()) {
               const d = memberSnap.data();
               displayName = d.fullName || d.name || '(no name)';
+              if (d.userId) collectedUserIds[slot.memberId] = d.userId;
             }
           } catch {
             // Silent fail — keep the previously stored name.
@@ -218,6 +221,7 @@ export default function PaymentGridPage() {
         })
       );
       loadedGrid = { ...loadedGrid, slots: refreshedSlots };
+      setMemberUserIds(collectedUserIds);
 
       setGrid(loadedGrid);
       setPendingPayments(loadedGrid.payments || {});
@@ -329,6 +333,60 @@ export default function PaymentGridPage() {
     );
   }
 
+  async function generateReceiptsForNewlyPaid(
+    previousPayments: Record<string, Record<string, boolean>>,
+    newPayments: Record<string, Record<string, boolean>>
+  ) {
+    if (!grid) return;
+
+    const receiptPromises: Promise<any>[] = [];
+
+    Object.entries(grid.slots).forEach(([slotNum, slot]) => {
+      const weekEntriesLocal = Object.entries(grid.weeks);
+      weekEntriesLocal.forEach(([weekIdx, weekDate]) => {
+        const wasPaid = previousPayments[slotNum]?.[weekIdx] || false;
+        const isNowPaid = newPayments[slotNum]?.[weekIdx] || false;
+        if (!wasPaid && isNowPaid) {
+          const userId = memberUserIds[slot.memberId];
+          if (!userId) return; // Member hasn't linked an account yet — skip silently
+
+          const amountLabel = weeklyAmount ? '\$' + weeklyAmount.toLocaleString() : 'Amount not set';
+          const receiptHtml =
+            '<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">' +
+            '<h2 style="color:#6B2D4E;">TARSYN Payment Receipt</h2>' +
+            '<p><strong>Group:</strong> ' + groupName + '</p>' +
+            '<p><strong>Member:</strong> ' + slot.memberName + '</p>' +
+            '<p><strong>Week:</strong> W' + weekIdx + ' (' + weekDate + ')</p>' +
+            '<p><strong>Amount:</strong> ' + amountLabel + '</p>' +
+            '<p><strong>Status:</strong> Paid</p>' +
+            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC</p>' +
+            '</body></html>';
+          const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
+
+          receiptPromises.push(
+            addDoc(collection(db, 'documents'), {
+              name: 'Receipt - W' + weekIdx + ' - ' + weekDate,
+              type: 'text/html',
+              size: receiptHtml.length,
+              url: dataUrl,
+              storagePath: '',
+              category: 'Receipts',
+              organizerId: grid.organizerId,
+              uploadedBy: 'system',
+              source: 'admin',
+              visibleTo: [userId],
+              createdAt: serverTimestamp(),
+            })
+          );
+        }
+      });
+    });
+
+    if (receiptPromises.length > 0) {
+      await Promise.all(receiptPromises);
+    }
+  }
+
   async function handleSaveAll() {
     if (!grid) return;
     setSavingAll(true);
@@ -348,6 +406,8 @@ export default function PaymentGridPage() {
           syncMemberView(id, grid.slots, pendingPayments, grid.weeks)
         )
       );
+
+      await generateReceiptsForNewlyPaid(grid.payments, pendingPayments);
 
       setGrid((prev) => (prev ? { ...prev, payments: pendingPayments } : prev));
     } catch (err) {
