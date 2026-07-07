@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -36,6 +36,8 @@ interface Grid {
   organizerId: string;
   groupId: string;
   cycleId: string;
+  startYear: number;
+  startDate: string;
   weeks: Record<string, string>;
   slots: Record<string, Slot>;
   payments: Record<string, Record<string, boolean>>;
@@ -46,8 +48,39 @@ interface MemberMeta {
   joinedLabel: string;
 }
 
+// Genere des semaines en preservant EXACTEMENT le jour de la semaine de
+// startDateStr (ex: si l'admin choisit un vendredi, TOUTES les colonnes
+// resteront des vendredis). Couvre depuis cette date jusqu'a fin decembre
+// de l'annee en cours, pour qu'un sol demarre en 2025 encore actif en 2026
+// reste dans une seule grille continue.
+function generateWeeksFromDate(startDateStr: string): Record<string, string> {
+  const weeks: Record<string, string> = {};
+  const start = new Date(startDateStr);
+  const startYear = start.getFullYear();
+  const currentYear = new Date().getFullYear();
+  const endYear = Math.max(startYear, currentYear);
+  const end = new Date(endYear, 11, 31);
+  let idx = 0;
+  let cursor = new Date(start);
+  while (cursor <= end) {
+    weeks[String(idx)] = cursor.toISOString().split('T')[0];
+    idx++;
+    cursor = new Date(cursor);
+    cursor.setDate(cursor.getDate() + 7);
+  }
+  return weeks;
+}
+
+// Deduit la date de depart d'une grille existante a partir de sa semaine la
+// plus ancienne, pour les grilles creees avant l'ajout du champ startDate.
+function startOfGridDate(weeks: Record<string, string>): string | null {
+  const dates = Object.values(weeks).filter(Boolean).sort();
+  return dates.length > 0 ? dates[0] : null;
+}
+
 export default function PaymentGridPage() {
   const params = useParams();
+  const router = useRouter();
   const groupId = params.groupId as string;
 
   const [grid, setGrid] = useState<Grid | null>(null);
@@ -56,6 +89,9 @@ export default function PaymentGridPage() {
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
+  const [showStartDateEditor, setShowStartDateEditor] = useState(false);
+  const [gridStartInput, setGridStartInput] = useState('');
+  const [savingStartDate, setSavingStartDate] = useState(false);
 
   // Pending (unsaved) payments state — edits live here until "Save Payments" is clicked
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
@@ -108,26 +144,28 @@ export default function PaymentGridPage() {
         let slotCounter = 1;
         membersSnap.forEach((m) => {
           const data = m.data();
-          slots[String(slotCounter)] = {
-            slotNumber: String(slotCounter),
-            memberId: m.id,
-            memberName: data.name || '(no name)',
-          };
-          slotCounter++;
+          const memberShares = Math.max(1, parseInt(data.shares) || 1);
+          const displayName = data.fullName || data.name || '(no name)';
+          for (let s = 0; s < memberShares; s++) {
+            slots[String(slotCounter)] = {
+              slotNumber: String(slotCounter),
+              memberId: m.id,
+              memberName: memberShares > 1 ? `${displayName} (part ${s + 1}/${memberShares})` : displayName,
+            };
+            slotCounter++;
+          }
         });
 
-        const weeks: Record<string, string> = {};
-        const start = new Date();
-        for (let i = 0; i < 20; i++) {
-          const d = new Date(start);
-          d.setDate(d.getDate() + i * 7);
-          weeks[String(i)] = d.toISOString().split('T')[0];
-        }
+        const groupStart = groupSnap.data()?.startDate;
+        const initialStartDate = groupStart || new Date().toISOString().split('T')[0];
+        const weeks: Record<string, string> = generateWeeksFromDate(initialStartDate);
 
         loadedGrid = {
           organizerId: groupSnap.data()?.organizerId || groupSnap.data()?.adminId || '',
           groupId,
           cycleId: 'cycle-' + Date.now(),
+          startYear: new Date(initialStartDate).getFullYear(),
+          startDate: initialStartDate,
           weeks,
           slots,
           payments: {},
@@ -135,6 +173,51 @@ export default function PaymentGridPage() {
 
         await setDoc(doc(db, 'paymentGrids', gridId), loadedGrid);
       }
+
+      // Auto-correction : la grille doit TOUJOURS couvrir depuis sa date de
+      // depart choisie jusqu'a aujourd'hui, en preservant le jour de semaine
+      // exact (ex: vendredi reste vendredi). Ca se corrige tout seul a chaque
+      // chargement, sauf si l'admin a explicitement choisi une autre date via
+      // le bouton "Grid Start Date" (startDate persiste alors telle quelle).
+      const effectiveStartDate = loadedGrid.startDate || startOfGridDate(loadedGrid.weeks) || new Date().toISOString().split('T')[0];
+      const correctedWeeks = generateWeeksFromDate(effectiveStartDate);
+      const weeksChanged = JSON.stringify(correctedWeeks) !== JSON.stringify(loadedGrid.weeks);
+      if (weeksChanged || !loadedGrid.startDate) {
+        loadedGrid = { ...loadedGrid, startDate: effectiveStartDate, startYear: new Date(effectiveStartDate).getFullYear(), weeks: correctedWeeks };
+        await setDoc(doc(db, 'paymentGrids', gridId), { startDate: effectiveStartDate, startYear: new Date(effectiveStartDate).getFullYear(), weeks: correctedWeeks }, { merge: true });
+      }
+
+      // Toujours rafraichir les noms des membres depuis leur document reel
+      // (les anciennes grilles peuvent avoir un memberName fige/obsolete), en
+      // respectant l etiquetage "(part i/n)" pour les membres a parts multiples.
+      const slotsByMember: Record<string, string[]> = {};
+      Object.entries(loadedGrid.slots).forEach(([slotNum, slot]) => {
+        if (!slotsByMember[slot.memberId]) slotsByMember[slot.memberId] = [];
+        slotsByMember[slot.memberId].push(slotNum);
+      });
+
+      const refreshedSlots: Record<string, Slot> = {};
+      await Promise.all(
+        Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
+          let displayName = slot.memberName;
+          try {
+            const memberSnap = await getDoc(doc(db, 'members', slot.memberId));
+            if (memberSnap.exists()) {
+              const d = memberSnap.data();
+              displayName = d.fullName || d.name || '(no name)';
+            }
+          } catch {
+            // Silent fail — keep the previously stored name.
+          }
+          const siblingSlots = slotsByMember[slot.memberId] || [slotNum];
+          if (siblingSlots.length > 1) {
+            const partIndex = siblingSlots.indexOf(slotNum) + 1;
+            displayName = `${displayName} (part ${partIndex}/${siblingSlots.length})`;
+          }
+          refreshedSlots[slotNum] = { ...slot, memberName: displayName };
+        })
+      );
+      loadedGrid = { ...loadedGrid, slots: refreshedSlots };
 
       setGrid(loadedGrid);
       setPendingPayments(loadedGrid.payments || {});
@@ -274,6 +357,30 @@ export default function PaymentGridPage() {
     }
   }
 
+  async function handleChangeGridStart() {
+    if (!grid || !gridStartInput) return;
+    if (!confirm(
+      'Changing the grid start date will regenerate all week columns starting exactly on the ' +
+      'day of the week you picked (e.g. if you pick a Friday, every column stays a Friday), ' +
+      'through the end of the current year. ' +
+      'Existing payment checkmarks stay attached to their column position, not their old date — ' +
+      'double-check this before confirming if payments were already recorded.'
+    )) return;
+
+    setSavingStartDate(true);
+    try {
+      const newWeeks: Record<string, string> = generateWeeksFromDate(gridStartInput);
+      const newStartYear = new Date(gridStartInput).getFullYear();
+      await setDoc(doc(db, 'paymentGrids', gridId), { startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks }, { merge: true });
+      setGrid((prev) => (prev ? { ...prev, startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks } : prev));
+      setPageStart(0);
+      setShowStartDateEditor(false);
+    } catch (err) {
+      console.error(err);
+    }
+    setSavingStartDate(false);
+  }
+
   function handleDiscardAll() {
     if (!grid) return;
     setPendingPayments(grid.payments);
@@ -297,12 +404,6 @@ export default function PaymentGridPage() {
 
   function handlePrint() {
     window.print();
-  }
-
-  function handleSendReminders() {
-    alert(
-      'Send Reminders is not yet connected to email sending. This needs to be wired to your Resend setup (like /api/send-invite) before it can actually notify members.'
-    );
   }
 
   if (loading) {
@@ -346,15 +447,10 @@ export default function PaymentGridPage() {
   });
   const activeWeekEntries = filteredWeekEntries.length > 0 ? filteredWeekEntries : weekEntries;
 
-  // Default window: centered on the current real-world week
-  let currentWeekIdxNum = 0;
-  weekEntries.forEach(([idx, dateStr]) => {
-    if (new Date(dateStr) <= today) currentWeekIdxNum = Number(idx);
-  });
-  const defaultPageStart =
-    Math.floor(currentWeekIdxNum / WEEKS_PER_PAGE) * WEEKS_PER_PAGE;
-  const effectivePageStart =
-    pageStart !== null ? pageStart : Math.min(defaultPageStart, Math.max(0, activeWeekEntries.length - WEEKS_PER_PAGE));
+  // Default window: always start at the beginning of the year (January),
+  // never centered on today — the admin must be able to see the whole
+  // calendar year from the top without guessing where "today" landed.
+  const effectivePageStart = pageStart !== null ? pageStart : 0;
 
   const visibleWeeks = activeWeekEntries.slice(
     effectivePageStart,
@@ -541,10 +637,7 @@ export default function PaymentGridPage() {
             <button onClick={handleExportAll} style={btnStyle('secondary')}>
               📄 Export
             </button>
-            <button onClick={handleSendReminders} style={btnStyle('secondary')}>
-              📧 Send Reminders
-            </button>
-            <button style={btnStyle('secondary')}>➕ Add / Edit Members</button>
+            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>➕ Add / Edit Members</button>
             <button onClick={handlePrint} style={btnStyle('secondary')}>
               🖨 Print
             </button>
@@ -676,7 +769,47 @@ export default function PaymentGridPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ ...dateInputStyle, flex: 1, minWidth: 180 }}
           />
+          <button
+            onClick={() => { setShowStartDateEditor(!showStartDateEditor); setGridStartInput(grid.weeks['0'] || ''); }}
+            style={btnStyle('ghost')}
+          >
+            ⚙ Grid Start Date
+          </button>
         </div>
+
+        {showStartDateEditor && (
+          <div
+            className="tarsyn-no-print"
+            style={{
+              background: C.warningBg,
+              border: '1px solid ' + C.or,
+              borderRadius: 12,
+              padding: '12px 16px',
+              marginBottom: 12,
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span style={{ fontSize: 12.5, color: C.texteFonce }}>
+              Pick the exact date this sol/tontine's collections happen (e.g. the first Friday it ran,
+              even back in 2025) — every column will stay on that same day of the week, through today:
+            </span>
+            <input
+              type="date"
+              value={gridStartInput}
+              onChange={(e) => setGridStartInput(e.target.value)}
+              style={dateInputStyle}
+            />
+            <button onClick={handleChangeGridStart} disabled={savingStartDate || !gridStartInput} style={btnStyle('primary', savingStartDate || !gridStartInput)}>
+              {savingStartDate ? 'Applying...' : 'Apply (regenerate full year)'}
+            </button>
+            <button onClick={() => setShowStartDateEditor(false)} style={btnStyle('ghost')}>
+              Cancel
+            </button>
+          </div>
+        )}
 
         {/* Compact summary bar */}
         <div

@@ -39,7 +39,8 @@ export async function POST() {
 
       if (!(groupId in groupCache)) {
         const groupDoc = await adminDb.collection('groups').doc(groupId).get();
-        groupCache[groupId] = groupDoc.exists ? (groupDoc.data()?.organizerId || null) : null;
+        const groupData = groupDoc.exists ? groupDoc.data() : null;
+        groupCache[groupId] = groupData?.organizerId || groupData?.adminId || null;
       }
 
       const organizerId = groupCache[groupId];

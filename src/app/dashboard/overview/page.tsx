@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import TrialGuard from '@/components/TrialGuard';
 
 function useCountUp(target: number, duration = 700) {
@@ -84,11 +84,20 @@ function OverviewContent() {
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
   const [validatingProof, setValidatingProof] = useState<string | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [memberEditName, setMemberEditName] = useState('');
+  const [memberEditPayoutDate, setMemberEditPayoutDate] = useState('');
+  const [savingMember, setSavingMember] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
+        const userSnap = await getDoc(doc(db, 'users', u.uid));
+        const role = userSnap.exists() ? userSnap.data().role : null;
+        setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
+
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
         const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -119,6 +128,24 @@ function OverviewContent() {
       setNewGroupName('');
     } catch (e) { console.error(e); }
     setSavingGroup(false);
+  };
+
+  const handleSaveMember = async () => {
+    if (!editingMember || !memberEditName.trim()) return;
+    setSavingMember(true);
+    try {
+      await updateDoc(doc(db, 'members', editingMember.id), {
+        name: memberEditName.trim(),
+        payoutDate: memberEditPayoutDate || null,
+      });
+      setMembers(members.map(m => m.id === editingMember.id
+        ? { ...m, name: memberEditName.trim(), payoutDate: memberEditPayoutDate || null }
+        : m));
+      setEditingMember(null);
+      setMemberEditName('');
+      setMemberEditPayoutDate('');
+    } catch (e) { console.error(e); }
+    setSavingMember(false);
   };
 
   const handleUpdateStatus = async (memberId: string, newStatus: string) => {
@@ -242,6 +269,38 @@ function OverviewContent() {
         </div>
       )}
 
+      {editingMember && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Member</h3>
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Name</label>
+            <input
+              value={memberEditName}
+              onChange={e => setMemberEditName(e.target.value)}
+              placeholder="Member name..."
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
+            />
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Payout Date</label>
+            <input
+              type="date"
+              value={memberEditPayoutDate}
+              onChange={e => setMemberEditPayoutDate(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { setEditingMember(null); setMemberEditName(''); setMemberEditPayoutDate(''); }} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={handleSaveMember} disabled={savingMember || !memberEditName.trim()} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', opacity: (savingMember || !memberEditName.trim()) ? 0.6 : 1 }}>
+                {savingMember ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className="tarsyn-ov-nav" style={{
         background: 'linear-gradient(135deg, #6B2D4E 0%, #4A1F38 100%)',
         padding: '12px 28px',
@@ -252,7 +311,7 @@ function OverviewContent() {
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
       }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(233,199,123,0.4)', display: 'none' }}>T</div><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{ height: '22px' }}/>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', borderRadius: '50%', display: 'none', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(233,199,123,0.4)' }}>T</div><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{ height: '22px' }}/>
           <div>
             <div style={{ color: '#E9C77B', fontWeight: 800, fontSize: '16px', lineHeight: '1' }}>TARSYN</div>
             <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY</div>
@@ -291,10 +350,16 @@ function OverviewContent() {
                     <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 2px' }}>{g.name}</p>
                     <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{g.frequency} · {g.status}</p>
                   </div>
-                  <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
-                    style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                    ✏️ Edit
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
+                      style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      💳 Payment Grid
+                    </button>
+                    <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
+                      style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      ✏️ Edit
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -333,6 +398,10 @@ function OverviewContent() {
                       <td style={{ padding: '10px 10px' }}>
                         {m.role !== 'admin' && (
                           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                            <button onClick={() => { setEditingMember(m); setMemberEditName(m.name || ''); setMemberEditPayoutDate(m.payoutDate || ''); }} className="btn-action pill"
+                              style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
+                              ✏️ Edit
+                            </button>
                             {m.status !== 'active' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id} className="btn-action pill"
                                 style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
@@ -441,8 +510,9 @@ function OverviewContent() {
             { title: 'Audit Log', icon: '📜', path: '/dashboard/audit-log' },
             { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
             { title: 'Security', icon: '🔒', path: '/dashboard/security' },
-            { title: 'White Label', icon: 'palette', path: '/dashboard/branding' },
-            { title: 'Leave a Review', icon: 'star', path: '/leave-review' },
+            { title: 'White Label', icon: '🎨', path: '/dashboard/branding' },
+            { title: 'Leave a Review', icon: '⭐', path: '/leave-review' },
+            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '🛠️', path: '/admin/repair-members' }] : []),
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
               style={{

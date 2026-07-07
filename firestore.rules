@@ -9,12 +9,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users - chacun peut lire/Ã©crire seulement son propre profil
+    // Users - chacun peut lire/ecrire seulement son propre profil
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
-    // Workspaces - lecture/Ã©criture rÃ©servÃ©e aux membres du workspace
+    // Workspaces - lecture/ecriture reservee aux membres du workspace
     match /workspaces/{workspaceId} {
       allow read: if request.auth != null && request.auth.uid in resource.data.members;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
@@ -28,11 +28,13 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
-    // Members - lecture publique (necessaire pour la page d'invitation /join/[code]).
+    // Members - lecture reservee aux comptes connectes (plus de lecture publique ;
+    // la page d'invitation /join/[code] passe desormais par /api/join-lookup qui
+    // utilise le SDK Admin cote serveur pour eviter d'exposer toute la collection).
     // Ecriture : l'organisateur peut tout faire OU un membre qui n'a pas encore
     // de compte (userId vide) peut s'auto-attribuer son propre userId lors de l'inscription.
     match /members/{memberId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null && (
         resource.data.organizerId == request.auth.uid ||

@@ -1,10 +1,10 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { db, auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function JoinPage() {
   const params = useParams();
@@ -30,17 +30,26 @@ export default function JoinPage() {
       try {
         if (!code) { setNotFound(true); setLoading(false); return; }
         const codeStr = String(code).trim().toUpperCase();
-        const q = query(collection(db, 'members'), where('inviteCode', '==', codeStr));
-        const snap = await getDocs(q);
-        if (snap.empty) { setNotFound(true); setLoading(false); return; }
-        const memberData = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
+        const res = await fetch('/api/join-lookup?code=' + encodeURIComponent(codeStr));
+        const data = await res.json();
+        if (!res.ok || !data.found) { setNotFound(true); setLoading(false); return; }
+        const memberData = {
+          id: data.memberId,
+          name: data.fullName,
+          email: data.email,
+          groupId: data.groupId,
+          tynId: data.tynId,
+          position: data.position,
+          status: data.status,
+          payoutDate: data.payoutDate,
+          country: data.country,
+          memberType: data.memberType,
+          userId: data.alreadyRegistered ? 'placeholder' : null,
+        };
         setMember(memberData);
         setFullName(memberData.name || '');
         setEmail(memberData.email || '');
-        if (memberData.groupId) {
-          const gDoc = await getDoc(doc(db, 'groups', memberData.groupId));
-          if (gDoc.exists()) setGroup({ id: gDoc.id, ...gDoc.data() });
-        }
+        if (data.groupName) setGroup({ id: data.groupId, name: data.groupName });
       } catch (e: any) {
         setDebugInfo('Error: ' + (e?.code || '') + ' ' + (e?.message || String(e)));
         setNotFound(true);
@@ -60,12 +69,20 @@ export default function JoinPage() {
     try {
       const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
       await updateProfile(result.user, { displayName: fullName.trim() });
-      await updateDoc(doc(db, 'members', member.id), {
-        userId: result.user.uid,
-        name: fullName.trim(),
-        email: email.trim(),
-        status: 'active',
+      const confirmRes = await fetch('/api/join-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          userId: result.user.uid,
+          name: fullName.trim(),
+          email: email.trim(),
+        }),
       });
+      if (!confirmRes.ok) {
+        const errData = await confirmRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to confirm membership');
+      }
       setStep('done');
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
@@ -87,10 +104,18 @@ export default function JoinPage() {
     setRegistering(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-      await updateDoc(doc(db, 'members', member.id), {
-        userId: result.user.uid,
-        status: 'active',
+      const confirmRes = await fetch('/api/join-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          userId: result.user.uid,
+        }),
       });
+      if (!confirmRes.ok) {
+        const errData = await confirmRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to confirm membership');
+      }
       setStep('done');
     } catch (err: any) {
       const msgs: any = {
