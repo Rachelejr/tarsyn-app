@@ -94,7 +94,7 @@ export default function PaymentGridPage() {
   const [gridStartInput, setGridStartInput] = useState('');
   const [savingStartDate, setSavingStartDate] = useState(false);
 
-  // Pending (unsaved) payments state — edits live here until "Save Payments" is clicked
+  // Pending (unsaved) payments state â€” edits live here until "Save Payments" is clicked
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
 
@@ -210,7 +210,7 @@ export default function PaymentGridPage() {
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
             }
           } catch {
-            // Silent fail — keep the previously stored name.
+            // Silent fail â€” keep the previously stored name.
           }
           const siblingSlots = slotsByMember[slot.memberId] || [slotNum];
           if (siblingSlots.length > 1) {
@@ -265,7 +265,7 @@ export default function PaymentGridPage() {
             meta[id] = { status, joinedLabel };
           }
         } catch {
-          // Silent fail — display-only metadata, never blocks the grid.
+          // Silent fail â€” display-only metadata, never blocks the grid.
         }
       })
     );
@@ -273,7 +273,7 @@ export default function PaymentGridPage() {
     setMemberMeta(meta);
   }
 
-  // Local-only toggle — nothing is written to Firestore until Save Payments is clicked
+  // Local-only toggle â€” nothing is written to Firestore until Save Payments is clicked
   function toggleQueuedPayment(slotNumber: string, weekIndex: string) {
     setPendingPayments((prev) => {
       const current = prev[slotNumber]?.[weekIndex] || false;
@@ -316,13 +316,19 @@ export default function PaymentGridPage() {
     const memberSlots = Object.values(slotsMap).filter((s) => s.memberId === memberId);
     if (memberSlots.length === 0) return;
 
+    // The member portal reads memberViews by Firebase Auth UID (currentUid),
+    // not by the Firestore members/{id} document id — so we must key this
+    // document the same way, or the member's own grid never finds it.
+    const userId = memberUserIds[memberId];
+    if (!userId) return; // Member hasn't linked an account yet — skip silently
+
     const memberPayments: Record<string, Record<string, boolean>> = {};
     memberSlots.forEach((s) => {
       memberPayments[s.slotNumber] = paymentsMap[s.slotNumber] || {};
     });
 
     await setDoc(
-      doc(db, 'paymentGrids', gridId, 'memberViews', memberId),
+      doc(db, 'paymentGrids', gridId, 'memberViews', userId),
       {
         memberName: memberSlots[0].memberName,
         slots: memberSlots.map((s) => s.slotNumber),
@@ -348,7 +354,7 @@ export default function PaymentGridPage() {
         const isNowPaid = newPayments[slotNum]?.[weekIdx] || false;
         if (!wasPaid && isNowPaid) {
           const userId = memberUserIds[slot.memberId];
-          if (!userId) return; // Member hasn't linked an account yet — skip silently
+          if (!userId) return; // Member hasn't linked an account yet â€” skip silently
 
           const amountLabel = weeklyAmount ? '\$' + weeklyAmount.toLocaleString() : 'Amount not set';
           const receiptHtml =
@@ -359,7 +365,7 @@ export default function PaymentGridPage() {
             '<p><strong>Week:</strong> W' + weekIdx + ' (' + weekDate + ')</p>' +
             '<p><strong>Amount:</strong> ' + amountLabel + '</p>' +
             '<p><strong>Status:</strong> Paid</p>' +
-            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC</p>' +
+            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYNâ„¢ Â· A product of Ma Production Luxenn Zara LLC</p>' +
             '</body></html>';
           const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 
@@ -423,7 +429,7 @@ export default function PaymentGridPage() {
       'Changing the grid start date will regenerate all week columns starting exactly on the ' +
       'day of the week you picked (e.g. if you pick a Friday, every column stays a Friday), ' +
       'through the end of the current year. ' +
-      'Existing payment checkmarks stay attached to their column position, not their old date — ' +
+      'Existing payment checkmarks stay attached to their column position, not their old date â€” ' +
       'double-check this before confirming if payments were already recorded.'
     )) return;
 
@@ -508,7 +514,7 @@ export default function PaymentGridPage() {
   const activeWeekEntries = filteredWeekEntries.length > 0 ? filteredWeekEntries : weekEntries;
 
   // Default window: always start at the beginning of the year (January),
-  // never centered on today — the admin must be able to see the whole
+  // never centered on today â€” the admin must be able to see the whole
   // calendar year from the top without guessing where "today" landed.
   const effectivePageStart = pageStart !== null ? pageStart : 0;
 
@@ -673,11 +679,11 @@ export default function PaymentGridPage() {
                 flexShrink: 0,
               }}
             >
-              💳
+              ðŸ’³
             </div>
             <div>
               <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
-                Payment Grid — {groupName}
+                Payment Grid â€” {groupName}
               </h1>
               <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
@@ -692,14 +698,14 @@ export default function PaymentGridPage() {
               disabled={!hasChanges || savingAll}
               style={btnStyle('primary', !hasChanges || savingAll)}
             >
-              💾 {savingAll ? 'Saving...' : 'Save Payments'}
+              ðŸ’¾ {savingAll ? 'Saving...' : 'Save Payments'}
             </button>
             <button onClick={handleExportAll} style={btnStyle('secondary')}>
-              📄 Export
+              ðŸ“„ Export
             </button>
-            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>➕ Add / Edit Members</button>
+            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>âž• Add / Edit Members</button>
             <button onClick={handlePrint} style={btnStyle('secondary')}>
-              🖨 Print
+              ðŸ–¨ Print
             </button>
           </div>
         </div>
@@ -722,7 +728,7 @@ export default function PaymentGridPage() {
             }}
           >
             <span style={{ color: C.warning, fontSize: 13.5, fontWeight: 600 }}>
-              ⚠ You have unsaved changes.
+              âš  You have unsaved changes.
             </span>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleDiscardAll} style={btnStyle('ghost')}>
@@ -766,7 +772,7 @@ export default function PaymentGridPage() {
               flexShrink: 0,
             }}
           >
-            ℹ
+            â„¹
           </div>
           <div>
             <strong style={{ color: C.bordeaux, fontSize: 13.5 }}>Deposit</strong>
@@ -789,7 +795,7 @@ export default function PaymentGridPage() {
           }}
         >
           <span style={{ fontSize: 13, color: C.texteFonce, fontWeight: 600 }}>
-            📅 Period:
+            ðŸ“… Period:
           </span>
           <input
             type="date"
@@ -800,7 +806,7 @@ export default function PaymentGridPage() {
             }}
             style={dateInputStyle}
           />
-          <span style={{ color: C.texteGris }}>→</span>
+          <span style={{ color: C.texteGris }}>â†’</span>
           <input
             type="date"
             value={dateTo}
@@ -833,7 +839,7 @@ export default function PaymentGridPage() {
             onClick={() => { setShowStartDateEditor(!showStartDateEditor); setGridStartInput(grid.weeks['0'] || ''); }}
             style={btnStyle('ghost')}
           >
-            ⚙ Grid Start Date
+            âš™ Grid Start Date
           </button>
         </div>
 
@@ -854,7 +860,7 @@ export default function PaymentGridPage() {
           >
             <span style={{ fontSize: 12.5, color: C.texteFonce }}>
               Pick the exact date this sol/tontine's collections happen (e.g. the first Friday it ran,
-              even back in 2025) — every column will stay on that same day of the week, through today:
+              even back in 2025) â€” every column will stay on that same day of the week, through today:
             </span>
             <input
               type="date"
@@ -927,17 +933,17 @@ export default function PaymentGridPage() {
               disabled={!canGoPrev}
               style={btnStyle('ghost', !canGoPrev)}
             >
-              ◀ Previous
+              â—€ Previous
             </button>
             <span style={{ fontSize: 12.5, color: C.texteGris }}>
-              {visibleWeeks.map(([idx]) => 'W' + idx).join(' · ')}
+              {visibleWeeks.map(([idx]) => 'W' + idx).join(' Â· ')}
             </span>
             <button
               onClick={() => setPageStart(effectivePageStart + WEEKS_PER_PAGE)}
               disabled={!canGoNext}
               style={btnStyle('ghost', !canGoNext)}
             >
-              Next ▶
+              Next â–¶
             </button>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -945,16 +951,16 @@ export default function PaymentGridPage() {
               onClick={() => markAllPaidForWeek(focusWeekIdx, focusSlotNums)}
               style={btnStyle('ghost')}
             >
-              ☑ Mark All Paid (W{focusWeekIdx})
+              â˜‘ Mark All Paid (W{focusWeekIdx})
             </button>
             <button
               onClick={() => clearWeekPayments(focusWeekIdx, focusSlotNums)}
               style={btnStyle('ghost')}
             >
-              ☐ Clear Week
+              â˜ Clear Week
             </button>
             <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle('ghost')}>
-              📄 Export Week
+              ðŸ“„ Export Week
             </button>
           </div>
         </div>
@@ -1046,7 +1052,7 @@ export default function PaymentGridPage() {
                         </div>
                         <div>
                           <div style={{ fontWeight: 600, color: C.texteFonce, fontSize: 13.5 }}>
-                            #{slotNum} · {slot.memberName}
+                            #{slotNum} Â· {slot.memberName}
                           </div>
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
                             <span
@@ -1059,7 +1065,7 @@ export default function PaymentGridPage() {
                                 color: meta.status === 'inactive' ? C.danger : C.success,
                               }}
                             >
-                              ● {meta.status === 'inactive' ? 'Inactive' : 'Active'}
+                              â— {meta.status === 'inactive' ? 'Inactive' : 'Active'}
                             </span>
                             <span style={{ fontSize: 10.5, color: C.texteGris }}>
                               {rate}% paid
@@ -1098,7 +1104,7 @@ export default function PaymentGridPage() {
                           >
                             {isPaid && (
                               <span style={{ color: C.or, fontSize: 15, fontWeight: 700 }}>
-                                ✓
+                                âœ“
                               </span>
                             )}
                           </div>
@@ -1130,8 +1136,8 @@ export default function PaymentGridPage() {
             color: C.texteGris,
           }}
         >
-          Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
-          Rights Reserved · v1.0.0
+          Powered by TARSYNâ„¢ Â· A product of Ma Production Luxenn Zara LLC Â· Â© 2026 All
+          Rights Reserved Â· v1.0.0
         </div>
       </div>
     </div>
