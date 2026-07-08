@@ -3,9 +3,20 @@ import { adminDb } from "@/lib/firebase-admin";
 
 export async function GET(req: NextRequest) {
   try {
-    const groupId = req.nextUrl.searchParams.get("groupId");
+    const groupName = req.nextUrl.searchParams.get("groupName");
+    let groupId = req.nextUrl.searchParams.get("groupId");
+
+    if (groupName && !groupId) {
+      const groupsSnap = await adminDb.collection("groups").where("name", "==", groupName).get();
+      if (groupsSnap.empty) {
+        return NextResponse.json({ error: "No group found with that exact name", searchedName: groupName });
+      }
+      const matches = groupsSnap.docs.map((d) => ({ id: d.id, organizerId: d.data().organizerId || d.data().adminId || null, name: d.data().name }));
+      return NextResponse.json({ resolvedFromName: true, matches });
+    }
+
     if (!groupId) {
-      return NextResponse.json({ error: "Missing groupId" }, { status: 400 });
+      return NextResponse.json({ error: "Missing groupId or groupName" }, { status: 400 });
     }
 
     const gridId = groupId + "_current";
