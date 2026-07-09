@@ -295,6 +295,7 @@ function MemberContent() {
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: activeMember.organizerId, category: 'Document',
           action: 'Uploaded ' + file.name, createdAt: serverTimestamp(),
+          actorId: uid,
         });
       }
       await fetchDocs(activeMember.organizerId, uid);
