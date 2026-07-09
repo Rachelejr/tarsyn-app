@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -302,8 +302,11 @@ function MemberContent() {
       setShowUploadModal(false);
       setPendingFiles([]);
       setUploadCategory('General');
-    } catch (err) {
-      setError('Upload failed. Please try again.');
+    } catch (err: any) {
+      console.error('UPLOAD ERROR:', err);
+      console.error('UPLOAD ERROR CODE:', err?.code);
+      console.error('UPLOAD ERROR MESSAGE:', err?.message);
+      setError('Upload failed: ' + (err?.code || err?.message || 'unknown error'));
     } finally {
       setUploading(false);
     }
