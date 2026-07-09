@@ -326,31 +326,6 @@ function MemberContent() {
     }
   };
 
-  // NEW: delete an admin-generated receipt via the secure server route
-  // (Admin SDK), since the member is not the organizerId owner and the
-  // existing Firestore rules would otherwise block a direct client delete.
-  // This is purely additive - it does not touch handleDelete or any rule.
-  const handleDeleteAdminDoc = async (d: any) => {
-    if (!confirm('Delete "' + d.name + '"?')) return;
-    setDeletingId(d.id);
-    try {
-      const res = await fetch('/api/delete-document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: d.id, userId: uid }),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Delete failed');
-      }
-      setDocs(docs.filter(x => x.id !== d.id));
-    } catch (e) {
-      setError('Could not delete this file.');
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
   const handlePrint = (url: string) => {
     const w = window.open(url, '_blank');
     w?.addEventListener('load', () => w.print());
@@ -672,11 +647,6 @@ function MemberContent() {
                         <button onClick={() => handlePrint(d.url)} style={{ background: 'white', color: C.doreDark, border: '1.5px solid ' + C.dore, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Print</button>
                         {d.uploadedBy === uid && (
                           <button onClick={() => handleDelete(d)} disabled={deletingId === d.id} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
-                            {deletingId === d.id ? '...' : 'Delete'}
-                          </button>
-                        )}
-                        {d.source === 'admin' && d.uploadedBy !== uid && (
-                          <button onClick={() => handleDeleteAdminDoc(d)} disabled={deletingId === d.id} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                             {deletingId === d.id ? '...' : 'Delete'}
                           </button>
                         )}
