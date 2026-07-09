@@ -1,27 +1,27 @@
-'use client';
+''use client'';
 
-import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, addDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from ''react'';
+import { doc, getDoc, setDoc, addDoc, serverTimestamp, collection, query, where, getDocs } from ''firebase/firestore'';
+import { db, auth } from ''@/lib/firebase'';
+import { onAuthStateChanged } from ''firebase/auth'';
+import { useParams, useRouter } from ''next/navigation'';
 
 const C = {
-  bordeaux: '#6B2D4E',
-  bordeauxDark: '#4A1F38',
-  or: '#E9C77B',
-  orLight: '#F0DCA8',
-  creme: '#FBEEDD',
-  ivoire: '#FFFDF7',
-  border: '#EAD9BE',
-  texteGris: '#8A7B6C',
-  texteFonce: '#3A2F1F',
-  success: '#3F7D5C',
-  successBg: '#E4F0E9',
-  danger: '#B0525F',
-  dangerBg: '#F5E4E6',
-  warning: '#9C7A2E',
-  warningBg: '#FBF0D9',
+  bordeaux: ''#6B2D4E'',
+  bordeauxDark: ''#4A1F38'',
+  or: ''#E9C77B'',
+  orLight: ''#F0DCA8'',
+  creme: ''#FBEEDD'',
+  ivoire: ''#FFFDF7'',
+  border: ''#EAD9BE'',
+  texteGris: ''#8A7B6C'',
+  texteFonce: ''#3A2F1F'',
+  success: ''#3F7D5C'',
+  successBg: ''#E4F0E9'',
+  danger: ''#B0525F'',
+  dangerBg: ''#F5E4E6'',
+  warning: ''#9C7A2E'',
+  warningBg: ''#FBF0D9'',
 };
 
 const WEEKS_PER_PAGE = 6;
@@ -58,7 +58,7 @@ function generateWeeksFromDate(startDateStr: string): Record<string, string> {
   let idx = 0;
   let cursor = new Date(start);
   while (cursor <= end) {
-    weeks[String(idx)] = cursor.toISOString().split('T')[0];
+    weeks[String(idx)] = cursor.toISOString().split(''T'')[0];
     idx++;
     cursor = new Date(cursor);
     cursor.setDate(cursor.getDate() + 7);
@@ -78,25 +78,25 @@ export default function PaymentGridPage() {
 
   const [grid, setGrid] = useState<Grid | null>(null);
   const [loading, setLoading] = useState(true);
-  const [groupName, setGroupName] = useState('');
+  const [groupName, setGroupName] = useState('''');
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
   const [memberAmounts, setMemberAmounts] = useState<Record<string, number>>({});
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('''');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
   const [showStartDateEditor, setShowStartDateEditor] = useState(false);
-  const [gridStartInput, setGridStartInput] = useState('');
+  const [gridStartInput, setGridStartInput] = useState('''');
   const [savingStartDate, setSavingStartDate] = useState(false);
 
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
 
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState('''');
+  const [dateTo, setDateTo] = useState('''');
 
   const [pageStart, setPageStart] = useState<number | null>(null);
 
-  const gridId = groupId + '_current';
+  const gridId = groupId + ''_current'';
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -113,22 +113,22 @@ export default function PaymentGridPage() {
   async function loadGrid() {
     setLoading(true);
     try {
-      const groupSnap = await getDoc(doc(db, 'groups', groupId));
+      const groupSnap = await getDoc(doc(db, ''groups'', groupId));
       if (groupSnap.exists()) {
-        setGroupName(groupSnap.data().name || 'Group');
+        setGroupName(groupSnap.data().name || ''Group'');
         const amt = groupSnap.data().weeklyAmount || groupSnap.data().contributionAmount;
-        if (typeof amt === 'number') setWeeklyAmount(amt);
+        if (typeof amt === ''number'') setWeeklyAmount(amt);
       }
 
-      const gridSnap = await getDoc(doc(db, 'paymentGrids', gridId));
+      const gridSnap = await getDoc(doc(db, ''paymentGrids'', gridId));
       let loadedGrid: Grid;
 
       if (gridSnap.exists()) {
         loadedGrid = gridSnap.data() as Grid;
       } else {
         const membersQuery = query(
-          collection(db, 'members'),
-          where('groupId', '==', groupId)
+          collection(db, ''members''),
+          where(''groupId'', ''=='', groupId)
         );
         const membersSnap = await getDocs(membersQuery);
 
@@ -137,7 +137,7 @@ export default function PaymentGridPage() {
         membersSnap.forEach((m) => {
           const data = m.data();
           const memberShares = Math.max(1, parseInt(data.shares) || 1);
-          const displayName = data.fullName || data.name || '(no name)';
+          const displayName = data.fullName || data.name || ''(no name)'';
           for (let s = 0; s < memberShares; s++) {
             slots[String(slotCounter)] = {
               slotNumber: String(slotCounter),
@@ -149,13 +149,13 @@ export default function PaymentGridPage() {
         });
 
         const groupStart = groupSnap.data()?.startDate;
-        const initialStartDate = groupStart || new Date().toISOString().split('T')[0];
+        const initialStartDate = groupStart || new Date().toISOString().split(''T'')[0];
         const weeks: Record<string, string> = generateWeeksFromDate(initialStartDate);
 
         loadedGrid = {
-          organizerId: groupSnap.data()?.organizerId || groupSnap.data()?.adminId || '',
+          organizerId: groupSnap.data()?.organizerId || groupSnap.data()?.adminId || '''',
           groupId,
-          cycleId: 'cycle-' + Date.now(),
+          cycleId: ''cycle-'' + Date.now(),
           startYear: new Date(initialStartDate).getFullYear(),
           startDate: initialStartDate,
           weeks,
@@ -163,15 +163,15 @@ export default function PaymentGridPage() {
           payments: {},
         };
 
-        await setDoc(doc(db, 'paymentGrids', gridId), loadedGrid);
+        await setDoc(doc(db, ''paymentGrids'', gridId), loadedGrid);
       }
 
-      const effectiveStartDate = loadedGrid.startDate || startOfGridDate(loadedGrid.weeks) || new Date().toISOString().split('T')[0];
+      const effectiveStartDate = loadedGrid.startDate || startOfGridDate(loadedGrid.weeks) || new Date().toISOString().split(''T'')[0];
       const correctedWeeks = generateWeeksFromDate(effectiveStartDate);
       const weeksChanged = JSON.stringify(correctedWeeks) !== JSON.stringify(loadedGrid.weeks);
       if (weeksChanged || !loadedGrid.startDate) {
         loadedGrid = { ...loadedGrid, startDate: effectiveStartDate, startYear: new Date(effectiveStartDate).getFullYear(), weeks: correctedWeeks };
-        await setDoc(doc(db, 'paymentGrids', gridId), { startDate: effectiveStartDate, startYear: new Date(effectiveStartDate).getFullYear(), weeks: correctedWeeks }, { merge: true });
+        await setDoc(doc(db, ''paymentGrids'', gridId), { startDate: effectiveStartDate, startYear: new Date(effectiveStartDate).getFullYear(), weeks: correctedWeeks }, { merge: true });
       }
 
       const slotsByMember: Record<string, string[]> = {};
@@ -187,12 +187,12 @@ export default function PaymentGridPage() {
         Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
           let displayName = slot.memberName;
           try {
-            const memberSnap = await getDoc(doc(db, 'members', slot.memberId));
+            const memberSnap = await getDoc(doc(db, ''members'', slot.memberId));
             if (memberSnap.exists()) {
               const d = memberSnap.data();
-              displayName = d.fullName || d.name || '(no name)';
+              displayName = d.fullName || d.name || ''(no name)'';
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
-              if (typeof d.expectedAmount === 'number') collectedAmounts[slot.memberId] = d.expectedAmount;
+              if (typeof d.expectedAmount === ''number'') collectedAmounts[slot.memberId] = d.expectedAmount;
             }
           } catch {
             // Silent fail - keep the previously stored name.
@@ -213,7 +213,7 @@ export default function PaymentGridPage() {
       setPendingPayments(loadedGrid.payments || {});
       await loadMemberMeta(loadedGrid);
     } catch (err) {
-      console.error('Error loading grid:', err);
+      console.error(''Error loading grid:'', err);
     } finally {
       setLoading(false);
     }
@@ -229,23 +229,23 @@ export default function PaymentGridPage() {
     await Promise.all(
       memberIds.map(async (id) => {
         try {
-          const snap = await getDoc(doc(db, 'members', id));
+          const snap = await getDoc(doc(db, ''members'', id));
           if (snap.exists()) {
             const data = snap.data();
-            const status = data.status || 'active';
-            let joinedLabel = '';
+            const status = data.status || ''active'';
+            let joinedLabel = '''';
             const rawDate = data.joinedAt || data.createdAt;
             if (rawDate?.toDate) {
-              joinedLabel = rawDate.toDate().toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
+              joinedLabel = rawDate.toDate().toLocaleDateString(''en-US'', {
+                month: ''short'',
+                day: ''numeric'',
+                year: ''numeric'',
               });
-            } else if (typeof rawDate === 'string') {
-              joinedLabel = new Date(rawDate).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
+            } else if (typeof rawDate === ''string'') {
+              joinedLabel = new Date(rawDate).toLocaleDateString(''en-US'', {
+                month: ''short'',
+                day: ''numeric'',
+                year: ''numeric'',
               });
             }
             meta[id] = { status, joinedLabel };
@@ -311,7 +311,7 @@ export default function PaymentGridPage() {
     });
 
     await setDoc(
-      doc(db, 'paymentGrids', gridId, 'memberViews', userId),
+      doc(db, ''paymentGrids'', gridId, ''memberViews'', userId),
       {
         memberName: memberSlots[0].memberName,
         slots: memberSlots.map((s) => s.slotNumber),
@@ -340,30 +340,30 @@ export default function PaymentGridPage() {
           if (!userId) return;
 
           const memberAmount = memberAmounts[slot.memberId] ?? weeklyAmount;
-          const amountLabel = memberAmount ? '$' + memberAmount.toLocaleString() : 'Amount not set';
+          const amountLabel = memberAmount ? ''$'' + memberAmount.toLocaleString() : ''Amount not set'';
           const receiptHtml =
-            '<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">' +
-            '<h2 style="color:#6B2D4E;">TARSYN Payment Receipt</h2>' +
-            '<p><strong>Group:</strong> ' + groupName + '</p>' +
-            '<p><strong>Member:</strong> ' + slot.memberName + '</p>' +
-            '<p><strong>Week:</strong> W' + weekIdx + ' (' + weekDate + ')</p>' +
-            '<p><strong>Amount:</strong> ' + amountLabel + '</p>' +
-            '<p><strong>Status:</strong> Paid</p>' +
-            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYN(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
-            '</body></html>';
-          const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
+            ''<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">'' +
+            ''<h2 style="color:#6B2D4E;">TARSYN Payment Receipt</h2>'' +
+            ''<p><strong>Group:</strong> '' + groupName + ''</p>'' +
+            ''<p><strong>Member:</strong> '' + slot.memberName + ''</p>'' +
+            ''<p><strong>Week:</strong> W'' + weekIdx + '' ('' + weekDate + '')</p>'' +
+            ''<p><strong>Amount:</strong> '' + amountLabel + ''</p>'' +
+            ''<p><strong>Status:</strong> Paid</p>'' +
+            ''<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYN(TM) - A product of Ma Production Luxenn Zara LLC</p>'' +
+            ''</body></html>'';
+          const dataUrl = ''data:text/html;charset=utf-8,'' + encodeURIComponent(receiptHtml);
 
           receiptPromises.push(
-            addDoc(collection(db, 'documents'), {
-              name: 'Receipt - W' + weekIdx + ' - ' + weekDate,
-              type: 'text/html',
+            addDoc(collection(db, ''documents''), {
+              name: ''Receipt - W'' + weekIdx + '' - '' + weekDate,
+              type: ''text/html'',
               size: receiptHtml.length,
               url: dataUrl,
-              storagePath: '',
-              category: 'Receipts',
+              storagePath: '''',
+              category: ''Receipts'',
               organizerId: grid.organizerId,
-              uploadedBy: 'system',
-              source: 'admin',
+              uploadedBy: ''system'',
+              source: ''admin'',
               visibleTo: [userId],
               createdAt: serverTimestamp(),
             })
@@ -382,7 +382,7 @@ export default function PaymentGridPage() {
     setSavingAll(true);
     try {
       await setDoc(
-        doc(db, 'paymentGrids', gridId),
+        doc(db, ''paymentGrids'', gridId),
         { payments: pendingPayments },
         { merge: true }
       );
@@ -401,7 +401,7 @@ export default function PaymentGridPage() {
 
       setGrid((prev) => (prev ? { ...prev, payments: pendingPayments } : prev));
     } catch (err) {
-      console.error('Error saving payments:', err);
+      console.error(''Error saving payments:'', err);
     } finally {
       setSavingAll(false);
     }
@@ -410,18 +410,18 @@ export default function PaymentGridPage() {
   async function handleChangeGridStart() {
     if (!grid || !gridStartInput) return;
     if (!confirm(
-      'Changing the grid start date will regenerate all week columns starting exactly on the ' +
-      'day of the week you picked (e.g. if you pick a Friday, every column stays a Friday), ' +
-      'through the end of the current year. ' +
-      'Existing payment checkmarks stay attached to their column position, not their old date - ' +
-      'double-check this before confirming if payments were already recorded.'
+      ''Changing the grid start date will regenerate all week columns starting exactly on the '' +
+      ''day of the week you picked (e.g. if you pick a Friday, every column stays a Friday), '' +
+      ''through the end of the current year. '' +
+      ''Existing payment checkmarks stay attached to their column position, not their old date - '' +
+      ''double-check this before confirming if payments were already recorded.''
     )) return;
 
     setSavingStartDate(true);
     try {
       const newWeeks: Record<string, string> = generateWeeksFromDate(gridStartInput);
       const newStartYear = new Date(gridStartInput).getFullYear();
-      await setDoc(doc(db, 'paymentGrids', gridId), { startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks }, { merge: true });
+      await setDoc(doc(db, ''paymentGrids'', gridId), { startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks }, { merge: true });
       setGrid((prev) => (prev ? { ...prev, startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks } : prev));
       setPageStart(0);
       setShowStartDateEditor(false);
@@ -437,14 +437,14 @@ export default function PaymentGridPage() {
   }
 
   function getInitials(name: string) {
-    const parts = name.trim().split(' ').filter(Boolean);
-    if (parts.length === 0) return '?';
+    const parts = name.trim().split('' '').filter(Boolean);
+    if (parts.length === 0) return ''?'';
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
   function avatarColor(name: string) {
-    const palette = [C.bordeaux, '#8C6E4F', '#5C7A8A', '#B0525F', C.bordeauxDark];
+    const palette = [C.bordeaux, ''#8C6E4F'', ''#5C7A8A'', ''#B0525F'', C.bordeauxDark];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -458,7 +458,7 @@ export default function PaymentGridPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: 40, fontFamily: 'sans-serif', color: C.texteFonce }}>
+      <div style={{ padding: 40, fontFamily: ''sans-serif'', color: C.texteFonce }}>
         Loading payment grid...
       </div>
     );
@@ -466,7 +466,7 @@ export default function PaymentGridPage() {
 
   if (!grid) {
     return (
-      <div style={{ padding: 40, color: 'crimson' }}>
+      <div style={{ padding: 40, color: ''crimson'' }}>
         Could not load payment grid.
       </div>
     );
@@ -505,7 +505,7 @@ export default function PaymentGridPage() {
   const canGoPrev = effectivePageStart > 0;
   const canGoNext = effectivePageStart + WEEKS_PER_PAGE < activeWeekEntries.length;
 
-  const focusWeekIdx = visibleWeeks[0]?.[0] ?? weekEntries[0]?.[0] ?? '0';
+  const focusWeekIdx = visibleWeeks[0]?.[0] ?? weekEntries[0]?.[0] ?? ''0'';
 
   const focusSlotNums = allSlotEntries.map(([slotNum]) => slotNum);
   const focusPaid = focusSlotNums.filter(
@@ -529,7 +529,7 @@ export default function PaymentGridPage() {
   }
 
   const totalCollectedLabel = weeklyAmount
-    ? '$' +
+    ? ''$'' +
       allSlotEntries
         .reduce((sum, [slotNum]) => {
           const paidCount = weekEntries.filter(
@@ -540,29 +540,29 @@ export default function PaymentGridPage() {
         .toLocaleString()
     : undefined;
 
-  function btnStyle(variant: 'primary' | 'secondary' | 'ghost', disabled?: boolean) {
+  function btnStyle(variant: ''primary'' | ''secondary'' | ''ghost'', disabled?: boolean) {
     const base: React.CSSProperties = {
       borderRadius: 10,
-      padding: '9px 15px',
+      padding: ''9px 15px'',
       fontSize: 13.5,
       fontWeight: 600,
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      display: 'flex',
-      alignItems: 'center',
+      cursor: disabled ? ''not-allowed'' : ''pointer'',
+      display: ''flex'',
+      alignItems: ''center'',
       gap: 6,
       opacity: disabled ? 0.55 : 1,
-      whiteSpace: 'nowrap',
+      whiteSpace: ''nowrap'',
     };
-    if (variant === 'primary') {
-      return { ...base, background: C.bordeaux, color: C.ivoire, border: 'none' };
+    if (variant === ''primary'') {
+      return { ...base, background: C.bordeaux, color: C.ivoire, border: ''none'' };
     }
-    if (variant === 'ghost') {
+    if (variant === ''ghost'') {
       return {
         ...base,
-        background: 'transparent',
+        background: ''transparent'',
         color: C.texteFonce,
-        border: '1px solid ' + C.border,
-        padding: '7px 12px',
+        border: ''1px solid '' + C.border,
+        padding: ''7px 12px'',
         fontSize: 12.5,
       };
     }
@@ -570,49 +570,49 @@ export default function PaymentGridPage() {
       ...base,
       background: C.ivoire,
       color: C.texteFonce,
-      border: '1px solid ' + C.border,
+      border: ''1px solid '' + C.border,
     };
   }
 
   const dateInputStyle: React.CSSProperties = {
-    border: '1px solid ' + C.border,
+    border: ''1px solid '' + C.border,
     borderRadius: 10,
-    padding: '8px 12px',
+    padding: ''8px 12px'',
     fontSize: 13,
     color: C.texteFonce,
     background: C.ivoire,
-    outline: 'none',
+    outline: ''none'',
   };
 
   function handleExportWeek(weekIdx: string) {
-    const dateForWeek = grid?.weeks[weekIdx] || '';
-    const rows: string[][] = [['Member', 'W' + weekIdx + ' (' + dateForWeek + ')']];
+    const dateForWeek = grid?.weeks[weekIdx] || '''';
+    const rows: string[][] = [[''Member'', ''W'' + weekIdx + '' ('' + dateForWeek + '')'']];
     allSlotEntries.forEach(([slotNum, slot]) => {
-      rows.push([slot.memberName, pendingPayments[slotNum]?.[weekIdx] ? 'Paid' : 'Missing']);
+      rows.push([slot.memberName, pendingPayments[slotNum]?.[weekIdx] ? ''Paid'' : ''Missing'']);
     });
-    downloadCsv(rows, 'week_W' + weekIdx + '_' + groupName.replace(/\s+/g, '_') + '.csv');
+    downloadCsv(rows, ''week_W'' + weekIdx + ''_'' + groupName.replace(/\s+/g, ''_'') + ''.csv'');
   }
 
   function handleExportAll() {
-    const weekCols = weekEntries.map(([idx]) => 'W' + idx);
-    const rows: string[][] = [['Member', ...weekCols]];
+    const weekCols = weekEntries.map(([idx]) => ''W'' + idx);
+    const rows: string[][] = [[''Member'', ...weekCols]];
     slotEntries.forEach(([slotNum, slot]) => {
       const row = [slot.memberName];
       weekEntries.forEach(([weekIdx]) => {
-        row.push(pendingPayments[slotNum]?.[weekIdx] ? 'Paid' : '');
+        row.push(pendingPayments[slotNum]?.[weekIdx] ? ''Paid'' : '''');
       });
       rows.push(row);
     });
-    downloadCsv(rows, groupName.replace(/\s+/g, '_') + '_payment_grid.csv');
+    downloadCsv(rows, groupName.replace(/\s+/g, ''_'') + ''_payment_grid.csv'');
   }
 
   function downloadCsv(rows: string[][], filename: string) {
     const csv = rows
-      .map((r) => r.map((c) => '"' + c.replace(/"/g, '""') + '"').join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      .map((r) => r.map((c) => ''"'' + c.replace(/"/g, ''""'') + ''"'').join('',''))
+      .join(''\n'');
+    const blob = new Blob([csv], { type: ''text/csv;charset=utf-8;'' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement(''a'');
     link.href = url;
     link.download = filename;
     link.click();
@@ -620,7 +620,7 @@ export default function PaymentGridPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 20px' }}>
+    <div style={{ minHeight: ''100vh'', background: C.creme, padding: ''28px 20px'' }}>
       <style>{`
         .tarsyn-cell { transition: all 0.15s ease; }
         .tarsyn-cell:hover .tarsyn-box {
@@ -632,28 +632,28 @@ export default function PaymentGridPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 1360, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1360, margin: ''0 auto'' }}>
         {/* Header */}
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
+            display: ''flex'',
+            justifyContent: ''space-between'',
+            alignItems: ''flex-start'',
+            flexWrap: ''wrap'',
             gap: 14,
             marginBottom: 16,
           }}
         >
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <div style={{ display: ''flex'', gap: 14, alignItems: ''center'' }}>
             <div
               style={{
                 width: 46,
                 height: 46,
                 borderRadius: 12,
                 background: C.or,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: ''flex'',
+                alignItems: ''center'',
+                justifyContent: ''center'',
                 fontSize: 21,
                 flexShrink: 0,
               }}
@@ -664,26 +664,26 @@ export default function PaymentGridPage() {
               <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
                 Payment Grid — {groupName}
               </h1>
-              <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
+              <p style={{ color: C.texteGris, margin: ''3px 0 0'', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
               </p>
             </div>
           </div>
 
           {/* Primary action bar */}
-          <div className="tarsyn-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="tarsyn-no-print" style={{ display: ''flex'', gap: 8, flexWrap: ''wrap'' }}>
             <button
               onClick={handleSaveAll}
               disabled={!hasChanges || savingAll}
-              style={btnStyle('primary', !hasChanges || savingAll)}
+              style={btnStyle(''primary'', !hasChanges || savingAll)}
             >
-              💾 {savingAll ? 'Saving...' : 'Save Payments'}
+              💾 {savingAll ? ''Saving...'' : ''Save Payments''}
             </button>
-            <button onClick={handleExportAll} style={btnStyle('secondary')}>
+            <button onClick={handleExportAll} style={btnStyle(''secondary'')}>
               📄 Export
             </button>
-            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>➕ Add / Edit Members</button>
-            <button onClick={handlePrint} style={btnStyle('secondary')}>
+            <button onClick={() => router.push(''/dashboard/add-member?groupId='' + groupId)} style={btnStyle(''secondary'')}>➕ Add / Edit Members</button>
+            <button onClick={handlePrint} style={btnStyle(''secondary'')}>
               🖨 Print
             </button>
           </div>
@@ -695,30 +695,30 @@ export default function PaymentGridPage() {
             className="tarsyn-no-print"
             style={{
               background: C.warningBg,
-              border: '1px solid ' + C.or,
+              border: ''1px solid '' + C.or,
               borderRadius: 12,
-              padding: '10px 16px',
+              padding: ''10px 16px'',
               marginBottom: 16,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
+              display: ''flex'',
+              justifyContent: ''space-between'',
+              alignItems: ''center'',
+              flexWrap: ''wrap'',
               gap: 10,
             }}
           >
             <span style={{ color: C.warning, fontSize: 13.5, fontWeight: 600 }}>
               ⚠ You have unsaved changes.
             </span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleDiscardAll} style={btnStyle('ghost')}>
+            <div style={{ display: ''flex'', gap: 8 }}>
+              <button onClick={handleDiscardAll} style={btnStyle(''ghost'')}>
                 Discard
               </button>
               <button
                 onClick={handleSaveAll}
                 disabled={savingAll}
-                style={btnStyle('primary', savingAll)}
+                style={btnStyle(''primary'', savingAll)}
               >
-                {savingAll ? 'Saving...' : 'Save'}
+                {savingAll ? ''Saving...'' : ''Save''}
               </button>
             </div>
           </div>
@@ -728,25 +728,25 @@ export default function PaymentGridPage() {
         <div
           style={{
             background: C.ivoire,
-            border: '1px solid ' + C.border,
+            border: ''1px solid '' + C.border,
             borderRadius: 12,
-            padding: '12px 16px',
+            padding: ''12px 16px'',
             marginBottom: 16,
-            display: 'flex',
+            display: ''flex'',
             gap: 10,
-            alignItems: 'flex-start',
+            alignItems: ''flex-start'',
           }}
         >
           <div
             style={{
               width: 24,
               height: 24,
-              borderRadius: '50%',
+              borderRadius: ''50%'',
               background: C.bordeaux,
               color: C.ivoire,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: ''flex'',
+              alignItems: ''center'',
+              justifyContent: ''center'',
               fontSize: 12,
               flexShrink: 0,
             }}
@@ -755,7 +755,7 @@ export default function PaymentGridPage() {
           </div>
           <div>
             <strong style={{ color: C.bordeaux, fontSize: 13.5 }}>Deposit</strong>
-            <p style={{ margin: '2px 0 0', color: C.texteFonce, fontSize: 12.5 }}>
+            <p style={{ margin: ''2px 0 0'', color: C.texteFonce, fontSize: 12.5 }}>
               Initial contribution used to start the group. Informational only, not counted
               in weekly contributions.
             </p>
@@ -766,10 +766,10 @@ export default function PaymentGridPage() {
         <div
           className="tarsyn-no-print"
           style={{
-            display: 'flex',
+            display: ''flex'',
             gap: 10,
-            alignItems: 'center',
-            flexWrap: 'wrap',
+            alignItems: ''center'',
+            flexWrap: ''wrap'',
             marginBottom: 12,
           }}
         >
@@ -798,11 +798,11 @@ export default function PaymentGridPage() {
           {(dateFrom || dateTo) && (
             <button
               onClick={() => {
-                setDateFrom('');
-                setDateTo('');
+                setDateFrom('''');
+                setDateTo('''');
                 setPageStart(null);
               }}
-              style={btnStyle('ghost')}
+              style={btnStyle(''ghost'')}
             >
               Reset
             </button>
@@ -815,8 +815,8 @@ export default function PaymentGridPage() {
             style={{ ...dateInputStyle, flex: 1, minWidth: 180 }}
           />
           <button
-            onClick={() => { setShowStartDateEditor(!showStartDateEditor); setGridStartInput(grid.weeks['0'] || ''); }}
-            style={btnStyle('ghost')}
+            onClick={() => { setShowStartDateEditor(!showStartDateEditor); setGridStartInput(grid.weeks[''0''] || ''''); }}
+            style={btnStyle(''ghost'')}
           >
             ⚙ Grid Start Date
           </button>
@@ -827,18 +827,18 @@ export default function PaymentGridPage() {
             className="tarsyn-no-print"
             style={{
               background: C.warningBg,
-              border: '1px solid ' + C.or,
+              border: ''1px solid '' + C.or,
               borderRadius: 12,
-              padding: '12px 16px',
+              padding: ''12px 16px'',
               marginBottom: 12,
-              display: 'flex',
+              display: ''flex'',
               gap: 10,
-              alignItems: 'center',
-              flexWrap: 'wrap',
+              alignItems: ''center'',
+              flexWrap: ''wrap'',
             }}
           >
             <span style={{ fontSize: 12.5, color: C.texteFonce }}>
-              Pick the exact date this sol/tontine's collections happen (e.g. the first Friday it ran,
+              Pick the exact date this sol/tontine''s collections happen (e.g. the first Friday it ran,
               even back in 2025) — every column will stay on that same day of the week, through today:
             </span>
             <input
@@ -847,10 +847,10 @@ export default function PaymentGridPage() {
               onChange={(e) => setGridStartInput(e.target.value)}
               style={dateInputStyle}
             />
-            <button onClick={handleChangeGridStart} disabled={savingStartDate || !gridStartInput} style={btnStyle('primary', savingStartDate || !gridStartInput)}>
-              {savingStartDate ? 'Applying...' : 'Apply (regenerate full year)'}
+            <button onClick={handleChangeGridStart} disabled={savingStartDate || !gridStartInput} style={btnStyle(''primary'', savingStartDate || !gridStartInput)}>
+              {savingStartDate ? ''Applying...'' : ''Apply (regenerate full year)''}
             </button>
-            <button onClick={() => setShowStartDateEditor(false)} style={btnStyle('ghost')}>
+            <button onClick={() => setShowStartDateEditor(false)} style={btnStyle(''ghost'')}>
               Cancel
             </button>
           </div>
@@ -859,31 +859,31 @@ export default function PaymentGridPage() {
         {/* Compact summary bar */}
         <div
           style={{
-            display: 'flex',
+            display: ''flex'',
             gap: 10,
-            flexWrap: 'wrap',
+            flexWrap: ''wrap'',
             marginBottom: 14,
           }}
         >
           {[
-            { label: 'Members', value: String(totalMembers) },
-            { label: 'Week', value: 'W' + focusWeekIdx },
-            { label: 'Paid', value: String(focusPaid) },
-            { label: 'Missing', value: String(focusMissing) },
-            { label: 'Completion', value: focusCompletion + '%' },
+            { label: ''Members'', value: String(totalMembers) },
+            { label: ''Week'', value: ''W'' + focusWeekIdx },
+            { label: ''Paid'', value: String(focusPaid) },
+            { label: ''Missing'', value: String(focusMissing) },
+            { label: ''Completion'', value: focusCompletion + ''%'' },
           ].map((item) => (
             <div
               key={item.label}
               style={{
                 background: C.ivoire,
-                border: '1px solid ' + C.border,
+                border: ''1px solid '' + C.border,
                 borderRadius: 10,
-                padding: '8px 14px',
+                padding: ''8px 14px'',
                 fontSize: 12.5,
                 color: C.texteGris,
-                display: 'flex',
+                display: ''flex'',
                 gap: 6,
-                alignItems: 'baseline',
+                alignItems: ''baseline'',
               }}
             >
               <span>{item.label}:</span>
@@ -896,49 +896,49 @@ export default function PaymentGridPage() {
         <div
           className="tarsyn-no-print"
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
+            display: ''flex'',
+            justifyContent: ''space-between'',
+            alignItems: ''center'',
+            flexWrap: ''wrap'',
             gap: 10,
             marginBottom: 10,
           }}
         >
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: ''flex'', gap: 8, alignItems: ''center'' }}>
             <button
               onClick={() =>
                 setPageStart(Math.max(0, effectivePageStart - WEEKS_PER_PAGE))
               }
               disabled={!canGoPrev}
-              style={btnStyle('ghost', !canGoPrev)}
+              style={btnStyle(''ghost'', !canGoPrev)}
             >
               ◀ Previous
             </button>
             <span style={{ fontSize: 12.5, color: C.texteGris }}>
-              {visibleWeeks.map(([idx]) => 'W' + idx).join(' · ')}
+              {visibleWeeks.map(([idx]) => ''W'' + idx).join('' · '')}
             </span>
             <button
               onClick={() => setPageStart(effectivePageStart + WEEKS_PER_PAGE)}
               disabled={!canGoNext}
-              style={btnStyle('ghost', !canGoNext)}
+              style={btnStyle(''ghost'', !canGoNext)}
             >
               Next ▶
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: ''flex'', gap: 8 }}>
             <button
               onClick={() => markAllPaidForWeek(focusWeekIdx, focusSlotNums)}
-              style={btnStyle('ghost')}
+              style={btnStyle(''ghost'')}
             >
               ☑ Mark All Paid (W{focusWeekIdx})
             </button>
             <button
               onClick={() => clearWeekPayments(focusWeekIdx, focusSlotNums)}
-              style={btnStyle('ghost')}
+              style={btnStyle(''ghost'')}
             >
               ☐ Clear Week
             </button>
-            <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle('ghost')}>
+            <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle(''ghost'')}>
               📄 Export Week
             </button>
           </div>
@@ -949,23 +949,23 @@ export default function PaymentGridPage() {
           style={{
             background: C.ivoire,
             borderRadius: 14,
-            border: '1px solid ' + C.border,
-            overflow: 'auto',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            border: ''1px solid '' + C.border,
+            overflow: ''auto'',
+            boxShadow: ''0 2px 12px rgba(0,0,0,0.06)'',
           }}
         >
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+          <table style={{ borderCollapse: ''collapse'', width: ''100%'' }}>
             <thead>
               <tr>
                 <th
                   style={{
-                    position: 'sticky',
+                    position: ''sticky'',
                     top: 0,
                     left: 0,
                     background: C.bordeaux,
                     color: C.ivoire,
-                    padding: '12px 16px',
-                    textAlign: 'left',
+                    padding: ''12px 16px'',
+                    textAlign: ''left'',
                     zIndex: 3,
                     minWidth: 240,
                   }}
@@ -976,14 +976,14 @@ export default function PaymentGridPage() {
                   <th
                     key={idx}
                     style={{
-                      position: 'sticky',
+                      position: ''sticky'',
                       top: 0,
                       background: C.bordeaux,
                       color: C.or,
-                      padding: '10px 12px',
+                      padding: ''10px 12px'',
                       fontSize: 12,
                       minWidth: 90,
-                      textAlign: 'center',
+                      textAlign: ''center'',
                       zIndex: 2,
                     }}
                   >
@@ -997,31 +997,31 @@ export default function PaymentGridPage() {
             </thead>
             <tbody>
               {slotEntries.map(([slotNum, slot]) => {
-                const meta = memberMeta[slot.memberId] || { status: 'active', joinedLabel: '' };
+                const meta = memberMeta[slot.memberId] || { status: ''active'', joinedLabel: '''' };
                 const rate = contributionRateForSlot(slotNum);
                 return (
-                  <tr key={slotNum} style={{ borderBottom: '1px solid ' + C.border }}>
+                  <tr key={slotNum} style={{ borderBottom: ''1px solid '' + C.border }}>
                     <td
                       style={{
-                        position: 'sticky',
+                        position: ''sticky'',
                         left: 0,
                         background: C.ivoire,
-                        padding: '12px 16px',
-                        borderRight: '1px solid ' + C.border,
+                        padding: ''12px 16px'',
+                        borderRight: ''1px solid '' + C.border,
                         zIndex: 1,
                       }}
                     >
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ display: ''flex'', gap: 10, alignItems: ''center'' }}>
                         <div
                           style={{
                             width: 34,
                             height: 34,
-                            borderRadius: '50%',
+                            borderRadius: ''50%'',
                             background: avatarColor(slot.memberName),
                             color: C.ivoire,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: ''flex'',
+                            alignItems: ''center'',
+                            justifyContent: ''center'',
                             fontSize: 12,
                             fontWeight: 700,
                             flexShrink: 0,
@@ -1033,18 +1033,18 @@ export default function PaymentGridPage() {
                           <div style={{ fontWeight: 600, color: C.texteFonce, fontSize: 13.5 }}>
                             #{slotNum} · {slot.memberName}
                           </div>
-                          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
+                          <div style={{ display: ''flex'', gap: 6, alignItems: ''center'', marginTop: 2, flexWrap: ''wrap'' }}>
                             <span
                               style={{
                                 fontSize: 10.5,
                                 fontWeight: 600,
-                                padding: '1px 7px',
+                                padding: ''1px 7px'',
                                 borderRadius: 20,
-                                background: meta.status === 'inactive' ? C.dangerBg : C.successBg,
-                                color: meta.status === 'inactive' ? C.danger : C.success,
+                                background: meta.status === ''inactive'' ? C.dangerBg : C.successBg,
+                                color: meta.status === ''inactive'' ? C.danger : C.success,
                               }}
                             >
-                              ● {meta.status === 'inactive' ? 'Inactive' : 'Active'}
+                              ● {meta.status === ''inactive'' ? ''Inactive'' : ''Active''}
                             </span>
                             <span style={{ fontSize: 10.5, color: C.texteGris }}>
                               {rate}% paid
@@ -1061,8 +1061,8 @@ export default function PaymentGridPage() {
                           className="tarsyn-cell"
                           onClick={() => toggleQueuedPayment(slotNum, weekIdx)}
                           style={{
-                            textAlign: 'center',
-                            cursor: 'pointer',
+                            textAlign: ''center'',
+                            cursor: ''pointer'',
                             padding: 8,
                           }}
                         >
@@ -1071,14 +1071,14 @@ export default function PaymentGridPage() {
                             style={{
                               width: 30,
                               height: 30,
-                              margin: '0 auto',
+                              margin: ''0 auto'',
                               borderRadius: 8,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
+                              display: ''flex'',
+                              alignItems: ''center'',
+                              justifyContent: ''center'',
                               background: isPaid ? C.bordeaux : C.creme,
-                              border: '1.5px solid ' + (isPaid ? C.bordeaux : C.border),
-                              transition: 'all 0.15s',
+                              border: ''1.5px solid '' + (isPaid ? C.bordeaux : C.border),
+                              transition: ''all 0.15s'',
                             }}
                           >
                             {isPaid && (
@@ -1109,8 +1109,8 @@ export default function PaymentGridPage() {
           style={{
             marginTop: 28,
             paddingTop: 18,
-            borderTop: '1px solid ' + C.border,
-            textAlign: 'center',
+            borderTop: ''1px solid '' + C.border,
+            textAlign: ''center'',
             fontSize: 12.5,
             color: C.texteGris,
           }}
