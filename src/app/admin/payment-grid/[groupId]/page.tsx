@@ -81,6 +81,7 @@ export default function PaymentGridPage() {
   const [groupName, setGroupName] = useState('');
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
+  const [memberAmounts, setMemberAmounts] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
   const [showStartDateEditor, setShowStartDateEditor] = useState(false);
@@ -181,6 +182,7 @@ export default function PaymentGridPage() {
 
       const refreshedSlots: Record<string, Slot> = {};
       const collectedUserIds: Record<string, string> = {};
+      const collectedAmounts: Record<string, number> = {};
       await Promise.all(
         Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
           let displayName = slot.memberName;
@@ -190,6 +192,7 @@ export default function PaymentGridPage() {
               const d = memberSnap.data();
               displayName = d.fullName || d.name || '(no name)';
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
+              if (typeof d.expectedAmount === 'number') collectedAmounts[slot.memberId] = d.expectedAmount;
             }
           } catch {
             // Silent fail - keep the previously stored name.
@@ -204,6 +207,7 @@ export default function PaymentGridPage() {
       );
       loadedGrid = { ...loadedGrid, slots: refreshedSlots };
       setMemberUserIds(collectedUserIds);
+      setMemberAmounts(collectedAmounts);
 
       setGrid(loadedGrid);
       setPendingPayments(loadedGrid.payments || {});
@@ -651,11 +655,11 @@ export default function PaymentGridPage() {
                 flexShrink: 0,
               }}
             >
-              💳
+              ðŸ’³
             </div>
             <div>
               <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
-                Payment Grid — {groupName}
+                Payment Grid â€” {groupName}
               </h1>
               <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
@@ -669,14 +673,14 @@ export default function PaymentGridPage() {
               disabled={!hasChanges || savingAll}
               style={btnStyle('primary', !hasChanges || savingAll)}
             >
-              💾 {savingAll ? 'Saving...' : 'Save Payments'}
+              ðŸ’¾ {savingAll ? 'Saving...' : 'Save Payments'}
             </button>
             <button onClick={handleExportAll} style={btnStyle('secondary')}>
-              📄 Export
+              ðŸ“„ Export
             </button>
-            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>➕ Add / Edit Members</button>
+            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>âž• Add / Edit Members</button>
             <button onClick={handlePrint} style={btnStyle('secondary')}>
-              🖨 Print
+              ðŸ–¨ Print
             </button>
           </div>
         </div>
@@ -698,7 +702,7 @@ export default function PaymentGridPage() {
             }}
           >
             <span style={{ color: C.warning, fontSize: 13.5, fontWeight: 600 }}>
-              ⚠ You have unsaved changes.
+              âš  You have unsaved changes.
             </span>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleDiscardAll} style={btnStyle('ghost')}>
@@ -741,7 +745,7 @@ export default function PaymentGridPage() {
               flexShrink: 0,
             }}
           >
-            ℹ
+            â„¹
           </div>
           <div>
             <strong style={{ color: C.bordeaux, fontSize: 13.5 }}>Deposit</strong>
@@ -763,7 +767,7 @@ export default function PaymentGridPage() {
           }}
         >
           <span style={{ fontSize: 13, color: C.texteFonce, fontWeight: 600 }}>
-            📅 Period:
+            ðŸ“… Period:
           </span>
           <input
             type="date"
@@ -774,7 +778,7 @@ export default function PaymentGridPage() {
             }}
             style={dateInputStyle}
           />
-          <span style={{ color: C.texteGris }}>→</span>
+          <span style={{ color: C.texteGris }}>â†’</span>
           <input
             type="date"
             value={dateTo}
@@ -807,7 +811,7 @@ export default function PaymentGridPage() {
             onClick={() => { setShowStartDateEditor(!showStartDateEditor); setGridStartInput(grid.weeks['0'] || ''); }}
             style={btnStyle('ghost')}
           >
-            ⚙ Grid Start Date
+            âš™ Grid Start Date
           </button>
         </div>
 
@@ -828,7 +832,7 @@ export default function PaymentGridPage() {
           >
             <span style={{ fontSize: 12.5, color: C.texteFonce }}>
               Pick the exact date this sol/tontine's collections happen (e.g. the first Friday it ran,
-              even back in 2025) — every column will stay on that same day of the week, through today:
+              even back in 2025) â€” every column will stay on that same day of the week, through today:
             </span>
             <input
               type="date"
@@ -899,17 +903,17 @@ export default function PaymentGridPage() {
               disabled={!canGoPrev}
               style={btnStyle('ghost', !canGoPrev)}
             >
-              ◀ Previous
+              â—€ Previous
             </button>
             <span style={{ fontSize: 12.5, color: C.texteGris }}>
-              {visibleWeeks.map(([idx]) => 'W' + idx).join(' · ')}
+              {visibleWeeks.map(([idx]) => 'W' + idx).join(' Â· ')}
             </span>
             <button
               onClick={() => setPageStart(effectivePageStart + WEEKS_PER_PAGE)}
               disabled={!canGoNext}
               style={btnStyle('ghost', !canGoNext)}
             >
-              Next ▶
+              Next â–¶
             </button>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -917,16 +921,16 @@ export default function PaymentGridPage() {
               onClick={() => markAllPaidForWeek(focusWeekIdx, focusSlotNums)}
               style={btnStyle('ghost')}
             >
-              ☑ Mark All Paid (W{focusWeekIdx})
+              â˜‘ Mark All Paid (W{focusWeekIdx})
             </button>
             <button
               onClick={() => clearWeekPayments(focusWeekIdx, focusSlotNums)}
               style={btnStyle('ghost')}
             >
-              ☐ Clear Week
+              â˜ Clear Week
             </button>
             <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle('ghost')}>
-              📄 Export Week
+              ðŸ“„ Export Week
             </button>
           </div>
         </div>
@@ -1017,7 +1021,7 @@ export default function PaymentGridPage() {
                         </div>
                         <div>
                           <div style={{ fontWeight: 600, color: C.texteFonce, fontSize: 13.5 }}>
-                            #{slotNum} · {slot.memberName}
+                            #{slotNum} Â· {slot.memberName}
                           </div>
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
                             <span
@@ -1030,7 +1034,7 @@ export default function PaymentGridPage() {
                                 color: meta.status === 'inactive' ? C.danger : C.success,
                               }}
                             >
-                              ● {meta.status === 'inactive' ? 'Inactive' : 'Active'}
+                              â— {meta.status === 'inactive' ? 'Inactive' : 'Active'}
                             </span>
                             <span style={{ fontSize: 10.5, color: C.texteGris }}>
                               {rate}% paid
@@ -1069,7 +1073,7 @@ export default function PaymentGridPage() {
                           >
                             {isPaid && (
                               <span style={{ color: C.or, fontSize: 15, fontWeight: 700 }}>
-                                ✓
+                                âœ“
                               </span>
                             )}
                           </div>
@@ -1100,8 +1104,8 @@ export default function PaymentGridPage() {
             color: C.texteGris,
           }}
         >
-          Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
-          Rights Reserved · v1.0.0
+          Powered by TARSYNâ„¢ Â· A product of Ma Production Luxenn Zara LLC Â· Â© 2026 All
+          Rights Reserved Â· v1.0.0
         </div>
       </div>
     </div>
