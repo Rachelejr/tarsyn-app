@@ -283,8 +283,16 @@ function MemberContent() {
       for (const file of pendingFiles) {
         const path = 'documents/' + activeMember.organizerId + '/' + uid + '_' + Date.now() + '_' + file.name;
         const storageRef = ref(storage, path);
+
+        console.log('STEP 1: uploading to storage...');
         await uploadBytes(storageRef, file);
+        console.log('STEP 1 OK');
+
+        console.log('STEP 2: getting download URL...');
         const url = await getDownloadURL(storageRef);
+        console.log('STEP 2 OK');
+
+        console.log('STEP 3: creating documents record...');
         await addDoc(collection(db, 'documents'), {
           name: file.name, type: file.type, size: file.size, url,
           storagePath: path, category: uploadCategory,
@@ -292,14 +300,25 @@ function MemberContent() {
           uploadedBy: uid, source: 'member', visibleTo: [],
           createdAt: serverTimestamp(),
         });
+        console.log('STEP 3 OK');
+
+        console.log('STEP 4: creating audit_logs record...');
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: activeMember.organizerId, category: 'Document',
           action: 'Uploaded ' + file.name, createdAt: serverTimestamp(),
           actorId: uid,
         });
+        console.log('STEP 4 OK');
       }
+
+      console.log('STEP 5: fetching docs...');
       await fetchDocs(activeMember.organizerId, uid);
+      console.log('STEP 5 OK');
+
+      console.log('STEP 6: fetching activity...');
       await fetchActivity(activeMember.organizerId);
+      console.log('STEP 6 OK');
+
       setShowUploadModal(false);
       setPendingFiles([]);
       setUploadCategory('General');
