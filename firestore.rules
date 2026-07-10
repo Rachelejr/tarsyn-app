@@ -9,30 +9,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users - chacun peut lire/ecrire seulement son propre profil
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
-    // Workspaces - lecture/ecriture reservee aux membres du workspace
     match /workspaces/{workspaceId} {
       allow read: if request.auth != null && request.auth.uid in resource.data.members;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
       allow update: if request.auth != null && request.auth.uid in resource.data.members;
       allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
     }
-    // Groups - lecture publique (necessaire pour la page d'invitation /join/[code]
-    // ou l'utilisateur n'est pas encore connecte), ecriture protegee
     match /groups/{groupId} {
       allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
-    // Members - lecture reservee aux comptes connectes (plus de lecture publique ;
-    // la page d'invitation /join/[code] passe desormais par /api/join-lookup qui
-    // utilise le SDK Admin cote serveur pour eviter d'exposer toute la collection).
-    // Ecriture : l'organisateur peut tout faire OU un membre qui n'a pas encore
-    // de compte (userId vide) peut s'auto-attribuer son propre userId lors de l'inscription.
     match /members/{memberId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
@@ -45,20 +36,20 @@ service cloud.firestore {
       );
       allow delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
-    // Contributions
     match /contributions/{contribId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
-    // Documents
     match /documents/{docId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
+      allow create: if request.auth != null && (
+        request.resource.data.organizerId == request.auth.uid ||
+        request.resource.data.uploadedBy == request.auth.uid
+      );
       allow update: if request.auth != null && resource.data.organizerId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
-    // Comments - sur documents. Lecture par membres authentifies, ecriture par l'auteur ou l'organisateur.
     match /comments/{commentId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
@@ -68,26 +59,30 @@ service cloud.firestore {
       );
       allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
     }
-    // Reviews - une note par auteur et par document
     match /reviews/{reviewId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
       allow update: if request.auth != null && resource.data.authorId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
     }
-    // Audit logs - lecture/ecriture reservees a l'organisateur proprietaire
-    match /audit_logs/{logId} {
-      allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
+    match /testimonials/{testimonialId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
       allow update, delete: if false;
     }
-    // Payment proofs
+    match /audit_logs/{logId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && (
+        request.resource.data.organizerId == request.auth.uid ||
+        request.resource.data.actorId == request.auth.uid
+      );
+      allow update, delete: if false;
+    }
     match /paymentProofs/{proofId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
-    // Payment grids - weekly contribution tracking per group
     match /paymentGrids/{gridId} {
       function isPlatformAdmin() {
         return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
@@ -96,7 +91,6 @@ service cloud.firestore {
         let g = get(/databases/$(database)/documents/groups/$(gId)).data;
         return request.auth.uid == g.organizerId || request.auth.uid == g.get('adminId', null);
       }
-
       allow read: if request.auth != null && (
         resource == null ||
         resource.data.organizerId == request.auth.uid ||
@@ -113,7 +107,6 @@ service cloud.firestore {
         isOrganizerOfGroup(resource.data.groupId) ||
         isPlatformAdmin()
       );
-
       match /memberViews/{memberId} {
         allow read: if request.auth != null && request.auth.uid == memberId;
         allow write: if request.auth != null && (
@@ -123,11 +116,9 @@ service cloud.firestore {
         );
       }
     }
-    // OTP codes - chaque utilisateur ne peut acceder qu'a son propre code 2FA
     match /otp_codes/{userId} {
       allow read, write, delete: if request.auth != null && request.auth.uid == userId;
     }
-    // Chats - groupe ou prive, acces limite aux participants
     match /chats/{chatId} {
       allow read: if request.auth != null && request.auth.uid in resource.data.participantIds;
       allow create: if request.auth != null && request.auth.uid in request.resource.data.participantIds;

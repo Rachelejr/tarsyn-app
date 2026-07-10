@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -13,6 +13,7 @@ function LoginPageInner() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [keepConnected, setKeepConnected] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'login' | '2fa'>('login');
@@ -66,6 +67,9 @@ function LoginPageInner() {
     setError('');
     setLoading(true);
     try {
+      // Set persistence BEFORE signing in: local = stays signed in across
+      // browser restarts, session = signed out when the browser tab closes.
+      await setPersistence(auth, keepConnected ? browserLocalPersistence : browserSessionPersistence);
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       setUserId(result.user.uid);
       setUserEmail(result.user.email!);
@@ -121,6 +125,7 @@ function LoginPageInner() {
     setError('');
     setLoading(true);
     try {
+      await setPersistence(auth, keepConnected ? browserLocalPersistence : browserSessionPersistence);
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
@@ -183,6 +188,9 @@ function LoginPageInner() {
                     const prev = document.getElementById(`otp-${i - 1}`);
                     if (prev) (prev as HTMLInputElement).focus();
                   }
+                  if (e.key === 'Enter' && code.join('').length === 6) {
+                    handleVerify2FA();
+                  }
                 }}
                 style={{ width: '46px', height: '56px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #E0D0C0', borderRadius: '10px', background: '#FAF0E6', color: '#6B2D4E', outline: 'none' }}
               />
@@ -240,7 +248,7 @@ function LoginPageInner() {
             />
           </div>
 
-          <div style={{ marginBottom: '0.5rem' }}>
+          <div style={{ marginBottom: '0.75rem' }}>
             <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input
@@ -258,8 +266,17 @@ function LoginPageInner() {
             </div>
           </div>
 
-          {/* FORGOT PASSWORD LINK */}
-          <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
+          {/* KEEP ME CONNECTED + FORGOT PASSWORD */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#555', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={keepConnected}
+                onChange={e => setKeepConnected(e.target.checked)}
+                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#6B2D4E' }}
+              />
+              Keep me connected
+            </label>
             <a href="/forgot-password" style={{ color: '#6B2D4E', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
               Forgot password?
             </a>
