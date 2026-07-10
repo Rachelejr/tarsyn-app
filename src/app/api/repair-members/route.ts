@@ -14,6 +14,22 @@ function isOldFormatTynId(tynId: string): boolean {
   return !/^[A-Z]{2}-\d{3}$/.test(tynId);
 }
 
+function initialsFor(fullName: string): string {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  const firstInitial = parts[0]?.[0]?.toUpperCase() || 'X';
+  const lastInitial = parts.length > 1 ? parts[parts.length - 1][0]?.toUpperCase() || firstInitial : firstInitial;
+  return firstInitial + lastInitial;
+}
+
+function tynIdMismatch(tynId: string, fullName: string): boolean {
+  if (isOldFormatTynId(tynId)) return false;
+  const match = tynId.match(/^([A-Z]{2})-(\d{3})$/);
+  if (!match) return false;
+  const currentInitials = match[1];
+  const expectedInitials = initialsFor(fullName);
+  return currentInitials !== expectedInitials && expectedInitials !== 'XX';
+}
+
 async function scanMembers() {
   const membersSnap = await adminDb.collection('members').get();
   const byGroup: Record<string, any[]> = {};
@@ -32,16 +48,25 @@ async function scanMembers() {
     let seq = 1;
     for (const m of members) {
       const needsOrganizerFix = !m.organizerId;
-      const needsTynIdFix = isOldFormatTynId(m.tynId);
+      const displayName = m.name || m.fullName || '(no name)';
+      const oldFormat = isOldFormatTynId(m.tynId);
+      const mismatch = !oldFormat && tynIdMismatch(m.tynId, displayName);
+      const needsTynIdFix = oldFormat || mismatch;
 
       if (needsOrganizerFix || needsTynIdFix) {
-        const displayName = m.name || m.fullName || '(no name)';
+        let newTynId: string | null = m.tynId || null;
+        if (oldFormat) {
+          newTynId = computeNewTynId(displayName, seq);
+        } else if (mismatch) {
+          const seqPart = m.tynId.split('-')[1];
+          newTynId = initialsFor(displayName) + '-' + seqPart;
+        }
         broken.push({
           id: m.id,
           fullName: displayName,
           groupId: m.groupId || null,
           currentTynId: m.tynId || null,
-          newTynId: needsTynIdFix ? computeNewTynId(displayName, seq) : (m.tynId || null),
+          newTynId,
           needsOrganizerFix,
           needsTynIdFix,
         });
