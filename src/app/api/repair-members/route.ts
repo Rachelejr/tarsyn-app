@@ -35,12 +35,13 @@ async function scanMembers() {
       const needsTynIdFix = isOldFormatTynId(m.tynId);
 
       if (needsOrganizerFix || needsTynIdFix) {
+        const displayName = m.name || m.fullName || '(no name)';
         broken.push({
           id: m.id,
-          fullName: m.fullName || '(no name)',
+          fullName: displayName,
           groupId: m.groupId || null,
           currentTynId: m.tynId || null,
-          newTynId: needsTynIdFix ? computeNewTynId(m.fullName, seq) : (m.tynId || null),
+          newTynId: needsTynIdFix ? computeNewTynId(displayName, seq) : (m.tynId || null),
           needsOrganizerFix,
           needsTynIdFix,
         });
