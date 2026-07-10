@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function TrialGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -14,24 +14,29 @@ export default function TrialGuard({ children }: { children: React.ReactNode }) 
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { setChecking(false); return; }
       try {
-        const q = query(collection(db, 'workspaces'), where('members', 'array-contains', user.uid));
-        const snap = await getDocs(q);
-        if (snap.empty) { setChecking(false); return; }
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (!userSnap.exists()) { setChecking(false); return; }
 
-        let trialExpired = false;
-        snap.docs.forEach(d => {
-          const data = d.data();
-          const status = data.subscriptionStatus;
-          const trialEndsAt = data.trialEndsAt;
-          if (status !== 'active' && trialEndsAt?.seconds) {
-            const now = Date.now() / 1000;
-            if (now > trialEndsAt.seconds) {
-              trialExpired = true;
-            }
-          }
-        });
+        const data = userSnap.data();
 
-        if (trialExpired) {
+        // Paid and active on Stripe -> never block, regardless of trialEndsAt.
+        const subStatus = data.subscription?.status;
+        if (subStatus === 'active' || subStatus === 'trialing') {
+          setChecking(false);
+          return;
+        }
+
+        // No trialEndsAt recorded yet (older accounts) -> do not block.
+        // trialEndsAt is only set for accounts created after this feature
+        // was added, or manually assigned in Firestore for existing admins.
+        const trialEndsAt = data.trialEndsAt;
+        if (!trialEndsAt) { setChecking(false); return; }
+
+        const trialEndMs = trialEndsAt.seconds
+          ? trialEndsAt.seconds * 1000
+          : new Date(trialEndsAt).getTime();
+
+        if (Date.now() > trialEndMs) {
           router.push('/dashboard/subscription');
           return;
         }

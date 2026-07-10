@@ -32,11 +32,14 @@ export default function RegisterPage() {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(result.user, { displayName: name.trim() });
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
       await setDoc(doc(db, 'users', result.user.uid), {
         name: name.trim(),
         email,
         role: 'admin',
         createdAt: new Date().toISOString(),
+        trialEndsAt: trialEndsAt.toISOString(),
       });
       setSuccess(true);
       setTimeout(() => { window.location.href = '/dashboard/create-workspace'; }, 1800);
@@ -55,11 +58,14 @@ export default function RegisterPage() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
       await setDoc(doc(db, 'users', result.user.uid), {
         name: result.user.displayName || '',
         email: result.user.email || '',
         role: 'admin',
         createdAt: new Date().toISOString(),
+        trialEndsAt: trialEndsAt.toISOString(),
       }, { merge: true });
       window.location.href = '/dashboard/create-workspace';
     } catch {
