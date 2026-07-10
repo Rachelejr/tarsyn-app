@@ -37,7 +37,7 @@ function AddMemberContent() {
   const [form, setForm] = useState({
     fullName: '', phone: '', email: '', country: '', memberType: 'Regular',
     role: 'member', position: '', payoutDate: '', expectedAmount: '0',
-    currency: 'USD', status: 'pending', notes: '',
+    currency: 'USD', status: 'pending', notes: '', shares: '1',
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -106,6 +106,7 @@ function AddMemberContent() {
         ...form, tynId, groupId: selectedGroupId, organizerId: user.uid,
         position: parseInt(form.position) || nextPosition,
         expectedAmount: parseFloat(form.expectedAmount) || 0,
+        shares: Math.max(1, parseInt(form.shares) || 1),
         createdAt: serverTimestamp(),
       });
       setSuccess(true);
@@ -127,7 +128,7 @@ function AddMemberContent() {
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
-            <button onClick={() => { setSuccess(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '' }); }}
+            <button onClick={() => { setSuccess(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); }}
               style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Add Another
             </button>
@@ -262,7 +263,11 @@ function AddMemberContent() {
                   </select>
                 </div>
                 <div>
-                  <label style={labelStyle}>Expected Amount</label>
+                  <label style={labelStyle}>Number of Parts</label>
+                  <input style={inputStyle} type="number" min="1" step="1" value={form.shares} onChange={e => set('shares', e.target.value)} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Expected Amount (per part)</label>
                   <input style={inputStyle} type="number" min="0" step="0.01" value={form.expectedAmount} onChange={e => set('expectedAmount', e.target.value)} />
                 </div>
                 <div>
@@ -272,11 +277,20 @@ function AddMemberContent() {
                     <option>CAD</option><option>HTG</option><option>XOF</option>
                   </select>
                 </div>
-                <div>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Notes</label>
                   <input style={inputStyle} placeholder="Optional notes..." value={form.notes} onChange={e => set('notes', e.target.value)} />
                 </div>
               </div>
+              {parseInt(form.shares) > 1 && (
+                <div style={{ marginTop: 14, padding: '10px 14px', background: C.creme, borderRadius: 10, border: '1px solid ' + C.orLight }}>
+                  <p style={{ fontSize: 12, color: C.text, margin: 0, lineHeight: 1.6 }}>
+                    This member will occupy <strong>{form.shares} slots</strong> in the payment grid and rotation
+                    (shown as &quot;part 1/{form.shares}&quot;, &quot;part 2/{form.shares}&quot;, etc.), and will need
+                    to pay {form.shares}× the expected amount each week.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
@@ -300,7 +314,9 @@ function AddMemberContent() {
               { label: 'Name', value: form.fullName || '—' },
               { label: 'Country', value: form.country || '—' },
               { label: 'Currency', value: form.currency },
-              { label: 'Amount', value: form.currency + ' ' + (parseFloat(form.expectedAmount) || 0).toFixed(2) },
+              { label: 'Amount / Part', value: form.currency + ' ' + (parseFloat(form.expectedAmount) || 0).toFixed(2) },
+              { label: 'Parts', value: form.shares || '1' },
+              { label: 'Total / week', value: form.currency + ' ' + ((parseFloat(form.expectedAmount) || 0) * (parseInt(form.shares) || 1)).toFixed(2) },
               { label: 'Position', value: '#' + (form.position || nextPosition) },
               { label: 'Status', value: form.status.charAt(0).toUpperCase() + form.status.slice(1) },
               { label: 'Role', value: form.role.charAt(0).toUpperCase() + form.role.slice(1) },
