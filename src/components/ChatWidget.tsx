@@ -1,11 +1,9 @@
 ﻿'use client';
-
 import { useEffect, useRef, useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, ChatSummary, ChatMessage } from '@/lib/chat';
-
+import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
 const C = {
   bordeaux: '#6B2D4E',
   bordeauxDark: '#4A1F38',
@@ -18,6 +16,40 @@ const C = {
   danger: '#C62828',
   dangerBg: '#FFEBEE',
 };
+
+// --- Modern line-style icons (replace old emoji icons) ---
+const MicIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+    <line x1="12" y1="19" x2="12" y2="23" />
+    <line x1="8" y1="23" x2="16" y2="23" />
+  </svg>
+);
+const VideoIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="23 7 16 12 23 17 23 7" />
+    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+  </svg>
+);
+const SendIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none" />
+  </svg>
+);
+const TrashIcon = ({ size = 13 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2" />
+  </svg>
+);
+const CheckIcon = ({ size = 13, double = false, color = '#9CA3AF' }: { size?: number; double?: boolean; color?: string }) => (
+  <svg width={double ? size + 4 : size} height={size} viewBox="0 0 20 12" fill="none">
+    <path d="M1 6l4 4L13 1" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    {double && <path d="M6 6l4 4L18 1" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />}
+  </svg>
+);
 
 const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [
   { label: 'Smileys', icon: '😀', emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','💀','☠️','👻','👽','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
@@ -33,6 +65,20 @@ const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [
   { label: 'Symbols', icon: '✨', emojis: ['✨','🎉','🎊','🎈','🎁','🏆','🥇','⭐','🌟','💫','🔥','💯','✅','❌','⚠️','🚫','💢','💥','💦','💨','🕳️','💣','💤','♻️','🔱','📛','🔰','⭕','✔️','☑️','✳️','❇️','💠','🔘','🔵','🟢','🟡','🟠','🔴','🟣','⚫','⚪','🟤'] },
   { label: 'Flags', icon: '🏳️', emojis: ['🏳️','🏴','🏁','🚩','🏳️‍🌈','🏳️‍⚧️','🇺🇸','🇨🇦','🇬🇧','🇫🇷','🇩🇪','🇪🇸','🇮🇹','🇵🇹','🇧🇷','🇲🇽','🇭🇹','🇯🇲','🇩🇴','🇹🇹','🇧🇸','🇧🇧','🇬🇾','🇸🇷','🇳🇬','🇬🇭','🇸🇳','🇨🇮','🇨🇲','🇨🇩','🇰🇪','🇪🇹','🇿🇦','🇪🇬','🇲🇦','🇩🇿','🇹🇳','🇯🇵','🇰🇷','🇨🇳','🇮🇳','🇦🇺','🇳🇿','🇷🇺','🇺🇦','🇵🇱','🇳🇱','🇧🇪','🇨🇭','🇸🇪','🇳🇴','🇩🇰','🇫🇮','🇬🇷','🇹🇷','🇸🇦','🇦🇪','🇮🇱','🇱🇧','🇺🇳'] },
 ];
+
+// Small deterministic gradient per name, so each avatar has a distinct but stable color.
+const AVATAR_GRADIENTS = [
+  ['#6B2D4E', '#9C4A6E'],
+  ['#4A6E9C', '#6B94C9'],
+  ['#2E7D5E', '#4CAF8A'],
+  ['#9C6B2D', '#D4A05A'],
+  ['#7D2E5E', '#B4548E'],
+  ['#2D549C', '#5A8AD4'],
+];
+function avatarGradient(name: string) {
+  const idx = (name?.charCodeAt(0) || 0) % AVATAR_GRADIENTS.length;
+  return AVATAR_GRADIENTS[idx];
+}
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -50,7 +96,6 @@ export default function ChatWidget() {
   const [showMenu, setShowMenu] = useState(false);
   const [clearing, setClearing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-
   const [recordingMode, setRecordingMode] = useState<null | 'audio' | 'video'>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -64,17 +109,19 @@ export default function ChatWidget() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
 
+  // --- NEW: message action menu (delete for me / everyone) ---
+  const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null);
+  const [openMsgMenu, setOpenMsgMenu] = useState<string | null>(null);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
-
   useEffect(() => {
     if (!user) return;
     const unsub = listenToUserChats(user.uid, (data) => setChats(data));
     return () => unsub();
   }, [user]);
-
   useEffect(() => {
     if (!activeChatId || !user) return;
     (async () => {
@@ -87,11 +134,9 @@ export default function ChatWidget() {
     });
     return () => unsub();
   }, [activeChatId, user]);
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -100,7 +145,6 @@ export default function ChatWidget() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
     if (term.trim().length < 2 || !user) { setSearchResults([]); return; }
@@ -117,7 +161,6 @@ export default function ChatWidget() {
     });
     setSearchResults(results.slice(0, 8));
   };
-
   const startChat = async (member: {userId:string;name:string}) => {
     if (!user) return;
     const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name);
@@ -127,7 +170,6 @@ export default function ChatWidget() {
     setSearchTerm('');
     setSearchResults([]);
   };
-
   const handleSend = async () => {
     if (!text.trim() || !user || !activeChatId) return;
     const senderName = user.displayName || user.email?.split('@')[0] || 'Member';
@@ -136,9 +178,7 @@ export default function ChatWidget() {
     setShowEmoji(false);
     await sendMessage(activeChatId, user.uid, senderName, toSend);
   };
-
   const addEmoji = (emoji: string) => setText((t) => t + emoji);
-
   const handleClearChat = async () => {
     if (!activeChatId) return;
     if (!confirm('Clear this entire conversation? This cannot be undone.')) return;
@@ -152,17 +192,32 @@ export default function ChatWidget() {
     setClearing(false);
   };
 
+  // --- NEW: delete handlers ---
+  const handleDeleteForMe = async (messageId: string) => {
+    if (!activeChatId || !user) return;
+    setOpenMsgMenu(null);
+    try {
+      await deleteMessageForMe(activeChatId, messageId, user.uid);
+    } catch (e) { console.error(e); }
+  };
+  const handleDeleteForEveryone = async (messageId: string) => {
+    if (!activeChatId) return;
+    if (!confirm('Delete this message for everyone?')) return;
+    setOpenMsgMenu(null);
+    try {
+      await deleteMessageForEveryone(activeChatId, messageId);
+    } catch (e) { console.error(e); }
+  };
+
   const formatTime = (ts: any) => {
     if (!ts?.toDate) return '';
     return ts.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
   const formatSeconds = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
     return m + ':' + String(s).padStart(2, '0');
   };
-
   const formatDateLabel = (ts: any) => {
     if (!ts?.toDate) return '';
     const d = ts.toDate();
@@ -177,7 +232,6 @@ export default function ChatWidget() {
       year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
     });
   };
-
   async function startRecording(type: 'audio' | 'video') {
     setMediaError('');
     try {
@@ -185,13 +239,11 @@ export default function ChatWidget() {
         type === 'audio' ? { audio: true } : { audio: true, video: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-
       if (type === 'video' && videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = stream;
         videoPreviewRef.current.muted = true;
         videoPreviewRef.current.play().catch(() => {});
       }
-
       chunksRef.current = [];
       const recorder = new MediaRecorder(stream);
       recorder.ondataavailable = (e) => {
@@ -206,7 +258,6 @@ export default function ChatWidget() {
         stream.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       };
-
       mediaRecorderRef.current = recorder;
       recorder.start();
       setRecordingMode(type);
@@ -221,13 +272,11 @@ export default function ChatWidget() {
       );
     }
   }
-
   function stopRecording() {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
     if (timerRef.current) clearInterval(timerRef.current);
   }
-
   function cancelRecording() {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
@@ -243,7 +292,6 @@ export default function ChatWidget() {
     setRecordSeconds(0);
     setMediaError('');
   }
-
   async function sendRecordedMedia() {
     if (!previewBlob || !recordingMode || !user || !activeChatId) return;
     setUploadingMedia(true);
@@ -262,24 +310,39 @@ export default function ChatWidget() {
 
   if (!user) return null;
 
+  const activeChatSummary = chats.find((c) => c.id === activeChatId);
+  const otherParticipantId = activeChatSummary?.type === 'private'
+    ? activeChatSummary.participantIds.find((id) => id !== user.uid)
+    : null;
+
+  const visibleMessages = messages.filter((m) => !(m.deletedFor || []).includes(user.uid));
+
   return (
     <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999, fontFamily: 'Inter, sans-serif' }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .cw-msg-action-btn{transition:opacity .12s ease, background .12s ease;}
+        .cw-msg-action-btn:hover{background:rgba(0,0,0,0.06) !important;}
+        .cw-menu-item:hover{background:${C.bg} !important;}
+      `}} />
       {!open && (
         <button onClick={() => setOpen(true)}
           style={{ width: '58px', height: '58px', borderRadius: '50%', background: C.bordeaux, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,0,0,0.25)', fontSize: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           💬
         </button>
       )}
-
       {open && (
         <div style={{ width: '340px', height: '480px', background: C.white, borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-
           <div style={{ background: C.white, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: C.bordeaux, borderBottom: `1px solid ${C.border}` }}>
             {activeChatId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
                   style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', color: C.bordeaux, border: `1px solid ${C.border}` }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${avatarGradient(activeChatName)[0]}, ${avatarGradient(activeChatName)[1]})`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', color: 'white',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                }}>
                   {activeChatName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <span style={{ fontWeight: 700, fontSize: '14px' }}>{activeChatName}</span>
@@ -298,7 +361,6 @@ export default function ChatWidget() {
               )}
               <button onClick={() => setOpen(false)}
                 style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '16px', cursor: 'pointer' }}>✕</button>
-
               {showMenu && activeChatId && (
                 <div style={{ position: 'absolute', right: 0, top: '28px', background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', minWidth: '170px', zIndex: 30, overflow: 'hidden', border: `1px solid ${C.border}` }}>
                   <button onClick={handleClearChat} disabled={clearing}
@@ -309,7 +371,6 @@ export default function ChatWidget() {
               )}
             </div>
           </div>
-
           {!activeChatId && (
             <div style={{ flex: 1, overflowY: 'auto', background: C.white }}>
               {showSearch && (
@@ -331,38 +392,48 @@ export default function ChatWidget() {
               {chats.length === 0 ? (
                 <p style={{ textAlign: 'center', color: C.textGris, fontSize: '13px', marginTop: '40px' }}>No conversations yet.</p>
               ) : (
-                chats.map((chat) => (
-                  <div key={chat.id} onClick={() => { setActiveChatId(chat.id); setActiveChatName(chat.name); }}
-                    style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', borderBottom: `1px solid ${C.bg}` }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = C.bg)}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                    <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.bordeaux, fontWeight: 700, fontSize: '14px', flexShrink: 0, border: `1px solid ${C.border}` }}>
-                      {chat.type === 'group' ? '👥' : chat.name?.[0]?.toUpperCase() || '?'}
+                chats.map((chat) => {
+                  const grad = avatarGradient(chat.name || '?');
+                  return (
+                    <div key={chat.id} onClick={() => { setActiveChatId(chat.id); setActiveChatName(chat.name); }}
+                      style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', borderBottom: `1px solid ${C.bg}` }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = C.bg)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                      <div style={{
+                        width: '38px', height: '38px', borderRadius: '50%',
+                        background: chat.type === 'group' ? C.bg : `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: chat.type === 'group' ? C.bordeaux : 'white', fontWeight: 700, fontSize: '14px', flexShrink: 0,
+                        boxShadow: chat.type === 'group' ? 'none' : '0 1px 3px rgba(0,0,0,0.2)',
+                        border: chat.type === 'group' ? `1px solid ${C.border}` : 'none',
+                      }}>
+                        {chat.type === 'group' ? '👥' : chat.name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: '13px', color: C.textDark }}>{chat.name}</p>
+                        <p style={{ margin: 0, fontSize: '12px', color: C.textGris, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {chat.lastMessage?.text || 'No messages yet'}
+                        </p>
+                      </div>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: '13px', color: C.textDark }}>{chat.name}</p>
-                      <p style={{ margin: 0, fontSize: '12px', color: C.textGris, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {chat.lastMessage?.text || 'No messages yet'}
-                      </p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}
-
           {activeChatId && (
             <>
-              <div style={{ flex: 1, overflowY: 'auto', background: C.bg, padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {messages.length === 0 && (
+              <div style={{ flex: 1, overflowY: 'auto', background: C.bg, padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}
+                onClick={() => setOpenMsgMenu(null)}>
+                {visibleMessages.length === 0 && (
                   <p style={{ textAlign: 'center', color: C.textGris, fontSize: '12px', marginTop: '30px' }}>Say hello 👋</p>
                 )}
-                {messages.flatMap((m, idx) => {
+                {visibleMessages.flatMap((m, idx) => {
                   const isMine = m.senderId === user.uid;
+                  const isDeleted = !!m.deletedForEveryone;
                   const currentLabel = formatDateLabel(m.createdAt);
-                  const prevLabel = idx > 0 ? formatDateLabel(messages[idx - 1].createdAt) : null;
+                  const prevLabel = idx > 0 ? formatDateLabel(visibleMessages[idx - 1].createdAt) : null;
                   const items: React.ReactNode[] = [];
-
                   if (currentLabel && currentLabel !== prevLabel) {
                     items.push(
                       <div key={'sep-' + m.id} style={{ textAlign: 'center', margin: '6px 0' }}>
@@ -372,40 +443,82 @@ export default function ChatWidget() {
                       </div>
                     );
                   }
-
+                  const isRead = !isDeleted && isMine && otherParticipantId ? (m.readBy || []).includes(otherParticipantId) : false;
                   items.push(
-                    <div key={m.id} style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
-                      <div style={{
-                        maxWidth: '80%',
-                        padding: m.type === 'audio' || m.type === 'video' ? '6px' : '8px 11px',
-                        borderRadius: isMine ? '8px 8px 2px 8px' : '8px 8px 8px 2px',
-                        background: C.white,
-                        border: `1px solid ${C.border}`,
-                        boxShadow: '0 1px 1px rgba(0,0,0,0.05)',
-                      }}>
-                        {m.type === 'audio' && m.mediaUrl ? (
-                          <div>
-                            <audio controls src={m.mediaUrl} style={{ width: '190px', display: 'block' }} />
-                            <p style={{ margin: '3px 2px 0', fontSize: '10px', color: C.textGris }}>🎤 Voice message</p>
-                          </div>
-                        ) : m.type === 'video' && m.mediaUrl ? (
-                          <div>
-                            <video controls src={m.mediaUrl} style={{ width: '200px', borderRadius: '8px', display: 'block' }} />
-                            <p style={{ margin: '3px 2px 0', fontSize: '10px', color: C.textGris }}>🎥 Video message</p>
-                          </div>
-                        ) : (
-                          <p style={{ margin: 0, fontSize: '13px', color: C.textDark, wordBreak: 'break-word' }}>{m.text}</p>
+                    <div key={m.id}
+                      style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start', position: 'relative' }}
+                      onMouseEnter={() => setHoveredMsgId(m.id)}
+                      onMouseLeave={() => setHoveredMsgId((v) => (v === m.id ? null : v))}
+                      onContextMenu={(e) => { if (!isDeleted) { e.preventDefault(); e.stopPropagation(); setOpenMsgMenu(m.id); } }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', maxWidth: '84%' }}>
+                        {isMine && !isDeleted && (hoveredMsgId === m.id || openMsgMenu === m.id) && (
+                          <button className="cw-msg-action-btn" onClick={(e) => { e.stopPropagation(); setOpenMsgMenu(openMsgMenu === m.id ? null : m.id); }}
+                            style={{ background: 'none', border: 'none', color: C.textGris, fontSize: '14px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', order: -1 }}>
+                            ⋮
+                          </button>
                         )}
-                        <p style={{ margin: '3px 0 0', fontSize: '10px', color: C.textGris, textAlign: 'right' }}>{formatTime(m.createdAt)}</p>
+                        <div style={{
+                          padding: isDeleted ? '8px 11px' : (m.type === 'audio' || m.type === 'video') ? '6px' : '8px 11px',
+                          borderRadius: isMine ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
+                          background: C.white,
+                          border: `1px solid ${C.border}`,
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+                        }}>
+                          {isDeleted ? (
+                            <p style={{ margin: 0, fontSize: '12.5px', color: C.textGris, fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <TrashIcon size={12} /> This message was deleted
+                            </p>
+                          ) : m.type === 'audio' && m.mediaUrl ? (
+                            <div>
+                              <audio controls src={m.mediaUrl} style={{ width: '190px', display: 'block' }} />
+                              <p style={{ margin: '3px 2px 0', fontSize: '10px', color: C.textGris, display: 'flex', alignItems: 'center', gap: '4px' }}><MicIcon size={11} /> Voice message</p>
+                            </div>
+                          ) : m.type === 'video' && m.mediaUrl ? (
+                            <div>
+                              <video controls src={m.mediaUrl} style={{ width: '200px', borderRadius: '8px', display: 'block' }} />
+                              <p style={{ margin: '3px 2px 0', fontSize: '10px', color: C.textGris, display: 'flex', alignItems: 'center', gap: '4px' }}><VideoIcon size={11} /> Video message</p>
+                            </div>
+                          ) : (
+                            <p style={{ margin: 0, fontSize: '13px', color: C.textDark, wordBreak: 'break-word' }}>{m.text}</p>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '3px' }}>
+                            <span style={{ fontSize: '10px', color: C.textGris }}>{formatTime(m.createdAt)}</span>
+                            {isMine && !isDeleted && <CheckIcon size={12} double={isRead} color={isRead ? '#4FA3E3' : '#B8B0AA'} />}
+                          </div>
+                        </div>
+                        {!isMine && !isDeleted && (hoveredMsgId === m.id || openMsgMenu === m.id) && (
+                          <button className="cw-msg-action-btn" onClick={(e) => { e.stopPropagation(); setOpenMsgMenu(openMsgMenu === m.id ? null : m.id); }}
+                            style={{ background: 'none', border: 'none', color: C.textGris, fontSize: '14px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px' }}>
+                            ⋮
+                          </button>
+                        )}
                       </div>
+                      {openMsgMenu === m.id && (
+                        <div onClick={(e) => e.stopPropagation()}
+                          style={{
+                            position: 'absolute', top: '100%', marginTop: '2px',
+                            [isMine ? 'right' : 'left']: 0,
+                            background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                            border: `1px solid ${C.border}`, minWidth: '160px', zIndex: 40, overflow: 'hidden',
+                          } as React.CSSProperties}>
+                          {isMine && (
+                            <button className="cw-menu-item" onClick={() => handleDeleteForEveryone(m.id)}
+                              style={{ width: '100%', padding: '9px 13px', background: 'none', border: 'none', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: C.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                              <TrashIcon size={12} /> Delete for everyone
+                            </button>
+                          )}
+                          <button className="cw-menu-item" onClick={() => handleDeleteForMe(m.id)}
+                            style={{ width: '100%', padding: '9px 13px', background: 'none', border: 'none', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: C.textDark, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                            <TrashIcon size={12} /> Delete for me
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
-
                   return items;
                 })}
                 <div ref={bottomRef} />
               </div>
-
               {showEmoji && (
                 <div style={{ background: C.white, borderTop: `1px solid ${C.border}` }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', borderBottom: `1px solid ${C.border}` }}>
@@ -432,21 +545,19 @@ export default function ChatWidget() {
                   </div>
                 </div>
               )}
-
               {mediaError && (
                 <div style={{ background: C.dangerBg, color: C.danger, fontSize: '11px', fontWeight: 600, padding: '6px 12px' }}>
                   ⚠ {mediaError}
                 </div>
               )}
-
               {recordingMode === 'audio' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', background: C.white, borderTop: `1px solid ${C.border}` }}>
                   <button onClick={cancelRecording} disabled={uploadingMedia}
-                    style={{ background: 'none', border: 'none', fontSize: '17px', cursor: 'pointer', color: C.danger, flexShrink: 0 }}>🗑️</button>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.danger, flexShrink: 0, display: 'flex' }}><TrashIcon size={16} /></button>
                   {isRecording ? (
                     <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.danger, display: 'inline-block' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.danger, display: 'inline-block', flexShrink: 0 }} />
                         <span style={{ color: C.textDark, fontSize: '12.5px', fontWeight: 600 }}>{formatSeconds(recordSeconds)}</span>
                       </div>
                       <button onClick={stopRecording}
@@ -454,38 +565,41 @@ export default function ChatWidget() {
                     </>
                   ) : (
                     <>
-                      <audio controls src={previewUrl} style={{ flex: 1, height: '32px' }} />
+                      <audio controls src={previewUrl} style={{ flex: 1, minWidth: 0, height: '32px' }} />
                       <button onClick={sendRecordedMedia} disabled={uploadingMedia}
-                        style={{ background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '50%', width: '34px', height: '34px', fontSize: '14px', cursor: 'pointer', opacity: uploadingMedia ? 0.6 : 1, flexShrink: 0 }}>
-                        {uploadingMedia ? '...' : '➤'}
+                        style={{ background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', opacity: uploadingMedia ? 0.6 : 1, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {uploadingMedia ? '...' : <SendIcon size={14} />}
                       </button>
                     </>
                   )}
                 </div>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', background: C.white, borderTop: `1px solid ${C.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '10px', background: C.white, borderTop: `1px solid ${C.border}` }}>
                   <button onClick={() => setShowEmoji(!showEmoji)}
-                    style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', padding: '0 2px' }}>😊</button>
+                    style={{ background: 'none', border: 'none', fontSize: '19px', cursor: 'pointer', padding: '0 2px', flexShrink: 0 }}>😊</button>
                   <button onClick={() => startRecording('audio')} title="Voice message"
-                    style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '0 2px' }}>🎤</button>
+                    style={{ background: 'none', border: 'none', color: C.bordeaux, cursor: 'pointer', padding: '4px', flexShrink: 0, display: 'flex' }}>
+                    <MicIcon size={18} />
+                  </button>
                   <button onClick={() => setRecordingMode('video')} title="Video message"
-                    style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '0 2px' }}>🎥</button>
+                    style={{ background: 'none', border: 'none', color: C.bordeaux, cursor: 'pointer', padding: '4px', flexShrink: 0, display: 'flex' }}>
+                    <VideoIcon size={18} />
+                  </button>
                   <input
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     placeholder="Type a message"
-                    style={{ flex: 1, padding: '9px 12px', borderRadius: '20px', border: `1px solid ${C.border}`, fontSize: '13px', outline: 'none', background: C.bg }}
+                    style={{ flex: 1, minWidth: 0, padding: '9px 12px', borderRadius: '20px', border: `1px solid ${C.border}`, fontSize: '13px', outline: 'none', background: C.bg }}
                   />
                   <button onClick={handleSend}
-                    style={{ background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', fontSize: '15px', flexShrink: 0 }}>
-                    ➤
+                    style={{ background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <SendIcon size={15} />
                   </button>
                 </div>
               )}
             </>
           )}
-
           {recordingMode === 'video' && (
             <div style={{
               position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.75)', display: 'flex',
@@ -495,23 +609,19 @@ export default function ChatWidget() {
                 <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: 800, margin: '0 0 12px' }}>
                   {isRecording ? 'Recording video...' : previewUrl ? 'Preview' : 'Record a video message'}
                 </h3>
-
                 {previewUrl ? (
                   <video controls src={previewUrl} style={{ width: '100%', borderRadius: '12px', marginBottom: '14px', maxHeight: '280px', background: '#000' }} />
                 ) : (
                   <video ref={videoPreviewRef} style={{ width: '100%', borderRadius: '12px', marginBottom: '14px', maxHeight: '280px', background: '#000', transform: 'scaleX(-1)' }} />
                 )}
-
                 {isRecording && (
                   <p style={{ color: C.danger, fontWeight: 700, fontSize: '13px', margin: '0 0 14px' }}>
                     ● {formatSeconds(recordSeconds)}
                   </p>
                 )}
-
                 {mediaError && (
                   <p style={{ color: C.danger, fontSize: '11.5px', margin: '0 0 12px' }}>{mediaError}</p>
                 )}
-
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={cancelRecording} disabled={uploadingMedia}
                     style={{ flex: 1, padding: '10px', background: 'transparent', color: C.bordeaux, border: '2px solid ' + C.bordeaux, borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>

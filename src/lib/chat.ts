@@ -13,6 +13,7 @@
   updateDoc,
   deleteDoc,
   writeBatch,
+  arrayUnion,
   increment,
   Unsubscribe,
 } from 'firebase/firestore';
@@ -39,6 +40,8 @@ export interface ChatMessage {
   mediaDuration?: number;
   createdAt: any;
   readBy: string[];
+  deletedFor?: string[];
+  deletedForEveryone?: boolean;
 }
 
 function formatDuration(totalSeconds: number): string {
@@ -215,5 +218,25 @@ export async function clearChat(chatId: string): Promise<void> {
   await updateDoc(doc(db, 'chats', chatId), {
     lastMessage: null,
     updatedAt: serverTimestamp(),
+  });
+}
+
+// NEW: delete a message only for the current user (it stays visible to others).
+// Only touches the 'deletedFor' array field, which matches the existing
+// Firestore rule for the messages subcollection.
+export async function deleteMessageForMe(chatId: string, messageId: string, userId: string): Promise<void> {
+  await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+    deletedFor: arrayUnion(userId),
+  });
+}
+
+// NEW: delete a message for everyone (only the original sender is allowed to
+// do this by the Firestore rule). Clears the text/media content but keeps
+// the message document as a placeholder ("This message was deleted").
+export async function deleteMessageForEveryone(chatId: string, messageId: string): Promise<void> {
+  await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), {
+    deletedForEveryone: true,
+    text: '',
+    mediaUrl: '',
   });
 }
