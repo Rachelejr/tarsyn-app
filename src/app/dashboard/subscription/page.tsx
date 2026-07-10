@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -83,14 +83,14 @@ const PLANS: PlanDef[] = [
     support: 'Email support',
     additional: ['Everything in Free', 'Reminders', 'Document Center'],
     ctaAction: 'checkout',
-    ctaLabel: 'Get Starter →',
+    ctaLabel: 'Get Starter',
     scaling: { membersIncrement: 100, priceIncrement: 5 },
   },
   {
     id: 'growth',
     name: 'Growth',
     color: '#4A1F38',
-    badge: 'MOST POPULAR · SAVE UP TO 17%',
+    badge: 'MOST POPULAR - SAVE UP TO 17%',
     description: 'Growing organizations',
     priceMonthly: 29.99,
     priceAnnual: 299,
@@ -102,7 +102,7 @@ const PLANS: PlanDef[] = [
     support: 'Priority support',
     additional: ['Everything in Starter', 'Export tools'],
     ctaAction: 'checkout',
-    ctaLabel: 'Get Growth →',
+    ctaLabel: 'Get Growth',
     scaling: { membersIncrement: 100, priceIncrement: 4 },
   },
   {
@@ -121,7 +121,7 @@ const PLANS: PlanDef[] = [
     support: 'Dedicated support',
     additional: ['Everything in Growth', 'API access'],
     ctaAction: 'checkout',
-    ctaLabel: 'Get Pro →',
+    ctaLabel: 'Get Pro',
   },
   {
     id: 'enterprise',
@@ -157,6 +157,7 @@ function SubscriptionContent() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const success = searchParams.get('success');
   const canceled = searchParams.get('canceled');
@@ -179,6 +180,12 @@ function SubscriptionContent() {
 
   const handleSubscribe = async (priceId: string | null, planName: string) => {
     if (!priceId || !user) return;
+    if (priceId.includes('REPLACE_ME')) {
+      setCheckoutError(`This plan (${planName}) is not fully configured yet. Please contact support.`);
+      console.error('Blocked checkout: placeholder priceId not replaced by env var for', planName, priceId);
+      return;
+    }
+    setCheckoutError(null);
     setCheckoutLoading(planName);
     try {
       const res = await fetch('/api/create-checkout', {
@@ -190,12 +197,19 @@ function SubscriptionContent() {
           email: user.email,
         }),
       });
-      const { url } = await res.json();
-      if (url) window.location.href = url;
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        console.error('Checkout failed:', data);
+        setCheckoutError(data.error || 'Could not start checkout. Please try again or contact support.');
+        setCheckoutLoading(null);
+        return;
+      }
+      window.location.href = data.url;
     } catch (e) {
       console.error(e);
+      setCheckoutError('Could not start checkout. Please check your connection and try again.');
+      setCheckoutLoading(null);
     }
-    setCheckoutLoading(null);
   };
 
   const handleCancelSubscription = async () => {
@@ -224,6 +238,11 @@ function SubscriptionContent() {
 
   const handleUpdateSubscription = async (newPriceId: string | null, planName: string) => {
     if (!newPriceId || !user) return;
+    if (newPriceId.includes('REPLACE_ME')) {
+      setCheckoutError(`This plan (${planName}) is not fully configured yet. Please contact support.`);
+      return;
+    }
+    setCheckoutError(null);
     setActionLoading(planName);
     try {
       const res = await fetch('/api/update-subscription', {
@@ -235,11 +254,12 @@ function SubscriptionContent() {
       if (data.success) {
         window.location.reload();
       } else {
-        alert('Failed to update subscription. Please try again or contact support.');
+        console.error('Update subscription failed:', data);
+        setCheckoutError(data.error || 'Failed to update subscription. Please try again or contact support.');
       }
     } catch (e) {
       console.error(e);
-      alert('Failed to update subscription. Please try again or contact support.');
+      setCheckoutError('Failed to update subscription. Please try again or contact support.');
     }
     setActionLoading(null);
   };
@@ -287,24 +307,30 @@ function SubscriptionContent() {
       <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
         {success && (
           <div style={{ background: '#E8F5E9', borderRadius: '16px', padding: '20px 24px', marginBottom: '28px', color: '#2E7D32', fontWeight: 600, fontSize: '15px' }}>
-            🎉 Subscription activated successfully. Welcome to TARSYN.
+            Subscription activated successfully. Welcome to TARSYN.
           </div>
         )}
         {canceled && (
           <div style={{ background: '#FFF3E0', borderRadius: '16px', padding: '20px 24px', marginBottom: '28px', color: '#E65100', fontWeight: 600, fontSize: '15px' }}>
-            ❌ Checkout canceled. You can try again anytime.
+            Checkout canceled. You can try again anytime.
+          </div>
+        )}
+        {checkoutError && (
+          <div style={{ background: '#FDECEA', borderRadius: '16px', padding: '20px 24px', marginBottom: '28px', color: '#C62828', fontWeight: 600, fontSize: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <span>{checkoutError}</span>
+            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>×</button>
           </div>
         )}
 
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 style={{ color: '#6B2D4E', fontSize: '32px', fontWeight: 800, margin: '0 0 8px' }}>Choose your plan</h1>
-          <p style={{ color: '#6B2D4E', fontSize: '16px', margin: 0 }}>30-day free trial on all paid plans 🎁</p>
+          <p style={{ color: '#6B2D4E', fontSize: '16px', margin: 0 }}>30-day free trial on all paid plans</p>
         </div>
 
         {(subscription?.status === 'active' || subscription?.status === 'trialing') && (
           <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '32px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
             <p style={{ color: '#2E7D32', fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>
-              ✅ {subscription.status === 'trialing' ? '🎁 Free Trial Active' : 'Subscription Active'}
+              {subscription.status === 'trialing' ? 'Free Trial Active' : 'Subscription Active'}
             </p>
             <p style={{ color: '#6B2D4E', fontSize: '14px', margin: 0 }}>
               {subscription.status === 'trialing'
@@ -394,8 +420,8 @@ function SubscriptionContent() {
                 </div>
 
                 <div style={{ margin: '0 0 14px' }}>
-                  <p style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700, margin: '0 0 4px' }}>👥 {plan.members}</p>
-                  <p style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700, margin: 0 }}>🏘️ {plan.groups}</p>
+                  <p style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700, margin: '0 0 4px' }}>{plan.members}</p>
+                  <p style={{ color: '#6B2D4E', fontSize: '13px', fontWeight: 700, margin: 0 }}>{plan.groups}</p>
                 </div>
 
                 <ul style={{ padding: '0 0 0 16px', margin: '0 0 8px', color: '#6B2D4E', fontSize: '13px', flexGrow: 1 }}>
@@ -406,7 +432,7 @@ function SubscriptionContent() {
 
                 {plan.scaling && (
                   <p style={{ color: '#6B2D4E', fontSize: '11px', margin: '0 0 16px', fontStyle: 'italic' }}>
-                    +{plan.scaling.membersIncrement} members → +${plan.scaling.priceIncrement}/mo
+                    +{plan.scaling.membersIncrement} members = +${plan.scaling.priceIncrement}/mo
                   </p>
                 )}
 
@@ -420,7 +446,7 @@ function SubscriptionContent() {
                           borderRadius: '14px', border: '1px solid #2E7D32',
                           fontSize: '14px', fontWeight: 700, cursor: 'default',
                         }}>
-                        Current Plan ✓
+                        Current Plan
                       </button>
                       {!subscription?.cancelAtPeriodEnd ? (
                         <button
@@ -432,13 +458,13 @@ function SubscriptionContent() {
                             fontSize: '12px', fontWeight: 600, cursor: 'pointer',
                             opacity: actionLoading === 'cancel' ? 0.6 : 1,
                           }}>
-                          {actionLoading === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
+                        {actionLoading === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
                         </button>
                       ) : (
                         <p style={{ fontSize: '11px', color: '#C62828', textAlign: 'center', margin: 0 }}>
                           Cancels on {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'period end'}
                         </p>
-                      )}
+                      )
                     </div>
                   ) : (
                     <button
@@ -461,7 +487,7 @@ function SubscriptionContent() {
                       {checkoutLoading === plan.name || actionLoading === plan.name
                         ? 'Loading...'
                         : hasActiveSub
-                          ? `Switch to ${plan.name} →`
+                          ? `Switch to ${plan.name}`
                           : plan.ctaLabel}
                     </button>
                   )
@@ -471,7 +497,7 @@ function SubscriptionContent() {
                   <button
                     onClick={() => router.push('/dashboard')}
                     style={{ width: '100%', height: '56px', background: '#FBEEDD', color: '#6B2D4E', borderRadius: '14px', border: '1px solid #6B2D4E', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginTop: 'auto' }}>
-                    {isCurrent ? 'Current Plan ✓' : 'Free Plan'}
+                    {isCurrent ? 'Current Plan' : 'Free Plan'}
                   </button>
                 )}
 
@@ -507,9 +533,9 @@ function SubscriptionContent() {
             Contact Us
           </button>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', color: '#6B2D4E', fontSize: '13px', fontWeight: 600 }}>
-            <span>✓ Cancel anytime</span>
-            <span>✓ No hidden fees</span>
-            <span>✓ Secure payments</span>
+            <span>Cancel anytime</span>
+            <span>No hidden fees</span>
+            <span>Secure payments</span>
           </div>
         </div>
       </div>
