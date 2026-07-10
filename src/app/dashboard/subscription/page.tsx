@@ -318,7 +318,7 @@ function SubscriptionContent() {
         {checkoutError && (
           <div style={{ background: '#FDECEA', borderRadius: '16px', padding: '20px 24px', marginBottom: '28px', color: '#C62828', fontWeight: 600, fontSize: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>{checkoutError}</span>
-            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>×</button>
+            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>Close</button>
           </div>
         )}
 
@@ -458,13 +458,13 @@ function SubscriptionContent() {
                             fontSize: '12px', fontWeight: 600, cursor: 'pointer',
                             opacity: actionLoading === 'cancel' ? 0.6 : 1,
                           }}>
-                        {actionLoading === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
+                          {actionLoading === 'cancel' ? 'Canceling...' : 'Cancel subscription'}
                         </button>
                       ) : (
                         <p style={{ fontSize: '11px', color: '#C62828', textAlign: 'center', margin: 0 }}>
                           Cancels on {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'period end'}
                         </p>
-                      )
+                      )}
                     </div>
                   ) : (
                     <button
