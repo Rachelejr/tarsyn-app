@@ -124,7 +124,7 @@ export default function RepairMembersPage() {
               Repair Member Records
             </h1>
             <p style={{ color: C.texteGris, fontSize: '13px', margin: '2px 0 0' }}>
-              Finds members missing an organizerId and relinks them via their group.
+              Relinks missing organizerId and upgrades legacy IDs to the TYN-ID format.
             </p>
           </div>
         </div>
@@ -157,19 +157,52 @@ export default function RepairMembersPage() {
           )}
 
           {!scanning && broken.length > 0 && (
-            <div style={{ maxHeight: '280px', overflowY: 'auto', borderRadius: '10px', border: `1px solid ${C.border}` }}>
+            <div style={{ maxHeight: '320px', overflowY: 'auto', borderRadius: '10px', border: `1px solid ${C.border}` }}>
               {broken.map((m, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '11px 14px',
+                  padding: '11px 14px', gap: '10px',
                   borderBottom: i < broken.length - 1 ? `1px solid ${C.border}` : 'none',
                   fontSize: '13px', background: i % 2 === 0 ? C.ivoire : C.creme,
                 }}>
-                  <span style={{ color: C.texteFonce, fontWeight: 600 }}>{m.fullName}</span>
-                  <span style={{
-                    color: C.bordeaux, fontFamily: 'monospace', fontSize: '11px',
-                    background: C.orLight, padding: '2px 8px', borderRadius: '6px',
-                  }}>{m.id}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                    <span style={{ color: C.texteFonce, fontWeight: 600 }}>{m.fullName}</span>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {m.needsOrganizerFix && (
+                        <span style={{
+                          fontSize: '10px', fontWeight: 700, color: C.bordeaux,
+                          background: '#F3E6EC', padding: '2px 7px', borderRadius: '6px',
+                        }}>Missing admin link</span>
+                      )}
+                      {m.needsTynIdFix && (
+                        <span style={{
+                          fontSize: '10px', fontWeight: 700, color: '#8A6A2A',
+                          background: C.orLight, padding: '2px 7px', borderRadius: '6px',
+                        }}>Legacy ID</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    {m.needsTynIdFix ? (
+                      <>
+                        <span style={{
+                          color: C.texteGris, fontFamily: 'monospace', fontSize: '10px',
+                          textDecoration: 'line-through', opacity: 0.7,
+                        }}>{m.currentTynId || '(none)'}</span>
+                        <span style={{ color: C.texteGris, fontSize: '11px' }}>→</span>
+                        <span style={{
+                          color: C.bordeauxDark, fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
+                          background: C.orLight, padding: '3px 9px', borderRadius: '6px',
+                        }}>{m.newTynId}</span>
+                      </>
+                    ) : (
+                      <span style={{
+                        color: C.bordeaux, fontFamily: 'monospace', fontSize: '11px',
+                        background: C.orLight, padding: '3px 9px', borderRadius: '6px',
+                      }}>{m.currentTynId}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -214,7 +247,11 @@ export default function RepairMembersPage() {
           }}>
             <p style={{ color: C.or, fontWeight: 700, margin: '0 0 8px' }}>Fixed: {result.fixedCount}</p>
             {result.fixed?.map((f: any, i: number) => (
-              <div key={i} style={{ opacity: 0.9 }}>✓ {f.fullName} → organizerId {f.organizerId}</div>
+              <div key={i} style={{ opacity: 0.9 }}>
+                ✓ {f.fullName}
+                {f.organizerId ? ` → organizerId ${f.organizerId}` : ''}
+                {f.tynId ? ` → tynId ${f.tynId}` : ''}
+              </div>
             ))}
             {result.stillBrokenCount > 0 && (
               <>
