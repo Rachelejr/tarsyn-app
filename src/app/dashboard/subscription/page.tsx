@@ -12,6 +12,7 @@ interface PlanDef {
   id: 'free' | 'starter' | 'growth' | 'pro' | 'enterprise';
   name: string;
   color: string;
+  icon: string;
   badge?: string;
   description: string;
   priceMonthly: number | null;
@@ -54,6 +55,7 @@ const PLANS: PlanDef[] = [
     id: 'free',
     name: 'Free',
     color: '#6B2D4E',
+    icon: '🎁',
     description: 'Trial and onboarding',
     priceMonthly: 0,
     priceAnnual: 0,
@@ -71,6 +73,7 @@ const PLANS: PlanDef[] = [
     id: 'starter',
     name: 'Starter',
     color: '#6B2D4E',
+    icon: '🚀',
     badge: 'MOST CHOSEN',
     description: 'Families, small tontines, churches',
     priceMonthly: 14.99,
@@ -90,6 +93,7 @@ const PLANS: PlanDef[] = [
     id: 'growth',
     name: 'Growth',
     color: '#4A1F38',
+    icon: '📈',
     badge: 'MOST POPULAR - SAVE UP TO 17%',
     description: 'Growing organizations',
     priceMonthly: 29.99,
@@ -109,6 +113,7 @@ const PLANS: PlanDef[] = [
     id: 'pro',
     name: 'Pro',
     color: '#4A1F38',
+    icon: '👑',
     badge: 'BEST VALUE',
     description: 'Professional organizations',
     priceMonthly: 59.99,
@@ -127,6 +132,7 @@ const PLANS: PlanDef[] = [
     id: 'enterprise',
     name: 'Enterprise',
     color: '#1A0F26',
+    icon: '🏢',
     description: 'Large institutions',
     priceMonthly: null,
     priceAnnual: null,
@@ -320,6 +326,17 @@ function SubscriptionContent() {
         .tarsyn-cta-btn:active:not(:disabled) {
           transform: translateY(0);
         }
+        .tarsyn-plan-card {
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .tarsyn-plan-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 40px rgba(107,45,78,0.18) !important;
+          border-color: #E9C77B !important;
+        }
+        .tarsyn-price-value {
+          transition: opacity 0.2s ease;
+        }
       `}</style>
 
       <nav style={{ background: '#6B2D4E', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -332,7 +349,7 @@ function SubscriptionContent() {
         </button>
       </nav>
 
-      <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '32px 24px' }}>
+      <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
         {showSuccess && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Subscription activated successfully. Welcome to TARSYN.</span>
@@ -352,9 +369,18 @@ function SubscriptionContent() {
           </div>
         )}
 
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h1 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Choose your plan</h1>
-          <p style={{ color: '#6B2D4E', fontSize: '12px', margin: 0 }}>30-day free trial on all paid plans</p>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{ color: '#4A1F38', fontSize: '32px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+            Choose the Perfect Plan for Your Community
+          </h1>
+          <p style={{ color: '#6B2D4E', fontSize: '15px', margin: '0 0 16px' }}>
+            Start for free and upgrade only when your organization grows.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#6B2D4E', fontWeight: 600 }}>
+            <span>✔ 30-Day Free Trial</span>
+            <span>✔ Cancel Anytime</span>
+            <span>✔ Secure Payments</span>
+          </div>
         </div>
 
         {(subscription?.status === 'active' || subscription?.status === 'trialing') && (
@@ -370,13 +396,13 @@ function SubscriptionContent() {
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-          <div style={{ display: 'inline-flex', background: 'white', borderRadius: '10px', padding: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'inline-flex', background: 'white', borderRadius: '12px', padding: '4px', boxShadow: '0 4px 16px rgba(107,45,78,0.10)' }}>
             <button
               onClick={() => setBillingPeriod('monthly')}
               style={{
-                padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                fontSize: '12px', fontWeight: 700,
+                padding: '10px 22px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+                fontSize: '13px', fontWeight: 700,
                 background: billingPeriod === 'monthly' ? '#6B2D4E' : 'transparent',
                 color: billingPeriod === 'monthly' ? '#FBEEDD' : '#6B2D4E',
                 transition: 'all 0.2s ease',
@@ -386,30 +412,38 @@ function SubscriptionContent() {
             <button
               onClick={() => setBillingPeriod('annual')}
               style={{
-                padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                fontSize: '12px', fontWeight: 700,
+                padding: '10px 22px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+                fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px',
                 background: billingPeriod === 'annual' ? '#6B2D4E' : 'transparent',
                 color: billingPeriod === 'annual' ? '#FBEEDD' : '#6B2D4E',
                 transition: 'all 0.2s ease',
               }}>
-              Annual <span style={{ color: billingPeriod === 'annual' ? '#E9C77B' : '#2E7D32', fontWeight: 700 }}>save up to 17%</span>
+              Annual
+              <span style={{
+                background: billingPeriod === 'annual' ? '#E9C77B' : '#E8F5E9',
+                color: billingPeriod === 'annual' ? '#4A1F38' : '#2E7D32',
+                fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px',
+              }}>
+                SAVE 17%
+              </span>
             </button>
           </div>
         </div>
 
-        <div className="tarsyn-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', alignItems: 'stretch' }}>
+        <div className="tarsyn-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '18px', alignItems: 'stretch' }}>
           {PLANS.map((plan) => {
             const isCurrent = activePlanId === plan.id;
             const price = billingPeriod === 'monthly' ? plan.priceMonthly : plan.priceAnnual;
             const priceId = billingPeriod === 'monthly' ? plan.priceIdMonthly : plan.priceIdAnnual;
             const periodLabel = plan.priceMonthly === null ? '' : billingPeriod === 'monthly' ? '/month' : '/year';
             const hasActiveSub = subscription?.status === 'active' || subscription?.status === 'trialing';
+            const annualSavings = plan.priceMonthly && plan.priceAnnual ? Math.round(plan.priceMonthly * 12 - plan.priceAnnual) : 0;
 
             return (
-              <div key={plan.id} style={{
-                background: 'white', borderRadius: '12px', padding: '12px',
-                boxShadow: plan.badge ? '0 8px 32px rgba(107,45,78,0.18)' : '0 2px 12px rgba(0,0,0,0.06)',
-                border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '2px solid transparent'),
+              <div key={plan.id} className="tarsyn-plan-card" style={{
+                background: 'white', borderRadius: '22px', padding: '26px 20px',
+                boxShadow: plan.badge ? '0 12px 40px rgba(107,45,78,0.16)' : '0 4px 20px rgba(0,0,0,0.05)',
+                border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '2px solid #F0E4D0'),
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -417,8 +451,8 @@ function SubscriptionContent() {
               }}>
                 {plan.badge && !isCurrent && (
                   <div style={{
-                    position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
-                    background: plan.color, color: '#E9C77B', padding: '5px 14px', borderRadius: '20px',
+                    position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
+                    background: plan.color, color: '#E9C77B', padding: '6px 16px', borderRadius: '20px',
                     fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
                   }}>
                     {plan.badge}
@@ -427,41 +461,60 @@ function SubscriptionContent() {
 
                 {isCurrent && (
                   <div style={{
-                    position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
-                    background: '#2E7D32', color: 'white', padding: '5px 14px', borderRadius: '20px',
+                    position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#2E7D32', color: 'white', padding: '6px 16px', borderRadius: '20px',
                     fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
                   }}>
                     YOUR CURRENT PLAN
                   </div>
                 )}
 
-                <h3 style={{ color: plan.color, fontSize: '15px', fontWeight: 800, margin: '8px 0 1px' }}>{plan.name}</h3>
-                <p style={{ color: '#6B2D4E', fontSize: '10px', margin: '0 0 6px' }}>{plan.description}</p>
+                <div style={{ fontSize: '32px', textAlign: 'center', margin: '4px 0 10px' }}>{plan.icon}</div>
 
-                <div style={{ margin: '0 0 8px' }}>
+                <h3 style={{ color: plan.color, fontSize: '18px', fontWeight: 800, margin: '0 0 2px', textAlign: 'center' }}>{plan.name}</h3>
+                <p style={{ color: '#8A7A6D', fontSize: '11px', margin: '0 0 16px', textAlign: 'center', minHeight: '28px' }}>{plan.description}</p>
+
+                <div style={{ margin: '0 0 4px', textAlign: 'center' }}>
                   {price === null ? (
-                    <span style={{ color: '#4A1F38', fontSize: '20px', fontWeight: 800 }}>Custom</span>
+                    <span className="tarsyn-price-value" style={{ color: '#4A1F38', fontSize: '30px', fontWeight: 800 }}>Custom</span>
                   ) : (
                     <>
-                      <span style={{ color: '#4A1F38', fontSize: '22px', fontWeight: 800 }}>${price}</span>
-                      <span style={{ color: '#6B2D4E', fontSize: '11px' }}>{periodLabel}</span>
+                      <span className="tarsyn-price-value" style={{ color: '#4A1F38', fontSize: '34px', fontWeight: 800 }}>${price}</span>
+                      <span style={{ color: '#8A7A6D', fontSize: '13px' }}>{periodLabel}</span>
                     </>
                   )}
                 </div>
+                <p style={{ color: '#8A7A6D', fontSize: '10px', margin: '0 0 16px', textAlign: 'center' }}>
+                  {price === null
+                    ? '\u00A0'
+                    : billingPeriod === 'annual' && annualSavings > 0
+                      ? `Save $${annualSavings}/year`
+                      : billingPeriod === 'monthly'
+                        ? 'Billed Monthly'
+                        : '\u00A0'}
+                </p>
 
-                <div style={{ margin: '0 0 8px' }}>
-                  <p style={{ color: '#6B2D4E', fontSize: '11px', fontWeight: 700, margin: '0 0 2px' }}>{plan.members}</p>
-                  <p style={{ color: '#6B2D4E', fontSize: '11px', fontWeight: 700, margin: 0 }}>{plan.groups}</p>
+                <div style={{ margin: '0 0 12px', textAlign: 'center' }}>
+                  <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, margin: '0 0 2px' }}>{plan.members}</p>
+                  <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, margin: 0 }}>{plan.groups}</p>
                 </div>
 
-                <ul style={{ padding: '0 0 0 14px', margin: '0 0 4px', color: '#6B2D4E', fontSize: '11px', flexGrow: 1 }}>
-                  <li style={{ marginBottom: '3px' }}>{plan.reports}</li>
-                  <li style={{ marginBottom: '3px' }}>{plan.support}</li>
-                  {plan.additional.map((f) => <li key={f} style={{ marginBottom: '3px' }}>{f}</li>)}
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 6px', color: '#4A1F38', fontSize: '12px', flexGrow: 1 }}>
+                  <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>✔</span>{plan.reports}
+                  </li>
+                  <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>✔</span>{plan.support}
+                  </li>
+                  {plan.additional.map((f) => (
+                    <li key={f} style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+                      <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>✔</span>{f}
+                    </li>
+                  ))}
                 </ul>
 
                 {plan.scaling && (
-                  <p style={{ color: '#6B2D4E', fontSize: '9px', margin: '0 0 8px', fontStyle: 'italic' }}>
+                  <p style={{ color: '#8A7A6D', fontSize: '9px', margin: '0 0 8px', fontStyle: 'italic', textAlign: 'center' }}>
                     +{plan.scaling.membersIncrement} members = +${plan.scaling.priceIncrement}/mo
                   </p>
                 )}
