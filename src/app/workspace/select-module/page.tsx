@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -55,6 +55,7 @@ function ChooseModuleInner() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [activating, setActivating] = useState<ModuleDef | null>(null);
+  const [learnMoreModule, setLearnMoreModule] = useState<ModuleDef | null>(null);
   const [attachingSlug, setAttachingSlug] = useState<string | null>(null);
   const [attachError, setAttachError] = useState('');
 
@@ -202,7 +203,7 @@ function ChooseModuleInner() {
                       }}>
                       {isComingSoon ? 'Soon' : (isThisAttaching ? '...' : 'Activate')}
                     </button>
-                    <button onClick={() => router.push(`/modules/${slug}`)}
+                    <button onClick={() => setLearnMoreModule(m)}
                       style={{ flex: 1, padding: '7px', background: C.creme, color: C.doreDark, border: `1.5px solid ${C.doreDark}`, borderRadius: '7px', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer' }}>
                       Learn More
                     </button>
@@ -239,6 +240,39 @@ function ChooseModuleInner() {
               style={{ background: 'none', border: 'none', color: C.texteGris, fontSize: '12px', textDecoration: 'underline', cursor: 'pointer' }}>
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {learnMoreModule && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(58,46,26,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}
+          onClick={() => setLearnMoreModule(null)}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '440px', width: '100%' }}
+            onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ fontSize: '32px' }}>{learnMoreModule.icon}</div>
+              <div>
+                <h3 style={{ color: C.texteFonce, fontSize: '18px', fontWeight: 800, margin: 0 }}>{learnMoreModule.title}</h3>
+                <span style={{ fontSize: '10px', background: C.creme, color: C.doreDark, padding: '2px 8px', borderRadius: '20px', fontWeight: 700 }}>
+                  {learnMoreModule.version} · {learnMoreModule.category}
+                </span>
+              </div>
+            </div>
+            <p style={{ color: C.texteGris, fontSize: '14px', lineHeight: 1.6, margin: '0 0 24px' }}>
+              {learnMoreModule.desc}
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {!COMING_SOON_TITLES.includes(learnMoreModule.title) && (
+                <button onClick={() => { const m = learnMoreModule; setLearnMoreModule(null); handleActivateClick(m); }}
+                  style={{ flex: 1, padding: '12px', background: C.doreDark, color: 'white', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                  Activate
+                </button>
+              )}
+              <button onClick={() => setLearnMoreModule(null)}
+                style={{ flex: 1, padding: '12px', background: C.creme, color: C.texteFonce, border: `1.5px solid ${C.border}`, borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
