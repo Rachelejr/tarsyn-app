@@ -173,6 +173,24 @@ function SubscriptionContent() {
   }, [success, canceled, router]);
 
   useEffect(() => {
+    if (!showSuccess) return;
+    const t = setTimeout(() => setShowSuccess(false), 5000);
+    return () => clearTimeout(t);
+  }, [showSuccess]);
+
+  useEffect(() => {
+    if (!showCanceled) return;
+    const t = setTimeout(() => setShowCanceled(false), 5000);
+    return () => clearTimeout(t);
+  }, [showCanceled]);
+
+  useEffect(() => {
+    if (!checkoutError) return;
+    const t = setTimeout(() => setCheckoutError(null), 5000);
+    return () => clearTimeout(t);
+  }, [checkoutError]);
+
+  useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       setUser(u);
@@ -314,7 +332,7 @@ function SubscriptionContent() {
         </button>
       </nav>
 
-      <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '18px 24px' }}>
+      <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '32px 24px' }}>
         {showSuccess && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Subscription activated successfully. Welcome to TARSYN.</span>
@@ -334,7 +352,7 @@ function SubscriptionContent() {
           </div>
         )}
 
-        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h1 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Choose your plan</h1>
           <p style={{ color: '#6B2D4E', fontSize: '12px', margin: 0 }}>30-day free trial on all paid plans</p>
         </div>
@@ -352,7 +370,7 @@ function SubscriptionContent() {
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
           <div style={{ display: 'inline-flex', background: 'white', borderRadius: '10px', padding: '2px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <button
               onClick={() => setBillingPeriod('monthly')}
