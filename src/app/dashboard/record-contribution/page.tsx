@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ export default function RecordContribution() {
   const [currency, setCurrency] = useState('USD');
   const [paymentDate, setPaymentDate] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [customPaymentMethod, setCustomPaymentMethod] = useState('');
   const [status, setStatus] = useState('confirmed');
   const [cycle, setCycle] = useState('Cycle 1');
   const [contributionType, setContributionType] = useState('Regular');
@@ -36,11 +37,14 @@ export default function RecordContribution() {
     loadMembers();
   }, []);
 
+  const effectivePaymentMethod = paymentMethod === 'Other' ? customPaymentMethod.trim() : paymentMethod;
+
   const validate = () => {
     if (!selectedMember) { setError('Please select a member.'); return false; }
     if (!amount || parseFloat(amount) <= 0) { setError('Amount must be greater than 0.'); return false; }
     if (!paymentDate) { setError('Payment date is required.'); return false; }
     if (new Date(paymentDate) > new Date()) { setError('Payment date cannot be in the future.'); return false; }
+    if (paymentMethod === 'Other' && !customPaymentMethod.trim()) { setError('Please specify the payment method.'); return false; }
     return true;
   };
 
@@ -67,7 +71,7 @@ export default function RecordContribution() {
         amount: parseFloat(amount),
         currency,
         paymentDate,
-        paymentMethod,
+        paymentMethod: effectivePaymentMethod,
         status,
         cycle,
         contributionType,
@@ -78,7 +82,7 @@ export default function RecordContribution() {
         createdAt: serverTimestamp(),
       });
       setSuccess('Payment recorded! Receipt: ' + receiptNumber);
-      setSelectedMember(''); setAmount(''); setPaymentDate(''); setNotes('');
+      setSelectedMember(''); setAmount(''); setPaymentDate(''); setNotes(''); setCustomPaymentMethod(''); setPaymentMethod('Cash');
     } catch(e) {
       console.error(e);
       setError('Error recording payment. Please try again.');
@@ -102,7 +106,7 @@ export default function RecordContribution() {
             <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:'800',margin:'0 0 12px'}}>Confirm Payment</h3>
             <div style={{background:'#FBEEDD',borderRadius:'10px',padding:'12px',marginBottom:'18px'}}>
               <p style={{margin:'0 0 6px',color:'#4A1F38',fontWeight:'600'}}>{selectedMemberData?.name}</p>
-              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} — {paymentMethod}</p>
+              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} — {effectivePaymentMethod}</p>
               <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{cycle} — {contributionType}</p>
               <p style={{margin:'0',color:'#6B2D4E',fontSize:'13px'}}>{paymentDate}</p>
             </div>
@@ -158,6 +162,8 @@ export default function RecordContribution() {
               <select value={currency} onChange={e => setCurrency(e.target.value)} style={inputStyle}>
                 <option>USD</option><option>CAD</option><option>EUR</option><option>GBP</option>
                 <option>HTG</option><option>XOF</option><option>XAF</option><option>BRL</option>
+                <option>NGN</option><option>GHS</option><option>KES</option><option>MXN</option>
+                <option>DOP</option><option>JMD</option>
               </select>
             </div>
           </div>
@@ -174,9 +180,20 @@ export default function RecordContribution() {
             <div>
               <label style={labelStyle}>Payment Method</label>
               <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={inputStyle}>
-                <option>Cash</option><option>Bank Transfer</option><option>Mobile Money</option>
-                <option>Zelle</option><option>PayPal</option><option>Western Union</option>
-                <option>MoneyGram</option><option>Other</option>
+                <option>Cash</option>
+                <option>Hand to Hand</option>
+                <option>Bank Transfer</option>
+                <option>Bank Deposit</option>
+                <option>Mobile Money</option>
+                <option>MonCash</option>
+                <option>NatCash</option>
+                <option>CashApp</option>
+                <option>Zelle</option>
+                <option>Venmo</option>
+                <option>PayPal</option>
+                <option>Western Union</option>
+                <option>MoneyGram</option>
+                <option>Other</option>
               </select>
             </div>
             <div>
@@ -190,6 +207,14 @@ export default function RecordContribution() {
               </select>
             </div>
           </div>
+
+          {paymentMethod === 'Other' && (
+            <div style={{ marginBottom: '14px' }}>
+              <label style={labelStyle}>Specify Payment Method *</label>
+              <input value={customPaymentMethod} onChange={e => setCustomPaymentMethod(e.target.value)}
+                placeholder="e.g. Sogebank transfer, Digicel Mobile Money, local agent..." style={inputStyle} />
+            </div>
+          )}
 
           <div style={{ height: '1px', background: '#F4E8D8', margin: '14px 0' }} />
 
