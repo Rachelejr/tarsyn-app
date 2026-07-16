@@ -1,205 +1,231 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const C = {
   bordeaux: '#6B2D4E',
+  bordeauxDark: '#4A1F38',
   dore: '#E9C77B',
   creme: '#FBEEDD',
+  ivoire: '#FFFDF7',
   texteGris: '#6B2D4E',
   texteFonce: '#4A1F38',
   border: '#EAD9BE',
+  success: '#3F7D5C',
+  successBg: '#E4F0E9',
+  danger: '#B0525F',
+  dangerBg: '#F5E4E6',
 };
 
-export default function ReceiptPage() {
-  const params = useParams();
-  const router = useRouter();
-  const receiptNumber = params.receiptNumber as string;
+interface MemberView {
+  memberName: string;
+  slots: string[];
+  weeks: Record<string, string>;
+  payments: Record<string, Record<string, boolean>>;
+}
 
-  const [payment, setPayment] = useState<any>(null);
-  const [groupName, setGroupName] = useState('');
+function MyPaymentGridContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const targetGroupId = searchParams.get('groupId');
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [memberships, setMemberships] = useState<any[]>([]);
+  const [view, setView] = useState<MemberView | null>(null);
 
   useEffect(() => {
-    const fetchReceipt = async () => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (!u) { router.push('/login'); return; }
       try {
-        const q = query(collection(db, 'payments'), where('receiptNumber', '==', receiptNumber));
-        const snap = await getDocs(q);
-        if (snap.empty) {
-          setError('Receipt not found.');
-          setLoading(false);
-          return;
-        }
-        const data = snap.docs[0].data();
-        setPayment(data);
+        const memberQ = query(collection(db, 'members'), where('userId', '==', u.uid));
+        const memberSnap = await getDocs(memberQ);
+        if (memberSnap.empty) { setNotFound(true); setLoading(false); return; }
 
-        if (data.organizerId) {
-          const gq = query(collection(db, 'groups'), where('organizerId', '==', data.organizerId));
-          const gsnap = await getDocs(gq);
-          if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name || '');
+        const memberships = memberSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+        setMemberships(memberships);
+
+        let target = memberships[0];
+        if (targetGroupId) {
+          const found = memberships.find((m) => m.groupId === targetGroupId);
+          if (found) target = found;
+        }
+
+        const groupSnap = await getDoc(doc(db, 'groups', target.groupId));
+        setGroupName(groupSnap.exists() ? groupSnap.data().name || 'Group' : 'Group');
+
+        const gridId = target.groupId + '_current';
+        const viewSnap = await getDoc(doc(db, 'paymentGrids', gridId, 'memberViews', target.id));
+        if (viewSnap.exists()) {
+          setView(viewSnap.data() as MemberView);
+        } else {
+          setNotFound(true);
         }
       } catch (e) {
         console.error(e);
-        setError('Could not load this receipt.');
-      } finally {
-        setLoading(false);
+        setNotFound(true);
       }
-    };
-    fetchReceipt();
-  }, [receiptNumber]);
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '—';
-    try {
-      return new Date(dateStr).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const handleSaveToDocuments = async () => {
-    if (!payment) return;
-    setSaving(true);
-    try {
-      let memberUserId: string | null = null;
-      if (payment.memberId) {
-        const memberSnap = await getDoc(doc(db, 'members', payment.memberId));
-        if (memberSnap.exists()) {
-          memberUserId = memberSnap.data().userId || null;
-        }
-      }
-
-      await addDoc(collection(db, 'documents'), {
-        name: `Receipt ${payment.receiptNumber}.pdf`,
-        type: 'application/pdf',
-        size: 0,
-        url: window.location.href,
-        category: 'Receipts',
-        organizerId: payment.organizerId,
-        uploadedBy: payment.organizerId,
-        source: 'admin',
-        visibleTo: memberUserId ? [memberUserId] : [],
-        createdAt: serverTimestamp(),
-      });
-      setSaved(true);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+      setLoading(false);
+    });
+    return () => unsub();
+  }, [router, targetGroupId]);
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.creme }}>
-        <p style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 600 }}>Loading receipt...</p>
-      </div>
-    );
-  }
-
-  if (error || !payment) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.creme, flexDirection: 'column', gap: '16px' }}>
-        <p style={{ color: C.texteGris, fontSize: '15px' }}>{error || 'Receipt not found.'}</p>
-        <button onClick={() => router.push('/dashboard/overview')}
-          style={{ padding: '10px 20px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700 }}>
-          Back to Dashboard
-        </button>
+      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: C.bordeaux, fontWeight: 600 }}>Loading...</p>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '32px 16px', fontFamily: 'Inter, sans-serif' }}>
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: white !important; }
-        }
-      `}</style>
-
-      <div className="no-print" style={{ maxWidth: '500px', margin: '0 auto 16px', display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-        <button onClick={() => router.back()}
-          style={{ padding: '10px 16px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
-          ← Back
-        </button>
-        <button onClick={handleCopyLink}
-          style={{ padding: '10px 16px', background: 'white', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
-          {copied ? 'Copied!' : 'Copy Link'}
-        </button>
-        <button onClick={handleSaveToDocuments} disabled={saving || saved}
-          style={{ padding: '10px 16px', background: saved ? '#E8F5E9' : C.dore, color: saved ? '#2E7D32' : 'white', border: 'none', borderRadius: '10px', cursor: saved ? 'default' : 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
-          {saved ? 'Saved to Documents ✓' : (saving ? 'Saving...' : 'Save to Member Documents')}
-        </button>
-        <button onClick={() => window.print()}
-          style={{ padding: '10px 16px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>
-          Print / Save as PDF
-        </button>
-      </div>
-
-      <div style={{ maxWidth: '500px', margin: '0 auto', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 8px 32px rgba(107,45,78,0.10)', border: `1px solid ${C.border}` }}>
-
-        <div style={{ textAlign: 'center', marginBottom: '28px', borderBottom: `2px dashed ${C.border}`, paddingBottom: '20px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: C.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontWeight: 800, color: C.dore, fontSize: '20px' }}>T</div>
-          <p style={{ margin: 0, color: C.bordeaux, fontWeight: 800, fontSize: '18px', letterSpacing: '1px' }}>TARSYN</p>
-          {groupName && <p style={{ margin: '4px 0 0', color: C.texteGris, fontSize: '13px' }}>{groupName}</p>}
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
+      <nav style={{ background: C.bordeaux, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          onClick={() => router.push('/member' + (targetGroupId ? '?groupId=' + targetGroupId : ''))}
+          style={{ color: C.dore, fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
+        >
+          ← Back to My Portal
         </div>
+        <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
+      </nav>
 
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <p style={{ margin: '0 0 4px', color: C.texteGris, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>Payment Receipt</p>
-          <p style={{ margin: 0, color: C.bordeaux, fontWeight: 800, fontSize: '20px', fontFamily: 'monospace' }}>{payment.receiptNumber}</p>
-        </div>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '28px 20px' }}>
+        <h1 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: 800, margin: '0 0 4px' }}>
+          My Payment Grid — {groupName}
+        </h1>
+        <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 20px' }}>
+          Your weekly contribution status, kept up to date by your organizer.
+        </p>
 
-        <div style={{ background: C.creme, borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
-          <p style={{ margin: '0 0 4px', color: C.texteGris, fontSize: '11px', textTransform: 'uppercase' }}>Amount Paid</p>
-          <p style={{ margin: 0, color: C.bordeaux, fontWeight: 800, fontSize: '32px' }}>{payment.amount} {payment.currency}</p>
-        </div>
+        {memberships.length > 1 && (
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            {memberships.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => router.push('/member/payment-grid?groupId=' + m.groupId)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: '1.5px solid ' + C.border,
+                  background: m.groupId === targetGroupId ? C.bordeaux : C.ivoire,
+                  color: m.groupId === targetGroupId ? C.creme : C.bordeaux,
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {m.groupId}
+              </button>
+            ))}
+          </div>
+        )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-          {[
-            { label: 'Member', value: payment.memberName },
-            { label: 'TYN-ID', value: payment.memberTynId },
-            { label: 'Payment Date', value: formatDate(payment.paymentDate) },
-            { label: 'Payment Method', value: payment.paymentMethod },
-            { label: 'Cycle', value: payment.cycle },
-            { label: 'Type', value: payment.contributionType },
-            { label: 'Status', value: payment.status },
-          ].map(row => (
-            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}`, paddingBottom: '8px' }}>
-              <span style={{ color: C.texteGris, fontSize: '13px' }}>{row.label}</span>
-              <span style={{ color: C.texteFonce, fontSize: '13px', fontWeight: 700, textTransform: row.label === 'Status' ? 'capitalize' : 'none' }}>{row.value || '—'}</span>
+        {notFound || !view ? (
+          <div style={{ background: 'white', borderRadius: '16px', padding: '32px', textAlign: 'center', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+            <p style={{ color: C.texteGris, fontSize: '14px', margin: 0 }}>
+              Your organizer hasn&apos;t published a payment grid for you yet. Check back after
+              they save the first round of weekly contributions.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              {(() => {
+                const weekEntries = Object.entries(view.weeks || {}).sort((a, b) => Number(a[0]) - Number(b[0]));
+                const totalWeeks = weekEntries.length;
+                let paidWeeks = 0;
+                view.slots.forEach((slotNum) => {
+                  weekEntries.forEach(([wIdx]) => {
+                    if (view.payments[slotNum]?.[wIdx]) paidWeeks++;
+                  });
+                });
+                const totalCells = totalWeeks * view.slots.length;
+                const completion = totalCells > 0 ? Math.round((paidWeeks / totalCells) * 100) : 0;
+                return (
+                  <>
+                    <div style={{ background: C.ivoire, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 14px', fontSize: 12.5, color: C.texteGris }}>
+                      Parts: <strong style={{ color: C.bordeaux }}>{view.slots.length}</strong>
+                    </div>
+                    <div style={{ background: C.ivoire, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 14px', fontSize: 12.5, color: C.texteGris }}>
+                      Weeks paid: <strong style={{ color: C.bordeaux }}>{paidWeeks} / {totalCells}</strong>
+                    </div>
+                    <div style={{ background: C.ivoire, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 14px', fontSize: 12.5, color: C.texteGris }}>
+                      Completion: <strong style={{ color: C.bordeaux }}>{completion}%</strong>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
-          ))}
-          {payment.notes && (
-            <div style={{ marginTop: '6px' }}>
-              <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 4px' }}>Notes</p>
-              <p style={{ color: C.texteFonce, fontSize: '13px', margin: 0 }}>{payment.notes}</p>
-            </div>
-          )}
-        </div>
 
-        <div style={{ textAlign: 'center', borderTop: `2px dashed ${C.border}`, paddingTop: '16px' }}>
-          <p style={{ margin: 0, color: C.texteGris, fontSize: '11px' }}>Thank you for your contribution.</p>
-          <p style={{ margin: '4px 0 0', color: C.texteGris, fontSize: '11px' }}>Generated by TARSYN</p>
-        </div>
+            <div style={{ background: C.ivoire, borderRadius: 14, border: '1px solid ' + C.border, overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ position: 'sticky', left: 0, background: C.bordeaux, color: C.ivoire, padding: '10px 14px', textAlign: 'left', minWidth: 140 }}>
+                      Part
+                    </th>
+                    {Object.entries(view.weeks || {})
+                      .sort((a, b) => Number(a[0]) - Number(b[0]))
+                      .map(([idx, date]) => (
+                        <th key={idx} style={{ background: C.bordeaux, color: C.dore, padding: '8px 10px', fontSize: 11, minWidth: 78, textAlign: 'center' }}>
+                          W{idx}
+                          <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 9.5 }}>{date}</div>
+                        </th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.slots.map((slotNum, i) => (
+                    <tr key={slotNum} style={{ borderBottom: '1px solid ' + C.border }}>
+                      <td style={{ position: 'sticky', left: 0, background: C.ivoire, padding: '10px 14px', fontWeight: 700, color: C.texteFonce, fontSize: 13 }}>
+                        {view.slots.length > 1 ? `Part ${i + 1}` : view.memberName}
+                      </td>
+                      {Object.entries(view.weeks || {})
+                        .sort((a, b) => Number(a[0]) - Number(b[0]))
+                        .map(([weekIdx]) => {
+                          const isPaid = view.payments[slotNum]?.[weekIdx] || false;
+                          return (
+                            <td key={weekIdx} style={{ textAlign: 'center', padding: 8 }}>
+                              <div
+                                style={{
+                                  width: 26,
+                                  height: 26,
+                                  margin: '0 auto',
+                                  borderRadius: 7,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: isPaid ? C.success : 'white',
+                                  border: '1.5px solid ' + (isPaid ? C.success : C.border),
+                                }}
+                              >
+                                {isPaid && <span style={{ color: 'white', fontSize: 13, fontWeight: 700 }}>✓</span>}
+                              </div>
+                            </td>
+                          );
+                        })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+export default function MyPaymentGridPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#FBEEDD' }} />}>
+      <MyPaymentGridContent />
+    </Suspense>
   );
 }

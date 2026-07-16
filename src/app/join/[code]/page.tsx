@@ -172,7 +172,7 @@ export default function JoinPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
       <nav style={{ background: '#6B2D4E', padding: '16px 24px' }}>
-        <div style={{ color: '#E9C77B', fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
+        <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
       </nav>
 
       <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 16px 40px' }}>

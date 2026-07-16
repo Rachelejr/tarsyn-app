@@ -1,321 +1,307 @@
-﻿'use client';
+'use client';
 
-import { useState } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { db, auth } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
 
-function LoginPageInner() {
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect');
+export default function JoinPage() {
+  const params = useParams();
+  const code = Array.isArray(params.code) ? params.code[0] : params.code;
+  const router = useRouter();
+  const [member, setMember] = useState<any>(null);
+  const [group, setGroup] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [step, setStep] = useState<'profile' | 'signin' | 'done'>('profile');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [keepConnected, setKeepConnected] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'login' | '2fa'>('login');
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [resendMsg, setResendMsg] = useState('');
-  const [userId, setUserId] = useState('');
-  const [userEmail, setUserEmail] = useState('');
+  const [debugInfo, setDebugInfo] = useState('');
 
-  const redirectByRole = async (uid: string, uEmail: string) => {
-    try {
-      let role = null;
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists()) {
-        role = userDoc.data()?.role;
-      } else {
-        const q2 = query(collection(db, 'members'), where('email', '==', uEmail));
-        const s2 = await getDocs(q2);
-        if (!s2.empty) {
-          role = s2.docs[0].data()?.role;
-        }
+  useEffect(() => {
+    const load = async () => {
+      try {
+        if (!code) { setNotFound(true); setLoading(false); return; }
+        const codeStr = String(code).trim().toUpperCase();
+        const res = await fetch('/api/join-lookup?code=' + encodeURIComponent(codeStr));
+        const data = await res.json();
+        if (!res.ok || !data.found) { setNotFound(true); setLoading(false); return; }
+        const memberData = {
+          id: data.memberId,
+          name: data.fullName,
+          email: data.email,
+          groupId: data.groupId,
+          tynId: data.tynId,
+          position: data.position,
+          status: data.status,
+          payoutDate: data.payoutDate,
+          country: data.country,
+          memberType: data.memberType,
+          userId: data.alreadyRegistered ? 'placeholder' : null,
+        };
+        setMember(memberData);
+        setFullName(memberData.name || '');
+        setEmail(memberData.email || '');
+        if (data.groupName) setGroup({ id: data.groupId, name: data.groupName });
+      } catch (e: any) {
+        setDebugInfo('Error: ' + (e?.code || '') + ' ' + (e?.message || String(e)));
+        setNotFound(true);
       }
-      if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
-        window.location.href = redirectTo || '/dashboard/create-tontine';
-      } else {
-        window.location.href = '/member';
-      }
-    } catch {
-      window.location.href = '/member';
-    }
-  };
+      setLoading(false);
+    };
+    load();
+  }, [code]);
 
-  const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
-
-  const sendOTP = async (uid: string, uEmail: string) => {
-    const otp = generateOTP();
-    const expires = Date.now() + 10 * 60 * 1000;
-    await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
+  const handleRegister = async () => {
+    setError('');
+    if (!fullName.trim()) { setError('Full name is required.'); return; }
+    if (!email.trim()) { setError('Email is required.'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+    setRegistering(true);
     try {
-      await fetch('/api/auth/send-2fa', {
+      const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      await updateProfile(result.user, { displayName: fullName.trim() });
+      const confirmRes = await fetch('/api/join-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: uEmail, otp }),
+        body: JSON.stringify({
+          memberId: member.id,
+          userId: result.user.uid,
+          name: fullName.trim(),
+          email: email.trim(),
+        }),
       });
-    } catch {
-      // OTP stored in Firestore even if email fails
+      if (!confirmRes.ok) {
+        const errData = await confirmRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to confirm membership');
+      }
+      setStep('done');
+    } catch (err: any) {
+      if (err.code === 'auth/email-already-in-use') {
+        setStep('signin');
+      } else {
+        const msgs: any = {
+          'auth/invalid-email': 'Invalid email address.',
+          'auth/weak-password': 'Password is too weak.',
+        };
+        setError(msgs[err.code] || 'Error: ' + err.code);
+      }
     }
+    setRegistering(false);
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignIn = async () => {
     setError('');
-    setLoading(true);
+    if (!email.trim() || !password) { setError('Email and password are required.'); return; }
+    setRegistering(true);
     try {
-      // Set persistence BEFORE signing in: local = stays signed in across
-      // browser restarts, session = signed out when the browser tab closes.
-      await setPersistence(auth, keepConnected ? browserLocalPersistence : browserSessionPersistence);
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-      setUserId(result.user.uid);
-      setUserEmail(result.user.email!);
-      await sendOTP(result.user.uid, result.user.email!);
-      setStep('2fa');
+      const confirmRes = await fetch('/api/join-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          userId: result.user.uid,
+        }),
+      });
+      if (!confirmRes.ok) {
+        const errData = await confirmRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to confirm membership');
+      }
+      setStep('done');
     } catch (err: any) {
-      const msg: Record<string, string> = {
-        'auth/user-not-found': 'No account found.',
-        'auth/wrong-password': 'Mot de passe incorrect.',
-        'auth/invalid-email': 'Email invalide.',
-        'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+      const msgs: any = {
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-credential': 'Incorrect email or password.',
+        'auth/user-not-found': 'No account found with this email.',
         'auth/too-many-requests': 'Too many attempts. Please try again later.',
       };
-      setError(msg[err.code] || `Error: ${err.code}`);
-    } finally {
-      setLoading(false);
+      setError(msgs[err.code] || 'Error: ' + err.code);
     }
+    setRegistering(false);
   };
 
-  const handleVerify2FA = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const entered = code.join('');
-      const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
-      if (!otpDoc.exists()) { setError('Code expired. Request a new code.'); setLoading(false); return; }
-      const { otp, expires } = otpDoc.data();
-      if (Date.now() > expires) {
-        await deleteDoc(doc(db, 'otp_codes', userId));
-        setError('Code expired. Request a new code.');
-        setLoading(false);
-        return;
-      }
-      if (entered !== otp) { setError('Incorrect code. Please try again.'); setLoading(false); return; }
-      await deleteDoc(doc(db, 'otp_codes', userId));
-      await redirectByRole(userId, userEmail);
-    } catch {
-      setError('Verification error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '12px 14px',
+    border: '1.5px solid #EAD9BE', borderRadius: '10px',
+    fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+  };
+  const lbl: React.CSSProperties = {
+    display: 'block', color: '#6B2D4E',
+    fontSize: '13px', fontWeight: 600, marginBottom: '6px',
   };
 
-  const handleResend = async () => {
-    setError('');
-    setCode(['', '', '', '', '', '']);
-    await sendOTP(userId, userEmail);
-    setResendMsg('New code sent!');
-    setTimeout(() => setResendMsg(''), 4000);
-  };
+  if (loading) return (
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#6B2D4E', fontWeight: 600 }}>Loading...</p>
+    </div>
+  );
 
-  const handleGoogle = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      await setPersistence(auth, keepConnected ? browserLocalPersistence : browserSessionPersistence);
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      const result = await signInWithPopup(auth, provider);
-      setUserId(result.user.uid);
-      setUserEmail(result.user.email!);
-      await sendOTP(result.user.uid, result.user.email!);
-      setStep('2fa');
-    } catch (err: any) {
-      setError(`Google sign-in error: ${err.code}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (notFound || !member) return (
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
+      <h2 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
+      <p style={{ color: '#6B2D4E', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
+      <p style={{ color: '#C62828', fontSize: '12px', margin: 0, fontFamily: 'monospace' }}>{debugInfo}</p>
+      <button onClick={() => router.push('/')} style={{ background: '#6B2D4E', color: '#FBEEDD', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
+    </div>
+  );
 
-  const handleCodeChange = (index: number, value: string) => {
-    const val = value.replace(/\D/g, '');
-    const arr = [...code];
-    arr[index] = val;
-    setCode(arr);
-    if (val && index < 5) {
-      const next = document.getElementById(`otp-${index + 1}`);
-      if (next) (next as HTMLInputElement).focus();
-    }
-  };
-
-  if (step === '2fa') {
-    return (
-      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>2FA Verification</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code has been sent to</p>
-          <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>your email address</p>
-
-          {error && (
-            <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
-              {error}
-            </div>
-          )}
-          {resendMsg && (
-            <div style={{ background: '#D4EDDA', color: '#155724', borderRadius: '8px', padding: '0.75rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
-              {resendMsg}
-            </div>
-          )}
-
-          <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.75rem' }}>
-            Enter your code
-          </label>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            {code.map((digit, i) => (
-              <input
-                key={i}
-                id={`otp-${i}`}
-                type="text"
-                maxLength={1}
-                value={digit}
-                onChange={e => handleCodeChange(i, e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Backspace' && !code[i] && i > 0) {
-                    const prev = document.getElementById(`otp-${i - 1}`);
-                    if (prev) (prev as HTMLInputElement).focus();
-                  }
-                  if (e.key === 'Enter' && code.join('').length === 6) {
-                    handleVerify2FA();
-                  }
-                }}
-                style={{ width: '46px', height: '56px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #E0D0C0', borderRadius: '10px', background: '#FAF0E6', color: '#6B2D4E', outline: 'none' }}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={handleVerify2FA}
-            disabled={loading || code.join('').length !== 6}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: (loading || code.join('').length !== 6) ? 0.7 : 1, marginBottom: '1rem' }}>
-            {loading ? 'Verifying...' : 'Verify and sign in'}
-          </button>
-
-          <button onClick={handleResend}
-            style={{ background: 'none', border: 'none', color: '#D4AF7A', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: '0.5rem', display: 'block', width: '100%' }}>
-            Resend code
-          </button>
-          <button onClick={() => { setStep('login'); setCode(['', '', '', '', '', '']); setError(''); }}
-            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem' }}>
-            Back to login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-
-        <div style={{ marginBottom: '2rem' }}>
-          <p style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem', color: '#6B2D4E' }}>TARSYN</p>
-          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY</p>
-        </div>
-
-        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
-        <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Access your TARSYN account</p>
-
-        {error && (
-          <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.88rem', marginBottom: '1rem' }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Email</label>
-            <input
-              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div style={{ marginBottom: '0.75rem' }}>
-            <label style={{ display: 'block', fontSize: '0.83rem', fontWeight: 600, color: '#555', marginBottom: '0.4rem' }}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
-                type={showPassword ? '🙈' : '👁️'}
-                placeholder="••••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}>
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
-          </div>
-
-          {/* KEEP ME CONNECTED + FORGOT PASSWORD */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#555', cursor: 'pointer', userSelect: 'none' }}>
-              <input
-                type="checkbox"
-                checked={keepConnected}
-                onChange={e => setKeepConnected(e.target.checked)}
-                style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#6B2D4E' }}
-              />
-              Keep me connected
-            </label>
-            <a href="/forgot-password" style={{ color: '#6B2D4E', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
-              Forgot password?
-            </a>
-          </div>
-
-          <button type="submit" disabled={loading}
-            style={{ width: '100%', padding: '0.85rem', background: '#6B2D4E', color: '#FAF0E6', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1, marginBottom: '1rem' }}>
-            {loading ? 'Connexion...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>🔐</div>
-
-        <button onClick={handleGoogle} disabled={loading}
-          style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-          <svg width="20" height="20" viewBox="0 0 18 18">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
-          </svg>
-          Continue with Google
+  if (step === 'done') return (
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
+        <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome!</h2>
+        <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 24px' }}>
+          You have joined <strong style={{ color: '#6B2D4E' }}>{group?.name || 'TARSYN'}</strong> successfully!
+        </p>
+        <button onClick={() => router.push('/member?groupId=' + (member.groupId || ''))}
+          style={{ width: '100%', background: '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
+          Go to My Portal
         </button>
-
-        <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
-          Don't have an account?{' '}
-          <a href="/register" style={{ color: '#6B2D4E', fontWeight: 700, textDecoration: 'none' }}>
-            Create an account
-          </a>
-        </div>
       </div>
     </div>
   );
-}
 
-export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
-      <LoginPageInner />
-    </Suspense>
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
+      <nav style={{ background: '#6B2D4E', padding: '16px 24px' }}>
+        <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
+      </nav>
+
+      <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 16px 40px' }}>
+
+        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center', marginBottom: '20px' }}>
+          <h1 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: '0 0 6px' }}>Welcome, {member.name}!</h1>
+          <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 20px' }}>
+            You are invited to join <strong style={{ color: '#6B2D4E' }}>{group?.name || 'your group'}</strong>
+          </p>
+          <div style={{ background: '#FBEEDD', borderRadius: '16px', padding: '16px', textAlign: 'left' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {[
+                { label: 'TYN-ID', value: member.tynId, mono: true },
+                { label: 'Position', value: '#' + member.position },
+                { label: 'Status', value: member.status || 'pending' },
+                { label: 'Payout Date', value: member.payoutDate || 'Not set' },
+                { label: 'Country', value: member.country },
+                { label: 'Member Type', value: member.memberType },
+              ].map(item => (
+                <div key={item.label} style={{ background: 'white', borderRadius: '10px', padding: '10px' }}>
+                  <p style={{ color: '#6B2D4E', fontSize: '11px', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
+                  <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: 0, fontFamily: (item as any).mono ? 'monospace' : 'inherit' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
+
+          {step === 'signin' ? (
+            <>
+              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Sign In to Join</h2>
+              <p style={{ color: '#6B2D4E', fontSize: '13px', margin: '0 0 20px' }}>
+                You already have a TARSYN account. Sign in to join <strong>{group?.name}</strong>.
+              </p>
+
+              {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" style={inp} />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={lbl}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input value={password} onChange={e => setPassword(e.target.value)}
+                    type={showPassword ? 'text' : 'password'} placeholder="Your TARSYN password"
+                    style={{ ...inp, paddingRight: '44px' }} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </div>
+
+              <button onClick={handleSignIn} disabled={registering}
+                style={{ width: '100%', background: registering ? '#C4748E' : '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+                {registering ? 'Signing in...' : 'Sign In & Join Group'}
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B2D4E', margin: 0 }}>
+                <span onClick={() => { setStep('profile'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
+                  Back to registration
+                </span>
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Create Your Account</h2>
+              <p style={{ color: '#6B2D4E', fontSize: '13px', margin: '0 0 20px' }}>Set up your account to access your member portal.</p>
+
+              {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Full Name</label>
+                <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" style={inp} />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="your@email.com" style={inp} />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={lbl}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input value={password} onChange={e => setPassword(e.target.value)}
+                    type={showPassword ? 'text' : 'password'} placeholder="Min. 6 characters"
+                    style={{ ...inp, paddingRight: '44px' }} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={lbl}>Confirm Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                    type={showConfirm ? 'text' : 'password'} placeholder="Repeat password"
+                    style={{ ...inp, paddingRight: '44px', borderColor: confirmPassword && password !== confirmPassword ? '#E53935' : '#EAD9BE' }} />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
+                    {showConfirm ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <p style={{ color: '#E53935', fontSize: '12px', margin: '4px 0 0' }}>Passwords do not match</p>
+                )}
+              </div>
+
+              <button onClick={handleRegister} disabled={registering}
+                style={{ width: '100%', background: registering ? '#C4748E' : '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+                {registering ? 'Creating account...' : 'Create My Account'}
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B2D4E', margin: 0 }}>
+                Already have an account?{' '}
+                <span onClick={() => { setStep('signin'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
+                  Sign In
+                </span>
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

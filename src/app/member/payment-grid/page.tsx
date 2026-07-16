@@ -92,7 +92,7 @@ function MyPaymentGridContent() {
         >
           ← Back to My Portal
         </div>
-        <div style={{ color: C.dore, fontWeight: 800, fontSize: '18px' }}>TARSYN</div>
+        <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
       </nav>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '28px 20px' }}>

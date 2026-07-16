@@ -84,7 +84,7 @@ export default function AdminPage() {
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div style={{width:'40px',height:'40px',background:'#E9C77B',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px'}}>✦</div>
           <div>
-            <div style={{color:'#E9C77B',fontSize:'18px',fontWeight:'800',letterSpacing:'2px'}}>TARSYN</div>
+            <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
             <div style={{color:'rgba(233,199,123,0.6)',fontSize:'10px',letterSpacing:'2px'}}>SUPER ADMIN PANEL</div>
           </div>
         </div>
