@@ -8,6 +8,81 @@ import { doc, getDoc } from 'firebase/firestore';
 
 type BillingPeriod = 'monthly' | 'annual';
 
+// ============ LANGUAGE SYSTEM — same 25 languages as homepage, 5 fully translated + English fallback ============
+const LANGUAGES = [
+  { code: 'en', label: '🇺🇸 English' },
+  { code: 'fr', label: '🇫🇷 Français' },
+  { code: 'ht', label: '🇭🇹 Kreyòl ayisyen' },
+  { code: 'es', label: '🇪🇸 Español' },
+  { code: 'pt', label: '🇧🇷 Português' },
+  { code: 'other', label: '➕ Other / Autre' },
+];
+
+const SUB_T: Record<string, Record<string, string>> = {
+  en: {
+    title: 'Choose the Perfect Plan for Your Community', subtitle: 'Start for free and upgrade only when your organization grows.',
+    trial: '30-Day Free Trial', cancel: 'Cancel Anytime', secure: 'Secure Payments',
+    monthly: 'Monthly', annual: 'Annual', save: 'SAVE 17%',
+    compare: 'Compare Plans', compareSub: "See exactly what's included in each plan.",
+    why: 'Why Choose TARSYN', whySub: 'Built specifically for community savings groups.',
+    reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters — share it with future organizers.',
+    leaveReview: 'Leave a Testimonial', reviewCta: "Are you a TARSYN organizer or member? We'd love to hear from you.",
+    faqTitle: 'Pricing Questions', faqSub: 'Everything you need to know about billing.',
+    payments: 'Secure payments powered by Stripe',
+  },
+  fr: {
+    title: 'Choisissez le forfait parfait pour votre communauté', subtitle: "Commencez gratuitement et évoluez seulement quand votre organisation grandit.",
+    trial: 'Essai gratuit de 30 jours', cancel: 'Annulez à tout moment', secure: 'Paiements sécurisés',
+    monthly: 'Mensuel', annual: 'Annuel', save: 'ÉCONOMISEZ 17%',
+    compare: 'Comparer les forfaits', compareSub: 'Voyez exactement ce qui est inclus dans chaque forfait.',
+    why: 'Pourquoi choisir TARSYN', whySub: 'Conçu spécifiquement pour les groupes d\u2019épargne communautaire.',
+    reviewsTitle: 'Ce que dit notre communauté', reviewsSub: 'Votre expérience compte — partagez-la avec de futurs organisateurs.',
+    leaveReview: 'Laisser un témoignage', reviewCta: 'Vous êtes organisateur ou membre TARSYN ? Nous aimerions vous entendre.',
+    faqTitle: 'Questions sur la facturation', faqSub: 'Tout ce que vous devez savoir sur la facturation.',
+    payments: 'Paiements sécurisés par Stripe',
+  },
+  ht: {
+    title: 'Chwazi Pi Bon Plan Pou Kominote W', subtitle: 'Kòmanse gratis epi monte sèlman lè òganizasyon w ap grandi.',
+    trial: '30 Jou Esè Gratis', cancel: 'Anile Nenpòt Kilè', secure: 'Peman Sekirize',
+    monthly: 'Chak Mwa', annual: 'Chak Ane', save: 'EKONOMIZE 17%',
+    compare: 'Konpare Plan Yo', compareSub: 'Gade egzakteman sa ki enkli nan chak plan.',
+    why: 'Poukisa Chwazi TARSYN', whySub: 'Fèt espesyalman pou gwoup epay kominotè yo.',
+    reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte — pataje l ak fiti òganizatè yo.',
+    leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon òganizatè oswa manm TARSYN? Nou ta renmen tande ou.',
+    faqTitle: 'Kesyon sou Peman', faqSub: 'Tout sa ou bezwen konnen sou fakti.',
+    payments: 'Peman sekirize pa Stripe',
+  },
+  es: {
+    title: 'Elige el Plan Perfecto para tu Comunidad', subtitle: 'Empieza gratis y mejora solo cuando tu organización crezca.',
+    trial: 'Prueba Gratis de 30 Días', cancel: 'Cancela Cuando Quieras', secure: 'Pagos Seguros',
+    monthly: 'Mensual', annual: 'Anual', save: 'AHORRA 17%',
+    compare: 'Comparar Planes', compareSub: 'Ve exactamente qué incluye cada plan.',
+    why: 'Por Qué Elegir TARSYN', whySub: 'Diseñado específicamente para grupos de ahorro comunitario.',
+    reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa — compártela con futuros organizadores.',
+    leaveReview: 'Dejar un Testimonio', reviewCta: '¿Eres organizador o miembro de TARSYN? Nos encantaría saber de ti.',
+    faqTitle: 'Preguntas sobre Precios', faqSub: 'Todo lo que necesitas saber sobre la facturación.',
+    payments: 'Pagos seguros con Stripe',
+  },
+  pt: {
+    title: 'Escolha o Plano Perfeito para Sua Comunidade', subtitle: 'Comece grátis e atualize apenas quando sua organização crescer.',
+    trial: 'Teste Grátis de 30 Dias', cancel: 'Cancele a Qualquer Momento', secure: 'Pagamentos Seguros',
+    monthly: 'Mensal', annual: 'Anual', save: 'ECONOMIZE 17%',
+    compare: 'Comparar Planos', compareSub: 'Veja exatamente o que está incluído em cada plano.',
+    why: 'Por Que Escolher a TARSYN', whySub: 'Criado especificamente para grupos de poupança comunitária.',
+    reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experiência importa — compartilhe com futuros organizadores.',
+    leaveReview: 'Deixar um Depoimento', reviewCta: 'Você é organizador ou membro da TARSYN? Adoraríamos ouvir você.',
+    faqTitle: 'Perguntas Sobre Cobrança', faqSub: 'Tudo o que você precisa saber sobre cobrança.',
+    payments: 'Pagamentos seguros via Stripe',
+  },
+};
+// Fallback rule: Manual → English → key itself. Never show broken/empty text.
+const st = (lang: string, key: string) => {
+  const value = SUB_T[lang]?.[key];
+  const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
+  if (!isBroken) return value;
+  return SUB_T['en'][key] || key;
+};
+
 interface PlanDef {
   id: 'free' | 'starter' | 'growth' | 'pro' | 'enterprise';
   name: string;
@@ -167,6 +242,9 @@ function SubscriptionContent() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCanceled, setShowCanceled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [lang, setLang] = useState('en');
+  const [showLangModal, setShowLangModal] = useState(false);
+  const [customLang, setCustomLang] = useState('');
 
   const success = searchParams.get('success');
   const canceled = searchParams.get('canceled');
@@ -344,11 +422,39 @@ function SubscriptionContent() {
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
           <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </div>
-        <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.4)', background: 'rgba(251,238,221,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
+            {LANGUAGES.map((l) => (<option key={l.code} value={l.code} style={{ color: '#4A1F38' }}>{l.label}</option>))}
+          </select>
+          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+            style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            Sign Out
+          </button>
+        </div>
       </nav>
+
+      {showLangModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ color: '#6B2D4E', marginBottom: '8px', fontSize: '18px', fontWeight: 700 }}>➕ Add Your Language</h3>
+            <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us — we&apos;ll add it!</p>
+            <input type="text" placeholder="Ex: Fon, Twi, Soninke, Zarma..." value={customLang} onChange={(e) => setCustomLang(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #D9C0CC', borderRadius: '8px', fontSize: '14px', outline: 'none', marginBottom: '16px', boxSizing: 'border-box' }} />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { if (customLang.trim()) { alert(`✅ Thank you! "${customLang}" has been submitted. We will add it soon!`); setShowLangModal(false); setCustomLang(''); } else { alert('Please enter a language name.'); } }}
+                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Submit Language
+              </button>
+              <button onClick={() => setShowLangModal(false)}
+                style={{ padding: '12px 16px', background: '#EAD9BE', border: 'none', borderRadius: '8px', fontSize: '14px', color: '#6B2D4E', cursor: 'pointer', fontWeight: 600 }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
         {showSuccess && (
@@ -372,15 +478,15 @@ function SubscriptionContent() {
 
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 style={{ color: '#4A1F38', fontSize: '32px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.5px' }}>
-            Choose the Perfect Plan for Your Community
+            {st(lang, 'title')}
           </h1>
           <p style={{ color: '#6B2D4E', fontSize: '15px', margin: '0 0 16px' }}>
-            Start for free and upgrade only when your organization grows.
+            {st(lang, 'subtitle')}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#6B2D4E', fontWeight: 600 }}>
-            <span>✔ 30-Day Free Trial</span>
-            <span>✔ Cancel Anytime</span>
-            <span>✔ Secure Payments</span>
+            <span>✔ {st(lang, 'trial')}</span>
+            <span>✔ {st(lang, 'cancel')}</span>
+            <span>✔ {st(lang, 'secure')}</span>
           </div>
         </div>
 
@@ -408,7 +514,7 @@ function SubscriptionContent() {
                 color: billingPeriod === 'monthly' ? '#FBEEDD' : '#6B2D4E',
                 transition: 'all 0.2s ease',
               }}>
-              Monthly
+              {st(lang, 'monthly')}
             </button>
             <button
               onClick={() => setBillingPeriod('annual')}
@@ -419,13 +525,13 @@ function SubscriptionContent() {
                 color: billingPeriod === 'annual' ? '#FBEEDD' : '#6B2D4E',
                 transition: 'all 0.2s ease',
               }}>
-              Annual
+              {st(lang, 'annual')}
               <span style={{
                 background: billingPeriod === 'annual' ? '#E9C77B' : '#E8F5E9',
                 color: billingPeriod === 'annual' ? '#4A1F38' : '#2E7D32',
                 fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px',
               }}>
-                SAVE 17%
+                {st(lang, 'save')}
               </span>
             </button>
           </div>
@@ -625,8 +731,8 @@ function SubscriptionContent() {
 
         {/* ===== PHASE 2: Feature comparison table ===== */}
         <div style={{ marginTop: '48px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>Compare Plans</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>See exactly what's included in each plan.</p>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'compare')}</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'compareSub')}</p>
           <div style={{ overflowX: 'auto', background: 'white', borderRadius: '14px', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
               <thead>
@@ -640,29 +746,46 @@ function SubscriptionContent() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { label: 'Members', get: (p: PlanDef) => p.members },
-                  { label: 'Groups', get: (p: PlanDef) => p.groups },
-                  { label: 'Reports', get: (p: PlanDef) => p.reports },
-                  { label: 'Support', get: (p: PlanDef) => p.support },
-                  { label: 'Document Center', get: (p: PlanDef) => p.additional.some(a => a.includes('Document Center')) },
-                  { label: 'Export tools', get: (p: PlanDef) => p.additional.some(a => a.includes('Export')) },
-                  { label: 'API access', get: (p: PlanDef) => p.additional.some(a => a.includes('API')) },
-                  { label: 'White label', get: (p: PlanDef) => p.additional.some(a => a.includes('White label')) },
-                  { label: 'Dedicated onboarding', get: (p: PlanDef) => p.additional.some(a => a.includes('Dedicated onboarding')) },
-                ].map((row, i) => (
-                  <tr key={row.label} style={{ borderBottom: '1px solid #F5EBDC', background: i % 2 === 0 ? 'white' : '#FFFBF4' }}>
-                    <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#4A1F38', fontWeight: 600 }}>{row.label}</td>
-                    {PLANS.map((p) => {
-                      const val = row.get(p);
-                      return (
-                        <td key={p.id} style={{ textAlign: 'center', padding: '12px 10px', fontSize: '12px', color: '#6B2D4E' }}>
-                          {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>✓</span> : <span style={{ color: '#D9C0CC' }}>—</span>) : val}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                {(() => {
+                  // Explicit cumulative feature matrix: each tier includes everything from the tiers before it.
+                  // "unconfirmed" features (not verified as actually built) are deliberately left out until confirmed.
+                  const TIER_ORDER = ['free', 'starter', 'growth', 'pro', 'enterprise'];
+                  const FEATURE_INTRODUCED_AT: { label: string; introducedAt: string }[] = [
+                    { label: 'Member invitations', introducedAt: 'free' },
+                    { label: 'Reminders', introducedAt: 'starter' },
+                    { label: 'Document Center', introducedAt: 'starter' },
+                    { label: 'Export tools', introducedAt: 'growth' },
+                    { label: 'White label', introducedAt: 'enterprise' },
+                    { label: 'Dedicated onboarding', introducedAt: 'enterprise' },
+                  ];
+                  const hasFeature = (planId: string, introducedAt: string) =>
+                    TIER_ORDER.indexOf(planId) >= TIER_ORDER.indexOf(introducedAt);
+
+                  const rows: { label: string; get: (p: PlanDef) => string | boolean }[] = [
+                    { label: 'Members', get: (p) => p.members },
+                    { label: 'Groups', get: (p) => p.groups },
+                    { label: 'Reports', get: (p) => p.reports },
+                    { label: 'Support', get: (p) => p.support },
+                    ...FEATURE_INTRODUCED_AT.map((f) => ({
+                      label: f.label,
+                      get: (p: PlanDef) => hasFeature(p.id, f.introducedAt),
+                    })),
+                  ];
+
+                  return rows.map((row, i) => (
+                    <tr key={row.label} style={{ borderBottom: '1px solid #F5EBDC', background: i % 2 === 0 ? 'white' : '#FFFBF4' }}>
+                      <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#4A1F38', fontWeight: 600 }}>{row.label}</td>
+                      {PLANS.map((p) => {
+                        const val = row.get(p);
+                        return (
+                          <td key={p.id} style={{ textAlign: 'center', padding: '12px 10px', fontSize: '12px', color: '#6B2D4E' }}>
+                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>✓</span> : <span style={{ color: '#D9C0CC' }}>—</span>) : val}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ));
+                })()}
               </tbody>
             </table>
           </div>
@@ -670,11 +793,11 @@ function SubscriptionContent() {
 
         {/* ===== PHASE 3: Why Choose TARSYN ===== */}
         <div style={{ marginTop: '56px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>Why Choose TARSYN</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>Built specifically for community savings groups.</p>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'why')}</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'whySub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             {[
-              { icon: '🌍', title: 'Built for Communities', desc: 'Designed for tontines, sols, and sou-sous, with support for 25+ languages worldwide.' },
+              { icon: '🌍', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous — with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
               { icon: '🔒', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure Stripe-powered payments.' },
               { icon: '📊', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
               { icon: '💬', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
@@ -688,29 +811,23 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 4a: Testimonials ===== */}
+        {/* ===== PHASE 4a: Leave a testimonial CTA — real submission flow, connects to /leave-review (Firestore 'testimonials' collection, moderated) ===== */}
         <div style={{ marginTop: '56px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>What Our Community Says</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>Trusted by organizers around the world.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            {[
-              { name: 'Josephine M.', role: 'Tontine Organizer, Brooklyn', quote: 'TARSYN made it so easy to keep track of contributions. My members love the transparency.' },
-              { name: 'Daniel K.', role: 'Church Treasurer, Miami', quote: 'The automatic reports save me hours every month. I recommend it to every organization I know.' },
-              { name: 'Amara T.', role: 'Sou-Sou Coordinator, Toronto', quote: 'Finally a platform that understands how our community savings groups actually work.' },
-            ].map((t) => (
-              <div key={t.name} style={{ background: 'white', borderRadius: '14px', padding: '20px', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
-                <p style={{ color: '#4A1F38', fontSize: '13px', fontStyle: 'italic', margin: '0 0 14px', lineHeight: 1.6 }}>&ldquo;{t.quote}&rdquo;</p>
-                <p style={{ color: '#6B2D4E', fontSize: '12.5px', fontWeight: 800, margin: 0 }}>{t.name}</p>
-                <p style={{ color: '#8B5A73', fontSize: '11px', margin: 0 }}>{t.role}</p>
-              </div>
-            ))}
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
+          <div style={{ maxWidth: '520px', margin: '0 auto', background: 'white', borderRadius: '14px', padding: '28px', textAlign: 'center', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}>💬</div>
+            <p style={{ color: '#4A1F38', fontSize: '13.5px', margin: '0 0 18px', lineHeight: 1.6 }}>{st(lang, 'reviewCta')}</p>
+            <a href="/leave-review" style={{ display: 'inline-block', padding: '12px 28px', background: '#6B2D4E', color: '#E9C77B', borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, textDecoration: 'none' }}>
+              {st(lang, 'leaveReview')}
+            </a>
           </div>
         </div>
 
         {/* ===== PHASE 4b: FAQ accordion ===== */}
         <div style={{ marginTop: '56px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>Pricing Questions</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>Everything you need to know about billing.</p>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'faqTitle')}</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'faqSub')}</p>
           <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {[
               { q: 'Can I change plans later?', a: 'Yes, you can upgrade or downgrade your plan at any time from this page. Changes take effect immediately.' },
@@ -735,7 +852,7 @@ function SubscriptionContent() {
 
         {/* ===== PHASE 4c: Payment badges ===== */}
         <div style={{ marginTop: '48px', marginBottom: '20px', textAlign: 'center' }}>
-          <p style={{ color: '#8B5A73', fontSize: '11px', fontWeight: 600, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Secure payments powered by Stripe</p>
+          <p style={{ color: '#8B5A73', fontSize: '11px', fontWeight: 600, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{st(lang, 'payments')}</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {['Visa', 'Mastercard', 'Amex', 'PayPal'].map((name) => (
               <span key={name} style={{ background: 'white', border: '1px solid #EAD9BE', borderRadius: '8px', padding: '6px 14px', fontSize: '11.5px', fontWeight: 700, color: '#6B2D4E' }}>
@@ -745,6 +862,12 @@ function SubscriptionContent() {
           </div>
         </div>
       </div>
+
+      <footer style={{ background: '#6B2D4E', textAlign: 'center', padding: '14px', color: 'rgba(251,238,221,0.6)', fontSize: '12px' }}>
+        <span style={{ color: '#E9C77B', fontWeight: 700 }}>TARSYN&trade;</span>{' '}
+        <span>A product of <strong style={{ color: 'rgba(251,238,221,0.9)' }}>Ma Production Luxenn Zara LLC</strong></span>
+        {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
+      </footer>
     </div>
   );
 }
