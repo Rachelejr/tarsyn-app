@@ -185,7 +185,9 @@ function Nav() {
 function Footer() {
   return (
     <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
-      <span style={{color:'#E9C77B'}}>TARSYN</span> — © 2026 Your Community. Your Power.
+      <span style={{color:'#E9C77B',fontWeight:700}}>TARSYN&trade;</span>{' '}
+      <span>A product of <strong style={{color:'rgba(251,238,221,0.9)'}}>Ma Production Luxenn Zara LLC</strong></span>
+      {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
     </footer>
   );
 }
