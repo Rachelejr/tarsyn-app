@@ -1,307 +1,558 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { db, auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import TrialGuard from '@/components/TrialGuard';
 
-export default function JoinPage() {
-  const params = useParams();
-  const code = Array.isArray(params.code) ? params.code[0] : params.code;
-  const router = useRouter();
-  const [member, setMember] = useState<any>(null);
-  const [group, setGroup] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [step, setStep] = useState<'profile' | 'signin' | 'done'>('profile');
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [registering, setRegistering] = useState(false);
-  const [error, setError] = useState('');
-  const [debugInfo, setDebugInfo] = useState('');
+function useCountUp(target: number, duration = 700) {
+  const [value, setValue] = useState(0);
+  const startRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        if (!code) { setNotFound(true); setLoading(false); return; }
-        const codeStr = String(code).trim().toUpperCase();
-        const res = await fetch('/api/join-lookup?code=' + encodeURIComponent(codeStr));
-        const data = await res.json();
-        if (!res.ok || !data.found) { setNotFound(true); setLoading(false); return; }
-        const memberData = {
-          id: data.memberId,
-          name: data.fullName,
-          email: data.email,
-          groupId: data.groupId,
-          tynId: data.tynId,
-          position: data.position,
-          status: data.status,
-          payoutDate: data.payoutDate,
-          country: data.country,
-          memberType: data.memberType,
-          userId: data.alreadyRegistered ? 'placeholder' : null,
-        };
-        setMember(memberData);
-        setFullName(memberData.name || '');
-        setEmail(memberData.email || '');
-        if (data.groupName) setGroup({ id: data.groupId, name: data.groupName });
-      } catch (e: any) {
-        setDebugInfo('Error: ' + (e?.code || '') + ' ' + (e?.message || String(e)));
-        setNotFound(true);
-      }
-      setLoading(false);
+    if (typeof target !== 'number' || isNaN(target)) return;
+    startRef.current = null;
+    let raf = 0;
+    const step = (timestamp: number) => {
+      if (startRef.current === null) startRef.current = timestamp;
+      const progress = Math.min((timestamp - startRef.current) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) raf = requestAnimationFrame(step);
     };
-    load();
-  }, [code]);
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
 
-  const handleRegister = async () => {
-    setError('');
-    if (!fullName.trim()) { setError('Full name is required.'); return; }
-    if (!email.trim()) { setError('Email is required.'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
-    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
-    setRegistering(true);
-    try {
-      const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      await updateProfile(result.user, { displayName: fullName.trim() });
-      const confirmRes = await fetch('/api/join-confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          memberId: member.id,
-          userId: result.user.uid,
-          name: fullName.trim(),
-          email: email.trim(),
-        }),
-      });
-      if (!confirmRes.ok) {
-        const errData = await confirmRes.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to confirm membership');
-      }
-      setStep('done');
-    } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
-        setStep('signin');
-      } else {
-        const msgs: any = {
-          'auth/invalid-email': 'Invalid email address.',
-          'auth/weak-password': 'Password is too weak.',
-        };
-        setError(msgs[err.code] || 'Error: ' + err.code);
-      }
-    }
-    setRegistering(false);
-  };
+  return value;
+}
 
-  const handleSignIn = async () => {
-    setError('');
-    if (!email.trim() || !password) { setError('Email and password are required.'); return; }
-    setRegistering(true);
-    try {
-      const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const confirmRes = await fetch('/api/join-confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          memberId: member.id,
-          userId: result.user.uid,
-        }),
-      });
-      if (!confirmRes.ok) {
-        const errData = await confirmRes.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to confirm membership');
-      }
-      setStep('done');
-    } catch (err: any) {
-      const msgs: any = {
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/invalid-credential': 'Incorrect email or password.',
-        'auth/user-not-found': 'No account found with this email.',
-        'auth/too-many-requests': 'Too many attempts. Please try again later.',
-      };
-      setError(msgs[err.code] || 'Error: ' + err.code);
-    }
-    setRegistering(false);
-  };
-
-  const inp: React.CSSProperties = {
-    width: '100%', padding: '12px 14px',
-    border: '1.5px solid #EAD9BE', borderRadius: '10px',
-    fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-  };
-  const lbl: React.CSSProperties = {
-    display: 'block', color: '#6B2D4E',
-    fontSize: '13px', fontWeight: 600, marginBottom: '6px',
-  };
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#6B2D4E', fontWeight: 600 }}>Loading...</p>
-    </div>
-  );
-
-  if (notFound || !member) return (
-    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-      <h2 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: 0 }}>Invitation not found</h2>
-      <p style={{ color: '#6B2D4E', fontSize: '14px', margin: 0 }}>This link may be invalid or expired.</p>
-      <p style={{ color: '#C62828', fontSize: '12px', margin: 0, fontFamily: 'monospace' }}>{debugInfo}</p>
-      <button onClick={() => router.push('/')} style={{ background: '#6B2D4E', color: '#FBEEDD', padding: '12px 24px', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
-    </div>
-  );
-
-  if (step === 'done') return (
-    <div style={{ minHeight: '100vh', background: '#FBEEDD', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'white', borderRadius: '24px', padding: '48px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-        <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, margin: '0 0 8px' }}>Welcome!</h2>
-        <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 24px' }}>
-          You have joined <strong style={{ color: '#6B2D4E' }}>{group?.name || 'TARSYN'}</strong> successfully!
+function StatCard({ label, value, icon, gradient, glow, delay }: { label: string; value: number | string; icon: string; gradient: string; glow: string; delay: number }) {
+  const isNumeric = typeof value === 'number';
+  const animated = useCountUp(isNumeric ? value : 0);
+  return (
+    <div
+      className="stat-card fade-up"
+      style={{
+        background: '#FFFFFF',
+        borderRadius: '16px',
+        padding: '16px 18px',
+        boxShadow: '0 4px 16px rgba(107,45,78,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        animationDelay: `${delay}ms`,
+      }}
+    >
+      <div
+        style={{
+          width: '42px',
+          height: '42px',
+          borderRadius: '12px',
+          background: gradient,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '18px',
+          boxShadow: `0 5px 14px ${glow}`,
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </div>
+      <div>
+        <p style={{ color: '#C4748E', fontSize: '10px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '1.1px', fontWeight: 700 }}>{label}</p>
+        <p style={{ color: '#4A1F38', fontSize: '21px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
+          {isNumeric ? animated : value}
         </p>
-        <button onClick={() => router.push('/member?groupId=' + (member.groupId || ''))}
-          style={{ width: '100%', background: '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
-          Go to My Portal
-        </button>
       </div>
     </div>
   );
+}
+
+function OverviewContent() {
+  const router = useRouter();
+  const [groups, setGroups] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [savingGroup, setSavingGroup] = useState(false);
+  const [deletingMember, setDeletingMember] = useState<string | null>(null);
+  const [updatingMember, setUpdatingMember] = useState<string | null>(null);
+  const [validatingProof, setValidatingProof] = useState<string | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [memberEditName, setMemberEditName] = useState('');
+  const [memberEditPayoutDate, setMemberEditPayoutDate] = useState('');
+  const [savingMember, setSavingMember] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (!u) { router.push('/login'); return; }
+      try {
+        const userSnap = await getDoc(doc(db, 'users', u.uid));
+        const role = userSnap.exists() ? userSnap.data().role : null;
+        setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
+
+        const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
+        const gsnap = await getDocs(gq);
+        const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setGroups(groupList);
+
+        if (groupList.length > 0) {
+          const mq = query(collection(db, 'members'), where('organizerId', '==', u.uid));
+          const ms = await getDocs(mq);
+          setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
+
+          const pq = query(collection(db, 'payments'), where('organizerId', '==', u.uid));
+          const ps = await getDocs(pq);
+          setPayments(ps.docs.map(d => ({ id: d.id, ...d.data() })));
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    });
+    return () => unsub();
+  }, [router]);
+
+  const handleSaveGroupName = async () => {
+    if (!editingGroup || !newGroupName.trim()) return;
+    setSavingGroup(true);
+    try {
+      await updateDoc(doc(db, 'groups', editingGroup.id), { name: newGroupName.trim() });
+      setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, name: newGroupName.trim() } : g));
+      setEditingGroup(null);
+      setNewGroupName('');
+    } catch (e) { console.error(e); }
+    setSavingGroup(false);
+  };
+
+  const handleSaveMember = async () => {
+    if (!editingMember || !memberEditName.trim()) return;
+    setSavingMember(true);
+    try {
+      await updateDoc(doc(db, 'members', editingMember.id), {
+        name: memberEditName.trim(),
+        payoutDate: memberEditPayoutDate || null,
+      });
+      setMembers(members.map(m => m.id === editingMember.id
+        ? { ...m, name: memberEditName.trim(), payoutDate: memberEditPayoutDate || null }
+        : m));
+      setEditingMember(null);
+      setMemberEditName('');
+      setMemberEditPayoutDate('');
+    } catch (e) { console.error(e); }
+    setSavingMember(false);
+  };
+
+  const handleUpdateStatus = async (memberId: string, newStatus: string) => {
+    setUpdatingMember(memberId);
+    try {
+      await updateDoc(doc(db, 'members', memberId), { status: newStatus });
+      setMembers(members.map(m => m.id === memberId ? { ...m, status: newStatus } : m));
+    } catch (e) { console.error(e); }
+    setUpdatingMember(null);
+  };
+
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`Are you sure you want to delete ${memberName}?`)) return;
+    setDeletingMember(memberId);
+    try {
+      await deleteDoc(doc(db, 'members', memberId));
+      setMembers(members.filter(m => m.id !== memberId));
+    } catch (e) { console.error(e); }
+    setDeletingMember(null);
+  };
+
+  const handleValidateProof = async (paymentId: string, action: 'verified' | 'rejected') => {
+    setValidatingProof(paymentId);
+    try {
+      await updateDoc(doc(db, 'payments', paymentId), { proofStatus: action });
+      setPayments(payments.map(p => p.id === paymentId ? { ...p, proofStatus: action } : p));
+    } catch (e) { console.error(e); }
+    setValidatingProof(null);
+  };
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
+      <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+    </div>
+  );
+
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const confirmedPayments = payments.filter(p => p.status === 'confirmed').length;
+  const pendingPayments = payments.filter(p => p.status === 'pending').length;
+  const activeMembers = members.filter(m => m.status === 'active').length;
+  const pendingProofs = payments.filter(p => p.proofUrl && p.proofStatus === 'pending');
 
   return (
     <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
-      <nav style={{ background: '#6B2D4E', padding: '16px 24px' }}>
-        <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up {
+          opacity: 0;
+          animation: fadeUp 0.45s ease forwards;
+        }
+        .stat-card, .panel-card, .action-card {
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .stat-card:hover {
+          transform: translateY(-2px) scale(1.012);
+          box-shadow: 0 8px 22px rgba(107,45,78,0.14) !important;
+        }
+        .panel-card:hover {
+          box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important;
+        }
+        .action-card:hover {
+          transform: translateY(-3px) scale(1.015);
+          box-shadow: 0 10px 26px rgba(233,199,123,0.35) !important;
+        }
+        .row-hover:hover {
+          background: #FBF3EC !important;
+        }
+        .pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 11px;
+          border-radius: 18px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+        }
+        .btn-action {
+          transition: transform 0.15s ease, filter 0.15s ease;
+        }
+        .btn-action:hover {
+          filter: brightness(0.96);
+        }
+        .btn-action:active {
+          transform: scale(0.96);
+        }
+        .modal-fade {
+          animation: fadeUp 0.25s ease forwards;
+        }
+        @media (max-width: 700px) {
+          .tarsyn-ov-nav { grid-template-columns: 1fr auto !important; padding: 10px 14px !important; }
+          .tarsyn-ov-nav-title { display: none !important; }
+          .tarsyn-ov-container { padding: 14px 14px !important; }
+        }
+      `}</style>
+
+      {editingGroup && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Group Name</h3>
+            <input
+              value={newGroupName}
+              onChange={e => setNewGroupName(e.target.value)}
+              placeholder="New group name..."
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { setEditingGroup(null); setNewGroupName(''); }} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={handleSaveGroupName} disabled={savingGroup} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                {savingGroup ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingMember && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Member</h3>
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Name</label>
+            <input
+              value={memberEditName}
+              onChange={e => setMemberEditName(e.target.value)}
+              placeholder="Member name..."
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
+            />
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Payout Date</label>
+            <input
+              type="date"
+              value={memberEditPayoutDate}
+              onChange={e => setMemberEditPayoutDate(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { setEditingMember(null); setMemberEditName(''); setMemberEditPayoutDate(''); }} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={handleSaveMember} disabled={savingMember || !memberEditName.trim()} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', opacity: (savingMember || !memberEditName.trim()) ? 0.6 : 1 }}>
+                {savingMember ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <nav className="tarsyn-ov-nav" style={{
+        background: 'linear-gradient(135deg, #6B2D4E 0%, #4A1F38 100%)',
+        padding: '12px 28px',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center',
+        columnGap: '16px',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+      }}>
+        <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', borderRadius: '50%', display: 'none', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(233,199,123,0.4)' }}>T</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{ height: '22px' }}/></a>
+          <div>
+            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+            <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY</div>
+          </div>
+        </div>
+
+        <div className="tarsyn-ov-nav-title fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
+          <h1 style={{ color: '#F0DCE8', fontSize: '17px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>⚡ TARSYN Handles the Rest</h1>
+          <p style={{ color: 'rgba(251,238,221,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports — all automatic.</p>
+        </div>
+
+        <button onClick={() => router.push('/dashboard')} className="btn-action" style={{ background: 'rgba(233,199,123,0.08)', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '5px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', justifySelf: 'end' }}>
+          ← Dashboard
+        </button>
       </nav>
 
-      <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 16px 40px' }}>
+      <div className="tarsyn-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
 
-        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center', marginBottom: '20px' }}>
-          <h1 style={{ color: '#6B2D4E', fontSize: '22px', fontWeight: 800, margin: '0 0 6px' }}>Welcome, {member.name}!</h1>
-          <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 20px' }}>
-            You are invited to join <strong style={{ color: '#6B2D4E' }}>{group?.name || 'your group'}</strong>
-          </p>
-          <div style={{ background: '#FBEEDD', borderRadius: '16px', padding: '16px', textAlign: 'left' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              {[
-                { label: 'TYN-ID', value: member.tynId, mono: true },
-                { label: 'Position', value: '#' + member.position },
-                { label: 'Status', value: member.status || 'pending' },
-                { label: 'Payout Date', value: member.payoutDate || 'Not set' },
-                { label: 'Country', value: member.country },
-                { label: 'Member Type', value: member.memberType },
-              ].map(item => (
-                <div key={item.label} style={{ background: 'white', borderRadius: '10px', padding: '10px' }}>
-                  <p style={{ color: '#6B2D4E', fontSize: '11px', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
-                  <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: 0, fontFamily: (item as any).mono ? 'monospace' : 'inherit' }}>{item.value}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
+          <StatCard label="Total Members" value={members.length} icon="👥" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
+          <StatCard label="Active Members" value={activeMembers} icon="✅" gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
+          <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon="💰" gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
+          <StatCard label="Confirmed Payments" value={confirmedPayments} icon="✔️" gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
+          <StatCard label="Pending Payments" value={pendingPayments} icon="⏳" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
+        </div>
+
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>🏘️ My Groups</h3>
+          {groups.length === 0 ? (
+            <p style={{ color: '#C4748E', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '10px' }}>
+              {groups.map((g, i) => (
+                <div key={i} style={{ background: '#FBEEDD', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                  <div>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 2px' }}>{g.name}</p>
+                    <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{g.frequency} · {g.status}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
+                      style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      💳 Payment Grid
+                    </button>
+                    <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
+                      style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      ✏️ Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>👥 Member Management</h3>
+          {members.length === 0 ? (
+            <p style={{ color: '#C4748E', fontSize: '13px' }}>No members yet.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #FBEEDD' }}>
+                    {['#', 'TYN-ID', 'Name', 'Payout Date', 'Status', 'Actions'].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#C4748E', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.sort((a, b) => a.position - b.position).map((m, i) => (
+                    <tr key={m.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
+                      <td style={{ padding: '10px 10px', color: '#6B2D4E', fontWeight: 700, fontSize: '13px' }}>#{m.position}</td>
+                      <td style={{ padding: '10px 10px', color: '#C4748E', fontFamily: 'monospace', fontSize: '12px' }}>{m.tynId}</td>
+                      <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{m.name}</td>
+                      <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{m.payoutDate || '—'}</td>
+                      <td style={{ padding: '10px 10px' }}>
+                        <span className="pill" style={{
+                          background: m.status === 'active' ? '#E8F5E9' : m.status === 'paused' ? '#E3F2FD' : '#FFF3E0',
+                          color: m.status === 'active' ? '#2E7D32' : m.status === 'paused' ? '#1565C0' : '#E65100',
+                        }}>
+                          {m.status || 'pending'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 10px' }}>
+                        {m.role !== 'admin' && (
+                          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                            <button onClick={() => { setEditingMember(m); setMemberEditName(m.name || ''); setMemberEditPayoutDate(m.payoutDate || ''); }} className="btn-action pill"
+                              style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
+                              ✏️ Edit
+                            </button>
+                            {m.status !== 'active' && (
+                              <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id} className="btn-action pill"
+                                style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
+                                ✅ Activate
+                              </button>
+                            )}
+                            {m.status !== 'paused' && (
+                              <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id} className="btn-action pill"
+                                style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
+                                ⏸️ Pause
+                              </button>
+                            )}
+                            <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id} className="btn-action pill"
+                              style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
+                              {deletingMember === m.id ? '...' : '🗑️ Delete'}
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {pendingProofs.length > 0 && (
+          <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>📎 Payment Proofs</h3>
+            <p style={{ color: '#C4748E', fontSize: '12px', margin: '0 0 12px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {pendingProofs.map((p, i) => (
+                <div key={p.id} style={{ background: '#FBEEDD', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: '0 0 2px' }}>{p.memberName}</p>
+                    <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{p.amount} {p.currency} · {p.paymentDate} · {p.paymentMethod}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="btn-action pill"
+                      style={{ background: '#E3F2FD', color: '#1565C0', textDecoration: 'none' }}>
+                      👁️ View
+                    </a>
+                    <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id} className="btn-action pill"
+                      style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
+                      ✅ Validate
+                    </button>
+                    <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id} className="btn-action pill"
+                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
+                      ❌ Reject
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
+        )}
+
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>💰 Recent Contributions</h3>
+          {payments.length === 0 ? (
+            <p style={{ color: '#C4748E', fontSize: '13px' }}>No payments recorded yet.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #FBEEDD' }}>
+                    {['Receipt', 'Member', 'Amount', 'Method', 'Date', 'Status'].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#C4748E', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.slice(0, 10).map((p, i) => (
+                    <tr key={p.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
+                      <td style={{ padding: '10px 10px' }}>
+                        <a href={`/receipt/${p.receiptNumber}`} target="_blank" rel="noreferrer"
+                          style={{ color: '#6B2D4E', fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, textDecoration: 'underline' }}>
+                          {p.receiptNumber || '—'}
+                        </a>
+                      </td>
+                      <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{p.memberName}</td>
+                      <td style={{ padding: '10px 10px', color: '#2E7D32', fontWeight: 700, fontSize: '13px' }}>{p.amount} {p.currency}</td>
+                      <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{p.paymentMethod}</td>
+                      <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{p.paymentDate}</td>
+                      <td style={{ padding: '10px 10px' }}>
+                        <span className="pill" style={{ background: p.status === 'confirmed' ? '#E8F5E9' : p.status === 'pending' ? '#FFF3E0' : '#FFEBEE', color: p.status === 'confirmed' ? '#2E7D32' : p.status === 'pending' ? '#E65100' : '#C62828' }}>
+                          {p.status || 'confirmed'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        <div style={{ background: 'white', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-
-          {step === 'signin' ? (
-            <>
-              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Sign In to Join</h2>
-              <p style={{ color: '#6B2D4E', fontSize: '13px', margin: '0 0 20px' }}>
-                You already have a TARSYN account. Sign in to join <strong>{group?.name}</strong>.
-              </p>
-
-              {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
-
-              <div style={{ marginBottom: '14px' }}>
-                <label style={lbl}>Email</label>
-                <input value={email} onChange={e => setEmail(e.target.value)} type="email" style={inp} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', paddingBottom: '24px' }}>
+          {[
+            { title: 'Record Payment', icon: '💰', path: '/dashboard/record-contribution' },
+            { title: 'Add Member', icon: '👤', path: '/dashboard/add-member' },
+            { title: 'Digital Register', icon: '📋', path: '/dashboard/contribution-log' },
+            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
+            { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
+            { title: 'Audit Log', icon: '📜', path: '/dashboard/audit-log' },
+            { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
+            { title: 'Security', icon: '🔒', path: '/dashboard/security' },
+            { title: 'White Label', icon: '🎨', path: '/dashboard/branding' },
+            { title: 'Leave a Review', icon: '⭐', path: '/leave-review' },
+            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '🛠️', path: '/admin/repair-members' }] : []),
+          ].map((a, i) => (
+            <div key={i} className="action-card" onClick={() => router.push(a.path)}
+              style={{
+                background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)',
+                border: '1px solid #E8D5C0',
+                borderRadius: '16px',
+                padding: '18px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 14px rgba(233,199,123,0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg,#E9C77B,#C9974D)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                boxShadow: '0 4px 12px rgba(233,199,123,0.4)',
+                flexShrink: 0,
+              }}>
+                {a.icon}
               </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={lbl}>Password</label>
-                <div style={{ position: 'relative' }}>
-                  <input value={password} onChange={e => setPassword(e.target.value)}
-                    type={showPassword ? 'text' : 'password'} placeholder="Your TARSYN password"
-                    style={{ ...inp, paddingRight: '44px' }} />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-              </div>
-
-              <button onClick={handleSignIn} disabled={registering}
-                style={{ width: '100%', background: registering ? '#C4748E' : '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
-                {registering ? 'Signing in...' : 'Sign In & Join Group'}
-              </button>
-
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B2D4E', margin: 0 }}>
-                <span onClick={() => { setStep('profile'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
-                  Back to registration
-                </span>
-              </p>
-            </>
-          ) : (
-            <>
-              <h2 style={{ color: '#6B2D4E', fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Create Your Account</h2>
-              <p style={{ color: '#6B2D4E', fontSize: '13px', margin: '0 0 20px' }}>Set up your account to access your member portal.</p>
-
-              {error && <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '12px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
-
-              <div style={{ marginBottom: '14px' }}>
-                <label style={lbl}>Full Name</label>
-                <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" style={inp} />
-              </div>
-
-              <div style={{ marginBottom: '14px' }}>
-                <label style={lbl}>Email</label>
-                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="your@email.com" style={inp} />
-              </div>
-
-              <div style={{ marginBottom: '14px' }}>
-                <label style={lbl}>Password</label>
-                <div style={{ position: 'relative' }}>
-                  <input value={password} onChange={e => setPassword(e.target.value)}
-                    type={showPassword ? 'text' : 'password'} placeholder="Min. 6 characters"
-                    style={{ ...inp, paddingRight: '44px' }} />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={lbl}>Confirm Password</label>
-                <div style={{ position: 'relative' }}>
-                  <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    type={showConfirm ? 'text' : 'password'} placeholder="Repeat password"
-                    style={{ ...inp, paddingRight: '44px', borderColor: confirmPassword && password !== confirmPassword ? '#E53935' : '#EAD9BE' }} />
-                  <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '13px' }}>
-                    {showConfirm ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-                {confirmPassword && password !== confirmPassword && (
-                  <p style={{ color: '#E53935', fontSize: '12px', margin: '4px 0 0' }}>Passwords do not match</p>
-                )}
-              </div>
-
-              <button onClick={handleRegister} disabled={registering}
-                style={{ width: '100%', background: registering ? '#C4748E' : '#6B2D4E', color: '#FBEEDD', padding: '14px', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: registering ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
-                {registering ? 'Creating account...' : 'Create My Account'}
-              </button>
-
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#6B2D4E', margin: 0 }}>
-                Already have an account?{' '}
-                <span onClick={() => { setStep('signin'); setError(''); }} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
-                  Sign In
-                </span>
-              </p>
-            </>
-          )}
+              <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: 0 }}>{a.title}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Overview() {
+  return (
+    <TrialGuard>
+      <OverviewContent />
+    </TrialGuard>
   );
 }
