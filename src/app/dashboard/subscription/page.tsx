@@ -28,7 +28,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters — share it with future organizers.',
     leaveReview: 'Leave a Testimonial', reviewCta: "Are you a TARSYN organizer or member? We'd love to hear from you.",
     faqTitle: 'Pricing Questions', faqSub: 'Everything you need to know about billing.',
-    payments: 'Secure payments powered by Stripe',
+    payments: 'Secure Payments',
   },
   fr: {
     title: 'Choisissez le forfait parfait pour votre communauté', subtitle: "Commencez gratuitement et évoluez seulement quand votre organisation grandit.",
@@ -39,7 +39,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     reviewsTitle: 'Ce que dit notre communauté', reviewsSub: 'Votre expérience compte — partagez-la avec de futurs organisateurs.',
     leaveReview: 'Laisser un témoignage', reviewCta: 'Vous êtes organisateur ou membre TARSYN ? Nous aimerions vous entendre.',
     faqTitle: 'Questions sur la facturation', faqSub: 'Tout ce que vous devez savoir sur la facturation.',
-    payments: 'Paiements sécurisés par Stripe',
+    payments: 'Paiements sécurisés',
   },
   ht: {
     title: 'Chwazi Pi Bon Plan Pou Kominote W', subtitle: 'Kòmanse gratis epi monte sèlman lè òganizasyon w ap grandi.',
@@ -50,7 +50,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte — pataje l ak fiti òganizatè yo.',
     leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon òganizatè oswa manm TARSYN? Nou ta renmen tande ou.',
     faqTitle: 'Kesyon sou Peman', faqSub: 'Tout sa ou bezwen konnen sou fakti.',
-    payments: 'Peman sekirize pa Stripe',
+    payments: 'Peman Sekirize',
   },
   es: {
     title: 'Elige el Plan Perfecto para tu Comunidad', subtitle: 'Empieza gratis y mejora solo cuando tu organización crezca.',
@@ -61,7 +61,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa — compártela con futuros organizadores.',
     leaveReview: 'Dejar un Testimonio', reviewCta: '¿Eres organizador o miembro de TARSYN? Nos encantaría saber de ti.',
     faqTitle: 'Preguntas sobre Precios', faqSub: 'Todo lo que necesitas saber sobre la facturación.',
-    payments: 'Pagos seguros con Stripe',
+    payments: 'Pagos Seguros',
   },
   pt: {
     title: 'Escolha o Plano Perfeito para Sua Comunidade', subtitle: 'Comece grátis e atualize apenas quando sua organização crescer.',
@@ -72,7 +72,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experiência importa — compartilhe com futuros organizadores.',
     leaveReview: 'Deixar um Depoimento', reviewCta: 'Você é organizador ou membro da TARSYN? Adoraríamos ouvir você.',
     faqTitle: 'Perguntas Sobre Cobrança', faqSub: 'Tudo o que você precisa saber sobre cobrança.',
-    payments: 'Pagamentos seguros via Stripe',
+    payments: 'Pagamentos Seguros',
   },
 };
 // Fallback rule: Manual → English → key itself. Never show broken/empty text.
@@ -81,6 +81,58 @@ const st = (lang: string, key: string) => {
   const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
   if (!isBroken) return value;
   return SUB_T['en'][key] || key;
+};
+
+const FAQ_ITEMS = [
+  { key: 'changePlans' },
+  { key: 'exceedLimit' },
+  { key: 'freeTrial' },
+  { key: 'cancelAnytime' },
+  { key: 'annualDiscount' },
+];
+
+const FAQ_T: Record<string, Record<string, { q: string; a: string }>> = {
+  en: {
+    changePlans: { q: 'Can I change plans later?', a: 'Yes, you can upgrade or downgrade your plan at any time from this page. Changes take effect immediately.' },
+    exceedLimit: { q: 'What happens if I exceed my member limit?', a: 'You can add more members for a small increment, shown on each plan card, or upgrade to the next tier.' },
+    freeTrial: { q: 'Is there a free trial?', a: 'Yes, every new account starts with a 30-day free trial with access to Starter features.' },
+    cancelAnytime: { q: 'Can I cancel anytime?', a: 'Yes, there are no long-term contracts. You can cancel your subscription at any time from this page.' },
+    annualDiscount: { q: 'Do you offer discounts for annual billing?', a: 'Yes, switching to annual billing saves you up to 17% compared to paying monthly.' },
+  },
+  fr: {
+    changePlans: { q: 'Puis-je changer de forfait plus tard ?', a: 'Oui, vous pouvez passer à un forfait supérieur ou inférieur à tout moment depuis cette page. Les changements prennent effet immédiatement.' },
+    exceedLimit: { q: 'Que se passe-t-il si je dépasse ma limite de membres ?', a: 'Vous pouvez ajouter des membres supplémentaires pour un petit montant, indiqué sur chaque carte de forfait, ou passer au palier supérieur.' },
+    freeTrial: { q: 'Y a-t-il un essai gratuit ?', a: 'Oui, chaque nouveau compte commence avec un essai gratuit de 30 jours donnant accès aux fonctionnalités Starter.' },
+    cancelAnytime: { q: 'Puis-je annuler à tout moment ?', a: 'Oui, il n\u2019y a aucun engagement à long terme. Vous pouvez annuler votre abonnement à tout moment depuis cette page.' },
+    annualDiscount: { q: 'Proposez-vous des réductions pour la facturation annuelle ?', a: 'Oui, passer à la facturation annuelle vous fait économiser jusqu\u2019à 17% par rapport au paiement mensuel.' },
+  },
+  ht: {
+    changePlans: { q: 'Mwen ka chanje plan pita?', a: 'Wi, ou ka monte oswa desann plan ou nenpòt kilè soti nan paj sa a. Chanjman yo aplike imedyatman.' },
+    exceedLimit: { q: 'Kisa ki rive si m depase limit manm mwen an?', a: 'Ou ka ajoute plis manm pou yon ti ogmantasyon, ki make sou chak kat plan, oswa monte nan nivo pi wo a.' },
+    freeTrial: { q: 'Èske gen yon esè gratis?', a: 'Wi, chak nouvo kont kòmanse ak yon esè gratis 30 jou ki bay aksè a fonksyonalite Starter yo.' },
+    cancelAnytime: { q: 'Mwen ka anile nenpòt kilè?', a: 'Wi, pa gen kontra alontèm. Ou ka anile abònman w nenpòt kilè soti nan paj sa a.' },
+    annualDiscount: { q: 'Èske nou ofri rabè pou fakti chak ane?', a: 'Wi, chanje pou fakti chak ane fè w ekonomize jiska 17% konpare ak peman chak mwa.' },
+  },
+  es: {
+    changePlans: { q: '¿Puedo cambiar de plan más adelante?', a: 'Sí, puedes subir o bajar de plan en cualquier momento desde esta página. Los cambios se aplican de inmediato.' },
+    exceedLimit: { q: '¿Qué pasa si supero mi límite de miembros?', a: 'Puedes agregar más miembros por un pequeño incremento, indicado en cada tarjeta de plan, o subir al siguiente nivel.' },
+    freeTrial: { q: '¿Hay una prueba gratuita?', a: 'Sí, cada cuenta nueva comienza con una prueba gratuita de 30 días con acceso a las funciones de Starter.' },
+    cancelAnytime: { q: '¿Puedo cancelar en cualquier momento?', a: 'Sí, no hay contratos a largo plazo. Puedes cancelar tu suscripción en cualquier momento desde esta página.' },
+    annualDiscount: { q: '¿Ofrecen descuentos por facturación anual?', a: 'Sí, cambiar a facturación anual te ahorra hasta un 17% comparado con el pago mensual.' },
+  },
+  pt: {
+    changePlans: { q: 'Posso mudar de plano depois?', a: 'Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento nesta página. As mudanças têm efeito imediato.' },
+    exceedLimit: { q: 'O que acontece se eu exceder meu limite de membros?', a: 'Você pode adicionar mais membros por um pequeno acréscimo, mostrado em cada cartão de plano, ou fazer upgrade para o próximo nível.' },
+    freeTrial: { q: 'Existe um teste grátis?', a: 'Sim, toda nova conta começa com um teste grátis de 30 dias com acesso aos recursos do Starter.' },
+    cancelAnytime: { q: 'Posso cancelar a qualquer momento?', a: 'Sim, não há contratos de longo prazo. Você pode cancelar sua assinatura a qualquer momento nesta página.' },
+    annualDiscount: { q: 'Vocês oferecem descontos para cobrança anual?', a: 'Sim, mudar para cobrança anual economiza até 17% em comparação com o pagamento mensal.' },
+  },
+};
+const fq = (lang: string, key: string, field: 'q' | 'a') => {
+  const value = FAQ_T[lang]?.[key]?.[field];
+  const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
+  if (!isBroken) return value;
+  return FAQ_T['en'][key][field];
 };
 
 interface PlanDef {
@@ -159,7 +211,7 @@ const PLANS: PlanDef[] = [
     groups: '2 groups',
     reports: 'Basic reports',
     support: 'Email support',
-    additional: ['Everything in Free', 'Reminders', 'Document Center'],
+    additional: ['Everything in Free', 'Reminders', 'Document Center', 'White label (Basic)'],
     ctaAction: 'checkout',
     ctaLabel: 'Get Starter',
     scaling: { membersIncrement: 100, priceIncrement: 5 },
@@ -179,7 +231,7 @@ const PLANS: PlanDef[] = [
     groups: '10 groups',
     reports: 'Advanced reports',
     support: 'Priority support',
-    additional: ['Everything in Starter', 'Export tools'],
+    additional: ['Everything in Starter', 'Export tools', 'White label (Advanced)'],
     ctaAction: 'checkout',
     ctaLabel: 'Get Growth',
     scaling: { membersIncrement: 100, priceIncrement: 4 },
@@ -199,7 +251,7 @@ const PLANS: PlanDef[] = [
     groups: '50 groups',
     reports: 'Advanced administration',
     support: 'Dedicated support',
-    additional: ['Everything in Growth', 'API access'],
+    additional: ['Everything in Growth', 'White label (Professional)'],
     ctaAction: 'checkout',
     ctaLabel: 'Get Pro',
   },
@@ -217,7 +269,7 @@ const PLANS: PlanDef[] = [
     groups: 'Unlimited groups',
     reports: 'Advanced administration',
     support: 'SLA support',
-    additional: ['White label', 'Dedicated onboarding'],
+    additional: ['Everything in Pro', 'White label (Full Customization)', 'Dedicated onboarding'],
     ctaAction: 'contact',
     ctaLabel: 'Contact Sales',
   },
@@ -730,7 +782,7 @@ function SubscriptionContent() {
         </div>
 
         {/* ===== PHASE 2: Feature comparison table ===== */}
-        <div style={{ marginTop: '48px' }}>
+        <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'compare')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'compareSub')}</p>
           <div style={{ overflowX: 'auto', background: 'white', borderRadius: '14px', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
@@ -755,9 +807,15 @@ function SubscriptionContent() {
                     { label: 'Reminders', introducedAt: 'starter' },
                     { label: 'Document Center', introducedAt: 'starter' },
                     { label: 'Export tools', introducedAt: 'growth' },
-                    { label: 'White label', introducedAt: 'enterprise' },
                     { label: 'Dedicated onboarding', introducedAt: 'enterprise' },
                   ];
+                  const WHITE_LABEL_TIER: Record<string, string> = {
+                    free: '—',
+                    starter: 'Basic',
+                    growth: 'Advanced',
+                    pro: 'Professional',
+                    enterprise: 'Full Customization',
+                  };
                   const hasFeature = (planId: string, introducedAt: string) =>
                     TIER_ORDER.indexOf(planId) >= TIER_ORDER.indexOf(introducedAt);
 
@@ -766,6 +824,7 @@ function SubscriptionContent() {
                     { label: 'Groups', get: (p) => p.groups },
                     { label: 'Reports', get: (p) => p.reports },
                     { label: 'Support', get: (p) => p.support },
+                    { label: 'White Label', get: (p) => WHITE_LABEL_TIER[p.id] },
                     ...FEATURE_INTRODUCED_AT.map((f) => ({
                       label: f.label,
                       get: (p: PlanDef) => hasFeature(p.id, f.introducedAt),
@@ -792,13 +851,13 @@ function SubscriptionContent() {
         </div>
 
         {/* ===== PHASE 3: Why Choose TARSYN ===== */}
-        <div style={{ marginTop: '56px' }}>
+        <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'why')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'whySub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             {[
               { icon: '🌍', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous — with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
-              { icon: '🔒', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure Stripe-powered payments.' },
+              { icon: '🔒', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure, PCI-compliant payment processing.' },
               { icon: '📊', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
               { icon: '💬', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
             ].map((f) => (
@@ -812,7 +871,7 @@ function SubscriptionContent() {
         </div>
 
         {/* ===== PHASE 4a: Leave a testimonial CTA — real submission flow, connects to /leave-review (Firestore 'testimonials' collection, moderated) ===== */}
-        <div style={{ marginTop: '56px' }}>
+        <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
           <div style={{ maxWidth: '520px', margin: '0 auto', background: 'white', borderRadius: '14px', padding: '28px', textAlign: 'center', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
@@ -825,25 +884,19 @@ function SubscriptionContent() {
         </div>
 
         {/* ===== PHASE 4b: FAQ accordion ===== */}
-        <div style={{ marginTop: '56px' }}>
+        <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'faqTitle')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'faqSub')}</p>
           <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
-              { q: 'Can I change plans later?', a: 'Yes, you can upgrade or downgrade your plan at any time from this page. Changes take effect immediately.' },
-              { q: 'What happens if I exceed my member limit?', a: 'You can add more members for a small increment, shown on each plan card, or upgrade to the next tier.' },
-              { q: 'Is there a free trial?', a: 'Yes, every new account starts with a 30-day free trial with access to Starter features.' },
-              { q: 'Can I cancel anytime?', a: 'Yes, there are no long-term contracts. You can cancel your subscription at any time from this page.' },
-              { q: 'Do you offer discounts for annual billing?', a: 'Yes, switching to annual billing saves you up to 17% compared to paying monthly.' },
-            ].map((item, i) => (
-              <div key={item.q} style={{ background: 'white', borderRadius: '10px', boxShadow: '0 1px 6px rgba(107,45,78,0.06)', overflow: 'hidden' }}>
+            {FAQ_ITEMS.map((item, i) => (
+              <div key={item.key} style={{ background: 'white', borderRadius: '10px', boxShadow: '0 1px 6px rgba(107,45,78,0.06)', overflow: 'hidden' }}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-                  <span style={{ color: '#4A1F38', fontSize: '13px', fontWeight: 700 }}>{item.q}</span>
+                  <span style={{ color: '#4A1F38', fontSize: '13px', fontWeight: 700 }}>{fq(lang, item.key, 'q')}</span>
                   <span style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700 }}>{openFaq === i ? '−' : '+'}</span>
                 </button>
                 {openFaq === i && (
-                  <p style={{ color: '#8B5A73', fontSize: '12.5px', lineHeight: 1.6, margin: 0, padding: '0 18px 16px' }}>{item.a}</p>
+                  <p style={{ color: '#8B5A73', fontSize: '12.5px', lineHeight: 1.6, margin: 0, padding: '0 18px 16px' }}>{fq(lang, item.key, 'a')}</p>
                 )}
               </div>
             ))}
@@ -851,7 +904,7 @@ function SubscriptionContent() {
         </div>
 
         {/* ===== PHASE 4c: Payment badges ===== */}
-        <div style={{ marginTop: '48px', marginBottom: '20px', textAlign: 'center' }}>
+        <div style={{ marginTop: '28px', marginBottom: '8px', textAlign: 'center' }}>
           <p style={{ color: '#8B5A73', fontSize: '11px', fontWeight: 600, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{st(lang, 'payments')}</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {['Visa', 'Mastercard', 'Amex', 'PayPal'].map((name) => (
