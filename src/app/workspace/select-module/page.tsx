@@ -133,12 +133,12 @@ function ChooseModuleInner() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div>
               <img src="/images/tarsyn-logo.png" alt="TARSYN" style={{ height: '32px', width: 'auto', display: 'block' }} />
-              <div style={{ color: 'rgba(251,238,221,0.75)', fontSize: '8px', letterSpacing: '2px', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+              <div style={{ color: 'rgba(251,238,221,0.9)', fontSize: '12px', fontWeight: 700, letterSpacing: '1.5px', marginTop: '4px' }}>YOUR COMMUNITY. YOUR POWER.</div>
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <h1 style={{ color: C.creme, fontSize: '20px', fontWeight: 800, margin: '0 0 2px' }}>Choose Your Module</h1>
-            <p style={{ color: 'rgba(251,238,221,0.9)', fontSize: '11.5px', margin: 0, fontWeight: 600 }}>
+            <h1 style={{ color: C.creme, fontSize: '28px', fontWeight: 800, margin: '0 0 4px' }}>Choose Your Module</h1>
+            <p style={{ color: 'rgba(251,238,221,0.9)', fontSize: '14px', margin: 0, fontWeight: 600 }}>
               {workspaceId ? 'Activating a module for your new workspace.' : 'Start with one module and expand later.'}
             </p>
           </div>
