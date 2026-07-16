@@ -340,8 +340,8 @@ function SubscriptionContent() {
       `}</style>
 
       <nav style={{ background: '#6B2D4E', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div onClick={() => router.push('/')} style={{ color: '#E9C77B', fontWeight: 800, fontSize: '18px', cursor: 'pointer' }}>
-          TARSYN
+        <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
+          <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </div>
         <button onClick={() => auth.signOut().then(() => router.push('/login'))}
           style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
