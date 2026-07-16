@@ -33,11 +33,11 @@ const LANGUAGES = [
 ];
 
 const T: Record<string, Record<string, string>> = {
-  en:  { hero1:'The Smart Way to Manage', hero2:'Your Community', cta:'Create Free Account', signin:'Sign In', trusted:'TRUSTED BY 2,400+ COMMUNITIES', sub:'Track contributions, manage members, organize your activities, and view your reports automatically.', auto:'AUTO MODE', expert:'EXPERT MODE', startAuto:'Start with Auto Mode', startExpert:'Start with Expert Mode', modeTitle:'How do you want to use TARSYN?', modeSubtitle:'Choose the experience that fits your community.' },
-  fr:  { hero1:'La façon intelligente de gérer', hero2:'votre communauté', cta:'Créer un compte gratuit', signin:'Se connecter', trusted:'UTILISÉ PAR PLUS DE 2 400 COMMUNAUTÉS', sub:'Suivez les contributions, gérez les membres, organisez vos activités et consultez vos rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en mode auto', startExpert:'Commencer en mode expert', modeTitle:'Comment souhaitez-vous utiliser TARSYN ?', modeSubtitle:'Choisissez l\u2019expérience adaptée à votre communauté.' },
-  ht:  { hero1:'Fason Entelijan pou Jere', hero2:'Kominote Ou', cta:'Kreye Kont Gratis', signin:'Konekte', trusted:'FÈ KONFYANS PA 2,400+ KOMINOTE', sub:'Swiv kontribisyon, jere manm, jenere resi ak rapò otomatikman.', auto:'MOD OTOMATIK', expert:'MOD EKSPÈ', startAuto:'Kòmanse ak Mod Otomatik', startExpert:'Kòmanse ak Mod Ekspè' },
-  es:  { hero1:'La Forma Inteligente de Gestionar', hero2:'Tu Comunidad', cta:'Crear Cuenta Gratis', signin:'Iniciar Sesión', trusted:'USADO POR 2,400+ COMUNIDADES', sub:'Rastrea contribuciones, gestiona miembros, genera recibos e informes automáticamente.', auto:'MODO AUTO', expert:'MODO EXPERTO', startAuto:'Empezar en Modo Auto', startExpert:'Empezar en Modo Experto' },
-  pt:  { hero1:'A Forma Inteligente de Gerir', hero2:'Sua Comunidade', cta:'Criar Conta Grátis', signin:'Entrar', trusted:'CONFIADO POR 2.400+ COMUNIDADES', sub:'Acompanhe contribuições, gerencie membros, gere recibos e relatórios automaticamente.', auto:'MODO AUTO', expert:'MODO ESPECIALISTA', startAuto:'Começar no Modo Auto', startExpert:'Começar no Modo Especialista' },
+  en:  { hero1:'The Smart Way to Manage', hero2:'Your Community', cta:'Create Free Account', signin:'Sign In', trusted:'BUILT FOR COMMUNITIES WORLDWIDE', sub:'Track contributions, manage members, organize your activities, and view your reports automatically.', auto:'AUTO MODE', expert:'EXPERT MODE', startAuto:'Start with Auto Mode', startExpert:'Start with Expert Mode', modeTitle:'How do you want to use TARSYN?', modeSubtitle:'Choose the experience that fits your community.' },
+  fr:  { hero1:'La façon intelligente de gérer', hero2:'votre communauté', cta:'Créer un compte gratuit', signin:'Se connecter', trusted:'CONÇU POUR LES COMMUNAUTÉS DU MONDE ENTIER', sub:'Suivez les contributions, gérez les membres, organisez vos activités et consultez vos rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en mode auto', startExpert:'Commencer en mode expert', modeTitle:'Comment souhaitez-vous utiliser TARSYN ?', modeSubtitle:'Choisissez l\u2019expérience adaptée à votre communauté.' },
+  ht:  { hero1:'Fason Entelijan pou Jere', hero2:'Kominote Ou', cta:'Kreye Kont Gratis', signin:'Konekte', trusted:'FÈT POU KOMINOTE TOUT KOTE SOU LATÈ', sub:'Swiv kontribisyon, jere manm, jenere resi ak rapò otomatikman.', auto:'MOD OTOMATIK', expert:'MOD EKSPÈ', startAuto:'Kòmanse ak Mod Otomatik', startExpert:'Kòmanse ak Mod Ekspè' },
+  es:  { hero1:'La Forma Inteligente de Gestionar', hero2:'Tu Comunidad', cta:'Crear Cuenta Gratis', signin:'Iniciar Sesión', trusted:'CREADO PARA COMUNIDADES DE TODO EL MUNDO', sub:'Rastrea contribuciones, gestiona miembros, genera recibos e informes automáticamente.', auto:'MODO AUTO', expert:'MODO EXPERTO', startAuto:'Empezar en Modo Auto', startExpert:'Empezar en Modo Experto' },
+  pt:  { hero1:'A Forma Inteligente de Gerir', hero2:'Sua Comunidade', cta:'Criar Conta Grátis', signin:'Entrar', trusted:'CRIADO PARA COMUNIDADES EM TODO O MUNDO', sub:'Acompanhe contribuições, gerencie membros, gere recibos e relatórios automaticamente.', auto:'MODO AUTO', expert:'MODO ESPECIALISTA', startAuto:'Começar no Modo Auto', startExpert:'Começar no Modo Especialista' },
 };
 // Translation fallback rule: Manual → Verified → English → key itself.
 // Never expose broken/empty/mojibake text — always fall back to English first.
@@ -65,13 +65,7 @@ const MODULES = [
   {icon:'🛒',title:'Commerce',desc:'Orders, inventory, group sales, vendor payouts',tag:'V3'},
 ];
 
-// ── TESTIMONIALS — anonymized, photo + quote only ────────────────
-const TESTIMONIALS = [
-  {text:'TARSYN transformed how we manage our Sol group. Everything is automatic now!',img:'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=face'},
-  {text:'Our tontine has 30 members and TARSYN handles all the rotations perfectly.',img:'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=80&h=80&fit=crop&crop=face'},
-  {text:'Finally an app that understands our community. Receipts are generated automatically!',img:'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=80&h=80&fit=crop&crop=face'},
-  {text:'We manage our association with ease. The reports save us hours every month.',img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'},
-];
+// TESTIMONIALS array removed — replaced by real /leave-review submission flow (Firestore, moderated).
 
 const COMMUNITY_IMGS = [
   'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&h=400&fit=crop',
@@ -111,7 +105,6 @@ export default function HomePage() {
   const [showCustom, setShowCustom] = useState(false);
   const [hoverCard, setHoverCard]   = useState<string|null>(null);
   const [hoverMode, setHoverMode]   = useState<string|null>(null);
-  const [activeT, setActiveT]       = useState(0);
   const [activeImg, setActiveImg]   = useState(0);
   const [mounted, setMounted]       = useState(false);
   const [openFaq, setOpenFaq]       = useState<number|null>(null);
@@ -121,9 +114,8 @@ export default function HomePage() {
 
   useEffect(()=>{
     setMounted(true);
-    const ti = setInterval(()=>setActiveT(p=>(p+1)%TESTIMONIALS.length),3500);
     const ii = setInterval(()=>setActiveImg(p=>(p+1)%COMMUNITY_IMGS.length),4000);
-    return()=>{clearInterval(ti);clearInterval(ii);};
+    return()=>{clearInterval(ii);};
   },[]);
 
   const handleLangChange = (val: string) => {
@@ -246,12 +238,7 @@ export default function HomePage() {
             </a>
           </div>
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginTop:'52px',flexWrap:'wrap',gap:'4px'}}>
-            {TESTIMONIALS.map((a,idx)=>(
-              <div key={idx} style={{width:'46px',height:'46px',borderRadius:'50%',overflow:'hidden',border:'3px solid rgba(233,199,123,0.6)',marginLeft:idx>0?'-12px':'0',zIndex:10-idx,boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
-                <img src={a.img} alt="community member" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-              </div>
-            ))}
-            <span style={{color:'rgba(251,238,221,0.75)',fontSize:'13px',marginLeft:'18px',fontWeight:'500'}}>+2,400 communities worldwide</span>
+            <span style={{color:'rgba(251,238,221,0.75)',fontSize:'13px',fontWeight:'500'}}>🎁 30-day free trial · No credit card required</span>
           </div>
         </div>
       </div>
@@ -337,7 +324,7 @@ export default function HomePage() {
       {/* ── STATS ── */}
       <div style={{background:'#EAD9BE',padding:'44px 32px'}}>
         <div style={{display:'flex',justifyContent:'center',gap:'64px',flexWrap:'wrap'}}>
-          {[['2,400+','Communities Worldwide'],['25','Languages Supported'],['100%','Automatic & Secure'],['∞','Members — No Limit']].map(([v,l])=>(
+          {[['30-Day','Free Trial'],['25','Languages Supported'],['100%','Automatic & Secure'],['5','Plans — Free to Enterprise']].map(([v,l])=>(
             <div key={l} style={{textAlign:'center'}}>
               <div style={{fontSize:'38px',fontWeight:'800',color:'#6B2D4E'}}>{v}</div>
               <div style={{fontSize:'13px',color:'#6B2D4E',marginTop:'6px',fontWeight:'500'}}>{l}</div>
@@ -370,22 +357,17 @@ export default function HomePage() {
           section is intentionally removed from the public Home Page. Module selection
           now happens only after account + workspace creation (see New User Flow). */}
 
-      {/* ── TESTIMONIALS — anonymized: photo + quote only, no name/country ── */}
+      {/* ── LEAVE A TESTIMONIAL — real submission flow via /leave-review, connects to
+          Firestore 'testimonials' collection with moderation. No fabricated content. ── */}
       <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
-        <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'44px',fontSize:'14px'}}>Real stories from real communities worldwide</p>
-        <div style={{maxWidth:'600px',margin:'0 auto'}}>
-          {mounted&&<div key={activeT} className="tcard" style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'18px',padding:'36px'}}>
-            <p style={{color:'#FBEEDD',fontSize:'16px',lineHeight:'1.8',marginBottom:'28px',fontStyle:'italic'}}>"{TESTIMONIALS[activeT].text}"</p>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
-              <img src={TESTIMONIALS[activeT].img} alt="community member" style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover',border:'2px solid #E9C77B'}}/>
-            </div>
-          </div>}
-          <div style={{display:'flex',justifyContent:'center',gap:'8px',marginTop:'24px'}}>
-            {TESTIMONIALS.map((_,i)=>(
-              <div key={i} onClick={()=>setActiveT(i)} style={{width:i===activeT?'28px':'8px',height:'8px',borderRadius:'4px',background:i===activeT?'#E9C77B':'rgba(255,255,255,0.3)',cursor:'pointer',transition:'all 0.3s ease'}}></div>
-            ))}
-          </div>
+        <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'32px',fontSize:'14px'}}>Real reviews from real TARSYN organizers and members</p>
+        <div style={{maxWidth:'480px',margin:'0 auto',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'18px',padding:'36px'}}>
+          <div style={{fontSize:'30px',marginBottom:'10px'}}>💬</div>
+          <p style={{color:'#FBEEDD',fontSize:'14px',marginBottom:'20px',lineHeight:'1.6'}}>Are you already using TARSYN? Share your experience with future organizers.</p>
+          <a href="/leave-review" style={{display:'inline-block',padding:'12px 28px',background:'#E9C77B',color:'#6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'800',textDecoration:'none'}}>
+            Leave a Testimonial
+          </a>
         </div>
       </div>
 
