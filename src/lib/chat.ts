@@ -42,6 +42,8 @@ export interface ChatMessage {
   readBy: string[];
   deletedFor?: string[];
   deletedForEveryone?: boolean;
+  replyTo?: { id: string; text: string; senderName: string } | null;
+  forwarded?: boolean;
 }
 
 function formatDuration(totalSeconds: number): string {
@@ -135,19 +137,24 @@ export async function sendMessage(
   chatId: string,
   senderId: string,
   senderName: string,
-  text: string
+  text: string,
+  options?: { replyTo?: { id: string; text: string; senderName: string } | null; forwarded?: boolean }
 ): Promise<void> {
   const trimmed = text.trim();
   if (!trimmed) return;
 
-  await addDoc(collection(db, 'chats', chatId, 'messages'), {
+  const payload: any = {
     senderId,
     senderName,
     text: trimmed,
     type: 'text',
     createdAt: serverTimestamp(),
     readBy: [senderId],
-  });
+  };
+  if (options?.replyTo) payload.replyTo = options.replyTo;
+  if (options?.forwarded) payload.forwarded = true;
+
+  await addDoc(collection(db, 'chats', chatId, 'messages'), payload);
 
   await updateDoc(doc(db, 'chats', chatId), {
     lastMessage: { text: trimmed, senderId, createdAt: serverTimestamp() },

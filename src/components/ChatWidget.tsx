@@ -113,6 +113,11 @@ export default function ChatWidget() {
   const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null);
   const [openMsgMenu, setOpenMsgMenu] = useState<string | null>(null);
 
+  // --- NEW: reply, forward, profile ---
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [forwardingMsg, setForwardingMsg] = useState<ChatMessage | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
@@ -174,9 +179,17 @@ export default function ChatWidget() {
     if (!text.trim() || !user || !activeChatId) return;
     const senderName = user.displayName || user.email?.split('@')[0] || 'Member';
     const toSend = text.trim();
+    const reply = replyingTo ? { id: replyingTo.id, text: replyingTo.text, senderName: replyingTo.senderName } : null;
     setText('');
     setShowEmoji(false);
-    await sendMessage(activeChatId, user.uid, senderName, toSend);
+    setReplyingTo(null);
+    await sendMessage(activeChatId, user.uid, senderName, toSend, { replyTo: reply });
+  };
+  const handleForwardTo = async (targetChatId: string) => {
+    if (!forwardingMsg || !user) return;
+    const senderName = user.displayName || user.email?.split('@')[0] || 'Member';
+    await sendMessage(targetChatId, user.uid, senderName, forwardingMsg.text, { forwarded: true });
+    setForwardingMsg(null);
   };
   const addEmoji = (emoji: string) => setText((t) => t + emoji);
   const handleClearChat = async () => {
@@ -337,6 +350,7 @@ export default function ChatWidget() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
                   style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
+                <div onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: `linear-gradient(135deg, ${avatarGradient(activeChatName)[0]}, ${avatarGradient(activeChatName)[1]})`,
@@ -346,6 +360,7 @@ export default function ChatWidget() {
                   {activeChatName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <span style={{ fontWeight: 700, fontSize: '14px' }}>{activeChatName}</span>
+                </div>
               </div>
             ) : (
               <span style={{ fontWeight: 700, fontSize: '15px' }}>💬 Chats</span>
@@ -468,7 +483,20 @@ export default function ChatWidget() {
                             <p style={{ margin: 0, fontSize: '12.5px', color: C.textGris, fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '5px' }}>
                               <TrashIcon size={12} /> This message was deleted
                             </p>
-                          ) : m.type === 'audio' && m.mediaUrl ? (
+                          ) : (
+                            <>
+                              {m.forwarded && (
+                                <p style={{ margin: '0 0 3px', fontSize: '10px', color: C.textGris, fontStyle: 'italic' }}>↪ Forwarded</p>
+                              )}
+                              {m.replyTo && (
+                                <div style={{ borderLeft: `3px solid ${C.dore}`, background: C.bg, borderRadius: '4px', padding: '4px 7px', marginBottom: '4px' }}>
+                                  <p style={{ margin: 0, fontSize: '10.5px', fontWeight: 700, color: C.bordeaux }}>{m.replyTo.senderName}</p>
+                                  <p style={{ margin: 0, fontSize: '11px', color: C.textGris, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '190px' }}>{m.replyTo.text}</p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {isDeleted ? null : m.type === 'audio' && m.mediaUrl ? (
                             <div>
                               <audio controls src={m.mediaUrl} style={{ width: '190px', display: 'block' }} />
                               <p style={{ margin: '3px 2px 0', fontSize: '10px', color: C.textGris, display: 'flex', alignItems: 'center', gap: '4px' }}><MicIcon size={11} /> Voice message</p>
@@ -501,6 +529,14 @@ export default function ChatWidget() {
                             background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
                             border: `1px solid ${C.border}`, minWidth: '160px', zIndex: 40, overflow: 'hidden',
                           } as React.CSSProperties}>
+                          <button className="cw-menu-item" onClick={() => { setReplyingTo(m); setOpenMsgMenu(null); }}
+                            style={{ width: '100%', padding: '9px 13px', background: 'none', border: 'none', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: C.textDark, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                            ↩ Reply
+                          </button>
+                          <button className="cw-menu-item" onClick={() => { setForwardingMsg(m); setOpenMsgMenu(null); }}
+                            style={{ width: '100%', padding: '9px 13px', background: 'none', border: 'none', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: C.textDark, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                            ↪ Forward
+                          </button>
                           {isMine && (
                             <button className="cw-menu-item" onClick={() => handleDeleteForEveryone(m.id)}
                               style={{ width: '100%', padding: '9px 13px', background: 'none', border: 'none', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: C.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
@@ -574,6 +610,17 @@ export default function ChatWidget() {
                   )}
                 </div>
               ) : (
+                <>
+                  {replyingTo && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '7px 12px', background: C.bg, borderTop: `1px solid ${C.border}` }}>
+                      <div style={{ borderLeft: `3px solid ${C.bordeaux}`, paddingLeft: '8px', minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: '10.5px', fontWeight: 700, color: C.bordeaux }}>Replying to {replyingTo.senderName}</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: C.textGris, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{replyingTo.text}</p>
+                      </div>
+                      <button onClick={() => setReplyingTo(null)}
+                        style={{ background: 'none', border: 'none', color: C.textGris, fontSize: '14px', cursor: 'pointer', flexShrink: 0 }}>✕</button>
+                    </div>
+                  )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '10px', background: C.white, borderTop: `1px solid ${C.border}` }}>
                   <button onClick={() => setShowEmoji(!showEmoji)}
                     style={{ background: 'none', border: 'none', fontSize: '19px', cursor: 'pointer', padding: '0 2px', flexShrink: 0 }}>😊</button>
@@ -597,6 +644,7 @@ export default function ChatWidget() {
                     <SendIcon size={15} />
                   </button>
                 </div>
+                </>
               )}
             </>
           )}
@@ -644,6 +692,60 @@ export default function ChatWidget() {
                     </button>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+          {forwardingMsg && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10001, padding: '20px' }}
+              onClick={() => setForwardingMsg(null)}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: C.white, borderRadius: '14px', padding: '16px', maxWidth: '320px', width: '100%', maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: 800, margin: '0 0 4px' }}>Forward message</h3>
+                <p style={{ color: C.textGris, fontSize: '11.5px', margin: '0 0 10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{forwardingMsg.text}</p>
+                <div style={{ overflowY: 'auto', flex: 1 }}>
+                  {chats.filter((c) => c.id !== activeChatId).length === 0 ? (
+                    <p style={{ color: C.textGris, fontSize: '12.5px', textAlign: 'center', marginTop: '20px' }}>No other conversations.</p>
+                  ) : (
+                    chats.filter((c) => c.id !== activeChatId).map((c) => {
+                      const grad = avatarGradient(c.name || '?');
+                      return (
+                        <div key={c.id} onClick={() => handleForwardTo(c.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 8px', borderRadius: '8px', cursor: 'pointer' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = C.bg)}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                          <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', color: 'white', flexShrink: 0 }}>
+                            {c.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <span style={{ fontSize: '13px', color: C.textDark, fontWeight: 600 }}>{c.name}</span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                <button onClick={() => setForwardingMsg(null)}
+                  style={{ marginTop: '10px', padding: '9px', background: 'transparent', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {showProfileModal && activeChatId && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10001, padding: '20px' }}
+              onClick={() => setShowProfileModal(false)}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: C.white, borderRadius: '14px', padding: '24px', maxWidth: '300px', width: '100%', textAlign: 'center' }}>
+                <div style={{
+                  width: '76px', height: '76px', borderRadius: '50%', margin: '0 auto 14px',
+                  background: `linear-gradient(135deg, ${avatarGradient(activeChatName)[0]}, ${avatarGradient(activeChatName)[1]})`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '28px', color: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                }}>
+                  {activeChatName?.[0]?.toUpperCase() || '?'}
+                </div>
+                <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 4px' }}>{activeChatName}</h3>
+                <p style={{ color: C.textGris, fontSize: '12px', margin: '0 0 18px' }}>TARSYN member</p>
+                <button onClick={() => setShowProfileModal(false)}
+                  style={{ width: '100%', padding: '10px', background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                  Close
+                </button>
               </div>
             </div>
           )}
