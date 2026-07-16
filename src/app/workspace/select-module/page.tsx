@@ -131,7 +131,6 @@ function ChooseModuleInner() {
       <div style={{ background: `linear-gradient(135deg, ${C.dore} 0%, ${C.doreDark} 100%)`, padding: '20px 32px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: C.doreDark, fontWeight: 800, flexShrink: 0 }}>✦</div>
             <div>
               <div style={{ color: C.creme, fontSize: '17px', fontWeight: 800, letterSpacing: '2px' }}>TARSYN</div>
               <div style={{ color: 'rgba(251,238,221,0.75)', fontSize: '8px', letterSpacing: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
