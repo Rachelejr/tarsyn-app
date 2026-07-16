@@ -166,6 +166,7 @@ function SubscriptionContent() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCanceled, setShowCanceled] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const success = searchParams.get('success');
   const canceled = searchParams.get('canceled');
@@ -619,6 +620,128 @@ function SubscriptionContent() {
             <span>Cancel anytime</span>
             <span>No hidden fees</span>
             <span>Secure payments</span>
+          </div>
+        </div>
+
+        {/* ===== PHASE 2: Feature comparison table ===== */}
+        <div style={{ marginTop: '48px' }}>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>Compare Plans</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>See exactly what's included in each plan.</p>
+          <div style={{ overflowX: 'auto', background: 'white', borderRadius: '14px', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #EAD9BE' }}>
+                  <th style={{ textAlign: 'left', padding: '14px 16px', fontSize: '12px', color: '#6B2D4E', fontWeight: 700 }}>Feature</th>
+                  {PLANS.map((p) => (
+                    <th key={p.id} style={{ textAlign: 'center', padding: '14px 10px', fontSize: '12px', color: p.color, fontWeight: 800 }}>
+                      {p.icon} {p.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { label: 'Members', get: (p: PlanDef) => p.members },
+                  { label: 'Groups', get: (p: PlanDef) => p.groups },
+                  { label: 'Reports', get: (p: PlanDef) => p.reports },
+                  { label: 'Support', get: (p: PlanDef) => p.support },
+                  { label: 'Document Center', get: (p: PlanDef) => p.additional.some(a => a.includes('Document Center')) },
+                  { label: 'Export tools', get: (p: PlanDef) => p.additional.some(a => a.includes('Export')) },
+                  { label: 'API access', get: (p: PlanDef) => p.additional.some(a => a.includes('API')) },
+                  { label: 'White label', get: (p: PlanDef) => p.additional.some(a => a.includes('White label')) },
+                  { label: 'Dedicated onboarding', get: (p: PlanDef) => p.additional.some(a => a.includes('Dedicated onboarding')) },
+                ].map((row, i) => (
+                  <tr key={row.label} style={{ borderBottom: '1px solid #F5EBDC', background: i % 2 === 0 ? 'white' : '#FFFBF4' }}>
+                    <td style={{ padding: '12px 16px', fontSize: '12.5px', color: '#4A1F38', fontWeight: 600 }}>{row.label}</td>
+                    {PLANS.map((p) => {
+                      const val = row.get(p);
+                      return (
+                        <td key={p.id} style={{ textAlign: 'center', padding: '12px 10px', fontSize: '12px', color: '#6B2D4E' }}>
+                          {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>✓</span> : <span style={{ color: '#D9C0CC' }}>—</span>) : val}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ===== PHASE 3: Why Choose TARSYN ===== */}
+        <div style={{ marginTop: '56px' }}>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>Why Choose TARSYN</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>Built specifically for community savings groups.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            {[
+              { icon: '🌍', title: 'Built for Communities', desc: 'Designed for tontines, sols, and sou-sous, with support for 25+ languages worldwide.' },
+              { icon: '🔒', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure Stripe-powered payments.' },
+              { icon: '📊', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
+              { icon: '💬', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
+            ].map((f) => (
+              <div key={f.title} style={{ background: 'white', borderRadius: '14px', padding: '20px 16px', textAlign: 'center', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
+                <div style={{ fontSize: '30px', marginBottom: '8px' }}>{f.icon}</div>
+                <h3 style={{ color: '#6B2D4E', fontSize: '14px', fontWeight: 800, margin: '0 0 6px' }}>{f.title}</h3>
+                <p style={{ color: '#8B5A73', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ===== PHASE 4a: Testimonials ===== */}
+        <div style={{ marginTop: '56px' }}>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>What Our Community Says</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>Trusted by organizers around the world.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+            {[
+              { name: 'Josephine M.', role: 'Tontine Organizer, Brooklyn', quote: 'TARSYN made it so easy to keep track of contributions. My members love the transparency.' },
+              { name: 'Daniel K.', role: 'Church Treasurer, Miami', quote: 'The automatic reports save me hours every month. I recommend it to every organization I know.' },
+              { name: 'Amara T.', role: 'Sou-Sou Coordinator, Toronto', quote: 'Finally a platform that understands how our community savings groups actually work.' },
+            ].map((t) => (
+              <div key={t.name} style={{ background: 'white', borderRadius: '14px', padding: '20px', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
+                <p style={{ color: '#4A1F38', fontSize: '13px', fontStyle: 'italic', margin: '0 0 14px', lineHeight: 1.6 }}>&ldquo;{t.quote}&rdquo;</p>
+                <p style={{ color: '#6B2D4E', fontSize: '12.5px', fontWeight: 800, margin: 0 }}>{t.name}</p>
+                <p style={{ color: '#8B5A73', fontSize: '11px', margin: 0 }}>{t.role}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ===== PHASE 4b: FAQ accordion ===== */}
+        <div style={{ marginTop: '56px' }}>
+          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>Pricing Questions</h2>
+          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>Everything you need to know about billing.</p>
+          <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[
+              { q: 'Can I change plans later?', a: 'Yes, you can upgrade or downgrade your plan at any time from this page. Changes take effect immediately.' },
+              { q: 'What happens if I exceed my member limit?', a: 'You can add more members for a small increment, shown on each plan card, or upgrade to the next tier.' },
+              { q: 'Is there a free trial?', a: 'Yes, every new account starts with a 30-day free trial with access to Starter features.' },
+              { q: 'Can I cancel anytime?', a: 'Yes, there are no long-term contracts. You can cancel your subscription at any time from this page.' },
+              { q: 'Do you offer discounts for annual billing?', a: 'Yes, switching to annual billing saves you up to 17% compared to paying monthly.' },
+            ].map((item, i) => (
+              <div key={item.q} style={{ background: 'white', borderRadius: '10px', boxShadow: '0 1px 6px rgba(107,45,78,0.06)', overflow: 'hidden' }}>
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ color: '#4A1F38', fontSize: '13px', fontWeight: 700 }}>{item.q}</span>
+                  <span style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700 }}>{openFaq === i ? '−' : '+'}</span>
+                </button>
+                {openFaq === i && (
+                  <p style={{ color: '#8B5A73', fontSize: '12.5px', lineHeight: 1.6, margin: 0, padding: '0 18px 16px' }}>{item.a}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ===== PHASE 4c: Payment badges ===== */}
+        <div style={{ marginTop: '48px', marginBottom: '20px', textAlign: 'center' }}>
+          <p style={{ color: '#8B5A73', fontSize: '11px', fontWeight: 600, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Secure payments powered by Stripe</p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {['Visa', 'Mastercard', 'Amex', 'PayPal'].map((name) => (
+              <span key={name} style={{ background: 'white', border: '1px solid #EAD9BE', borderRadius: '8px', padding: '6px 14px', fontSize: '11.5px', fontWeight: 700, color: '#6B2D4E' }}>
+                {name}
+              </span>
+            ))}
           </div>
         </div>
       </div>
