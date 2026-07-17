@@ -223,7 +223,7 @@ function LoginPageInner() {
 
         <div style={{ marginBottom: '2rem' }}>
           <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
-          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY</p>
+          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY. YOUR POWER.</p>
         </div>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
