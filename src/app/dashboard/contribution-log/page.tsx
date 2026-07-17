@@ -133,9 +133,13 @@ function RegisterContent() {
   const cycles = useMemo(() => {
     const set = new Set<number>();
     payments.forEach(p => { if (typeof p.cycle === 'number') set.add(p.cycle); });
-    const max = set.size > 0 ? Math.max(...set) : 4;
-    return Array.from({ length: Math.max(max, 4) }, (_, i) => i + 1);
-  }, [payments]);
+    const highestRecorded = set.size > 0 ? Math.max(...set) : 0;
+    // A tontine cycle = one full rotation (every member contributes, one member is paid out).
+    // Total cycles should reflect the group's actual configured size — falling back to the
+    // real member count, and only to a hardcoded 4 if neither is available yet.
+    const configuredTotal = group?.numMembers || members.length || 4;
+    return Array.from({ length: Math.max(highestRecorded, configuredTotal) }, (_, i) => i + 1);
+  }, [payments, group, members]);
 
   // The "current cycle" is the first cycle not yet fully paid by every member —
   // not simply the last cycle in the list (that made it always equal the total
