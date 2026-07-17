@@ -322,7 +322,7 @@ function OverviewContent() {
           <p style={{ color: 'rgba(251,238,221,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports — all automatic.</p>
         </div>
 
-        <button onClick={() => router.push('/dashboard')} className="btn-action" style={{ background: 'rgba(233,199,123,0.08)', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '5px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', justifySelf: 'end' }}>
+        <button onClick={() => { window.location.href = '/dashboard'; }} className="btn-action" style={{ background: 'rgba(233,199,123,0.08)', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '5px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', justifySelf: 'end' }}>
           ← Dashboard
         </button>
       </nav>
