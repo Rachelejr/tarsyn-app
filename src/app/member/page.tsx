@@ -338,12 +338,12 @@ function MemberContent() {
     setDeletingId(d.id);
     try {
       if (d.storagePath) {
-        try { await deleteObject(ref(storage, d.storagePath)); } catch {}
+        try { await deleteObject(ref(storage, d.storagePath)); } catch { /* file may already be gone from storage - not fatal */ }
       }
       await deleteDoc(doc(db, 'documents', d.id));
       setDocs(docs.filter(x => x.id !== d.id));
-    } catch (e) {
-      setError('Could not delete this file.');
+    } catch (e: any) {
+      setError('Could not delete this file: ' + (e?.message || 'unknown error'));
     } finally {
       setDeletingId(null);
     }
@@ -364,11 +364,11 @@ function MemberContent() {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Delete failed');
+        throw new Error(errData.error || `Delete failed (${res.status})`);
       }
       setDocs(docs.filter(x => x.id !== d.id));
-    } catch (e) {
-      setError('Could not delete this file.');
+    } catch (e: any) {
+      setError('Could not delete this file: ' + (e?.message || 'unknown error'));
     } finally {
       setDeletingId(null);
     }
