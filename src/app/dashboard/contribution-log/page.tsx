@@ -137,7 +137,19 @@ function RegisterContent() {
     return Array.from({ length: Math.max(max, 4) }, (_, i) => i + 1);
   }, [payments]);
 
-  const currentCycle = cycles.length > 0 ? cycles[cycles.length - 1] : 1;
+  // The "current cycle" is the first cycle not yet fully paid by every member —
+  // not simply the last cycle in the list (that made it always equal the total
+  // cycle count, so "Cycles" and "Current Cycle" always showed the same number).
+  const currentCycle = useMemo(() => {
+    for (const c of cycles) {
+      const allPaid = members.length > 0 && members.every(m => {
+        const p = payments.find(pp => pp.memberId === m.id && pp.cycle === c);
+        return p && p.status === 'confirmed';
+      });
+      if (!allPaid) return c;
+    }
+    return cycles[cycles.length - 1] || 1;
+  }, [cycles, members, payments]);
 
   const getPaymentFor = (memberId: string, cycle: number) => payments.find(p => p.memberId === memberId && p.cycle === cycle);
 
