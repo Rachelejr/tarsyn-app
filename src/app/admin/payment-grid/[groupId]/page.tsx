@@ -113,14 +113,16 @@ export default function PaymentGridPage() {
   async function loadGrid() {
     setLoading(true);
     try {
-      const groupSnap = await getDoc(doc(db, 'groups', groupId));
+      const [groupSnap, gridSnap] = await Promise.all([
+        getDoc(doc(db, 'groups', groupId)),
+        getDoc(doc(db, 'paymentGrids', gridId)),
+      ]);
       if (groupSnap.exists()) {
         setGroupName(groupSnap.data().name || 'Group');
         const amt = groupSnap.data().weeklyAmount || groupSnap.data().contributionAmount;
         if (typeof amt === 'number') setWeeklyAmount(amt);
       }
 
-      const gridSnap = await getDoc(doc(db, 'paymentGrids', gridId));
       let loadedGrid: Grid;
 
       if (gridSnap.exists()) {
@@ -183,6 +185,7 @@ export default function PaymentGridPage() {
       const refreshedSlots: Record<string, Slot> = {};
       const collectedUserIds: Record<string, string> = {};
       const collectedAmounts: Record<string, number> = {};
+      const collectedMeta: Record<string, MemberMeta> = {};
       await Promise.all(
         Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
           let displayName = slot.memberName;
@@ -193,6 +196,18 @@ export default function PaymentGridPage() {
               displayName = d.fullName || d.name || '(no name)';
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
               if (typeof d.expectedAmount === 'number') collectedAmounts[slot.memberId] = d.expectedAmount;
+
+              // Merged from the former loadMemberMeta() — same member document,
+              // no need for a second separate Firestore read afterward.
+              const status = d.status || 'active';
+              let joinedLabel = '';
+              const rawDate = d.joinedAt || d.createdAt;
+              if (rawDate?.toDate) {
+                joinedLabel = rawDate.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              } else if (typeof rawDate === 'string') {
+                joinedLabel = new Date(rawDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              }
+              collectedMeta[slot.memberId] = { status, joinedLabel };
             }
           } catch {
             // Silent fail - keep the previously stored name.
@@ -208,10 +223,10 @@ export default function PaymentGridPage() {
       loadedGrid = { ...loadedGrid, slots: refreshedSlots };
       setMemberUserIds(collectedUserIds);
       setMemberAmounts(collectedAmounts);
+      setMemberMeta(collectedMeta);
 
       setGrid(loadedGrid);
       setPendingPayments(loadedGrid.payments || {});
-      await loadMemberMeta(loadedGrid);
     } catch (err) {
       console.error('Error loading grid:', err);
     } finally {
@@ -219,45 +234,9 @@ export default function PaymentGridPage() {
     }
   }
 
-  async function loadMemberMeta(loadedGrid: Grid) {
-    const memberIds = Array.from(
-      new Set(Object.values(loadedGrid.slots).map((s) => s.memberId))
-    ).filter(Boolean);
+  // loadMemberMeta was merged into loadGrid()'s main Promise.all above —
+  // it fetched the same member documents a second time, which is now avoided.
 
-    const meta: Record<string, MemberMeta> = {};
-
-    await Promise.all(
-      memberIds.map(async (id) => {
-        try {
-          const snap = await getDoc(doc(db, 'members', id));
-          if (snap.exists()) {
-            const data = snap.data();
-            const status = data.status || 'active';
-            let joinedLabel = '';
-            const rawDate = data.joinedAt || data.createdAt;
-            if (rawDate?.toDate) {
-              joinedLabel = rawDate.toDate().toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              });
-            } else if (typeof rawDate === 'string') {
-              joinedLabel = new Date(rawDate).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              });
-            }
-            meta[id] = { status, joinedLabel };
-          }
-        } catch {
-          // Silent fail - display-only metadata, never blocks the grid.
-        }
-      })
-    );
-
-    setMemberMeta(meta);
-  }
 
   // Local-only toggle - nothing is written to Firestore until Save Payments is clicked
   function toggleQueuedPayment(slotNumber: string, weekIndex: string) {
