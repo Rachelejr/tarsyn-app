@@ -672,6 +672,9 @@ export default function PaymentGridPage() {
 
           {/* Primary action bar */}
           <div className="tarsyn-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => router.push('/dashboard/overview?groupId=' + groupId)} style={btnStyle('secondary')}>
+              ← Overview
+            </button>
             <button
               onClick={handleSaveAll}
               disabled={!hasChanges || savingAll}
