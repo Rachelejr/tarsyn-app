@@ -106,6 +106,7 @@ function RegisterContent() {
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState('');
+  const [statusError, setStatusError] = useState('');
   const [statusMenu, setStatusMenu] = useState<{ memberId: string; cycle: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -163,6 +164,7 @@ function RegisterContent() {
   const handleStatusChange = async (memberId: string, cycle: number, newStatus: PaymentStatus) => {
     const existing = getPaymentFor(memberId, cycle);
     const firestoreStatus = newStatus === 'paid' ? 'confirmed' : newStatus;
+    setStatusError('');
     try {
       if (existing) {
         await updateDoc(doc(db, 'payments', existing.id), { status: firestoreStatus });
@@ -170,13 +172,16 @@ function RegisterContent() {
       } else {
         const member = members.find(m => m.id === memberId);
         const newDoc = await addDoc(collection(db, 'payments'), {
-          memberId, memberName: member?.name || '', cycle, status: firestoreStatus, amount: 0,
+          memberId, memberName: member?.fullName || member?.name || '', cycle, status: firestoreStatus, amount: 0,
           currency: payments[0]?.currency || '', organizerId,
           paymentDate: new Date().toISOString().slice(0, 10), createdAt: serverTimestamp(),
         });
-        setPayments(prev => [...prev, { id: newDoc.id, memberId, memberName: member?.name || '', cycle, status: firestoreStatus, amount: 0, organizerId, paymentDate: new Date().toISOString().slice(0, 10) }]);
+        setPayments(prev => [...prev, { id: newDoc.id, memberId, memberName: member?.fullName || member?.name || '', cycle, status: firestoreStatus, amount: 0, organizerId, paymentDate: new Date().toISOString().slice(0, 10) }]);
       }
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      console.error(e);
+      setStatusError('Could not save this status change: ' + (e?.message || 'unknown error'));
+    }
   };
 
   const getBalance = (memberId: string) => payments.filter(p => p.memberId === memberId && p.status === 'confirmed').reduce((s, p) => s + (p.amount || 0), 0);
@@ -187,7 +192,7 @@ function RegisterContent() {
 
   const handleExportExcel = () => {
     const rows = members.sort((a, b) => a.position - b.position).map(m => {
-      const row: any = { '#': m.position, 'TYN-ID': m.tynId, 'Name': m.name, 'Status': m.status || 'pending', 'Balance': getBalance(m.id), 'Last Payment': getLastPayment(m.id) };
+      const row: any = { '#': m.position, 'TYN-ID': m.tynId, 'Name': (m.fullName || m.name || ''), 'Status': m.status || 'pending', 'Balance': getBalance(m.id), 'Last Payment': getLastPayment(m.id) };
       cycles.forEach(c => { const p = getPaymentFor(m.id, c); row[`Cycle ${c}`] = p ? (p.status === 'confirmed' ? 'Paid' : p.status) : ''; });
       return row;
     });
@@ -198,7 +203,7 @@ function RegisterContent() {
   };
 
   const handleExportCSV = () => {
-    const rows = members.sort((a, b) => a.position - b.position).map(m => ({ '#': m.position, 'TYN-ID': m.tynId, 'Name': m.name, 'Status': m.status || 'pending', 'Balance': getBalance(m.id) }));
+    const rows = members.sort((a, b) => a.position - b.position).map(m => ({ '#': m.position, 'TYN-ID': m.tynId, 'Name': (m.fullName || m.name || ''), 'Status': m.status || 'pending', 'Balance': getBalance(m.id) }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const csv = XLSX.utils.sheet_to_csv(ws);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -221,7 +226,7 @@ function RegisterContent() {
       for (const row of rows) {
         const name = row['Name'] || row['name'];
         if (!name) { skipped++; continue; }
-        if (members.find(m => m.name?.toLowerCase() === String(name).toLowerCase())) { skipped++; continue; }
+        if (members.find(m => (m.fullName || m.name)?.toLowerCase() === String(name).toLowerCase())) { skipped++; continue; }
         await addDoc(collection(db, 'members'), {
           name: String(name), tynId: row['TYN-ID'] || row['tynId'] || `TYN-IMP-${Date.now()}-${added}`,
           position: Number(row['#'] || row['position'] || members.length + added + 1),
@@ -245,7 +250,7 @@ function RegisterContent() {
   const handlePrint = () => window.print();
 
   const filteredMembers = members.filter(m => {
-    const matchSearch = m.name?.toLowerCase().includes(search.toLowerCase()) || m.tynId?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = (m.fullName || m.name)?.toLowerCase().includes(search.toLowerCase()) || m.tynId?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'All' || m.status === statusFilter.toLowerCase();
     return matchSearch && matchStatus;
   });
@@ -270,7 +275,7 @@ function RegisterContent() {
 
   const recentActivity = [
     group?.createdAt && { icon: '🏘️', text: 'Group created', date: group.name },
-    ...members.slice(0, 3).map(m => ({ icon: '👤', text: `${m.name} added as member`, date: m.tynId })),
+    ...members.slice(0, 3).map(m => ({ icon: '👤', text: `${m.fullName || m.name || 'A member'} added as member`, date: m.tynId })),
     ...payments.slice(-3).reverse().map(p => ({ icon: '💰', text: `Payment recorded — ${p.amount} ${p.currency}`, date: p.paymentDate })),
   ].filter(Boolean) as { icon: string; text: string; date: string }[];
 
@@ -380,6 +385,13 @@ function RegisterContent() {
             </div>
           </div>
 
+          {statusError && (
+            <div className="fade-up no-print" style={{ background: '#FDEAEA', border: '1px solid #E8B4B4', borderRadius: '10px', padding: '10px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <p style={{ color: '#8B2D2D', fontSize: '12.5px', margin: 0 }}>⚠️ {statusError}</p>
+              <button onClick={() => setStatusError('')} style={{ background: 'none', border: 'none', color: '#8B2D2D', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>✕</button>
+            </div>
+          )}
+
           <div className="fade-up no-print" style={{ background: C.white, borderRadius: '12px', padding: '16px 18px', marginBottom: '16px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <input
               type="text" placeholder="Search by name or TYN-ID..." value={search} onChange={e => setSearch(e.target.value)}
@@ -455,9 +467,9 @@ function RegisterContent() {
                             width: '28px', height: '28px', borderRadius: '50%', background: C.goldLight,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: C.burgundyDark, fontSize: '11px', flexShrink: 0, overflow: 'hidden',
                           }}>
-                            {m.photoUrl ? <img src={m.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.name || '?').charAt(0).toUpperCase()}
+                            {m.photoUrl ? <img src={m.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.fullName || m.name || '?').charAt(0).toUpperCase()}
                           </div>
-                          <span style={{ color: C.burgundyDark, fontWeight: 700 }}>{m.name}</span>
+                          <span style={{ color: C.burgundyDark, fontWeight: 700 }}>{m.fullName || m.name || '(no name)'}</span>
                         </div>
                       </td>
                       <td style={{ padding: '10px 10px', color: C.gray, fontSize: '11px' }}>{m.tynId}</td>
