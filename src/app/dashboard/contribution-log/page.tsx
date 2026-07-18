@@ -136,9 +136,11 @@ function RegisterContent() {
     payments.forEach(p => { if (typeof p.cycle === 'number') set.add(p.cycle); });
     const highestRecorded = set.size > 0 ? Math.max(...set) : 0;
     // A tontine cycle = one full rotation (every member contributes, one member is paid out).
-    // Total cycles should reflect the group's actual configured size — falling back to the
-    // real member count, and only to a hardcoded 4 if neither is available yet.
-    const configuredTotal = group?.numMembers || members.length || 4;
+    // Total cycles should automatically track the REAL, current member count — not the
+    // capacity originally planned when the group was created (group.numMembers), which
+    // doesn't change as members are actually added. Falls back to that planned number
+    // only before any real members exist yet, so this never shows "0 cycles".
+    const configuredTotal = members.length > 0 ? members.length : (group?.numMembers || 4);
     return Array.from({ length: Math.max(highestRecorded, configuredTotal) }, (_, i) => i + 1);
   }, [payments, group, members]);
 
