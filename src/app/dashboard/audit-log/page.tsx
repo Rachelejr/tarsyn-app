@@ -1,4 +1,4 @@
-ï»¿'use client';
+'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -18,7 +18,7 @@ interface AuditEntry {
   category: string;
   user: string;
   details: string;
-  timestamp?: { seconds: number };
+  createdAt?: { seconds: number };
   groupId?: string;
 }
 
@@ -55,7 +55,7 @@ function AuditLogContent() {
         const q = query(
           collection(db, 'audit_logs'),
           where('organizerId', '==', user.uid),
-          orderBy('timestamp', 'desc')
+          orderBy('createdAt', 'desc')
         );
         const snap = await getDocs(q);
         setEntries(snap.docs.map(d => ({ id: d.id, ...d.data() } as AuditEntry)));
@@ -83,7 +83,7 @@ function AuditLogContent() {
   const exportCSV = () => {
     const rows = [['Date', 'Category', 'Action', 'User', 'Details']];
     filtered.forEach(e => rows.push([
-      e.timestamp ? new Date(e.timestamp.seconds * 1000).toLocaleString() : '',
+      e.createdAt ? new Date(e.createdAt.seconds * 1000).toLocaleString() : '',
       e.category || '', e.action || '', e.user || '', e.details || ''
     ]));
     const csv = rows.map(r => r.map(v => '"' + v + '"').join(',')).join('\n');
@@ -162,14 +162,14 @@ function AuditLogContent() {
                   return (
                     <tr key={e.id} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? C.blanc : '#fdfcfb' }}>
                       <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted, whiteSpace: 'nowrap' as const }}>
-                        {e.timestamp ? new Date(e.timestamp.seconds * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'â€”'}
+                        {e.createdAt ? new Date(e.createdAt.seconds * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                       </td>
                       <td style={{ padding: '12px 18px' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cc.bg, color: cc.color }}>{e.category || 'â€”'}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cc.bg, color: cc.color }}>{e.category || '—'}</span>
                       </td>
-                      <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 600, color: C.text }}>{e.action || 'â€”'}</td>
-                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted }}>{e.user || 'â€”'}</td>
-                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{e.details || 'â€”'}</td>
+                      <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 600, color: C.text }}>{e.action || '—'}</td>
+                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted }}>{e.user || '—'}</td>
+                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{e.details || '—'}</td>
                     </tr>
                   );
                 })}
@@ -179,7 +179,7 @@ function AuditLogContent() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 16, letterSpacing: 0.3 }}>
-          Powered by TARSYNâ„¢ Â· A product of Ma Production Luxenn Zara LLC Â· Â© 2026 All Rights Reserved Â· v1.0.0
+          Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
         </p>
       </div>
     </div>
