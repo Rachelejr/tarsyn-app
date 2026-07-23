@@ -124,6 +124,11 @@ service cloud.firestore {
         );
       }
     }
+    match /login_history/{entryId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
     match /otp_codes/{userId} {
       allow read, write, delete: if request.auth != null && request.auth.uid == userId;
     }
