@@ -49,8 +49,6 @@ const t = (lang: string, key: string) => {
   return T['en'][key] || key;
 };
 
-// -- MODULES - no longer rendered on the public Home Page (see master policy).
-// Kept here for reuse on the post-signup "Choose Module(s)" step (Step 5 of New User Flow).
 const MODULES = [
   {icon:'\ud83e\udd1d',title:'Tontine / Sol',desc:'Cycles, rotation, receipts, organizer commission',tag:'V1 - PRIORITY'},
   {icon:'\ud83c\udfdb\ufe0f',title:'Association',desc:'Members, dues, events, votes, reports',tag:'V1'},
@@ -201,6 +199,7 @@ export default function HomePage() {
           </div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
+          <DateTimeWeather variant="clock" size="compact" />
           <select value={lang} onChange={e=>handleLangChange(e.target.value)}
             style={{padding:'7px 12px',borderRadius:'8px',border:'1.5px solid #D9C0CC',background:'white',color:'#6B2D4E',fontSize:'13px',cursor:'pointer',outline:'none',fontWeight:'500',maxWidth:'200px'}}>
             {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
@@ -222,9 +221,6 @@ export default function HomePage() {
         <div style={{position:'relative',zIndex:1}}>
           <div style={{display:'inline-block',background:'rgba(233,199,123,0.15)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'20px',padding:'6px 18px',marginBottom:'24px'}}>
             <span style={{color:'#E9C77B',fontSize:'12px',fontWeight:'600',letterSpacing:'2px'}}>{'\ud83c\udf0d'} {t(lang,'trusted')}</span>
-          </div>
-          <div style={{marginBottom:'32px', display:'flex', justifyContent:'center'}}>
-            <DateTimeWeather variant="clock" />
           </div>
           <h1 style={{color:'#FBEEDD',fontSize:'52px',fontWeight:'800',marginBottom:'16px',lineHeight:'1.15'}}>{t(lang,'hero1')}</h1>
           <h2 style={{color:'#E9C77B',fontSize:'52px',fontWeight:'800',marginBottom:'28px',fontStyle:'italic',lineHeight:'1.15'}}>{t(lang,'hero2')}</h2>
