@@ -178,8 +178,10 @@ function OverviewContent() {
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
-      <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD', gap: '18px' }}>
+      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
+      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: '#6B2D4E', animation: 'tarsyn-spin 0.8s linear infinite' }} />
     </div>
   );
 
@@ -312,7 +314,6 @@ function OverviewContent() {
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
       }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', borderRadius: '50%', display: 'none', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6B2D4E', fontSize: '13px', boxShadow: '0 3px 10px rgba(233,199,123,0.4)' }}>T</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{ height: '22px' }}/></a>
           <div>
             <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
             <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY</div>
@@ -335,15 +336,15 @@ function OverviewContent() {
       <div className="tarsyn-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
-          <StatCard label="Total Members" value={members.length} icon="" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
-          <StatCard label="Active Members" value={activeMembers} icon="" gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
-          <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon="" gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
-          <StatCard label="Confirmed Payments" value={confirmedPayments} icon="" gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
-          <StatCard label="Pending Payments" value={pendingPayments} icon="" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
+          <StatCard label="Total Members" value={members.length} icon={'\ud83d\udc65'} gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
+          <StatCard label="Active Members" value={activeMembers} icon={'\u2705'} gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
+          <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon={'\ud83d\udcb0'} gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
+          <StatCard label="Confirmed Payments" value={confirmedPayments} icon={'\u2714\ufe0f'} gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
+          <StatCard label="Pending Payments" value={pendingPayments} icon={'\u23f3'} gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}> My Groups</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>{'\ud83c\udfd8\ufe0f'} My Groups</h3>
           {groups.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
           ) : (
@@ -357,11 +358,11 @@ function OverviewContent() {
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
                       style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                       Payment Grid
+                      {'\ud83d\udcca'} Payment Grid
                     </button>
                     <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
                       style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                       Edit
+                      {'\u270f\ufe0f'} Edit
                     </button>
                   </div>
                 </div>
@@ -371,7 +372,7 @@ function OverviewContent() {
         </div>
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}> Member Management</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>{'\ud83d\udc65'} Member Management</h3>
           {members.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No members yet.</p>
           ) : (
@@ -404,23 +405,23 @@ function OverviewContent() {
                           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                             <button onClick={() => { setEditingMember(m); setMemberEditName(m.name || ''); setMemberEditPayoutDate(m.payoutDate || ''); }} className="btn-action pill"
                               style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
-                               Edit
+                              {'\u270f\ufe0f'} Edit
                             </button>
                             {m.status !== 'active' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id} className="btn-action pill"
                                 style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
-                                 Activate
+                                {'\u2705'} Activate
                               </button>
                             )}
                             {m.status !== 'paused' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id} className="btn-action pill"
                                 style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
-                                 Pause
+                                {'\u23f8\ufe0f'} Pause
                               </button>
                             )}
                             <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id} className="btn-action pill"
                               style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
-                              {deletingMember === m.id ? '...' : ' Delete'}
+                              {deletingMember === m.id ? '...' : '\ud83d\uddd1\ufe0f Delete'}
                             </button>
                           </div>
                         )}
@@ -435,7 +436,7 @@ function OverviewContent() {
 
         {pendingProofs.length > 0 && (
           <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}> Payment Proofs</h3>
+            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>{'\ud83d\udcce'} Payment Proofs</h3>
             <p style={{ color: '#C4748E', fontSize: '12px', margin: '0 0 12px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {pendingProofs.map((p, i) => (
@@ -447,15 +448,15 @@ function OverviewContent() {
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="btn-action pill"
                       style={{ background: '#E3F2FD', color: '#1565C0', textDecoration: 'none' }}>
-                       View
+                      {'\ud83d\udc41\ufe0f'} View
                     </a>
                     <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id} className="btn-action pill"
                       style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
-                       Validate
+                      {'\u2705'} Validate
                     </button>
                     <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id} className="btn-action pill"
                       style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
-                       Reject
+                      {'\u274c'} Reject
                     </button>
                   </div>
                 </div>
@@ -465,7 +466,7 @@ function OverviewContent() {
         )}
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}> Recent Contributions</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>{'\ud83d\udccb'} Recent Contributions</h3>
           {payments.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No payments recorded yet.</p>
           ) : (
@@ -506,17 +507,17 @@ function OverviewContent() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', paddingBottom: '24px' }}>
           {[
-            { title: 'Record Payment', icon: '', path: '/dashboard/record-contribution' },
-            { title: 'Add Member', icon: '', path: '/dashboard/add-member' },
-            { title: 'Digital Register', icon: '', path: '/dashboard/contribution-log' },
-            { title: 'Send Reminder', icon: '', path: '/dashboard/reminders' },
-            { title: 'Reports', icon: '', path: '/dashboard/reports' },
-            { title: 'Audit Log', icon: '', path: '/dashboard/audit-log' },
-            { title: 'Documents', icon: '', path: '/dashboard/documents' },
-            { title: 'Security', icon: '', path: '/dashboard/security' },
-            { title: 'White Label', icon: '', path: '/dashboard/branding' },
-            { title: 'Leave a Review', icon: '', path: '/leave-review' },
-            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '', path: '/admin/repair-members' }] : []),
+            { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
+            { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
+            { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
+            { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
+            { title: 'Reports', icon: '\ud83d\udcca', path: '/dashboard/reports' },
+            { title: 'Audit Log', icon: '\ud83d\udcdc', path: '/dashboard/audit-log' },
+            { title: 'Documents', icon: '\ud83d\udcc1', path: '/dashboard/documents' },
+            { title: 'Security', icon: '\ud83d\udd12', path: '/dashboard/security' },
+            { title: 'White Label', icon: '\ud83c\udfa8', path: '/dashboard/branding' },
+            { title: 'Leave a Review', icon: '\u2b50', path: '/leave-review' },
+            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '\ud83d\udee0\ufe0f', path: '/admin/repair-members' }] : []),
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
               style={{
