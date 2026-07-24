@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
@@ -12,9 +12,9 @@ const C = {
   text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb',
 };
 
-interface Contribution { id: string; memberName: string; amount: number; method?: string; date?: string; status: string; receiptNumber?: string; groupId: string; }
-interface Member { id: string; fullName: string; status: string; expectedAmount?: number; }
-interface Group { id: string; name: string; }
+interface Contribution { id: string; memberName: string; amount: number; method?: string; date?: string; status: string; receiptNumber?: string; memberId?: string; }
+interface Member { id: string; fullName: string; status: string; }
+interface Group { id: string; name: string; amountPerMember?: number; }
 
 function ReportsContent() {
   const router = useRouter();
@@ -56,10 +56,21 @@ function ReportsContent() {
       const user = auth.currentUser; if (!user) return;
       setLoading(true);
       try {
-        const cSnap = await getDocs(query(collection(db, 'contributions'), where('groupId', '==', groupId), orderBy('createdAt', 'desc')));
-        setContributions(cSnap.docs.map(d => ({ id: d.id, ...d.data() } as Contribution)));
         const mSnap = await getDocs(query(collection(db, 'members'), where('groupId', '==', groupId)));
-        setMembers(mSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member)));
+        const memberList = mSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+        setMembers(memberList);
+        const memberIds = new Set(memberList.map(m => m.id));
+
+        const pSnap = await getDocs(query(collection(db, 'payments'), where('organizerId', '==', user.uid)));
+        const groupPayments = pSnap.docs
+          .map(d => ({ id: d.id, ...d.data() } as any))
+          .filter(p => memberIds.has(p.memberId))
+          .map(p => ({
+            id: p.id, memberName: p.memberName || '', amount: p.amount || 0,
+            method: p.method || '', date: p.paymentDate || '', status: p.status || 'pending',
+            receiptNumber: p.receiptNumber || '', memberId: p.memberId,
+          } as Contribution));
+        setContributions(groupPayments);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
@@ -88,7 +99,8 @@ function ReportsContent() {
   const totalPending = filtered.filter(c => c.status === 'pending').reduce((s, c) => s + (c.amount || 0), 0);
   const confirmedCount = filtered.filter(c => c.status === 'confirmed').length;
   const pendingCount = filtered.filter(c => c.status === 'pending').length;
-  const expectedTotal = members.reduce((s, m) => s + (m.expectedAmount || 0), 0);
+  const currentGroup = groups.find(g => g.id === groupId);
+  const expectedTotal = members.length * (currentGroup?.amountPerMember || 0);
 
   const exportCSV = () => {
     const rows = [['Receipt', 'Member', 'Amount', 'Method', 'Date', 'Status']];
