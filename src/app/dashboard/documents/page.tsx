@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import DocumentComments from '@/components/DocumentComments';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bleu: '#6B2D4E',
@@ -294,10 +295,13 @@ export default function DocumentsPage() {
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
-        <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+            style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            Sign Out
+          </button>
+        </div>
       </div>
 
       {/* MAIN ROW - list (left) + selected doc (right) */}
