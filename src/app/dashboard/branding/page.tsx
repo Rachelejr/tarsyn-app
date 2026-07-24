@@ -150,8 +150,10 @@ export default function BrandingPage() {
   const selectedGroup = groups.find(g => g.id === selectedGroupId);
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: C.bordeaux, fontFamily: 'Inter, sans-serif' }}>Loading...</p>
+    <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '18px' }}>
+      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
+      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'tarsyn-spin 0.8s linear infinite' }} />
     </div>
   );
 
