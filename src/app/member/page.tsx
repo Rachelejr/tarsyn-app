@@ -306,7 +306,8 @@ function MemberContent() {
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: activeMember.organizerId, category: 'Document',
           action: 'Uploaded ' + file.name, createdAt: serverTimestamp(),
-          actorId: uid,
+          actorId: uid, user: activeMember.fullName || activeMember.name || 'Member',
+          details: 'Uploaded ' + file.name,
         });
         console.log('STEP 4 OK');
       }
@@ -619,7 +620,7 @@ function MemberContent() {
                                 background: isPaid ? C.bordeaux : isFuture ? C.creme : C.dangerBg,
                                 border: '1.5px solid ' + (isPaid ? C.bordeaux : C.border),
                               }}>
-                                {isPaid && <span style={{ color: C.dore, fontSize: 13, fontWeight: 700 }}>✓</span>}
+                                {isPaid && <span style={{ color: C.dore, fontSize: 13, fontWeight: 700 }}>{'\u2713'}</span>}
                               </div>
                             </td>
                           );
@@ -630,7 +631,7 @@ function MemberContent() {
                 </table>
               </div>
               <p style={{ fontSize: '10.5px', color: C.muted, margin: '8px 0 0' }}>
-                View only — your organizer marks payments as received.
+                View only - your organizer marks payments as received.
               </p>
             </div>
           )}
@@ -660,7 +661,7 @@ function MemberContent() {
 
           {filteredDocs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '36px 0' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📁</div>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>{'\ud83d\udcc1'}</div>
               <p style={{ color: C.texteGris, fontSize: '14px' }}>No documents match your search.</p>
             </div>
           ) : (
