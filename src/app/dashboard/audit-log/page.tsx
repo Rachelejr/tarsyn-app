@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
@@ -98,10 +99,13 @@ function AuditLogContent() {
           <h1 style={{ color: C.orLight, fontSize: 18, fontWeight: 700, margin: 0 }}>Audit Log</h1>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, margin: '2px 0 0' }}>Complete traceability of all actions</p>
         </div>
-        <button onClick={() => router.push('/dashboard/overview?groupId=' + groupId)}
-          style={{ background: 'rgba(255,255,255,0.08)', color: C.orLight, border: '1px solid ' + C.or, borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer' }}>
-          Back to Overview
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <DateTimeWeather textColor="rgba(255,255,255,0.7)" />
+          <button onClick={() => router.push('/dashboard/overview?groupId=' + groupId)}
+            style={{ background: 'rgba(255,255,255,0.08)', color: C.orLight, border: '1px solid ' + C.or, borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer' }}>
+            Back to Overview
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px' }}>
