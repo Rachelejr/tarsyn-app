@@ -6,6 +6,7 @@ import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -199,10 +200,13 @@ export default function BrandingPage() {
             )}
           </div>
         </div>
-        <button onClick={handleSave} disabled={saving}
-          style={{ background: C.or, color: C.bordeauxDark, border: 'none', padding: '9px 22px', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
-          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save branding'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <button onClick={handleSave} disabled={saving}
+            style={{ background: C.or, color: C.bordeauxDark, border: 'none', padding: '9px 22px', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
+            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save branding'}
+          </button>
+        </div>
       </div>
 
       <div className="bs-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 300px', minHeight: 0 }}>
