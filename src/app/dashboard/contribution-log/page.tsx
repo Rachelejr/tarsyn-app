@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import TrialGuard from '@/components/TrialGuard';
+import DateTimeWeather from '@/components/DateTimeWeather';
 import * as XLSX from 'xlsx';
 
 const C = {
@@ -352,7 +353,7 @@ function RegisterContent() {
             <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11.5px', margin: '2px 0 0', fontWeight: 600 }}>Admin Only</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <DateTimeWeather />
             <span style={{ fontSize: '16px', cursor: 'pointer' }}></span>
           </div>
         </div>
