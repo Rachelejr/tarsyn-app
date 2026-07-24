@@ -40,6 +40,7 @@ export default function DocumentsPage() {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [groupName, setGroupName] = useState('');
   const [category, setCategory] = useState('General');
   const [search, setSearch] = useState('');
@@ -57,6 +58,7 @@ export default function DocumentsPage() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       setUserId(u.uid);
+      setUserEmail(u.email || '');
       await loadDocs(u.uid);
       const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
       const gsnap = await getDocs(gq);
@@ -140,6 +142,7 @@ export default function DocumentsPage() {
       await addDoc(collection(db, 'audit_logs'), {
         organizerId: userId, documentId: selectedDoc.id, category: 'Document',
         action, documentName: selectedDoc.name, createdAt: serverTimestamp(),
+        user: userEmail, details: action + ' - ' + selectedDoc.name,
       });
     } catch (e) { /* silent - history is best-effort */ }
   };
@@ -169,6 +172,7 @@ export default function DocumentsPage() {
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: userId, documentId: docRef.id, category: 'Document',
           action: 'Uploaded', documentName: file.name, createdAt: serverTimestamp(),
+          user: userEmail, details: 'Uploaded - ' + file.name,
         });
       }
     );
