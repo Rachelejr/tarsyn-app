@@ -121,7 +121,7 @@ function AuditLogContent() {
         </div>
 
         <div style={{ background: C.blanc, borderRadius: 14, padding: '16px 20px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search actions, users..."
+          <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }} placeholder="Search actions, users..."
             style={{ padding: '8px 14px', borderRadius: 9, border: '1.5px solid ' + C.border, fontSize: 13, color: C.text, outline: 'none', flex: 1, minWidth: 200 }} />
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
             {CATEGORIES.map(cat => (
