@@ -9,7 +9,7 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 
 type BillingPeriod = 'monthly' | 'annual';
 
-// ============ LANGUAGE SYSTEM \u2014 same 25 languages as homepage, 5 fully translated + English fallback ============
+// ============ LANGUAGE SYSTEM - same 25 languages as homepage, 5 fully translated + English fallback ============
 const LANGUAGES = [
   { code: 'en', label: '\ud83c\uddfa\ud83c\uddf8 English' },
   { code: 'fr', label: '\ud83c\uddeb\ud83c\uddf7 Fran\u00e7ais' },
@@ -26,7 +26,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     monthly: 'Monthly', annual: 'Annual', save: 'SAVE 17%',
     compare: 'Compare Plans', compareSub: "See exactly what's included in each plan.",
     why: 'Why Choose TARSYN', whySub: 'Built specifically for community savings groups.',
-    reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters \u2014 share it with future organizers.',
+    reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters - share it with future organizers.',
     leaveReview: 'Leave a Testimonial', reviewCta: "Are you a TARSYN organizer or member? We'd love to hear from you.",
     faqTitle: 'Pricing Questions', faqSub: 'Everything you need to know about billing.',
     payments: 'Secure Payments',
@@ -37,7 +37,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     monthly: 'Mensuel', annual: 'Annuel', save: '\u00c9CONOMISEZ 17%',
     compare: 'Comparer les forfaits', compareSub: 'Voyez exactement ce qui est inclus dans chaque forfait.',
     why: 'Pourquoi choisir TARSYN', whySub: 'Con\u00e7u sp\u00e9cifiquement pour les groupes d\u2019\u00e9pargne communautaire.',
-    reviewsTitle: 'Ce que dit notre communaut\u00e9', reviewsSub: 'Votre exp\u00e9rience compte \u2014 partagez-la avec de futurs organisateurs.',
+    reviewsTitle: 'Ce que dit notre communaut\u00e9', reviewsSub: 'Votre exp\u00e9rience compte - partagez-la avec de futurs organisateurs.',
     leaveReview: 'Laisser un t\u00e9moignage', reviewCta: 'Vous \u00eates organisateur ou membre TARSYN ? Nous aimerions vous entendre.',
     faqTitle: 'Questions sur la facturation', faqSub: 'Tout ce que vous devez savoir sur la facturation.',
     payments: 'Paiements s\u00e9curis\u00e9s',
@@ -48,7 +48,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     monthly: 'Chak Mwa', annual: 'Chak Ane', save: 'EKONOMIZE 17%',
     compare: 'Konpare Plan Yo', compareSub: 'Gade egzakteman sa ki enkli nan chak plan.',
     why: 'Poukisa Chwazi TARSYN', whySub: 'F\u00e8t espesyalman pou gwoup epay kominot\u00e8 yo.',
-    reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte \u2014 pataje l ak fiti \u00f2ganizat\u00e8 yo.',
+    reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte - pataje l ak fiti \u00f2ganizat\u00e8 yo.',
     leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon \u00f2ganizat\u00e8 oswa manm TARSYN? Nou ta renmen tande ou.',
     faqTitle: 'Kesyon sou Peman', faqSub: 'Tout sa ou bezwen konnen sou fakti.',
     payments: 'Peman Sekirize',
@@ -59,7 +59,7 @@ const SUB_T: Record<string, Record<string, string>> = {
     monthly: 'Mensual', annual: 'Anual', save: 'AHORRA 17%',
     compare: 'Comparar Planes', compareSub: 'Ve exactamente qu\u00e9 incluye cada plan.',
     why: 'Por Qu\u00e9 Elegir TARSYN', whySub: 'Dise\u00f1ado espec\u00edficamente para grupos de ahorro comunitario.',
-    reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa \u2014 comp\u00e1rtela con futuros organizadores.',
+    reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa - comp\u00e1rtela con futuros organizadores.',
     leaveReview: 'Dejar un Testimonio', reviewCta: '\u00bfEres organizador o miembro de TARSYN? Nos encantar\u00eda saber de ti.',
     faqTitle: 'Preguntas sobre Precios', faqSub: 'Todo lo que necesitas saber sobre la facturaci\u00f3n.',
     payments: 'Pagos Seguros',
@@ -70,13 +70,13 @@ const SUB_T: Record<string, Record<string, string>> = {
     monthly: 'Mensal', annual: 'Anual', save: 'ECONOMIZE 17%',
     compare: 'Comparar Planos', compareSub: 'Veja exatamente o que est\u00e1 inclu\u00eddo em cada plano.',
     why: 'Por Que Escolher a TARSYN', whySub: 'Criado especificamente para grupos de poupan\u00e7a comunit\u00e1ria.',
-    reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experi\u00eancia importa \u2014 compartilhe com futuros organizadores.',
+    reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experi\u00eancia importa - compartilhe com futuros organizadores.',
     leaveReview: 'Deixar um Depoimento', reviewCta: 'Voc\u00ea \u00e9 organizador ou membro da TARSYN? Adorar\u00edamos ouvir voc\u00ea.',
     faqTitle: 'Perguntas Sobre Cobran\u00e7a', faqSub: 'Tudo o que voc\u00ea precisa saber sobre cobran\u00e7a.',
     payments: 'Pagamentos Seguros',
   },
 };
-// Fallback rule: Manual \u2192 English \u2192 key itself. Never show broken/empty text.
+// Fallback rule: Manual -> English -> key itself. Never show broken/empty text.
 const st = (lang: string, key: string) => {
   const value = SUB_T[lang]?.[key];
   const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
@@ -277,8 +277,10 @@ const PLANS: PlanDef[] = [
 ];
 
 const LoadingScreen = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
-    <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD', gap: '18px' }}>
+    <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
+    <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
+    <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: '#6B2D4E', animation: 'tarsyn-spin 0.8s linear infinite' }} />
   </div>
 );
 
@@ -492,7 +494,7 @@ function SubscriptionContent() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <h3 style={{ color: '#6B2D4E', marginBottom: '8px', fontSize: '18px', fontWeight: 700 }}>{'\u2795'} Add Your Language</h3>
-            <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us \u2014 we&apos;ll add it!</p>
+            <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us - we&apos;ll add it!</p>
             <input type="text" placeholder="Ex: Fon, Twi, Soninke, Zarma..." value={customLang} onChange={(e) => setCustomLang(e.target.value)}
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #D9C0CC', borderRadius: '8px', fontSize: '14px', outline: 'none', marginBottom: '16px', boxSizing: 'border-box' }} />
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -783,7 +785,6 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 2: Feature comparison table ===== */}
         <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'compare')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'compareSub')}</p>
@@ -801,8 +802,6 @@ function SubscriptionContent() {
               </thead>
               <tbody>
                 {(() => {
-                  // Explicit cumulative feature matrix: each tier includes everything from the tiers before it.
-                  // "unconfirmed" features (not verified as actually built) are deliberately left out until confirmed.
                   const TIER_ORDER = ['free', 'starter', 'growth', 'pro', 'enterprise'];
                   const FEATURE_INTRODUCED_AT: { label: string; introducedAt: string }[] = [
                     { label: 'Member invitations', introducedAt: 'free' },
@@ -812,7 +811,7 @@ function SubscriptionContent() {
                     { label: 'Dedicated onboarding', introducedAt: 'enterprise' },
                   ];
                   const WHITE_LABEL_TIER: Record<string, string> = {
-                    free: '\u2014',
+                    free: '-',
                     starter: 'Basic',
                     growth: 'Advanced',
                     pro: 'Professional',
@@ -840,7 +839,7 @@ function SubscriptionContent() {
                         const val = row.get(p);
                         return (
                           <td key={p.id} style={{ textAlign: 'center', padding: '12px 10px', fontSize: '12px', color: '#6B2D4E' }}>
-                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>\u2713</span> : <span style={{ color: '#D9C0CC' }}>\u2014</span>) : val}
+                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>\u2713</span> : <span style={{ color: '#D9C0CC' }}>-</span>) : val}
                           </td>
                         );
                       })}
@@ -852,13 +851,12 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 3: Why Choose TARSYN ===== */}
         <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'why')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'whySub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             {[
-              { icon: '\ud83c\udf0d', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous \u2014 with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
+              { icon: '\ud83c\udf0d', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous - with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
               { icon: '\ud83d\udd12', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure, PCI-compliant payment processing.' },
               { icon: '\ud83d\udcca', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
               { icon: '\ud83d\udcac', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
@@ -872,7 +870,6 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 4a: Leave a testimonial CTA \u2014 real submission flow, connects to /leave-review (Firestore 'testimonials' collection, moderated) ===== */}
         <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
@@ -885,7 +882,6 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 4b: FAQ accordion ===== */}
         <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'faqTitle')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'faqSub')}</p>
@@ -905,7 +901,6 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 4c: Payment badges ===== */}
         <div style={{ marginTop: '28px', marginBottom: '8px', textAlign: 'center' }}>
           <p style={{ color: '#8B5A73', fontSize: '11px', fontWeight: 600, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{st(lang, 'payments')}</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
