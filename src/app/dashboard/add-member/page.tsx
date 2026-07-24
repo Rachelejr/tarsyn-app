@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -142,10 +143,13 @@ function AddMemberContent() {
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
 
-        <button onClick={() => router.push('/dashboard')}
-          style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', marginBottom: 20, padding: 0 }}>
-          Back to Dashboard
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <button onClick={() => router.push('/dashboard')}
+            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
+            Back to Dashboard
+          </button>
+          <DateTimeWeather textColor={C.muted} />
+        </div>
 
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
@@ -162,7 +166,7 @@ function AddMemberContent() {
             </div>
             <div style={{ background: C.blanc, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>Position</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>#{nextPosition} — Auto-assigned</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>#{nextPosition} - Auto-assigned</span>
             </div>
           </div>
         </div>
@@ -287,7 +291,7 @@ function AddMemberContent() {
                   <p style={{ fontSize: 12, color: C.text, margin: 0, lineHeight: 1.6 }}>
                     This member will occupy <strong>{form.shares} slots</strong> in the payment grid and rotation
                     (shown as &quot;part 1/{form.shares}&quot;, &quot;part 2/{form.shares}&quot;, etc.), and will need
-                    to pay {form.shares}× the expected amount each week.
+                    to pay {form.shares}x the expected amount each week.
                   </p>
                 </div>
               )}
@@ -310,9 +314,9 @@ function AddMemberContent() {
               Member Summary
             </h3>
             {[
-              { label: 'Group', value: groups.find(g => g.id === selectedGroupId)?.name || '—' },
-              { label: 'Name', value: form.fullName || '—' },
-              { label: 'Country', value: form.country || '—' },
+              { label: 'Group', value: groups.find(g => g.id === selectedGroupId)?.name || '-' },
+              { label: 'Name', value: form.fullName || '-' },
+              { label: 'Country', value: form.country || '-' },
               { label: 'Currency', value: form.currency },
               { label: 'Amount / Part', value: form.currency + ' ' + (parseFloat(form.expectedAmount) || 0).toFixed(2) },
               { label: 'Parts', value: form.shares || '1' },
@@ -333,7 +337,7 @@ function AddMemberContent() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 40, letterSpacing: 0.3 }}>
-          Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
+          Powered by TARSYNTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
         </p>
       </div>
     </div>
