@@ -1,21 +1,22 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 type BillingPeriod = 'monthly' | 'annual';
 
-// ============ LANGUAGE SYSTEM — same 25 languages as homepage, 5 fully translated + English fallback ============
+// ============ LANGUAGE SYSTEM \u2014 same 25 languages as homepage, 5 fully translated + English fallback ============
 const LANGUAGES = [
-  { code: 'en', label: '🇺🇸 English' },
-  { code: 'fr', label: '🇫🇷 Français' },
-  { code: 'ht', label: '🇭🇹 Kreyòl ayisyen' },
-  { code: 'es', label: '🇪🇸 Español' },
-  { code: 'pt', label: '🇧🇷 Português' },
-  { code: 'other', label: '➕ Other / Autre' },
+  { code: 'en', label: '\ud83c\uddfa\ud83c\uddf8 English' },
+  { code: 'fr', label: '\ud83c\uddeb\ud83c\uddf7 Fran\u00e7ais' },
+  { code: 'ht', label: '\ud83c\udded\ud83c\uddf9 Krey\u00f2l ayisyen' },
+  { code: 'es', label: '\ud83c\uddea\ud83c\uddf8 Espa\u00f1ol' },
+  { code: 'pt', label: '\ud83c\udde7\ud83c\uddf7 Portugu\u00eas' },
+  { code: 'other', label: '\u2795 Other / Autre' },
 ];
 
 const SUB_T: Record<string, Record<string, string>> = {
@@ -25,57 +26,57 @@ const SUB_T: Record<string, Record<string, string>> = {
     monthly: 'Monthly', annual: 'Annual', save: 'SAVE 17%',
     compare: 'Compare Plans', compareSub: "See exactly what's included in each plan.",
     why: 'Why Choose TARSYN', whySub: 'Built specifically for community savings groups.',
-    reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters — share it with future organizers.',
+    reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters \u2014 share it with future organizers.',
     leaveReview: 'Leave a Testimonial', reviewCta: "Are you a TARSYN organizer or member? We'd love to hear from you.",
     faqTitle: 'Pricing Questions', faqSub: 'Everything you need to know about billing.',
     payments: 'Secure Payments',
   },
   fr: {
-    title: 'Choisissez le forfait parfait pour votre communauté', subtitle: "Commencez gratuitement et évoluez seulement quand votre organisation grandit.",
-    trial: 'Essai gratuit de 30 jours', cancel: 'Annulez à tout moment', secure: 'Paiements sécurisés',
-    monthly: 'Mensuel', annual: 'Annuel', save: 'ÉCONOMISEZ 17%',
+    title: 'Choisissez le forfait parfait pour votre communaut\u00e9', subtitle: "Commencez gratuitement et \u00e9voluez seulement quand votre organisation grandit.",
+    trial: 'Essai gratuit de 30 jours', cancel: 'Annulez \u00e0 tout moment', secure: 'Paiements s\u00e9curis\u00e9s',
+    monthly: 'Mensuel', annual: 'Annuel', save: '\u00c9CONOMISEZ 17%',
     compare: 'Comparer les forfaits', compareSub: 'Voyez exactement ce qui est inclus dans chaque forfait.',
-    why: 'Pourquoi choisir TARSYN', whySub: 'Conçu spécifiquement pour les groupes d\u2019épargne communautaire.',
-    reviewsTitle: 'Ce que dit notre communauté', reviewsSub: 'Votre expérience compte — partagez-la avec de futurs organisateurs.',
-    leaveReview: 'Laisser un témoignage', reviewCta: 'Vous êtes organisateur ou membre TARSYN ? Nous aimerions vous entendre.',
+    why: 'Pourquoi choisir TARSYN', whySub: 'Con\u00e7u sp\u00e9cifiquement pour les groupes d\u2019\u00e9pargne communautaire.',
+    reviewsTitle: 'Ce que dit notre communaut\u00e9', reviewsSub: 'Votre exp\u00e9rience compte \u2014 partagez-la avec de futurs organisateurs.',
+    leaveReview: 'Laisser un t\u00e9moignage', reviewCta: 'Vous \u00eates organisateur ou membre TARSYN ? Nous aimerions vous entendre.',
     faqTitle: 'Questions sur la facturation', faqSub: 'Tout ce que vous devez savoir sur la facturation.',
-    payments: 'Paiements sécurisés',
+    payments: 'Paiements s\u00e9curis\u00e9s',
   },
   ht: {
-    title: 'Chwazi Pi Bon Plan Pou Kominote W', subtitle: 'Kòmanse gratis epi monte sèlman lè òganizasyon w ap grandi.',
-    trial: '30 Jou Esè Gratis', cancel: 'Anile Nenpòt Kilè', secure: 'Peman Sekirize',
+    title: 'Chwazi Pi Bon Plan Pou Kominote W', subtitle: 'K\u00f2manse gratis epi monte s\u00e8lman l\u00e8 \u00f2ganizasyon w ap grandi.',
+    trial: '30 Jou Es\u00e8 Gratis', cancel: 'Anile Nenp\u00f2t Kil\u00e8', secure: 'Peman Sekirize',
     monthly: 'Chak Mwa', annual: 'Chak Ane', save: 'EKONOMIZE 17%',
     compare: 'Konpare Plan Yo', compareSub: 'Gade egzakteman sa ki enkli nan chak plan.',
-    why: 'Poukisa Chwazi TARSYN', whySub: 'Fèt espesyalman pou gwoup epay kominotè yo.',
-    reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte — pataje l ak fiti òganizatè yo.',
-    leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon òganizatè oswa manm TARSYN? Nou ta renmen tande ou.',
+    why: 'Poukisa Chwazi TARSYN', whySub: 'F\u00e8t espesyalman pou gwoup epay kominot\u00e8 yo.',
+    reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte \u2014 pataje l ak fiti \u00f2ganizat\u00e8 yo.',
+    leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon \u00f2ganizat\u00e8 oswa manm TARSYN? Nou ta renmen tande ou.',
     faqTitle: 'Kesyon sou Peman', faqSub: 'Tout sa ou bezwen konnen sou fakti.',
     payments: 'Peman Sekirize',
   },
   es: {
-    title: 'Elige el Plan Perfecto para tu Comunidad', subtitle: 'Empieza gratis y mejora solo cuando tu organización crezca.',
-    trial: 'Prueba Gratis de 30 Días', cancel: 'Cancela Cuando Quieras', secure: 'Pagos Seguros',
+    title: 'Elige el Plan Perfecto para tu Comunidad', subtitle: 'Empieza gratis y mejora solo cuando tu organizaci\u00f3n crezca.',
+    trial: 'Prueba Gratis de 30 D\u00edas', cancel: 'Cancela Cuando Quieras', secure: 'Pagos Seguros',
     monthly: 'Mensual', annual: 'Anual', save: 'AHORRA 17%',
-    compare: 'Comparar Planes', compareSub: 'Ve exactamente qué incluye cada plan.',
-    why: 'Por Qué Elegir TARSYN', whySub: 'Diseñado específicamente para grupos de ahorro comunitario.',
-    reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa — compártela con futuros organizadores.',
-    leaveReview: 'Dejar un Testimonio', reviewCta: '¿Eres organizador o miembro de TARSYN? Nos encantaría saber de ti.',
-    faqTitle: 'Preguntas sobre Precios', faqSub: 'Todo lo que necesitas saber sobre la facturación.',
+    compare: 'Comparar Planes', compareSub: 'Ve exactamente qu\u00e9 incluye cada plan.',
+    why: 'Por Qu\u00e9 Elegir TARSYN', whySub: 'Dise\u00f1ado espec\u00edficamente para grupos de ahorro comunitario.',
+    reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa \u2014 comp\u00e1rtela con futuros organizadores.',
+    leaveReview: 'Dejar un Testimonio', reviewCta: '\u00bfEres organizador o miembro de TARSYN? Nos encantar\u00eda saber de ti.',
+    faqTitle: 'Preguntas sobre Precios', faqSub: 'Todo lo que necesitas saber sobre la facturaci\u00f3n.',
     payments: 'Pagos Seguros',
   },
   pt: {
-    title: 'Escolha o Plano Perfeito para Sua Comunidade', subtitle: 'Comece grátis e atualize apenas quando sua organização crescer.',
-    trial: 'Teste Grátis de 30 Dias', cancel: 'Cancele a Qualquer Momento', secure: 'Pagamentos Seguros',
+    title: 'Escolha o Plano Perfeito para Sua Comunidade', subtitle: 'Comece gr\u00e1tis e atualize apenas quando sua organiza\u00e7\u00e3o crescer.',
+    trial: 'Teste Gr\u00e1tis de 30 Dias', cancel: 'Cancele a Qualquer Momento', secure: 'Pagamentos Seguros',
     monthly: 'Mensal', annual: 'Anual', save: 'ECONOMIZE 17%',
-    compare: 'Comparar Planos', compareSub: 'Veja exatamente o que está incluído em cada plano.',
-    why: 'Por Que Escolher a TARSYN', whySub: 'Criado especificamente para grupos de poupança comunitária.',
-    reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experiência importa — compartilhe com futuros organizadores.',
-    leaveReview: 'Deixar um Depoimento', reviewCta: 'Você é organizador ou membro da TARSYN? Adoraríamos ouvir você.',
-    faqTitle: 'Perguntas Sobre Cobrança', faqSub: 'Tudo o que você precisa saber sobre cobrança.',
+    compare: 'Comparar Planos', compareSub: 'Veja exatamente o que est\u00e1 inclu\u00eddo em cada plano.',
+    why: 'Por Que Escolher a TARSYN', whySub: 'Criado especificamente para grupos de poupan\u00e7a comunit\u00e1ria.',
+    reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experi\u00eancia importa \u2014 compartilhe com futuros organizadores.',
+    leaveReview: 'Deixar um Depoimento', reviewCta: 'Voc\u00ea \u00e9 organizador ou membro da TARSYN? Adorar\u00edamos ouvir voc\u00ea.',
+    faqTitle: 'Perguntas Sobre Cobran\u00e7a', faqSub: 'Tudo o que voc\u00ea precisa saber sobre cobran\u00e7a.',
     payments: 'Pagamentos Seguros',
   },
 };
-// Fallback rule: Manual → English → key itself. Never show broken/empty text.
+// Fallback rule: Manual \u2192 English \u2192 key itself. Never show broken/empty text.
 const st = (lang: string, key: string) => {
   const value = SUB_T[lang]?.[key];
   const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
@@ -100,32 +101,32 @@ const FAQ_T: Record<string, Record<string, { q: string; a: string }>> = {
     annualDiscount: { q: 'Do you offer discounts for annual billing?', a: 'Yes, switching to annual billing saves you up to 17% compared to paying monthly.' },
   },
   fr: {
-    changePlans: { q: 'Puis-je changer de forfait plus tard ?', a: 'Oui, vous pouvez passer à un forfait supérieur ou inférieur à tout moment depuis cette page. Les changements prennent effet immédiatement.' },
-    exceedLimit: { q: 'Que se passe-t-il si je dépasse ma limite de membres ?', a: 'Vous pouvez ajouter des membres supplémentaires pour un petit montant, indiqué sur chaque carte de forfait, ou passer au palier supérieur.' },
-    freeTrial: { q: 'Y a-t-il un essai gratuit ?', a: 'Oui, chaque nouveau compte commence avec un essai gratuit de 30 jours donnant accès aux fonctionnalités Starter.' },
-    cancelAnytime: { q: 'Puis-je annuler à tout moment ?', a: 'Oui, il n\u2019y a aucun engagement à long terme. Vous pouvez annuler votre abonnement à tout moment depuis cette page.' },
-    annualDiscount: { q: 'Proposez-vous des réductions pour la facturation annuelle ?', a: 'Oui, passer à la facturation annuelle vous fait économiser jusqu\u2019à 17% par rapport au paiement mensuel.' },
+    changePlans: { q: 'Puis-je changer de forfait plus tard ?', a: 'Oui, vous pouvez passer \u00e0 un forfait sup\u00e9rieur ou inf\u00e9rieur \u00e0 tout moment depuis cette page. Les changements prennent effet imm\u00e9diatement.' },
+    exceedLimit: { q: 'Que se passe-t-il si je d\u00e9passe ma limite de membres ?', a: 'Vous pouvez ajouter des membres suppl\u00e9mentaires pour un petit montant, indiqu\u00e9 sur chaque carte de forfait, ou passer au palier sup\u00e9rieur.' },
+    freeTrial: { q: 'Y a-t-il un essai gratuit ?', a: 'Oui, chaque nouveau compte commence avec un essai gratuit de 30 jours donnant acc\u00e8s aux fonctionnalit\u00e9s Starter.' },
+    cancelAnytime: { q: 'Puis-je annuler \u00e0 tout moment ?', a: 'Oui, il n\u2019y a aucun engagement \u00e0 long terme. Vous pouvez annuler votre abonnement \u00e0 tout moment depuis cette page.' },
+    annualDiscount: { q: 'Proposez-vous des r\u00e9ductions pour la facturation annuelle ?', a: 'Oui, passer \u00e0 la facturation annuelle vous fait \u00e9conomiser jusqu\u2019\u00e0 17% par rapport au paiement mensuel.' },
   },
   ht: {
-    changePlans: { q: 'Mwen ka chanje plan pita?', a: 'Wi, ou ka monte oswa desann plan ou nenpòt kilè soti nan paj sa a. Chanjman yo aplike imedyatman.' },
+    changePlans: { q: 'Mwen ka chanje plan pita?', a: 'Wi, ou ka monte oswa desann plan ou nenp\u00f2t kil\u00e8 soti nan paj sa a. Chanjman yo aplike imedyatman.' },
     exceedLimit: { q: 'Kisa ki rive si m depase limit manm mwen an?', a: 'Ou ka ajoute plis manm pou yon ti ogmantasyon, ki make sou chak kat plan, oswa monte nan nivo pi wo a.' },
-    freeTrial: { q: 'Èske gen yon esè gratis?', a: 'Wi, chak nouvo kont kòmanse ak yon esè gratis 30 jou ki bay aksè a fonksyonalite Starter yo.' },
-    cancelAnytime: { q: 'Mwen ka anile nenpòt kilè?', a: 'Wi, pa gen kontra alontèm. Ou ka anile abònman w nenpòt kilè soti nan paj sa a.' },
-    annualDiscount: { q: 'Èske nou ofri rabè pou fakti chak ane?', a: 'Wi, chanje pou fakti chak ane fè w ekonomize jiska 17% konpare ak peman chak mwa.' },
+    freeTrial: { q: '\u00c8ske gen yon es\u00e8 gratis?', a: 'Wi, chak nouvo kont k\u00f2manse ak yon es\u00e8 gratis 30 jou ki bay aks\u00e8 a fonksyonalite Starter yo.' },
+    cancelAnytime: { q: 'Mwen ka anile nenp\u00f2t kil\u00e8?', a: 'Wi, pa gen kontra alont\u00e8m. Ou ka anile ab\u00f2nman w nenp\u00f2t kil\u00e8 soti nan paj sa a.' },
+    annualDiscount: { q: '\u00c8ske nou ofri rab\u00e8 pou fakti chak ane?', a: 'Wi, chanje pou fakti chak ane f\u00e8 w ekonomize jiska 17% konpare ak peman chak mwa.' },
   },
   es: {
-    changePlans: { q: '¿Puedo cambiar de plan más adelante?', a: 'Sí, puedes subir o bajar de plan en cualquier momento desde esta página. Los cambios se aplican de inmediato.' },
-    exceedLimit: { q: '¿Qué pasa si supero mi límite de miembros?', a: 'Puedes agregar más miembros por un pequeño incremento, indicado en cada tarjeta de plan, o subir al siguiente nivel.' },
-    freeTrial: { q: '¿Hay una prueba gratuita?', a: 'Sí, cada cuenta nueva comienza con una prueba gratuita de 30 días con acceso a las funciones de Starter.' },
-    cancelAnytime: { q: '¿Puedo cancelar en cualquier momento?', a: 'Sí, no hay contratos a largo plazo. Puedes cancelar tu suscripción en cualquier momento desde esta página.' },
-    annualDiscount: { q: '¿Ofrecen descuentos por facturación anual?', a: 'Sí, cambiar a facturación anual te ahorra hasta un 17% comparado con el pago mensual.' },
+    changePlans: { q: '\u00bfPuedo cambiar de plan m\u00e1s adelante?', a: 'S\u00ed, puedes subir o bajar de plan en cualquier momento desde esta p\u00e1gina. Los cambios se aplican de inmediato.' },
+    exceedLimit: { q: '\u00bfQu\u00e9 pasa si supero mi l\u00edmite de miembros?', a: 'Puedes agregar m\u00e1s miembros por un peque\u00f1o incremento, indicado en cada tarjeta de plan, o subir al siguiente nivel.' },
+    freeTrial: { q: '\u00bfHay una prueba gratuita?', a: 'S\u00ed, cada cuenta nueva comienza con una prueba gratuita de 30 d\u00edas con acceso a las funciones de Starter.' },
+    cancelAnytime: { q: '\u00bfPuedo cancelar en cualquier momento?', a: 'S\u00ed, no hay contratos a largo plazo. Puedes cancelar tu suscripci\u00f3n en cualquier momento desde esta p\u00e1gina.' },
+    annualDiscount: { q: '\u00bfOfrecen descuentos por facturaci\u00f3n anual?', a: 'S\u00ed, cambiar a facturaci\u00f3n anual te ahorra hasta un 17% comparado con el pago mensual.' },
   },
   pt: {
-    changePlans: { q: 'Posso mudar de plano depois?', a: 'Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento nesta página. As mudanças têm efeito imediato.' },
-    exceedLimit: { q: 'O que acontece se eu exceder meu limite de membros?', a: 'Você pode adicionar mais membros por um pequeno acréscimo, mostrado em cada cartão de plano, ou fazer upgrade para o próximo nível.' },
-    freeTrial: { q: 'Existe um teste grátis?', a: 'Sim, toda nova conta começa com um teste grátis de 30 dias com acesso aos recursos do Starter.' },
-    cancelAnytime: { q: 'Posso cancelar a qualquer momento?', a: 'Sim, não há contratos de longo prazo. Você pode cancelar sua assinatura a qualquer momento nesta página.' },
-    annualDiscount: { q: 'Vocês oferecem descontos para cobrança anual?', a: 'Sim, mudar para cobrança anual economiza até 17% em comparação com o pagamento mensal.' },
+    changePlans: { q: 'Posso mudar de plano depois?', a: 'Sim, voc\u00ea pode fazer upgrade ou downgrade do seu plano a qualquer momento nesta p\u00e1gina. As mudan\u00e7as t\u00eam efeito imediato.' },
+    exceedLimit: { q: 'O que acontece se eu exceder meu limite de membros?', a: 'Voc\u00ea pode adicionar mais membros por um pequeno acr\u00e9scimo, mostrado em cada cart\u00e3o de plano, ou fazer upgrade para o pr\u00f3ximo n\u00edvel.' },
+    freeTrial: { q: 'Existe um teste gr\u00e1tis?', a: 'Sim, toda nova conta come\u00e7a com um teste gr\u00e1tis de 30 dias com acesso aos recursos do Starter.' },
+    cancelAnytime: { q: 'Posso cancelar a qualquer momento?', a: 'Sim, n\u00e3o h\u00e1 contratos de longo prazo. Voc\u00ea pode cancelar sua assinatura a qualquer momento nesta p\u00e1gina.' },
+    annualDiscount: { q: 'Voc\u00eas oferecem descontos para cobran\u00e7a anual?', a: 'Sim, mudar para cobran\u00e7a anual economiza at\u00e9 17% em compara\u00e7\u00e3o com o pagamento mensal.' },
   },
 };
 const fq = (lang: string, key: string, field: 'q' | 'a') => {
@@ -182,7 +183,7 @@ const PLANS: PlanDef[] = [
     id: 'free',
     name: 'Free',
     color: '#6B2D4E',
-    icon: '🎁',
+    icon: '\ud83c\udf81',
     description: 'Trial and onboarding',
     priceMonthly: 0,
     priceAnnual: 0,
@@ -200,7 +201,7 @@ const PLANS: PlanDef[] = [
     id: 'starter',
     name: 'Starter',
     color: '#6B2D4E',
-    icon: '🚀',
+    icon: '\ud83d\ude80',
     badge: 'MOST CHOSEN',
     description: 'Families, small tontines, churches',
     priceMonthly: 14.99,
@@ -220,7 +221,7 @@ const PLANS: PlanDef[] = [
     id: 'growth',
     name: 'Growth',
     color: '#4A1F38',
-    icon: '📈',
+    icon: '\ud83d\udcc8',
     badge: 'MOST POPULAR - SAVE UP TO 17%',
     description: 'Growing organizations',
     priceMonthly: 29.99,
@@ -240,7 +241,7 @@ const PLANS: PlanDef[] = [
     id: 'pro',
     name: 'Pro',
     color: '#4A1F38',
-    icon: '👑',
+    icon: '\ud83d\udc51',
     badge: 'BEST VALUE',
     description: 'Professional organizations',
     priceMonthly: 59.99,
@@ -259,7 +260,7 @@ const PLANS: PlanDef[] = [
     id: 'enterprise',
     name: 'Enterprise',
     color: '#1A0F26',
-    icon: '🏢',
+    icon: '\ud83c\udfe2',
     description: 'Large institutions',
     priceMonthly: null,
     priceAnnual: null,
@@ -475,6 +476,7 @@ function SubscriptionContent() {
           <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <DateTimeWeather textColor="#FBEEDD" />
           <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
             style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.4)', background: 'rgba(251,238,221,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
             {LANGUAGES.map((l) => (<option key={l.code} value={l.code} style={{ color: '#4A1F38' }}>{l.label}</option>))}
@@ -489,12 +491,12 @@ function SubscriptionContent() {
       {showLangModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h3 style={{ color: '#6B2D4E', marginBottom: '8px', fontSize: '18px', fontWeight: 700 }}>➕ Add Your Language</h3>
-            <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us — we&apos;ll add it!</p>
+            <h3 style={{ color: '#6B2D4E', marginBottom: '8px', fontSize: '18px', fontWeight: 700 }}>{'\u2795'} Add Your Language</h3>
+            <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us \u2014 we&apos;ll add it!</p>
             <input type="text" placeholder="Ex: Fon, Twi, Soninke, Zarma..." value={customLang} onChange={(e) => setCustomLang(e.target.value)}
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #D9C0CC', borderRadius: '8px', fontSize: '14px', outline: 'none', marginBottom: '16px', boxSizing: 'border-box' }} />
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { if (customLang.trim()) { alert(`✅ Thank you! "${customLang}" has been submitted. We will add it soon!`); setShowLangModal(false); setCustomLang(''); } else { alert('Please enter a language name.'); } }}
+              <button onClick={() => { if (customLang.trim()) { alert(`\u2705 Thank you! "${customLang}" has been submitted. We will add it soon!`); setShowLangModal(false); setCustomLang(''); } else { alert('Please enter a language name.'); } }}
                 style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                 Submit Language
               </button>
@@ -512,19 +514,19 @@ function SubscriptionContent() {
         {showSuccess && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Subscription activated successfully. Welcome to TARSYN.</span>
-            <button onClick={() => setShowSuccess(false)} style={{ background: 'transparent', border: 'none', color: '#2E7D32', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>×</button>
+            <button onClick={() => setShowSuccess(false)} style={{ background: 'transparent', border: 'none', color: '#2E7D32', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
           </div>
         )}
         {showCanceled && (
           <div style={{ background: '#FFF3E0', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#E65100', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Checkout canceled. You can try again anytime.</span>
-            <button onClick={() => setShowCanceled(false)} style={{ background: 'transparent', border: 'none', color: '#E65100', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>×</button>
+            <button onClick={() => setShowCanceled(false)} style={{ background: 'transparent', border: 'none', color: '#E65100', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
           </div>
         )}
         {checkoutError && (
           <div style={{ background: '#FDECEA', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#C62828', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>{checkoutError}</span>
-            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>×</button>
+            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
           </div>
         )}
 
@@ -536,9 +538,9 @@ function SubscriptionContent() {
             {st(lang, 'subtitle')}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#6B2D4E', fontWeight: 600 }}>
-            <span>✔ {st(lang, 'trial')}</span>
-            <span>✔ {st(lang, 'cancel')}</span>
-            <span>✔ {st(lang, 'secure')}</span>
+            <span>\u2714 {st(lang, 'trial')}</span>
+            <span>\u2714 {st(lang, 'cancel')}</span>
+            <span>\u2714 {st(lang, 'secure')}</span>
           </div>
         </div>
 
@@ -660,14 +662,14 @@ function SubscriptionContent() {
 
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 6px', color: '#4A1F38', fontSize: '12px', flexGrow: 1 }}>
                   <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>✔</span>{plan.reports}
+                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{plan.reports}
                   </li>
                   <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>✔</span>{plan.support}
+                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{plan.support}
                   </li>
                   {plan.additional.map((f) => (
                     <li key={f} style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                      <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>✔</span>{f}
+                      <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{f}
                     </li>
                   ))}
                 </ul>
@@ -810,7 +812,7 @@ function SubscriptionContent() {
                     { label: 'Dedicated onboarding', introducedAt: 'enterprise' },
                   ];
                   const WHITE_LABEL_TIER: Record<string, string> = {
-                    free: '—',
+                    free: '\u2014',
                     starter: 'Basic',
                     growth: 'Advanced',
                     pro: 'Professional',
@@ -838,7 +840,7 @@ function SubscriptionContent() {
                         const val = row.get(p);
                         return (
                           <td key={p.id} style={{ textAlign: 'center', padding: '12px 10px', fontSize: '12px', color: '#6B2D4E' }}>
-                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>✓</span> : <span style={{ color: '#D9C0CC' }}>—</span>) : val}
+                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>\u2713</span> : <span style={{ color: '#D9C0CC' }}>\u2014</span>) : val}
                           </td>
                         );
                       })}
@@ -856,10 +858,10 @@ function SubscriptionContent() {
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'whySub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             {[
-              { icon: '🌍', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous — with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
-              { icon: '🔒', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure, PCI-compliant payment processing.' },
-              { icon: '📊', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
-              { icon: '💬', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
+              { icon: '\ud83c\udf0d', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous \u2014 with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
+              { icon: '\ud83d\udd12', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure, PCI-compliant payment processing.' },
+              { icon: '\ud83d\udcca', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
+              { icon: '\ud83d\udcac', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
             ].map((f) => (
               <div key={f.title} style={{ background: 'white', borderRadius: '14px', padding: '20px 16px', textAlign: 'center', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
                 <div style={{ fontSize: '30px', marginBottom: '8px' }}>{f.icon}</div>
@@ -870,12 +872,12 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {/* ===== PHASE 4a: Leave a testimonial CTA — real submission flow, connects to /leave-review (Firestore 'testimonials' collection, moderated) ===== */}
+        {/* ===== PHASE 4a: Leave a testimonial CTA \u2014 real submission flow, connects to /leave-review (Firestore 'testimonials' collection, moderated) ===== */}
         <div style={{ marginTop: '32px' }}>
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
           <div style={{ maxWidth: '520px', margin: '0 auto', background: 'white', borderRadius: '14px', padding: '28px', textAlign: 'center', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
-            <div style={{ fontSize: '30px', marginBottom: '10px' }}>💬</div>
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}>\ud83d\udcac</div>
             <p style={{ color: '#4A1F38', fontSize: '13.5px', margin: '0 0 18px', lineHeight: 1.6 }}>{st(lang, 'reviewCta')}</p>
             <a href="/leave-review" style={{ display: 'inline-block', padding: '12px 28px', background: '#6B2D4E', color: '#E9C77B', borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, textDecoration: 'none' }}>
               {st(lang, 'leaveReview')}
@@ -893,7 +895,7 @@ function SubscriptionContent() {
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ color: '#4A1F38', fontSize: '13px', fontWeight: 700 }}>{fq(lang, item.key, 'q')}</span>
-                  <span style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700 }}>{openFaq === i ? '−' : '+'}</span>
+                  <span style={{ color: '#6B2D4E', fontSize: '16px', fontWeight: 700 }}>{openFaq === i ? '\u2212' : '+'}</span>
                 </button>
                 {openFaq === i && (
                   <p style={{ color: '#8B5A73', fontSize: '12.5px', lineHeight: 1.6, margin: 0, padding: '0 18px 16px' }}>{fq(lang, item.key, 'a')}</p>
