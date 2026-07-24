@@ -9,6 +9,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { Suspense } from 'react';
 import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -435,10 +436,13 @@ function MemberContent() {
             )}
           </div>
         </div>
-        <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.dore, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+            style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.dore, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+            Sign Out
+          </button>
+        </div>
       </nav>
 
       {allMemberships.length > 1 && (
