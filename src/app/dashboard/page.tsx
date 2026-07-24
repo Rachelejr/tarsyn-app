@@ -95,24 +95,19 @@ function OverviewContent() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
-        const userSnap = await getDoc(doc(db, 'users', u.uid));
+        const [userSnap, gsnap, msnap, psnap] = await Promise.all([
+          getDoc(doc(db, 'users', u.uid)),
+          getDocs(query(collection(db, 'groups'), where('organizerId', '==', u.uid))),
+          getDocs(query(collection(db, 'members'), where('organizerId', '==', u.uid))),
+          getDocs(query(collection(db, 'payments'), where('organizerId', '==', u.uid))),
+        ]);
+
         const role = userSnap.exists() ? userSnap.data().role : null;
         setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
 
-        const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
-        const gsnap = await getDocs(gq);
-        const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setGroups(groupList);
-
-        if (groupList.length > 0) {
-          const mq = query(collection(db, 'members'), where('organizerId', '==', u.uid));
-          const ms = await getDocs(mq);
-          setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
-
-          const pq = query(collection(db, 'payments'), where('organizerId', '==', u.uid));
-          const ps = await getDocs(pq);
-          setPayments(ps.docs.map(d => ({ id: d.id, ...d.data() })));
-        }
+        setGroups(gsnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setMembers(msnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPayments(psnap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (e) { console.error(e); }
       setLoading(false);
     });
@@ -178,8 +173,14 @@ function OverviewContent() {
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD' }}>
-      <p style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD', gap: '18px' }}>
+      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
+      <div style={{
+        width: '30px', height: '30px', borderRadius: '50%',
+        border: '3px solid #EAD9BE', borderTopColor: '#6B2D4E',
+        animation: 'tarsyn-spin 0.8s linear infinite',
+      }} />
     </div>
   );
 
