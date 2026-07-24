@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -47,7 +48,7 @@ export default function SecurityCenterPage() {
   }, [router]);
 
   const formatDate = (ts: any) => {
-    if (!ts?.seconds) return '—';
+    if (!ts?.seconds) return '-';
     return new Date(ts.seconds * 1000).toLocaleDateString() + ' at ' +
       new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -86,13 +87,16 @@ export default function SecurityCenterPage() {
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>←</button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>&lt;-</button>
           <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Security Center</h1>
         </div>
-        <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-          style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+            style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            Sign Out
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth: '780px', margin: '0 auto', padding: '32px 24px' }}>
