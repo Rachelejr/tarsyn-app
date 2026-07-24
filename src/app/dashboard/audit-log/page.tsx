@@ -161,7 +161,7 @@ function AuditLogContent() {
                   const cc = categoryColor(e.category);
                   return (
                     <tr key={e.id} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? C.blanc : '#fdfcfb' }}>
-                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted, whiteSpace: 'nowrap' as const }}>
+                      <td style={{ padding: '12px 18px', fontSize: 12, fontWeight: 600, color: C.bordeaux, whiteSpace: 'nowrap' as const }}>
                         {e.createdAt ? new Date(e.createdAt.seconds * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
                       </td>
                       <td style={{ padding: '12px 18px' }}>
