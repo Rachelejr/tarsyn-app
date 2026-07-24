@@ -256,8 +256,10 @@ export default function DocumentsPage() {
   });
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.creme }}>
-      <p style={{ color: C.bleu, fontSize: '18px', fontWeight: 600 }}>Loading...</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.creme, gap: '18px' }}>
+      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
+      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bleu, animation: 'tarsyn-spin 0.8s linear infinite' }} />
     </div>
   );
 
