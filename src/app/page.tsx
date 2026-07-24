@@ -1,46 +1,47 @@
 ﻿'use client';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 // ============ 25 LANGUES + OTHER ============
 const LANGUAGES = [
-  { code: 'en',    label: '🇺🇸 English'           },
-  { code: 'fr',    label: '🇫🇷 Français'           },
-  { code: 'ht',    label: '🇭🇹 Kreyòl ayisyen'     },
-  { code: 'kac',   label: '🇦🇬 Kreyòl Antiyè'      },
-  { code: 'es',    label: '🇪🇸 Español'            },
-  { code: 'pt',    label: '🇧🇷 Português'          },
-  { code: 'ar',    label: '🇲🇦 العربية'            },
-  { code: 'wo',    label: '🇸🇳 Wolof'              },
-  { code: 'bm',    label: '🇲🇱 Bambara'            },
-  { code: 'ln',    label: '🇨🇩 Lingala'            },
-  { code: 'sw',    label: '🇰🇪 Kiswahili'          },
-  { code: 'yo',    label: '🇳🇬 Yorùbá'             },
-  { code: 'ig',    label: '🇳🇬 Igbo'               },
-  { code: 'ha',    label: '🇳🇬 Hausa'              },
-  { code: 'am',    label: '🇪🇹 Amharique'          },
-  { code: 'so',    label: '🇸🇴 Somali'             },
-  { code: 'mg',    label: '🇲🇬 Malagasy'           },
-  { code: 'rw',    label: '🇷🇼 Kinyarwanda'        },
-  { code: 'hi',    label: '🇮🇳 हिन्दी (Hindi)'    },
-  { code: 'tl',    label: '🇵🇭 Filipino'           },
-  { code: 'id',    label: '🇮🇩 Bahasa Indonesia'   },
-  { code: 'vi',    label: '🇻🇳 Tiếng Việt'        },
-  { code: 'nl',    label: '🇳🇱 Nederlands'         },
-  { code: 'de',    label: '🇩🇪 Deutsch'            },
-  { code: 'it',    label: '🇮🇹 Italiano'           },
-  { code: 'other', label: '➕ Other / Autre'        },
+  { code: 'en',    label: '\ud83c\uddfa\ud83c\uddf8 English'           },
+  { code: 'fr',    label: '\ud83c\uddeb\ud83c\uddf7 Fran\u00e7ais'           },
+  { code: 'ht',    label: '\ud83c\udded\ud83c\uddf9 Krey\u00f2l ayisyen'     },
+  { code: 'kac',   label: '\ud83c\udde6\ud83c\uddec Krey\u00f2l Antiy\u00e8'      },
+  { code: 'es',    label: '\ud83c\uddea\ud83c\uddf8 Espa\u00f1ol'            },
+  { code: 'pt',    label: '\ud83c\udde7\ud83c\uddf7 Portugu\u00eas'          },
+  { code: 'ar',    label: '\ud83c\uddf2\ud83c\udde6 \u0627\u0644\u0639\u0631\u0628\u064a\u0629'            },
+  { code: 'wo',    label: '\ud83c\uddf8\ud83c\uddf3 Wolof'              },
+  { code: 'bm',    label: '\ud83c\uddf2\ud83c\uddf1 Bambara'            },
+  { code: 'ln',    label: '\ud83c\udde8\ud83c\udde9 Lingala'            },
+  { code: 'sw',    label: '\ud83c\uddf0\ud83c\uddea Kiswahili'          },
+  { code: 'yo',    label: '\ud83c\uddf3\ud83c\uddec Yor\u00f9b\u00e1'             },
+  { code: 'ig',    label: '\ud83c\uddf3\ud83c\uddec Igbo'               },
+  { code: 'ha',    label: '\ud83c\uddf3\ud83c\uddec Hausa'              },
+  { code: 'am',    label: '\ud83c\uddea\ud83c\uddf9 Amharique'          },
+  { code: 'so',    label: '\ud83c\uddf8\ud83c\uddf4 Somali'             },
+  { code: 'mg',    label: '\ud83c\uddf2\ud83c\uddec Malagasy'           },
+  { code: 'rw',    label: '\ud83c\uddf7\ud83c\uddfc Kinyarwanda'        },
+  { code: 'hi',    label: '\ud83c\uddee\ud83c\uddf3 \u0939\u093f\u0928\u094d\u0926\u0940 (Hindi)'    },
+  { code: 'tl',    label: '\ud83c\uddf5\ud83c\udded Filipino'           },
+  { code: 'id',    label: '\ud83c\uddee\ud83c\udde9 Bahasa Indonesia'   },
+  { code: 'vi',    label: '\ud83c\uddfb\ud83c\uddf3 Ti\u1ebfng Vi\u1ec7t'        },
+  { code: 'nl',    label: '\ud83c\uddf3\ud83c\uddf1 Nederlands'         },
+  { code: 'de',    label: '\ud83c\udde9\ud83c\uddea Deutsch'            },
+  { code: 'it',    label: '\ud83c\uddee\ud83c\uddf9 Italiano'           },
+  { code: 'other', label: '\u2795 Other / Autre'        },
 ];
 
 const T: Record<string, Record<string, string>> = {
   en:  { hero1:'The Smart Way to Manage', hero2:'Your Community', cta:'Create Free Account', signin:'Sign In', trusted:'BUILT FOR COMMUNITIES WORLDWIDE', sub:'Track contributions, manage members, organize your activities, and view your reports automatically.', auto:'AUTO MODE', expert:'EXPERT MODE', startAuto:'Start with Auto Mode', startExpert:'Start with Expert Mode', modeTitle:'How do you want to use TARSYN?', modeSubtitle:'Choose the experience that fits your community.' },
-  fr:  { hero1:'La façon intelligente de gérer', hero2:'votre communauté', cta:'Créer un compte gratuit', signin:'Se connecter', trusted:'CONÇU POUR LES COMMUNAUTÉS DU MONDE ENTIER', sub:'Suivez les contributions, gérez les membres, organisez vos activités et consultez vos rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en mode auto', startExpert:'Commencer en mode expert', modeTitle:'Comment souhaitez-vous utiliser TARSYN ?', modeSubtitle:'Choisissez l\u2019expérience adaptée à votre communauté.' },
-  ht:  { hero1:'Fason Entelijan pou Jere', hero2:'Kominote Ou', cta:'Kreye Kont Gratis', signin:'Konekte', trusted:'FÈT POU KOMINOTE TOUT KOTE SOU LATÈ', sub:'Swiv kontribisyon, jere manm, jenere resi ak rapò otomatikman.', auto:'MOD OTOMATIK', expert:'MOD EKSPÈ', startAuto:'Kòmanse ak Mod Otomatik', startExpert:'Kòmanse ak Mod Ekspè' },
-  es:  { hero1:'La Forma Inteligente de Gestionar', hero2:'Tu Comunidad', cta:'Crear Cuenta Gratis', signin:'Iniciar Sesión', trusted:'CREADO PARA COMUNIDADES DE TODO EL MUNDO', sub:'Rastrea contribuciones, gestiona miembros, genera recibos e informes automáticamente.', auto:'MODO AUTO', expert:'MODO EXPERTO', startAuto:'Empezar en Modo Auto', startExpert:'Empezar en Modo Experto' },
-  pt:  { hero1:'A Forma Inteligente de Gerir', hero2:'Sua Comunidade', cta:'Criar Conta Grátis', signin:'Entrar', trusted:'CRIADO PARA COMUNIDADES EM TODO O MUNDO', sub:'Acompanhe contribuições, gerencie membros, gere recibos e relatórios automaticamente.', auto:'MODO AUTO', expert:'MODO ESPECIALISTA', startAuto:'Começar no Modo Auto', startExpert:'Começar no Modo Especialista' },
+  fr:  { hero1:'La fa\u00e7on intelligente de g\u00e9rer', hero2:'votre communaut\u00e9', cta:'Cr\u00e9er un compte gratuit', signin:'Se connecter', trusted:'CON\u00c7U POUR LES COMMUNAUT\u00c9S DU MONDE ENTIER', sub:'Suivez les contributions, g\u00e9rez les membres, organisez vos activit\u00e9s et consultez vos rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en mode auto', startExpert:'Commencer en mode expert', modeTitle:'Comment souhaitez-vous utiliser TARSYN ?', modeSubtitle:'Choisissez l\u2019exp\u00e9rience adapt\u00e9e \u00e0 votre communaut\u00e9.' },
+  ht:  { hero1:'Fason Entelijan pou Jere', hero2:'Kominote Ou', cta:'Kreye Kont Gratis', signin:'Konekte', trusted:'F\u00c8T POU KOMINOTE TOUT KOTE SOU LAT\u00c8', sub:'Swiv kontribisyon, jere manm, jenere resi ak rap\u00f2 otomatikman.', auto:'MOD OTOMATIK', expert:'MOD EKSP\u00c8', startAuto:'K\u00f2manse ak Mod Otomatik', startExpert:'K\u00f2manse ak Mod Eksp\u00e8' },
+  es:  { hero1:'La Forma Inteligente de Gestionar', hero2:'Tu Comunidad', cta:'Crear Cuenta Gratis', signin:'Iniciar Sesi\u00f3n', trusted:'CREADO PARA COMUNIDADES DE TODO EL MUNDO', sub:'Rastrea contribuciones, gestiona miembros, genera recibos e informes autom\u00e1ticamente.', auto:'MODO AUTO', expert:'MODO EXPERTO', startAuto:'Empezar en Modo Auto', startExpert:'Empezar en Modo Experto' },
+  pt:  { hero1:'A Forma Inteligente de Gerir', hero2:'Sua Comunidade', cta:'Criar Conta Gr\u00e1tis', signin:'Entrar', trusted:'CRIADO PARA COMUNIDADES EM TODO O MUNDO', sub:'Acompanhe contribui\u00e7\u00f5es, gerencie membros, gere recibos e relat\u00f3rios automaticamente.', auto:'MODO AUTO', expert:'MODO ESPECIALISTA', startAuto:'Come\u00e7ar no Modo Auto', startExpert:'Come\u00e7ar no Modo Especialista' },
 };
-// Translation fallback rule: Manual → Verified → English → key itself.
-// Never expose broken/empty/mojibake text — always fall back to English first.
+// Translation fallback rule: Manual -> Verified -> English -> key itself.
+// Never expose broken/empty/mojibake text - always fall back to English first.
 const t = (lang: string, key: string) => {
   const value = T[lang]?.[key];
   const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
@@ -48,24 +49,22 @@ const t = (lang: string, key: string) => {
   return T['en'][key] || key;
 };
 
-// ── MODULES — no longer rendered on the public Home Page (see master policy).
+// -- MODULES - no longer rendered on the public Home Page (see master policy).
 // Kept here for reuse on the post-signup "Choose Module(s)" step (Step 5 of New User Flow).
 const MODULES = [
-  {icon:'🤝',title:'Tontine / Sol',desc:'Cycles, rotation, receipts, organizer commission',tag:'V1 — PRIORITY'},
-  {icon:'🏛️',title:'Association',desc:'Members, dues, events, votes, reports',tag:'V1'},
-  {icon:'💼',title:'Investment',desc:'Projects, capital, returns, financial reports',tag:'V1'},
-  {icon:'⛪',title:'Church',desc:'Tithes, offerings, projects, announcements',tag:'V1'},
-  {icon:'🌾',title:'Agriculture',desc:'Cooperatives, harvests, group purchases',tag:'V2'},
-  {icon:'🏥',title:'Health',desc:'Health mutuals, coverage, claims',tag:'V3'},
-  {icon:'🏢',title:'Organization',desc:'Members, structure, governance, reports',tag:'V2'},
-  {icon:'🤲',title:'Foundation',desc:'Donations, projects, impact reports, grants',tag:'V2'},
-  {icon:'🏠',title:'Orphanage',desc:'Children records, sponsors, care plans, donations',tag:'V2'},
-  {icon:'🎉',title:'Youth Club',desc:'Activities, members, events, fees',tag:'V3'},
-  {icon:'🤝',title:'Cooperative',desc:'Shared resources, member shares, collective purchases',tag:'V2'},
-  {icon:'🛒',title:'Commerce',desc:'Orders, inventory, group sales, vendor payouts',tag:'V3'},
+  {icon:'\ud83e\udd1d',title:'Tontine / Sol',desc:'Cycles, rotation, receipts, organizer commission',tag:'V1 - PRIORITY'},
+  {icon:'\ud83c\udfdb\ufe0f',title:'Association',desc:'Members, dues, events, votes, reports',tag:'V1'},
+  {icon:'\ud83d\udcbc',title:'Investment',desc:'Projects, capital, returns, financial reports',tag:'V1'},
+  {icon:'\u26ea',title:'Church',desc:'Tithes, offerings, projects, announcements',tag:'V1'},
+  {icon:'\ud83c\udf3e',title:'Agriculture',desc:'Cooperatives, harvests, group purchases',tag:'V2'},
+  {icon:'\ud83c\udfe5',title:'Health',desc:'Health mutuals, coverage, claims',tag:'V3'},
+  {icon:'\ud83c\udfe2',title:'Organization',desc:'Members, structure, governance, reports',tag:'V2'},
+  {icon:'\ud83e\udd32',title:'Foundation',desc:'Donations, projects, impact reports, grants',tag:'V2'},
+  {icon:'\ud83c\udfe0',title:'Orphanage',desc:'Children records, sponsors, care plans, donations',tag:'V2'},
+  {icon:'\ud83c\udf89',title:'Youth Club',desc:'Activities, members, events, fees',tag:'V3'},
+  {icon:'\ud83e\udd1d',title:'Cooperative',desc:'Shared resources, member shares, collective purchases',tag:'V2'},
+  {icon:'\ud83d\uded2',title:'Commerce',desc:'Orders, inventory, group sales, vendor payouts',tag:'V3'},
 ];
-
-// TESTIMONIALS array removed — replaced by real /leave-review submission flow (Firestore, moderated).
 
 const COMMUNITY_IMGS = [
   'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&h=400&fit=crop',
@@ -77,26 +76,26 @@ const COMMUNITY_IMGS = [
 ];
 
 const AUTO_FEATURES = [
-  {icon:'🔔', key:'Automatic reminders sent for you'},
-  {icon:'🧾', key:'Receipts generated automatically'},
-  {icon:'🔄', key:'Rotation calculated by TARSYN'},
-  {icon:'🔵', key:'Big buttons — no reading required'},
-  {icon:'🌍', key:'Works in 25 languages'},
+  {icon:'\ud83d\udd14', key:'Automatic reminders sent for you'},
+  {icon:'\ud83e\uddfe', key:'Receipts generated automatically'},
+  {icon:'\ud83d\udd04', key:'Rotation calculated by TARSYN'},
+  {icon:'\ud83d\udd35', key:'Big buttons - no reading required'},
+  {icon:'\ud83c\udf0d', key:'Works in 25 languages'},
 ];
 const EXPERT_FEATURES = [
-  {icon:'📊', key:'Full analytics dashboard'},
-  {icon:'⚙️', key:'Advanced settings and controls'},
-  {icon:'📋', key:'Custom reports and exports'},
-  {icon:'👥', key:'Complete member management'},
-  {icon:'🔒', key:'Full audit trail access'},
+  {icon:'\ud83d\udcca', key:'Full analytics dashboard'},
+  {icon:'\u2699\ufe0f', key:'Advanced settings and controls'},
+  {icon:'\ud83d\udccb', key:'Custom reports and exports'},
+  {icon:'\ud83d\udc65', key:'Complete member management'},
+  {icon:'\ud83d\udd12', key:'Full audit trail access'},
 ];
 
 const FAQ = [
-  {q:'Is TARSYN free?', a:'Yes! TARSYN is free to use. A small 0.5% platform fee applies per distribution — only when money is distributed.'},
+  {q:'Is TARSYN free?', a:'Yes! TARSYN is free to use. A small 0.5% platform fee applies per distribution - only when money is distributed.'},
   {q:'How many members can a group have?', a:'Unlimited. TARSYN supports groups of 2 to 10,000+ members with no restrictions.'},
   {q:'Is my data secure?', a:'Absolutely. Each group has a completely isolated, encrypted space. No group can ever see another group\'s data.'},
   {q:'Can I use TARSYN in my language?', a:'Yes! TARSYN supports 25 languages with auto-detection. More languages are added regularly.'},
-  {q:'Do I need to be tech-savvy?', a:'No. Auto Mode is designed for anyone — big buttons, automatic everything, no reading required.'},
+  {q:'Do I need to be tech-savvy?', a:'No. Auto Mode is designed for anyone - big buttons, automatic everything, no reading required.'},
 ];
 
 export default function HomePage() {
@@ -170,8 +169,8 @@ export default function HomePage() {
       {showLangModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
           <div style={{background:'white',borderRadius:'16px',padding:'32px',maxWidth:'400px',width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}}>
-            <h3 style={{color:'#6B2D4E',marginBottom:'8px',fontSize:'18px',fontWeight:'700'}}>➕ Add Your Language</h3>
-            <p style={{color:'#6B2D4E',fontSize:'13px',marginBottom:'20px'}}>Your language isn't in the list? Tell us — we'll add it!</p>
+            <h3 style={{color:'#6B2D4E',marginBottom:'8px',fontSize:'18px',fontWeight:'700'}}>{'\u2795'} Add Your Language</h3>
+            <p style={{color:'#6B2D4E',fontSize:'13px',marginBottom:'20px'}}>Your language isn't in the list? Tell us {'\u2014'} we'll add it!</p>
             <input type="text" placeholder="Ex: Fon, Twi, Soninke, Zarma..."
               value={customLang}
               onChange={e=>setCustomLang(e.target.value)}
@@ -179,7 +178,7 @@ export default function HomePage() {
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>{
                 if(customLang.trim()){
-                  alert(`✅ Thank you! "${customLang}" has been submitted. We will add it soon!`);
+                  alert(`\u2705 Thank you! "${customLang}" has been submitted. We will add it soon!`);
                   setShowLangModal(false); setCustomLang('');
                 } else { alert('Please enter a language name.'); }
               }} style={{flex:1,padding:'12px',background:'#6B2D4E',color:'white',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'700',cursor:'pointer'}}>
@@ -194,7 +193,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── NAVBAR — only place Sign In / Create Account appear "by default" since it's sticky ── */}
       <nav style={{background:'#FBEEDD',padding:'14px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 16px rgba(107,45,78,0.12)',borderBottom:'1px solid #D9C0CC'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div>
@@ -216,15 +214,17 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ── HERO — keeps its own CTA (primary conversion point); navbar above is sticky so always visible too ── */}
       <div className="tarsyn-hero" style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}}>🤝</div>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}}>💰</div>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}}>🌍</div>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}}>⭐</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}}>{'\ud83e\udd1d'}</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}}>{'\ud83d\udcb0'}</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}}>{'\ud83c\udf0d'}</div>
+        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}}>{'\u2b50'}</div>
         <div style={{position:'relative',zIndex:1}}>
           <div style={{display:'inline-block',background:'rgba(233,199,123,0.15)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'20px',padding:'6px 18px',marginBottom:'24px'}}>
-            <span style={{color:'#E9C77B',fontSize:'12px',fontWeight:'600',letterSpacing:'2px'}}>🌍 {t(lang,'trusted')}</span>
+            <span style={{color:'#E9C77B',fontSize:'12px',fontWeight:'600',letterSpacing:'2px'}}>{'\ud83c\udf0d'} {t(lang,'trusted')}</span>
+          </div>
+          <div style={{marginBottom:'32px', display:'flex', justifyContent:'center'}}>
+            <DateTimeWeather variant="clock" />
           </div>
           <h1 style={{color:'#FBEEDD',fontSize:'52px',fontWeight:'800',marginBottom:'16px',lineHeight:'1.15'}}>{t(lang,'hero1')}</h1>
           <h2 style={{color:'#E9C77B',fontSize:'52px',fontWeight:'800',marginBottom:'28px',fontStyle:'italic',lineHeight:'1.15'}}>{t(lang,'hero2')}</h2>
@@ -238,12 +238,11 @@ export default function HomePage() {
             </a>
           </div>
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginTop:'52px',flexWrap:'wrap',gap:'4px'}}>
-            <span style={{color:'rgba(251,238,221,0.75)',fontSize:'13px',fontWeight:'500'}}>🎁 30-day free trial · No credit card required</span>
+            <span style={{color:'rgba(251,238,221,0.75)',fontSize:'13px',fontWeight:'500'}}>{'\ud83c\udf81'} 30-day free trial {'\u00b7'} No credit card required</span>
           </div>
         </div>
       </div>
 
-      {/* ── AUTO / EXPERT MODE ── */}
       <div style={{background:'#FBEEDD',padding:'72px 32px',textAlign:'center'}}>
         <div style={{marginBottom:'16px'}}>
           <span style={{background:'#EAD9BE',color:'#6B2D4E',fontSize:'11px',fontWeight:'700',letterSpacing:'2px',padding:'6px 18px',borderRadius:'20px'}}>CHOOSE YOUR EXPERIENCE</span>
@@ -257,9 +256,9 @@ export default function HomePage() {
             onMouseLeave={()=>setHoverMode(null)}
             style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='auto'?'0 20px 48px rgba(107,45,78,0.22)':'0 4px 20px rgba(107,45,78,0.08)',border:`2px solid ${hoverMode==='auto'?'#6B2D4E':'#EAD9BE'}`}}>
             <div style={{background:'linear-gradient(135deg,#6B2D4E,#8B3A5E)',padding:'32px 24px 24px',textAlign:'center'}}>
-              <div style={{fontSize:'44px',marginBottom:'14px'}}>🤲</div>
+              <div style={{fontSize:'44px',marginBottom:'14px'}}>{'\ud83e\udd32'}</div>
               <div style={{color:'#E9C77B',fontSize:'22px',fontWeight:'800',letterSpacing:'2px'}}>{t(lang,'auto')}</div>
-              <div style={{color:'#FBEEDD',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>100% AUTOMATIC — FOR EVERYONE</div>
+              <div style={{color:'#FBEEDD',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>100% AUTOMATIC {'\u2014'} FOR EVERYONE</div>
             </div>
             <div style={{padding:'24px',background:'white'}}>
               {AUTO_FEATURES.map((f,i)=>(
@@ -281,9 +280,9 @@ export default function HomePage() {
             onMouseLeave={()=>setHoverMode(null)}
             style={{borderRadius:'20px',overflow:'hidden',boxShadow:hoverMode==='expert'?'0 20px 48px rgba(233,199,123,0.25)':'0 4px 20px rgba(0,0,0,0.15)',border:`2px solid ${hoverMode==='expert'?'#E9C77B':'#E8D5DF'}`}}>
             <div style={{background:'linear-gradient(135deg,#3A1830,#8B3A5E)',padding:'32px 24px 24px',textAlign:'center'}}>
-              <div style={{fontSize:'44px',marginBottom:'14px'}}>⚡</div>
+              <div style={{fontSize:'44px',marginBottom:'14px'}}>{'\u26a1'}</div>
               <div style={{color:'#E9C77B',fontSize:'22px',fontWeight:'800',letterSpacing:'2px'}}>{t(lang,'expert')}</div>
-              <div style={{color:'#FBEEDD',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>FULL CONTROL — FOR ADMINS</div>
+              <div style={{color:'#FBEEDD',fontSize:'11px',letterSpacing:'2px',marginTop:'6px',opacity:0.8}}>FULL CONTROL {'\u2014'} FOR ADMINS</div>
             </div>
             <div style={{padding:'24px',background:'white'}}>
               {EXPERT_FEATURES.map((f,i)=>(
@@ -302,7 +301,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── COMMUNITY PHOTO SLIDER ── */}
       <div style={{background:'#4A1F38',padding:'56px 32px',textAlign:'center'}}>
         <h3 style={{color:'#E9C77B',fontSize:'20px',fontWeight:'700',marginBottom:'6px',letterSpacing:'2px'}}>COMMUNITIES AROUND THE WORLD</h3>
         <p style={{color:'#FBEEDD',fontSize:'13px',opacity:0.55,marginBottom:'28px',letterSpacing:'1px'}}>Every nation. Every community. One platform.</p>
@@ -317,14 +315,13 @@ export default function HomePage() {
             ))}
           </div>
           <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'linear-gradient(to top,rgba(44,16,32,0.65) 0%,transparent 55%)',pointerEvents:'none'}}></div>
-          <div style={{position:'absolute',top:'50%',right:'16px',transform:'translateY(-50%)',background:'rgba(0,0,0,0.4)',borderRadius:'50%',width:'36px',height:'36px',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'18px',cursor:'pointer',zIndex:2}}>›</div>
+          <div style={{position:'absolute',top:'50%',right:'16px',transform:'translateY(-50%)',background:'rgba(0,0,0,0.4)',borderRadius:'50%',width:'36px',height:'36px',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'18px',cursor:'pointer',zIndex:2}}>{'\u203a'}</div>
         </div>
       </div>
 
-      {/* ── STATS ── */}
       <div style={{background:'#EAD9BE',padding:'44px 32px'}}>
         <div style={{display:'flex',justifyContent:'center',gap:'64px',flexWrap:'wrap'}}>
-          {[['30-Day','Free Trial'],['25','Languages Supported'],['100%','Automatic & Secure'],['5','Plans — Free to Enterprise']].map(([v,l])=>(
+          {[['30-Day','Free Trial'],['25','Languages Supported'],['100%','Automatic & Secure'],['5','Plans - Free to Enterprise']].map(([v,l])=>(
             <div key={l} style={{textAlign:'center'}}>
               <div style={{fontSize:'38px',fontWeight:'800',color:'#6B2D4E'}}>{v}</div>
               <div style={{fontSize:'13px',color:'#6B2D4E',marginTop:'6px',fontWeight:'500'}}>{l}</div>
@@ -333,15 +330,14 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── HOW IT WORKS ── */}
       <div style={{background:'#FBEEDD',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#6B2D4E',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>How it works</h3>
         <p style={{color:'#6B2D4E',marginBottom:'44px',fontSize:'15px'}}>3 simple steps to get started</p>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'24px',maxWidth:'800px',margin:'0 auto'}}>
           {[
-            {step:'1',icon:'📝',title:'Create your group',desc:'Sign up, choose your mode and invite your members in minutes.'},
-            {step:'2',icon:'💰',title:'Record contributions',desc:'Each payment is confirmed instantly with a receipt and QR code.'},
-            {step:'3',icon:'🔄',title:'TARSYN handles the rest',desc:'Rotation, reminders, reports — all automatic. You focus on your community.'},
+            {step:'1',icon:'\ud83d\udcdd',title:'Create your group',desc:'Sign up, choose your mode and invite your members in minutes.'},
+            {step:'2',icon:'\ud83d\udcb0',title:'Record contributions',desc:'Each payment is confirmed instantly with a receipt and QR code.'},
+            {step:'3',icon:'\ud83d\udd04',title:'TARSYN handles the rest',desc:'Rotation, reminders, reports - all automatic. You focus on your community.'},
           ].map(s=>(
             <div key={s.step} style={{background:'white',border:'1px solid #EAD9BE',borderRadius:'16px',padding:'28px 20px',textAlign:'center'}}>
               <div style={{width:'48px',height:'48px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',color:'#E9C77B',fontWeight:'800',fontSize:'18px'}}>{s.step}</div>
@@ -353,17 +349,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Per platform master policy: the "One Platform — Every Community" module-card
-          section is intentionally removed from the public Home Page. Module selection
-          now happens only after account + workspace creation (see New User Flow). */}
-
-      {/* ── LEAVE A TESTIMONIAL — real submission flow via /leave-review, connects to
-          Firestore 'testimonials' collection with moderation. No fabricated content. ── */}
       <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
         <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'32px',fontSize:'14px'}}>Real reviews from real TARSYN organizers and members</p>
         <div style={{maxWidth:'480px',margin:'0 auto',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'18px',padding:'36px'}}>
-          <div style={{fontSize:'30px',marginBottom:'10px'}}>💬</div>
+          <div style={{fontSize:'30px',marginBottom:'10px'}}>{'\ud83d\udcac'}</div>
           <p style={{color:'#FBEEDD',fontSize:'14px',marginBottom:'20px',lineHeight:'1.6'}}>Are you already using TARSYN? Share your experience with future organizers.</p>
           <a href="/leave-review" style={{display:'inline-block',padding:'12px 28px',background:'#E9C77B',color:'#6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'800',textDecoration:'none'}}>
             Leave a Testimonial
@@ -371,7 +361,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── FAQ ── */}
       <div style={{background:'#FBEEDD',padding:'64px 32px'}}>
         <h3 style={{color:'#6B2D4E',fontSize:'30px',fontWeight:'800',marginBottom:'8px',textAlign:'center'}}>Frequently Asked Questions</h3>
         <p style={{color:'#6B2D4E',marginBottom:'44px',textAlign:'center',fontSize:'15px'}}>Everything you need to know about TARSYN</p>
@@ -381,7 +370,7 @@ export default function HomePage() {
               <div onClick={()=>setOpenFaq(openFaq===i?null:i)}
                 style={{padding:'18px 20px',display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}>
                 <span style={{fontWeight:'600',color:'#4A1F38',fontSize:'15px'}}>{f.q}</span>
-                <span style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'700',lineHeight:'1'}}>{openFaq===i?'−':'+'}</span>
+                <span style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'700',lineHeight:'1'}}>{openFaq===i?'\u2212':'+'}</span>
               </div>
               {openFaq===i&&(
                 <div style={{padding:'0 20px 18px',fontSize:'14px',color:'#6B2D4E',lineHeight:'1.7',borderTop:'1px solid #F3E9D6'}}>{f.a}</div>
@@ -391,13 +380,12 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── EMAIL SIGNUP ── */}
       <div style={{background:'#6B2D4E',padding:'56px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'26px',fontWeight:'800',marginBottom:'8px'}}>Stay updated with TARSYN</h3>
         <p style={{color:'rgba(251,238,221,0.65)',marginBottom:'28px',fontSize:'14px'}}>Get notified when new languages and features are added</p>
         {emailSent ? (
           <div style={{background:'rgba(74,124,89,0.3)',border:'1px solid rgba(74,124,89,0.5)',borderRadius:'12px',padding:'16px 24px',display:'inline-block',color:'#90EE90',fontWeight:'600'}}>
-            ✅ Thank you! You're on the list.
+            {'\u2705'} Thank you! You're on the list.
           </div>
         ) : (
           <div style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap',maxWidth:'480px',margin:'0 auto'}}>
@@ -411,12 +399,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Note: the previous "Ready to organize your community?" CTA section was removed here —
-          it duplicated the exact same Sign In / Create Account buttons already shown in the
-          sticky Navbar (visible at all times) and in the Hero. Email Signup now flows directly
-          into the Footer. */}
-
-      {/* ── FOOTER — global component, discreet company attribution per final brand rule ── */}
       <Footer onLanguageClick={() => setShowLangModal(true)} />
     </div>
   );
