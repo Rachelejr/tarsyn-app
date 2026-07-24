@@ -198,18 +198,20 @@ export default function HomePage() {
             <div style={{color:'#8B3A5E',fontSize:'12px',letterSpacing:'1.5px',fontWeight:700,fontStyle:'italic',marginTop:'4px'}}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>
-        <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
-          <DateTimeWeather variant="clock" size="compact" />
-          <select value={lang} onChange={e=>handleLangChange(e.target.value)}
-            style={{padding:'7px 12px',borderRadius:'8px',border:'1.5px solid #D9C0CC',background:'white',color:'#6B2D4E',fontSize:'13px',cursor:'pointer',outline:'none',fontWeight:'500',maxWidth:'200px'}}>
-            {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
-          </select>
-          <a href="/login" className="nav-link" style={{padding:'9px 22px',border:'1.5px solid #6B2D4E',borderRadius:'8px',color:'#6B2D4E',textDecoration:'none',fontSize:'14px',fontWeight:'600'}}>
-            {t(lang,'signin')}
-          </a>
-          <a href="/register" className="btn-gold" style={{padding:'9px 22px',background:'#6B2D4E',borderRadius:'8px',color:'#FBEEDD',textDecoration:'none',fontSize:'14px',fontWeight:'700',display:'inline-block'}}>
-            {t(lang,'cta')}
-          </a>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'6px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
+            <select value={lang} onChange={e=>handleLangChange(e.target.value)}
+              style={{padding:'7px 12px',borderRadius:'8px',border:'1.5px solid #D9C0CC',background:'white',color:'#6B2D4E',fontSize:'13px',cursor:'pointer',outline:'none',fontWeight:'500',maxWidth:'200px'}}>
+              {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
+            </select>
+            <a href="/login" className="nav-link" style={{padding:'9px 22px',border:'1.5px solid #6B2D4E',borderRadius:'8px',color:'#6B2D4E',textDecoration:'none',fontSize:'14px',fontWeight:'600'}}>
+              {t(lang,'signin')}
+            </a>
+            <a href="/register" className="btn-gold" style={{padding:'9px 22px',background:'#6B2D4E',borderRadius:'8px',color:'#FBEEDD',textDecoration:'none',fontSize:'14px',fontWeight:'700',display:'inline-block'}}>
+              {t(lang,'cta')}
+            </a>
+          </div>
+          <DateTimeWeather textColor="#6B2D4E" fontSize="13px" bold={true} />
         </div>
       </nav>
 
