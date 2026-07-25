@@ -110,6 +110,14 @@ function AddMemberContent() {
         shares: Math.max(1, parseInt(form.shares) || 1),
         createdAt: serverTimestamp(),
       });
+      try {
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId: user.uid, category: 'Member',
+          action: 'Added member',
+          user: user.email || '', details: form.fullName + ' - ' + tynId,
+          createdAt: serverTimestamp(),
+        });
+      } catch (auditErr) { /* silent - audit logging must never block member creation */ }
       setSuccess(true);
     } catch (e) { console.error(e); alert('Error adding member.'); }
     setLoading(false);
