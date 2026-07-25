@@ -96,6 +96,7 @@ function RegisterContent() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [organizerId, setOrganizerId] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [members, setMembers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [group, setGroup] = useState<any>(null);
@@ -114,6 +115,7 @@ function RegisterContent() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       setOrganizerId(u.uid);
+      setUserEmail(u.email || '');
       try {
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
@@ -136,18 +138,10 @@ function RegisterContent() {
     const set = new Set<number>();
     payments.forEach(p => { if (typeof p.cycle === 'number') set.add(p.cycle); });
     const highestRecorded = set.size > 0 ? Math.max(...set) : 0;
-    // A tontine cycle = one full rotation (every member contributes, one member is paid out).
-    // Total cycles should automatically track the REAL, current member count - not the
-    // capacity originally planned when the group was created (group.numMembers), which
-    // doesn't change as members are actually added. Falls back to that planned number
-    // only before any real members exist yet, so this never shows "0 cycles".
     const configuredTotal = members.length > 0 ? members.length : (group?.numMembers || 4);
     return Array.from({ length: Math.max(highestRecorded, configuredTotal) }, (_, i) => i + 1);
   }, [payments, group, members]);
 
-  // The "current cycle" is the first cycle not yet fully paid by every member -
-  // not simply the last cycle in the list (that made it always equal the total
-  // cycle count, so "Cycles" and "Current Cycle" always showed the same number).
   const currentCycle = useMemo(() => {
     for (const c of cycles) {
       const allPaid = members.length > 0 && members.every(m => {
@@ -167,6 +161,8 @@ function RegisterContent() {
   const handleStatusChange = async (memberId: string, cycle: number, newStatus: PaymentStatus) => {
     const existing = getPaymentFor(memberId, cycle);
     const firestoreStatus = newStatus === 'paid' ? 'confirmed' : newStatus;
+    const member = members.find(m => m.id === memberId);
+    const memberLabel = member?.fullName || member?.name || 'Member';
     setStatusError('');
     try {
       if (existing) {
@@ -174,7 +170,6 @@ function RegisterContent() {
         await updateDoc(doc(db, 'payments', existing.id), { status: firestoreStatus, amount: updatedAmount });
         setPayments(prev => prev.map(p => p.id === existing.id ? { ...p, status: firestoreStatus, amount: updatedAmount } : p));
       } else {
-        const member = members.find(m => m.id === memberId);
         const newAmount = firestoreStatus === 'confirmed' ? (group?.amountPerMember || 0) : 0;
         const newDoc = await addDoc(collection(db, 'payments'), {
           memberId, memberName: member?.fullName || member?.name || '', cycle, status: firestoreStatus, amount: newAmount,
@@ -183,6 +178,14 @@ function RegisterContent() {
         });
         setPayments(prev => [...prev, { id: newDoc.id, memberId, memberName: member?.fullName || member?.name || '', cycle, status: firestoreStatus, amount: newAmount, organizerId, paymentDate: new Date().toISOString().slice(0, 10) }]);
       }
+      try {
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId, category: 'Payment',
+          action: 'Marked ' + newStatus.charAt(0).toUpperCase() + newStatus.slice(1),
+          user: userEmail, details: memberLabel + ' - Cycle ' + cycle + ' - ' + newStatus,
+          createdAt: serverTimestamp(),
+        });
+      } catch (auditErr) { /* silent - audit logging must never block the actual status change */ }
     } catch (e: any) {
       console.error(e);
       setStatusError('Could not save this status change: ' + (e?.message || 'unknown error'));
