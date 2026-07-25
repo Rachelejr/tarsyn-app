@@ -20,65 +20,65 @@ const C = {
 };
 
 const REGIONS = [
-  { region: 'United States', flag: '🇺🇸', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'Canada', flag: '🇨🇦', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'United Kingdom', flag: '🇬🇧', name: 'Pardner' },
-  { region: 'France', flag: '🇫🇷', name: 'Tontine' },
-  { region: 'Belgium', flag: '🇧🇪', name: 'Tontine' },
-  { region: 'Switzerland', flag: '🇨🇭', name: 'Tontine' },
-  { region: 'West Africa', flag: '🌍', name: 'Tontine' },
-  { region: 'Cameroon', flag: '🇨🇲', name: 'Njangi' },
-  { region: 'Congo (DRC)', flag: '🇨🇩', name: 'Likelemba' },
-  { region: 'Ghana', flag: '🇬🇭', name: 'Susu' },
-  { region: 'Nigeria', flag: '🇳🇬', name: 'Ajo / Esusu' },
-  { region: 'Senegal', flag: '🇸🇳', name: 'Tontine' },
-  { region: 'Ivory Coast', flag: '🇨🇮', name: 'Tontine' },
-  { region: 'Kenya', flag: '🇰🇪', name: 'Chama' },
-  { region: 'Ethiopia', flag: '🇪🇹', name: 'Iqub' },
-  { region: 'Haiti', flag: '🇭🇹', name: 'Sol' },
-  { region: 'Dominican Republic', flag: '🇩🇴', name: 'San / Mutualidad' },
-  { region: 'Jamaica', flag: '🇯🇲', name: 'Partner' },
-  { region: 'Trinidad & Tobago', flag: '🇹🇹', name: 'Sou-Sou' },
-  { region: 'Barbados', flag: '🇧🇧', name: 'Meeting Turn' },
-  { region: 'Guyana', flag: '🇬🇾', name: 'Box Hand' },
-  { region: 'Suriname', flag: '🇸🇷', name: 'Kasmoni' },
-  { region: 'Cuba', flag: '🇨🇺', name: 'Cundina' },
-  { region: 'Puerto Rico', flag: '🇵🇷', name: 'Cundina' },
-  { region: 'Guadeloupe', flag: '🇬🇵', name: 'Sou-Sou' },
-  { region: 'Martinique', flag: '🇲🇶', name: 'Sou-Sou' },
-  { region: 'French Guiana', flag: '🇬🇫', name: 'Sou-Sou' },
-  { region: 'Mexico', flag: '🇲🇽', name: 'Tanda' },
-  { region: 'Colombia', flag: '🇨🇴', name: 'Natillera' },
-  { region: 'Peru', flag: '🇵🇪', name: 'Pandero' },
-  { region: 'Bolivia', flag: '🇧🇴', name: 'Pasanaku' },
-  { region: 'India', flag: '🇮🇳', name: 'Chit Fund' },
-  { region: 'Philippines', flag: '🇵🇭', name: 'Paluwagan' },
-  { region: 'Vietnam', flag: '🇻🇳', name: 'Hui' },
-  { region: 'China', flag: '🇨🇳', name: 'Hui' },
-  { region: 'South Korea', flag: '🇰🇷', name: 'Gye' },
-  { region: 'Japan', flag: '🇯🇵', name: 'Ko' },
-  { region: 'Other / General', flag: '🌍', name: 'Rotating Savings' },
+  { region: 'United States', flag: '\ud83c\uddfa\ud83c\uddf8', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'Canada', flag: '\ud83c\udde8\ud83c\udde6', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'United Kingdom', flag: '\ud83c\uddec\ud83c\udde7', name: 'Pardner' },
+  { region: 'France', flag: '\ud83c\uddeb\ud83c\uddf7', name: 'Tontine' },
+  { region: 'Belgium', flag: '\ud83c\udde7\ud83c\uddea', name: 'Tontine' },
+  { region: 'Switzerland', flag: '\ud83c\udde8\ud83c\udded', name: 'Tontine' },
+  { region: 'West Africa', flag: '\ud83c\udf0d', name: 'Tontine' },
+  { region: 'Cameroon', flag: '\ud83c\udde8\ud83c\uddf2', name: 'Njangi' },
+  { region: 'Congo (DRC)', flag: '\ud83c\udde8\ud83c\udde9', name: 'Likelemba' },
+  { region: 'Ghana', flag: '\ud83c\uddec\ud83c\udded', name: 'Susu' },
+  { region: 'Nigeria', flag: '\ud83c\uddf3\ud83c\uddec', name: 'Ajo / Esusu' },
+  { region: 'Senegal', flag: '\ud83c\uddf8\ud83c\uddf3', name: 'Tontine' },
+  { region: 'Ivory Coast', flag: '\ud83c\udde8\ud83c\uddee', name: 'Tontine' },
+  { region: 'Kenya', flag: '\ud83c\uddf0\ud83c\uddea', name: 'Chama' },
+  { region: 'Ethiopia', flag: '\ud83c\uddea\ud83c\uddf9', name: 'Iqub' },
+  { region: 'Haiti', flag: '\ud83c\udded\ud83c\uddf9', name: 'Sol' },
+  { region: 'Dominican Republic', flag: '\ud83c\udde9\ud83c\uddf4', name: 'San / Mutualidad' },
+  { region: 'Jamaica', flag: '\ud83c\uddef\ud83c\uddf2', name: 'Partner' },
+  { region: 'Trinidad & Tobago', flag: '\ud83c\uddf9\ud83c\uddf9', name: 'Sou-Sou' },
+  { region: 'Barbados', flag: '\ud83c\udde7\ud83c\udde7', name: 'Meeting Turn' },
+  { region: 'Guyana', flag: '\ud83c\uddec\ud83c\uddfe', name: 'Box Hand' },
+  { region: 'Suriname', flag: '\ud83c\uddf8\ud83c\uddf7', name: 'Kasmoni' },
+  { region: 'Cuba', flag: '\ud83c\udde8\ud83c\uddfa', name: 'Cundina' },
+  { region: 'Puerto Rico', flag: '\ud83c\uddf5\ud83c\uddf7', name: 'Cundina' },
+  { region: 'Guadeloupe', flag: '\ud83c\uddec\ud83c\uddf5', name: 'Sou-Sou' },
+  { region: 'Martinique', flag: '\ud83c\uddf2\ud83c\uddf6', name: 'Sou-Sou' },
+  { region: 'French Guiana', flag: '\ud83c\uddec\ud83c\uddeb', name: 'Sou-Sou' },
+  { region: 'Mexico', flag: '\ud83c\uddf2\ud83c\uddfd', name: 'Tanda' },
+  { region: 'Colombia', flag: '\ud83c\udde8\ud83c\uddf4', name: 'Natillera' },
+  { region: 'Peru', flag: '\ud83c\uddf5\ud83c\uddea', name: 'Pandero' },
+  { region: 'Bolivia', flag: '\ud83c\udde7\ud83c\uddf4', name: 'Pasanaku' },
+  { region: 'India', flag: '\ud83c\uddee\ud83c\uddf3', name: 'Chit Fund' },
+  { region: 'Philippines', flag: '\ud83c\uddf5\ud83c\udded', name: 'Paluwagan' },
+  { region: 'Vietnam', flag: '\ud83c\uddfb\ud83c\uddf3', name: 'Hui' },
+  { region: 'China', flag: '\ud83c\udde8\ud83c\uddf3', name: 'Hui' },
+  { region: 'South Korea', flag: '\ud83c\uddf0\ud83c\uddf7', name: 'Gye' },
+  { region: 'Japan', flag: '\ud83c\uddef\ud83c\uddf5', name: 'Ko' },
+  { region: 'Other / General', flag: '\ud83c\udf0d', name: 'Rotating Savings' },
 ];
 
 const CURRENCIES = [
-  { code: 'USD', label: 'USD — US Dollar' },
-  { code: 'HTG', label: 'HTG — Haitian Gourde' },
-  { code: 'EUR', label: 'EUR — Euro' },
-  { code: 'CAD', label: 'CAD — Canadian Dollar' },
-  { code: 'GBP', label: 'GBP — British Pound' },
-  { code: 'XOF', label: 'XOF — CFA Franc' },
-  { code: 'NGN', label: 'NGN — Nigerian Naira' },
-  { code: 'GHS', label: 'GHS — Ghanaian Cedi' },
-  { code: 'INR', label: 'INR — Indian Rupee' },
-  { code: 'MXN', label: 'MXN — Mexican Peso' },
-  { code: 'PHP', label: 'PHP — Philippine Peso' },
-  { code: 'DOP', label: 'DOP — Dominican Peso' },
-  { code: 'TTD', label: 'TTD — T&T Dollar' },
-  { code: 'JMD', label: 'JMD — Jamaican Dollar' },
-  { code: 'BTC', label: 'BTC — Bitcoin' },
-  { code: 'ETH', label: 'ETH — Ethereum' },
-  { code: 'USDT', label: 'USDT — Tether (Optional Premium)' },
-  { code: 'USDC', label: 'USDC — USD Coin (Optional Premium)' },
+  { code: 'USD', label: 'USD \u2014 US Dollar' },
+  { code: 'HTG', label: 'HTG \u2014 Haitian Gourde' },
+  { code: 'EUR', label: 'EUR \u2014 Euro' },
+  { code: 'CAD', label: 'CAD \u2014 Canadian Dollar' },
+  { code: 'GBP', label: 'GBP \u2014 British Pound' },
+  { code: 'XOF', label: 'XOF \u2014 CFA Franc' },
+  { code: 'NGN', label: 'NGN \u2014 Nigerian Naira' },
+  { code: 'GHS', label: 'GHS \u2014 Ghanaian Cedi' },
+  { code: 'INR', label: 'INR \u2014 Indian Rupee' },
+  { code: 'MXN', label: 'MXN \u2014 Mexican Peso' },
+  { code: 'PHP', label: 'PHP \u2014 Philippine Peso' },
+  { code: 'DOP', label: 'DOP \u2014 Dominican Peso' },
+  { code: 'TTD', label: 'TTD \u2014 T&T Dollar' },
+  { code: 'JMD', label: 'JMD \u2014 Jamaican Dollar' },
+  { code: 'BTC', label: 'BTC \u2014 Bitcoin' },
+  { code: 'ETH', label: 'ETH \u2014 Ethereum' },
+  { code: 'USDT', label: 'USDT \u2014 Tether (Optional Premium)' },
+  { code: 'USDC', label: 'USDC \u2014 USD Coin (Optional Premium)' },
 ];
 
 const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual', 'Annual'];
@@ -105,7 +105,7 @@ const LANGUAGES = [
   'Hindi', 'Other',
 ];
 const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
-const DEPOSIT_MULTIPLIERS = ['1× Contribution', '2× Contribution', 'Custom Amount'];
+const DEPOSIT_MULTIPLIERS = ['1\u00d7 Contribution', '2\u00d7 Contribution', 'Custom Amount'];
 const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
 
 const frequencyMonths: Record<string, number> = {
@@ -155,7 +155,7 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
       <button type="button" onClick={() => setOpen(o => !o)} className="tarsyn-field"
         style={{ ...inp, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
         <span>{value}</span>
-        <span style={{ color: C.texteGris, fontSize: '11px' }}>▾</span>
+        <span style={{ color: C.texteGris, fontSize: '11px' }}>{'\u25be'}</span>
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)', zIndex: 30, maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
@@ -209,7 +209,7 @@ export default function CreateTontinePage() {
   const [emailList, setEmailList] = useState<string[]>([]);
 
   const [depositMode, setDepositMode] = useState('No Deposit');
-  const [depositMultiplier, setDepositMultiplier] = useState('1× Contribution');
+  const [depositMultiplier, setDepositMultiplier] = useState('1\u00d7 Contribution');
   const [depositCustomAmount, setDepositCustomAmount] = useState('');
   const [refundPolicy, setRefundPolicy] = useState(REFUND_POLICIES[0]);
 
@@ -234,8 +234,8 @@ export default function CreateTontinePage() {
 
   const depositAmount = depositMode === 'No Deposit'
     ? 0
-    : depositMultiplier === '1× Contribution' ? contrib
-    : depositMultiplier === '2× Contribution' ? contrib * 2
+    : depositMultiplier === '1\u00d7 Contribution' ? contrib
+    : depositMultiplier === '2\u00d7 Contribution' ? contrib * 2
     : parseFloat(depositCustomAmount) || 0;
 
   const estimatedEndDate = (startDate && cycleDuration > 0)
@@ -244,7 +244,7 @@ export default function CreateTontinePage() {
         d.setMonth(d.getMonth() + Math.round(cycleDuration));
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       })()
-    : '—';
+    : '\u2014';
 
   const generateCode = (prefix: string) => {
     const countryCode = region ? region.substring(0, 2).toUpperCase() : 'XX';
@@ -296,7 +296,7 @@ export default function CreateTontinePage() {
       const docRef = await addDoc(collection(db, 'groups'), {
         organizerId: user.uid,
         tontineCode, region,
-        regionFlag: selectedRegion?.flag || '🌍',
+        regionFlag: selectedRegion?.flag || '\ud83c\udf0d',
         regionalName: selectedRegion?.name || 'Rotating Savings',
         name: customName || selectedRegion?.name || 'Tontine',
         module: 'Tontine',
@@ -320,6 +320,15 @@ export default function CreateTontinePage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      try {
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId: user.uid, category: 'Group',
+          action: 'Created group',
+          user: user.email || '', details: (customName || selectedRegion?.name || 'Tontine') + ' - ' + tontineCode,
+          createdAt: serverTimestamp(),
+        });
+      } catch (auditErr) { /* silent - audit logging must never block group creation */ }
 
       if (emailList.length > 0) {
         await fetch('/api/send-invite', {
@@ -521,8 +530,8 @@ export default function CreateTontinePage() {
                     <div>
                       <FieldLabel label="Region / Country" required />
                       <select className="tarsyn-field" value={region} onChange={e => setRegion(e.target.value)} style={inp}>
-                        <option value="">— Select a country or region —</option>
-                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
+                        <option value="">{'\u2014' + ' Select a country or region ' + '\u2014'}</option>
+                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} {'\u2014'} {r.name}</option>)}
                       </select>
                       {selectedRegion && (
                         <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '8px', display: 'inline-block' }}>
@@ -612,7 +621,7 @@ export default function CreateTontinePage() {
                         <div>
                           <FieldLabel label="Computed Deposit" />
                           <div style={{ ...inp, background: C.creme, display: 'flex', alignItems: 'center', fontWeight: 700, color: C.bordeaux }}>
-                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—'}
+                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '\u2014'}
                           </div>
                           {depositAmount === 0 && (
                             <p style={{ fontSize: '11px', color: '#DC2626', margin: '6px 0 0' }}>
@@ -680,7 +689,7 @@ export default function CreateTontinePage() {
                   <Card title="Position Preview">
                     {numM > 0 && startDate ? (
                       <div>
-                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview — {numMembers} members — {frequency}</p>
+                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview \u2014 {numMembers} members \u2014 {frequency}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                           {Array.from({ length: Math.min(numM, 6) }, (_, i) => {
                             const payoutDate = new Date(startDate);
@@ -741,7 +750,7 @@ export default function CreateTontinePage() {
                       </div>
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
-                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
+                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names \u2014 applies on top of the privacy mode above</div>
                       </div>
                     </button>
                   </Card>
@@ -818,14 +827,14 @@ export default function CreateTontinePage() {
             </div>
 
             {[
-              { label: 'Group Name', value: customName || selectedRegion?.name || '—' },
-              { label: 'Members', value: numMembers || '—' },
-              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '—', gold: true },
+              { label: 'Group Name', value: customName || selectedRegion?.name || '\u2014' },
+              { label: 'Members', value: numMembers || '\u2014' },
+              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '\u2014', gold: true },
               { label: 'Frequency', value: frequency },
-              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—' }] : []),
-              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '—', gold: true },
-              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—', gold: true },
-              { label: 'Start Date', value: startDate || '—' },
+              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '\u2014' }] : []),
+              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '\u2014', gold: true },
+              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '\u2014', gold: true },
+              { label: 'Start Date', value: startDate || '\u2014' },
               { label: 'Estimated End Date', value: estimatedEndDate },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
