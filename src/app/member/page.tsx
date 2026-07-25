@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { auth, db, storage } from '@/lib/firebase';
+import { memberAuth as auth, memberDb as db, memberStorage as storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, getDoc, query, where, orderBy, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -802,7 +802,7 @@ function MemberContent() {
 
 export default function MemberPage() {
   return (
-    <TrialGuard>
+    <TrialGuard authInstance={auth} dbInstance={db}>
       <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
         <MemberContent />
       </Suspense>
