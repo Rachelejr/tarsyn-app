@@ -3,18 +3,26 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, Auth } from 'firebase/auth';
+import { doc, getDoc, Firestore } from 'firebase/firestore';
 
-export default function TrialGuard({ children }: { children: React.ReactNode }) {
+interface TrialGuardProps {
+  children: React.ReactNode;
+  authInstance?: Auth;
+  dbInstance?: Firestore;
+}
+
+export default function TrialGuard({ children, authInstance, dbInstance }: TrialGuardProps) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const activeAuth = authInstance || auth;
+  const activeDb = dbInstance || db;
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
+    const unsub = onAuthStateChanged(activeAuth, async (user) => {
       if (!user) { setChecking(false); return; }
       try {
-        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        const userSnap = await getDoc(doc(activeDb, 'users', user.uid));
         if (!userSnap.exists()) { setChecking(false); return; }
 
         const data = userSnap.data();
@@ -46,7 +54,7 @@ export default function TrialGuard({ children }: { children: React.ReactNode }) 
       setChecking(false);
     });
     return () => unsub();
-  }, [router]);
+  }, [router, activeAuth, activeDb]);
 
   if (checking) {
     return (
