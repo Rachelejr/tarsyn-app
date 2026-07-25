@@ -206,14 +206,29 @@ function MemberContent() {
         const memberQ = query(collection(db, 'members'), where('userId', '==', u.uid));
         const memberSnap = await getDocs(memberQ);
         if (!memberSnap.empty) {
-          const memberships = memberSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          const rawMemberships = memberSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+          // Filter out groups the organizer marked as admin-only
+          // (groups/{id}.hiddenFromMembers === true) - members with a
+          // record in such a group simply don't see it in their portal.
+          const visibilityChecks = await Promise.all(
+            rawMemberships.map(async (m) => {
+              if (!m.groupId) return true;
+              try {
+                const gSnap = await getDoc(doc(db, 'groups', m.groupId));
+                return !(gSnap.exists() && gSnap.data()?.hiddenFromMembers === true);
+              } catch (e) { return true; }
+            })
+          );
+          const memberships = rawMemberships.filter((_, i) => visibilityChecks[i]);
           setAllMemberships(memberships);
-          let target = memberships[0];
-          if (targetGroupId) {
-            const found = memberships.find((m: any) => m.groupId === targetGroupId);
-            if (found) target = found;
+          if (memberships.length > 0) {
+            let target = memberships[0];
+            if (targetGroupId) {
+              const found = memberships.find((m: any) => m.groupId === targetGroupId);
+              if (found) target = found;
+            }
+            await selectMembership(target, u.uid);
           }
-          await selectMembership(target, u.uid);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
