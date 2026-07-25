@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -35,6 +35,17 @@ function LoginPageInner() {
           role = s2.docs[0].data()?.role;
         }
       }
+      try {
+        await addDoc(collection(db, 'login_history'), {
+          userId: uid, action: 'Signed in',
+          device: navigator.userAgent, createdAt: serverTimestamp(),
+        });
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId: uid, category: 'Auth',
+          action: 'Signed in', user: uEmail,
+          details: 'Successful sign-in', createdAt: serverTimestamp(),
+        });
+      } catch (logErr) { /* silent - login logging must never block sign-in */ }
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
         window.location.href = redirectTo || '/dashboard/create-tontine';
       } else {
@@ -155,7 +166,7 @@ function LoginPageInner() {
     return (
       <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{'\ud83d\udd10'}</div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>2FA Verification</h2>
           <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 0.25rem' }}>A 6-digit code has been sent to</p>
           <p style={{ color: '#6B2D4E', fontWeight: 700, margin: '0 0 1.5rem', fontSize: '0.9rem' }}>your email address</p>
@@ -253,15 +264,15 @@ function LoginPageInner() {
             <div style={{ position: 'relative' }}>
               <input
                 style={{ width: '100%', padding: '0.75rem 3rem 0.75rem 1rem', border: '1.5px solid #E0D0C0', borderRadius: '10px', fontSize: '0.95rem', background: '#FAF0E6', color: '#333', outline: 'none', boxSizing: 'border-box' }}
-                type={showPassword ? '🙈' : '👁️'}
-                placeholder="••••••••••"
+                type={showPassword ? 'text' : 'password'}
+                placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '1.1rem', padding: 0 }}>
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? '\ud83d\ude48' : '\ud83d\udc41\ufe0f'}
               </button>
             </div>
           </div>
@@ -288,7 +299,7 @@ function LoginPageInner() {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>🔐</div>
+        <div style={{ textAlign: 'center', margin: '1rem 0', color: '#aaa', fontSize: '0.85rem' }}>{'\ud83d\udd10'}</div>
 
         <button onClick={handleGoogle} disabled={loading}
           style={{ width: '100%', padding: '0.85rem', background: '#FAF0E6', color: '#333', border: '2px solid #E0D0C0', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
