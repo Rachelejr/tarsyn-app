@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+﻿import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -19,3 +19,14 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export default app;
+
+// SECOND NAMED FIREBASE APP INSTANCE - used exclusively by the member portal
+// (src/app/member/page.tsx) so an admin session and a member session can be
+// signed in at the same time in the same browser without one overwriting
+// the other. The default 'auth' above stays for admin/organizer pages.
+const memberApp = getApps().find(a => a.name === 'memberApp')
+  || initializeApp(firebaseConfig, 'memberApp');
+
+export const memberDb = getFirestore(memberApp);
+export const memberAuth = getAuth(memberApp);
+export const memberStorage = getStorage(memberApp);
