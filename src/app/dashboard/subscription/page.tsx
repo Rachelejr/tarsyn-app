@@ -4,12 +4,11 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
 type BillingPeriod = 'monthly' | 'annual';
 
-// ============ LANGUAGE SYSTEM - same 25 languages as homepage, 5 fully translated + English fallback ============
 const LANGUAGES = [
   { code: 'en', label: '\ud83c\uddfa\ud83c\uddf8 English' },
   { code: 'fr', label: '\ud83c\uddeb\ud83c\uddf7 Fran\u00e7ais' },
@@ -76,7 +75,6 @@ const SUB_T: Record<string, Record<string, string>> = {
     payments: 'Pagamentos Seguros',
   },
 };
-// Fallback rule: Manual -> English -> key itself. Never show broken/empty text.
 const st = (lang: string, key: string) => {
   const value = SUB_T[lang]?.[key];
   const isBroken = !value || value.includes('\uFFFD') || value.trim().length === 0;
@@ -392,6 +390,14 @@ function SubscriptionContent() {
       });
       const data = await res.json();
       if (data.success) {
+        try {
+          await addDoc(collection(db, 'audit_logs'), {
+            organizerId: user.uid, category: 'System',
+            action: 'Canceled subscription', user: user.email || '',
+            details: 'Subscription set to cancel at period end',
+            createdAt: serverTimestamp(),
+          });
+        } catch (auditErr) { /* silent */ }
         alert('Your subscription has been canceled and will end at the end of the current billing period.');
         window.location.reload();
       } else {
@@ -420,6 +426,14 @@ function SubscriptionContent() {
       });
       const data = await res.json();
       if (data.success) {
+        try {
+          await addDoc(collection(db, 'audit_logs'), {
+            organizerId: user.uid, category: 'System',
+            action: 'Changed subscription plan', user: user.email || '',
+            details: 'Switched to ' + planName,
+            createdAt: serverTimestamp(),
+          });
+        } catch (auditErr) { /* silent */ }
         window.location.reload();
       } else {
         console.error('Update subscription failed:', data);
