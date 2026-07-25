@@ -1,8 +1,8 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
+import { auth, db, memberAuth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence, AuthCredential } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -21,6 +21,7 @@ function LoginPageInner() {
   const [resendMsg, setResendMsg] = useState('');
   const [userId, setUserId] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [googleCredential, setGoogleCredential] = useState<AuthCredential | null>(null);
 
   const redirectByRole = async (uid: string, uEmail: string) => {
     try {
@@ -49,6 +50,21 @@ function LoginPageInner() {
       if (role === 'admin' || role === 'superadmin' || role === 'organizer') {
         window.location.href = redirectTo || '/dashboard/create-tontine';
       } else {
+        // MEMBER: move the session to the dedicated memberAuth instance so
+        // an admin logging in later in the same browser (on the default
+        // auth instance) can never overwrite this member's session, and
+        // vice versa. Uses whichever credential got us here (password or
+        // Google), then signs the default auth instance back out.
+        try {
+          if (googleCredential) {
+            await signInWithCredential(memberAuth, googleCredential);
+          } else if (password) {
+            await signInWithEmailAndPassword(memberAuth, uEmail, password);
+          }
+          await auth.signOut();
+        } catch (e) {
+          console.error('Could not move session to memberAuth:', e);
+        }
         window.location.href = '/member';
       }
     } catch {
@@ -140,6 +156,8 @@ function LoginPageInner() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      setGoogleCredential(credential);
       setUserId(result.user.uid);
       setUserEmail(result.user.email!);
       await sendOTP(result.user.uid, result.user.email!);
