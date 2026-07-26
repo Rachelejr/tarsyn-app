@@ -100,6 +100,8 @@ function RegisterContent() {
   const [members, setMembers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [group, setGroup] = useState<any>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendResult, setResendResult] = useState<Record<string, 'sent' | 'failed'>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -256,6 +258,42 @@ function RegisterContent() {
   };
 
   const handlePrint = () => window.print();
+
+  const handleResendInvite = async (m: any) => {
+    if (!m.email) {
+      alert('This member has no email on file. Add one before sending an invitation.');
+      return;
+    }
+    setResendingId(m.id);
+    try {
+      let code = m.inviteCode;
+      if (!code) {
+        code = Math.random().toString(36).substr(2, 8).toUpperCase();
+        await updateDoc(doc(db, 'members', m.id), { inviteCode: code });
+      }
+      const inviteLink = 'https://tarsyn-app.com/join/' + code;
+      const res = await fetch('/api/send-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emails: [m.email],
+          tontineName: group?.name,
+          region: group?.region,
+          contribution: group?.contribution || group?.amountPerMember,
+          currency: group?.currency,
+          frequency: group?.frequency,
+          startDate: group?.startDate,
+          inviteLink,
+        }),
+      });
+      const data = await res.json();
+      setResendResult(prev => ({ ...prev, [m.id]: (res.ok && data.sent > 0) ? 'sent' : 'failed' }));
+    } catch (e) {
+      console.error('Resend invite failed:', e);
+      setResendResult(prev => ({ ...prev, [m.id]: 'failed' }));
+    }
+    setResendingId(null);
+  };
 
   const filteredMembers = members.filter(m => {
     const matchSearch = (m.fullName || m.name || '').toLowerCase().includes(search.toLowerCase()) || (m.tynId || '').toLowerCase().includes(search.toLowerCase());
@@ -469,6 +507,7 @@ function RegisterContent() {
                     ))}
                     <th style={{ padding: '12px 10px', textAlign: 'right', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Balance</th>
                     <th style={{ padding: '12px 10px', textAlign: 'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Last Paid</th>
+                    <th style={{ padding: '12px 10px', textAlign: 'center', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Invite</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -498,10 +537,22 @@ function RegisterContent() {
                       ))}
                       <td style={{ padding: '10px 10px', textAlign: 'right', color: C.burgundyDark, fontWeight: 700 }}>{getBalance(m.id).toLocaleString()}</td>
                       <td style={{ padding: '10px 10px', color: C.gray, fontSize: '11px' }}>{getLastPayment(m.id)}</td>
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                        {m.userId ? (
+                          <span style={{ fontSize: '10.5px', color: C.gray }}>Registered</span>
+                        ) : resendResult[m.id] === 'sent' ? (
+                          <span style={{ fontSize: '10.5px', color: '#3F7D5C', fontWeight: 700 }}>Sent</span>
+                        ) : (
+                          <button onClick={() => handleResendInvite(m)} disabled={resendingId === m.id}
+                            style={{ background: C.white, color: C.burgundy, border: `1.5px solid ${C.burgundy}`, borderRadius: '7px', padding: '5px 10px', fontSize: '10.5px', fontWeight: 700, cursor: resendingId === m.id ? 'not-allowed' : 'pointer' }}>
+                            {resendingId === m.id ? 'Sending...' : resendResult[m.id] === 'failed' ? 'Retry' : 'Resend Invite'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {filteredMembers.length === 0 && (
-                    <tr><td colSpan={cycles.length + 5} style={{ padding: '30px', textAlign: 'center', color: C.gray }}>No members match your filters.</td></tr>
+                    <tr><td colSpan={cycles.length + 6} style={{ padding: '30px', textAlign: 'center', color: C.gray }}>No members match your filters.</td></tr>
                   )}
                 </tbody>
               </table>
