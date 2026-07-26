@@ -299,7 +299,7 @@ export default function BrandingPage() {
                 </div>
                 <div style={{ flex: 1, padding: '16px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-                    {[['Members', '24'], ['Collected', '$3,200']].map(([label, val]) => (
+                    {[['Members', '--'], ['Collected', '$--']].map(([label, val]) => (
                       <div key={label} style={{ background: C.creme, borderRadius: '8px', padding: '10px' }}>
                         <p style={{ fontSize: '9px', color: C.muted, margin: 0, textTransform: 'uppercase' }}>{label}</p>
                         <p style={{ fontSize: '15px', fontWeight: 800, color: primaryColor, margin: '2px 0 0' }}>{val}</p>
