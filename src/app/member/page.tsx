@@ -184,13 +184,19 @@ function MemberContent() {
   // --- Pay Now: opens the modal and creates a Stripe PaymentIntent for all
   // of this member's currently missing (elapsed, unpaid) weeks at once. ---
   const handleOpenPayModal = async () => {
-    if (!activeMember?.id || !myPayments || myPayments.missingWeeks.length === 0) return;
+    if (!activeMember?.id) return;
     setShowPayModal(true);
-    setPayLoading(true);
     setPayError('');
     setPaySuccess(false);
     setPayBreakdown(null);
     setPayClientSecret('');
+
+    if (!myPayments || myPayments.missingWeeks.length === 0) {
+      setPayLoading(false);
+      return;
+    }
+
+    setPayLoading(true);
     try {
       const weekIndexes = myPayments.missingWeeks.map((w) => w.replace(/^W/, ''));
       const res = await fetch('/api/create-payment-intent', {
@@ -657,12 +663,13 @@ function MemberContent() {
                   <p style={{ fontSize: '11px', color: C.success, margin: '0 0 10px', fontWeight: 700 }}>All caught up!</p>
                 )}
 
-                {myPayments.missingWeeks.length > 0 && (
-                  <button onClick={handleOpenPayModal}
-                    style={{ width: '100%', padding: '9px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', marginBottom: '12px' }}>
-                    Pay Now
-                  </button>
-                )}
+                <button onClick={handleOpenPayModal}
+                  style={{ width: '100%', padding: '9px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', marginBottom: '4px' }}>
+                  Pay Now
+                </button>
+                <p style={{ fontSize: '9.5px', color: C.muted, margin: '0 0 12px', lineHeight: 1.4 }}>
+                  Card payments include a small processing fee, paid by you - your organizer always receives the full contribution amount.
+                </p>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                   {weeksToShow.map((wIdx) => {
@@ -929,6 +936,12 @@ function MemberContent() {
 
             {payLoading && (
               <p style={{ fontSize: '13px', color: C.muted, margin: '18px 0' }}>Setting up secure payment...</p>
+            )}
+
+            {!payLoading && !paySuccess && !payBreakdown && !payError && myPayments && myPayments.missingWeeks.length === 0 && (
+              <div style={{ background: C.successBg, color: C.success, borderRadius: '10px', padding: '14px', fontSize: '13px', fontWeight: 700, margin: '10px 0 18px' }}>
+                You are all caught up! There is nothing due right now.
+              </div>
             )}
 
             {payError && (
