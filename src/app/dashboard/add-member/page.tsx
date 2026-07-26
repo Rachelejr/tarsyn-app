@@ -43,6 +43,7 @@ function AddMemberContent() {
   const [payoutDates, setPayoutDates] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [inviteStatus, setInviteStatus] = useState<'sent' | 'failed' | 'no-email' | null>(null);
   const [tynId, setTynId] = useState('');
   const [nextPosition, setNextPosition] = useState(1);
   const [mounted, setMounted] = useState(false);
@@ -140,6 +141,41 @@ function AddMemberContent() {
           createdAt: serverTimestamp(),
         });
       } catch (auditErr) { /* silent - audit logging must never block member creation */ }
+
+      // Send the join invitation email now, since Add Member is the normal
+      // day-to-day path for adding members (not just at group creation) and
+      // previously nobody added this way ever received an invite at all.
+      if (!form.email) {
+        setInviteStatus('no-email');
+      } else {
+        const selectedGroup = groups.find(g => g.id === selectedGroupId);
+        if (!selectedGroup?.inviteLink) {
+          setInviteStatus('failed');
+        } else {
+          try {
+            const inviteRes = await fetch('/api/send-invite', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                emails: [form.email],
+                tontineName: selectedGroup.name,
+                region: selectedGroup.region,
+                contribution: selectedGroup.contribution || selectedGroup.amountPerMember,
+                currency: selectedGroup.currency,
+                frequency: selectedGroup.frequency,
+                startDate: selectedGroup.startDate,
+                inviteLink: selectedGroup.inviteLink,
+              }),
+            });
+            const inviteData = await inviteRes.json();
+            setInviteStatus(inviteRes.ok && inviteData.sent > 0 ? 'sent' : 'failed');
+          } catch (inviteErr) {
+            console.error('Invite send failed:', inviteErr);
+            setInviteStatus('failed');
+          }
+        }
+      }
+
       setSuccess(true);
     } catch (e) { console.error(e); alert('Error adding member.'); }
     setLoading(false);
@@ -153,13 +189,29 @@ function AddMemberContent() {
         <div style={{ background: C.blanc, borderRadius: 18, padding: '48px 40px', textAlign: 'center', maxWidth: 480, width: '90%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           <div style={{ width: 64, height: 64, borderRadius: 16, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 28 }}>+</div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 8px' }}>Member added successfully</h2>
-          <p style={{ fontSize: 14, color: C.muted, margin: '0 0 28px', lineHeight: 1.6 }}>The member is now part of the active cycle.</p>
+          <p style={{ fontSize: 14, color: C.muted, margin: '0 0 16px', lineHeight: 1.6 }}>The member is now part of the active cycle.</p>
+
+          {inviteStatus === 'sent' && (
+            <div style={{ background: '#d1fae5', color: '#166534', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600, margin: '0 0 20px' }}>
+              Invitation email sent - they can now create their account.
+            </div>
+          )}
+          {inviteStatus === 'no-email' && (
+            <div style={{ background: '#FBF0D9', color: '#9C7A2E', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600, margin: '0 0 20px' }}>
+              No email on file - no invitation was sent. Add one to invite this member.
+            </div>
+          )}
+          {inviteStatus === 'failed' && (
+            <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600, margin: '0 0 20px' }}>
+              Member added, but the invitation email could not be sent. Try resending it from the group's member list.
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
             <button onClick={() => router.push('/dashboard/contribution-log?groupId=' + selectedGroupId)}
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
-            <button onClick={() => { setSuccess(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
+            <button onClick={() => { setSuccess(false); setInviteStatus(null); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
               style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Add Another
             </button>
