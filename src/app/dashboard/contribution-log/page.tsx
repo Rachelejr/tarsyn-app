@@ -35,12 +35,12 @@ const STATUS_STYLE: Record<PaymentStatus, { bg: string; color: string; label: st
 const ALL_STATUSES: PaymentStatus[] = ['paid', 'pending', 'late', 'excused', 'missed'];
 
 const SIDEBAR_ITEMS = [
-  { icon: '', label: 'Dashboard', path: '/dashboard' },
-  { icon: '', label: 'Members', path: '/dashboard/add-member' },
-  { icon: '', label: 'Cycles', path: '/dashboard/overview' },
-  { icon: '', label: 'Register', path: '/dashboard/contribution-log', active: true },
-  { icon: '', label: 'Documents', path: '/dashboard/documents' },
-  { icon: '', label: 'Settings', path: '/dashboard/subscription' },
+  { icon: '\u{1F4CA}', label: 'Dashboard', path: '/dashboard' },
+  { icon: '\u{1F465}', label: 'Members', path: '/dashboard/add-member' },
+  { icon: '\u{1F504}', label: 'Cycles', path: '/dashboard/overview' },
+  { icon: '\u{1F4CB}', label: 'Register', path: '/dashboard/contribution-log', active: true },
+  { icon: '\u{1F4C1}', label: 'Documents', path: '/dashboard/documents' },
+  { icon: '\u2699', label: 'Settings', path: '/dashboard/subscription' },
 ];
 
 function StatusCell({ status, onClick }: { status?: PaymentStatus; onClick: (e: React.MouseEvent) => void }) {
