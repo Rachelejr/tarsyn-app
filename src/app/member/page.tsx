@@ -567,7 +567,7 @@ function MemberContent() {
         }
       `}} />
 
-      <nav className="tarsyn-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav className="tarsyn-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', position: 'relative', zIndex: 3 }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           {effectiveBranding?.logo && (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
@@ -623,7 +623,7 @@ function MemberContent() {
       <div className="tarsyn-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px', minHeight: 0 }}>
 
         {/* LEFT - Group Info */}
-        <div className="tarsyn-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '20px', overflowY: 'auto' }}>
+        <div className="tarsyn-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
           <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
             <h1 className="tarsyn-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word' }}>{groupName || 'Your Group'}</h1>
             {activeMember && (
@@ -742,7 +742,7 @@ function MemberContent() {
         </div>
 
         {/* CENTER - Documents (main) */}
-        <div className="tarsyn-mem-center" style={{ padding: '20px', overflowY: 'auto' }}>
+        <div className="tarsyn-mem-center" style={{ padding: '24px 26px', overflowY: 'auto' }}>
 
           {/* My Payment Grid (full table, read-only, this member's rows only) */}
           {myPayments && (
@@ -896,7 +896,7 @@ function MemberContent() {
         </div>
 
         {/* RIGHT - Activity / Insights */}
-        <div className="tarsyn-mem-right" style={{ borderLeft: `1px solid ${C.border}`, padding: '20px', overflowY: 'auto', background: C.creme }}>
+        <div className="tarsyn-mem-right" style={{ borderLeft: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto', background: C.creme }}>
           <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>Recent uploads</p>
           {recentUploads.length === 0 ? (
             <p style={{ color: C.muted, fontSize: '12px', marginBottom: '20px' }}>No documents yet.</p>
