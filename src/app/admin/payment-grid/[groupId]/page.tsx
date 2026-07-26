@@ -633,7 +633,7 @@ export default function PaymentGridPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 1360, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1360, margin: '0 auto', background: C.ivoire, borderRadius: 20, border: '1px solid ' + C.border, boxShadow: '0 4px 24px rgba(107,45,78,0.06)', padding: '28px 28px 20px' }}>
         {/* Header */}
         <div
           style={{
@@ -663,7 +663,7 @@ export default function PaymentGridPage() {
             </div>
             <div>
               <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
-                Payment Grid - <span className="tarsyn-group-name-admin">{groupName}</span>
+                Payment Grid -{' '}<span className="tarsyn-group-name-admin" style={{ marginLeft: 6 }}>{groupName}</span>
               </h1>
               <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
