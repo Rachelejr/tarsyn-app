@@ -505,6 +505,7 @@ function OverviewContent() {
             { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
             { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
             { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
+            { title: 'Connect Payments', icon: '\ud83c\udfe6', path: '/dashboard/payments-setup' },
             { title: 'Reports', icon: '\ud83d\udcca', path: '/dashboard/reports' },
             { title: 'Audit Log', icon: '\ud83d\udcdc', path: '/dashboard/audit-log' },
             { title: 'Documents', icon: '\ud83d\udcc1', path: '/dashboard/documents' },
