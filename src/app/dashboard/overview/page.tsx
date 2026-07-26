@@ -331,7 +331,7 @@ function OverviewContent() {
         </div>
       </nav>
 
-      <div className="tarsyn-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
+      <div className="tarsyn-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 24px 20px', background: '#FFFDF7', borderRadius: '20px', border: '1px solid #EAD9BE', boxShadow: '0 4px 24px rgba(107,45,78,0.06)' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
           <StatCard label="Total Members" value={members.length} icon="" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
