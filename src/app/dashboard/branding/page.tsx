@@ -262,6 +262,12 @@ export default function BrandingPage() {
         <div className="bs-col" style={{ padding: '22px', overflowY: 'auto', background: C.creme }}>
           <p style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 14px' }}>Live preview</p>
 
+          {enabled && (
+            <div style={{ background: '#FBF0D9', color: '#9C7A2E', borderRadius: '10px', padding: '9px 14px', fontSize: '11.5px', fontWeight: 700, marginBottom: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {'\u26A0'} Preview only - sample data, not connected to your real group
+            </div>
+          )}
+
           {!enabled ? (
             <div style={{ background: 'white', borderRadius: '14px', padding: '40px 20px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
               <p style={{ color: C.muted, fontSize: '13px' }}>White Label is disabled for this group. Members see the default TARSYN experience.</p>
