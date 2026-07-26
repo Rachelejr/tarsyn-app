@@ -672,7 +672,7 @@ function MemberContent() {
                   style={{ width: '100%', padding: '9px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', marginBottom: '4px' }}>
                   Pay Now
                 </button>
-                <p style={{ fontSize: '9.5px', color: C.muted, margin: '0 0 12px', lineHeight: 1.4 }}>
+                <p style={{ fontSize: '10.5px', color: C.texteFonce, fontWeight: 700, margin: '0 0 18px', lineHeight: 1.4 }}>
                   Card payments include a small processing fee, paid by you - your organizer always receives the full contribution amount.
                 </p>
 
@@ -866,7 +866,9 @@ function MemberContent() {
 
           {(!effectiveBranding?.logo || effectiveBranding?.showTarsynBadge !== false) && (
             <div style={{ textAlign: 'center', padding: '18px 0 4px' }}>
-              <span style={{ color: C.texteGris, fontSize: '11px', opacity: 0.7 }}>Powered by TARSYN</span>
+              <span style={{ color: C.texteGris, fontSize: '11px', opacity: 0.7 }}>
+                Powered by TARSYN{'\u2122'} {'\u00b7'} A product of Ma Production Luxenn Zara LLC {'\u00b7'} {'\u00a9'} 2026 All Rights Reserved {'\u00b7'} Version 1.0.0
+              </span>
             </div>
           )}
         </div>
