@@ -258,7 +258,7 @@ function RegisterContent() {
   const handlePrint = () => window.print();
 
   const filteredMembers = members.filter(m => {
-    const matchSearch = (m.fullName || m.name)?.toLowerCase().includes(search.toLowerCase()) || m.tynId?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = (m.fullName || m.name || '').toLowerCase().includes(search.toLowerCase()) || (m.tynId || '').toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'All' || m.status === statusFilter.toLowerCase();
     return matchSearch && matchStatus;
   });
@@ -337,7 +337,7 @@ function RegisterContent() {
                 background: item.active ? 'rgba(233,199,123,0.18)' : 'transparent',
                 color: item.active ? C.gold : 'rgba(255,255,255,0.75)', fontSize: '13px', fontWeight: item.active ? 700 : 600,
               }}>
-              <span style={{ fontSize: '15px' }}>{item.icon}</span> {item.label}
+              <span style={{ fontSize: '18px' }}>{item.icon}</span> {item.label}
             </div>
           ))}
         </div>
