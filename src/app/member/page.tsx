@@ -6,6 +6,7 @@ import { memberAuth as auth, memberDb as db, memberStorage as storage } from '@/
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, getDoc, query, where, orderBy, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { loadStripe } from '@stripe/stripe-js';
 import { Suspense } from 'react';
 import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
@@ -67,6 +68,18 @@ function MemberContent() {
   } | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
+
+  // --- Pay Now (embedded Stripe Elements) state ---
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
+  const [payConfirming, setPayConfirming] = useState(false);
+  const [payError, setPayError] = useState('');
+  const [paySuccess, setPaySuccess] = useState(false);
+  const [payBreakdown, setPayBreakdown] = useState<{ contribution: number; convenienceFee: number; totalCharge: number; currency: string } | null>(null);
+  const [payClientSecret, setPayClientSecret] = useState('');
+  const stripeInstanceRef = useRef<any>(null);
+  const stripeElementsRef = useRef<any>(null);
+  const paymentElementRef = useRef<HTMLDivElement>(null);
 
   const fetchDocs = async (organizerId: string, currentUid: string) => {
     const dq = query(collection(db, 'documents'), where('organizerId', '==', organizerId));
@@ -167,6 +180,88 @@ function MemberContent() {
       setPaymentsLoading(false);
     }
   };
+
+  // --- Pay Now: opens the modal and creates a Stripe PaymentIntent for all
+  // of this member's currently missing (elapsed, unpaid) weeks at once. ---
+  const handleOpenPayModal = async () => {
+    if (!activeMember?.id || !myPayments || myPayments.missingWeeks.length === 0) return;
+    setShowPayModal(true);
+    setPayLoading(true);
+    setPayError('');
+    setPaySuccess(false);
+    setPayBreakdown(null);
+    setPayClientSecret('');
+    try {
+      const weekIndexes = myPayments.missingWeeks.map((w) => w.replace(/^W/, ''));
+      const res = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: activeMember.id, groupId: activeMember.groupId, weekIndexes }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not start payment.');
+      setPayBreakdown({ contribution: data.contribution, convenienceFee: data.convenienceFee, totalCharge: data.totalCharge, currency: data.currency });
+      setPayClientSecret(data.clientSecret);
+    } catch (e: any) {
+      setPayError(e?.message || 'Could not start payment.');
+    }
+    setPayLoading(false);
+  };
+
+  const handleClosePayModal = () => {
+    setShowPayModal(false);
+    setPayClientSecret('');
+    setPayBreakdown(null);
+    setPayError('');
+    setPaySuccess(false);
+    stripeElementsRef.current = null;
+    stripeInstanceRef.current = null;
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!stripeInstanceRef.current || !stripeElementsRef.current) return;
+    setPayConfirming(true);
+    setPayError('');
+    try {
+      const { error } = await stripeInstanceRef.current.confirmPayment({
+        elements: stripeElementsRef.current,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      });
+      if (error) {
+        setPayError(error.message || 'Payment failed. Please check your card details and try again.');
+        setPayConfirming(false);
+        return;
+      }
+      setPaySuccess(true);
+      setPayConfirming(false);
+      if (activeMember && uid) {
+        await fetchMyPayments(activeMember, uid);
+      }
+    } catch (e: any) {
+      setPayError(e?.message || 'Payment failed. Please try again.');
+      setPayConfirming(false);
+    }
+  };
+
+  // Mounts the embedded Stripe Payment Element once we have a clientSecret
+  // and the modal's container div exists in the DOM.
+  useEffect(() => {
+    if (!payClientSecret || !paymentElementRef.current) return;
+    let cancelled = false;
+    (async () => {
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+      if (!stripe || cancelled) return;
+      const elements = stripe.elements({ clientSecret: payClientSecret });
+      const paymentElement = elements.create('payment');
+      if (paymentElementRef.current) {
+        paymentElement.mount(paymentElementRef.current);
+      }
+      stripeInstanceRef.current = stripe;
+      stripeElementsRef.current = elements;
+    })();
+    return () => { cancelled = true; };
+  }, [payClientSecret]);
 
   const selectMembership = async (membership: any, currentUid: string) => {
     setActiveMember(membership);
@@ -562,6 +657,13 @@ function MemberContent() {
                   <p style={{ fontSize: '11px', color: C.success, margin: '0 0 10px', fontWeight: 700 }}>All caught up!</p>
                 )}
 
+                {myPayments.missingWeeks.length > 0 && (
+                  <button onClick={handleOpenPayModal}
+                    style={{ width: '100%', padding: '9px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', marginBottom: '12px' }}>
+                    Pay Now
+                  </button>
+                )}
+
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                   {weeksToShow.map((wIdx) => {
                     const isPaid = myPayments.slots.some((s) => myPayments.payments[s]?.[wIdx]);
@@ -816,6 +918,71 @@ function MemberContent() {
                 {uploading ? 'Uploading...' : 'Upload'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPayModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '440px', width: '100%' }}>
+            <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 6px' }}>Pay Your Contribution</h3>
+
+            {payLoading && (
+              <p style={{ fontSize: '13px', color: C.muted, margin: '18px 0' }}>Setting up secure payment...</p>
+            )}
+
+            {payError && (
+              <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '10px 14px', fontSize: '12.5px', margin: '10px 0', lineHeight: 1.5 }}>{payError}</div>
+            )}
+
+            {paySuccess ? (
+              <div>
+                <div style={{ background: C.successBg, color: C.success, borderRadius: '10px', padding: '14px', fontSize: '13px', fontWeight: 700, margin: '10px 0 18px' }}>
+                  Payment successful! Your payment grid has been updated.
+                </div>
+                <button onClick={handleClosePayModal}
+                  style={{ width: '100%', padding: '12px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer' }}>
+                  Done
+                </button>
+              </div>
+            ) : payBreakdown && (
+              <div>
+                <div style={{ background: C.creme, borderRadius: '12px', padding: '14px 16px', margin: '10px 0 18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: C.texteGris, marginBottom: '6px' }}>
+                    <span>Contribution</span>
+                    <span>{payBreakdown.currency} {payBreakdown.contribution.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: C.texteGris, marginBottom: '6px' }}>
+                    <span>Card processing fee</span>
+                    <span>{payBreakdown.currency} {payBreakdown.convenienceFee.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14.5px', color: C.texteFonce, fontWeight: 800, marginTop: '8px', paddingTop: '8px', borderTop: '1px solid ' + C.orLight }}>
+                    <span>Total</span>
+                    <span>{payBreakdown.currency} {payBreakdown.totalCharge.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div ref={paymentElementRef} style={{ marginBottom: '18px' }} />
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={handleClosePayModal} disabled={payConfirming}
+                    style={{ flex: 1, padding: '12px', background: 'transparent', color: C.bordeaux, border: '2px solid ' + C.bordeaux, borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleConfirmPayment} disabled={payConfirming}
+                    style={{ flex: 1, padding: '12px', background: C.bordeaux, color: C.creme, border: 'none', borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, cursor: payConfirming ? 'not-allowed' : 'pointer', opacity: payConfirming ? 0.7 : 1 }}>
+                    {payConfirming ? 'Processing...' : 'Pay ' + payBreakdown.currency + ' ' + payBreakdown.totalCharge.toFixed(2)}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!payLoading && !payBreakdown && !paySuccess && (
+              <button onClick={handleClosePayModal}
+                style={{ width: '100%', padding: '11px', background: 'transparent', color: C.muted, border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', marginTop: '10px' }}>
+                Close
+              </button>
+            )}
           </div>
         </div>
       )}
