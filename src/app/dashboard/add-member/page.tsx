@@ -124,6 +124,7 @@ function AddMemberContent() {
         alert('A member with this email already exists in this group.');
         setLoading(false); return;
       }
+      const memberInviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
       await addDoc(collection(db, 'members'), {
         ...form, tynId, groupId: selectedGroupId, organizerId: user.uid,
         position: parseInt(form.position) || nextPosition,
@@ -131,6 +132,7 @@ function AddMemberContent() {
         shares: Math.max(1, parseInt(form.shares) || 1),
         payoutDate: payoutDates[0] || '',
         payoutDates: payoutDates,
+        inviteCode: memberInviteCode,
         createdAt: serverTimestamp(),
       });
       try {
@@ -149,30 +151,27 @@ function AddMemberContent() {
         setInviteStatus('no-email');
       } else {
         const selectedGroup = groups.find(g => g.id === selectedGroupId);
-        if (!selectedGroup?.inviteLink) {
+        const memberInviteLink = 'https://tarsyn-app.com/join/' + memberInviteCode;
+        try {
+          const inviteRes = await fetch('/api/send-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              emails: [form.email],
+              tontineName: selectedGroup?.name,
+              region: selectedGroup?.region,
+              contribution: selectedGroup?.contribution || selectedGroup?.amountPerMember,
+              currency: selectedGroup?.currency,
+              frequency: selectedGroup?.frequency,
+              startDate: selectedGroup?.startDate,
+              inviteLink: memberInviteLink,
+            }),
+          });
+          const inviteData = await inviteRes.json();
+          setInviteStatus(inviteRes.ok && inviteData.sent > 0 ? 'sent' : 'failed');
+        } catch (inviteErr) {
+          console.error('Invite send failed:', inviteErr);
           setInviteStatus('failed');
-        } else {
-          try {
-            const inviteRes = await fetch('/api/send-invite', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                emails: [form.email],
-                tontineName: selectedGroup.name,
-                region: selectedGroup.region,
-                contribution: selectedGroup.contribution || selectedGroup.amountPerMember,
-                currency: selectedGroup.currency,
-                frequency: selectedGroup.frequency,
-                startDate: selectedGroup.startDate,
-                inviteLink: selectedGroup.inviteLink,
-              }),
-            });
-            const inviteData = await inviteRes.json();
-            setInviteStatus(inviteRes.ok && inviteData.sent > 0 ? 'sent' : 'failed');
-          } catch (inviteErr) {
-            console.error('Invite send failed:', inviteErr);
-            setInviteStatus('failed');
-          }
         }
       }
 
