@@ -625,7 +625,7 @@ function MemberContent() {
         {/* LEFT - Group Info */}
         <div className="tarsyn-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '20px', overflowY: 'auto' }}>
           <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
-            <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word' }}>{groupName || 'Your Group'}</h1>
+            <h1 className="tarsyn-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word' }}>{groupName || 'Your Group'}</h1>
             {activeMember && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
