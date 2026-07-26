@@ -307,7 +307,7 @@ export default function BrandingPage() {
                     ))}
                   </div>
                   <div style={{ border: `1px solid ${C.border}`, borderRadius: '8px', overflow: 'hidden' }}>
-                    {['Alice M.', 'James K.'].map((n, i) => (
+                    {['Member 1', 'Member 2'].map((n, i) => (
                       <div key={n} style={{ padding: '7px 10px', fontSize: '10px', color: C.text, borderBottom: i === 0 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
                         <span>{n}</span>
                         <span style={{ color: secondaryColor, fontWeight: 700 }}>Active</span>
