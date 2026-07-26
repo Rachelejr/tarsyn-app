@@ -40,6 +40,7 @@ function AddMemberContent() {
     role: 'member', position: '', payoutDate: '', expectedAmount: '0',
     currency: 'USD', status: 'pending', notes: '', shares: '1',
   });
+  const [payoutDates, setPayoutDates] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [tynId, setTynId] = useState('');
@@ -49,6 +50,25 @@ function AddMemberContent() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Keep the payoutDates array in sync with the number of parts, without
+  // wiping out dates the user already typed in when the count changes.
+  useEffect(() => {
+    const n = Math.max(1, parseInt(form.shares) || 1);
+    setPayoutDates(prev => {
+      const next = prev.slice(0, n);
+      while (next.length < n) next.push('');
+      return next;
+    });
+  }, [form.shares]);
+
+  const setPayoutDateAt = (idx: number, value: string) => {
+    setPayoutDates(prev => {
+      const next = [...prev];
+      next[idx] = value;
+      return next;
+    });
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -108,6 +128,8 @@ function AddMemberContent() {
         position: parseInt(form.position) || nextPosition,
         expectedAmount: parseFloat(form.expectedAmount) || 0,
         shares: Math.max(1, parseInt(form.shares) || 1),
+        payoutDate: payoutDates[0] || '',
+        payoutDates: payoutDates,
         createdAt: serverTimestamp(),
       });
       try {
@@ -137,7 +159,7 @@ function AddMemberContent() {
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
-            <button onClick={() => { setSuccess(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); }}
+            <button onClick={() => { setSuccess(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
               style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Add Another
             </button>
@@ -262,10 +284,24 @@ function AddMemberContent() {
                   <label style={labelStyle}>Position *</label>
                   <input style={inputStyle} type="number" min="1" value={form.position} onChange={e => set('position', e.target.value)} />
                 </div>
-                <div>
-                  <label style={labelStyle}>Payout Date</label>
-                  <input style={inputStyle} type="date" value={form.payoutDate} onChange={e => set('payoutDate', e.target.value)} />
-                </div>
+                {parseInt(form.shares) <= 1 ? (
+                  <div>
+                    <label style={labelStyle}>Payout Date</label>
+                    <input style={inputStyle} type="date" value={payoutDates[0] || ''} onChange={e => setPayoutDateAt(0, e.target.value)} />
+                  </div>
+                ) : (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={labelStyle}>Payout Date - Per Part</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
+                      {payoutDates.map((d, i) => (
+                        <div key={i}>
+                          <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>Part {i + 1}/{form.shares}</label>
+                          <input style={inputStyle} type="date" value={d} onChange={e => setPayoutDateAt(i, e.target.value)} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label style={labelStyle}>Status</label>
                   <select style={inputStyle} value={form.status} onChange={e => set('status', e.target.value)}>
@@ -299,7 +335,7 @@ function AddMemberContent() {
                   <p style={{ fontSize: 12, color: C.text, margin: 0, lineHeight: 1.6 }}>
                     This member will occupy <strong>{form.shares} slots</strong> in the payment grid and rotation
                     (shown as &quot;part 1/{form.shares}&quot;, &quot;part 2/{form.shares}&quot;, etc.), and will need
-                    to pay {form.shares}x the expected amount each week.
+                    to pay {form.shares}x the expected amount each week. Each part can have its own payout date above.
                   </p>
                 </div>
               )}
@@ -329,6 +365,7 @@ function AddMemberContent() {
               { label: 'Amount / Part', value: form.currency + ' ' + (parseFloat(form.expectedAmount) || 0).toFixed(2) },
               { label: 'Parts', value: form.shares || '1' },
               { label: 'Total / week', value: form.currency + ' ' + ((parseFloat(form.expectedAmount) || 0) * (parseInt(form.shares) || 1)).toFixed(2) },
+              { label: parseInt(form.shares) > 1 ? 'Payout Dates' : 'Payout Date', value: payoutDates.filter(Boolean).join(', ') || '-' },
               { label: 'Position', value: '#' + (form.position || nextPosition) },
               { label: 'Status', value: form.status.charAt(0).toUpperCase() + form.status.slice(1) },
               { label: 'Role', value: form.role.charAt(0).toUpperCase() + form.role.slice(1) },

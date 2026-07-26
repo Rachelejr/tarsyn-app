@@ -519,8 +519,16 @@ function MemberContent() {
                   </span>
                 </div>
                 <div>
-                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>Payout Date</p>
-                  <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>{activeMember.payoutDate || '-'}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>
+                    {Array.isArray(activeMember.payoutDates) && activeMember.payoutDates.length > 1 ? 'Payout Dates' : 'Payout Date'}
+                  </p>
+                  {Array.isArray(activeMember.payoutDates) && activeMember.payoutDates.length > 1 ? (
+                    <p style={{ color: 'white', fontWeight: 700, fontSize: '12px', margin: 0, lineHeight: 1.5 }}>
+                      {activeMember.payoutDates.map((d: string, i: number) => (d ? 'Part ' + (i + 1) + ': ' + d : null)).filter(Boolean).join(' | ') || '-'}
+                    </p>
+                  ) : (
+                    <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>{activeMember.payoutDate || '-'}</p>
+                  )}
                 </div>
                 <div>
                   <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9.5px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>TYN-ID</p>
