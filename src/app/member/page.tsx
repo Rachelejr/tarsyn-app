@@ -533,6 +533,23 @@ function MemberContent() {
         .qa-btn{transition:all 0.15s ease;cursor:pointer;}
         .qa-btn:hover{transform:translateY(-1px);}
         .pay-cell{transition:all 0.15s ease;}
+        .tarsyn-group-name{
+          background: linear-gradient(90deg, #E9C77B 0%, #FFF6E0 20%, #E9C77B 40%, #E9C77B 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: tarsyn-shimmer 4s linear infinite;
+        }
+        @keyframes tarsyn-shimmer {
+          0% { background-position: 0% center; }
+          100% { background-position: -200% center; }
+        }
+        .tarsyn-pay-now-btn{ animation: tarsyn-pulse 2.2s ease-in-out infinite; }
+        @keyframes tarsyn-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(107,45,78,0.35); }
+          50% { box-shadow: 0 0 0 8px rgba(107,45,78,0); }
+        }
         @media (max-width: 1050px) {
           .tarsyn-mem-grid { grid-template-columns: 240px 1fr !important; }
           .tarsyn-mem-right { display: none !important; }
@@ -551,7 +568,7 @@ function MemberContent() {
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
           )}
           <div>
-            <div style={{ color: C.dore, fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'TARSYN'}</div>
+            <div className="tarsyn-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'TARSYN'}</div>
             {effectiveBranding?.slogan && (
               <div style={{ color: 'rgba(233,199,123,0.7)', fontSize: '10px', letterSpacing: '0.05em', marginTop: '2px' }}>{effectiveBranding.slogan}</div>
             )}
@@ -668,7 +685,7 @@ function MemberContent() {
                   <p style={{ fontSize: '11px', color: C.success, margin: '0 0 10px', fontWeight: 700 }}>All caught up!</p>
                 )}
 
-                <button onClick={handleOpenPayModal}
+                <button onClick={handleOpenPayModal} className="tarsyn-pay-now-btn"
                   style={{ width: '100%', padding: '9px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', marginBottom: '4px' }}>
                   Pay Now
                 </button>
