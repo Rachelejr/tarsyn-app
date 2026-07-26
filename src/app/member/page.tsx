@@ -30,6 +30,11 @@ const C = {
 
 const CATEGORIES = ['All', 'General', 'Rules', 'Contracts', 'Reports', 'Receipts', 'Other'];
 
+// A rotating palette so each paid week stands out with its own color,
+// instead of every paid week looking identical.
+const PAID_WEEK_COLORS = ['#3F7D5C', '#2F5BA8', '#9A6A00', '#7B4B94', '#1F7A8C', '#C77B3D'];
+const paidWeekColor = (wIdx: string) => PAID_WEEK_COLORS[parseInt(wIdx, 10) % PAID_WEEK_COLORS.length] || PAID_WEEK_COLORS[0];
+
 function MemberContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -593,7 +598,7 @@ function MemberContent() {
       </div>
 
       {/* 3-column grid */}
-      <div className="tarsyn-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '260px 1fr 280px', minHeight: 0 }}>
+      <div className="tarsyn-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px', minHeight: 0 }}>
 
         {/* LEFT - Group Info */}
         <div className="tarsyn-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '20px', overflowY: 'auto' }}>
@@ -676,14 +681,15 @@ function MemberContent() {
                     const isPaid = myPayments.slots.some((s) => myPayments.payments[s]?.[wIdx]);
                     const weekDate = new Date(myPayments.weeks[wIdx]);
                     const isFuture = weekDate > new Date();
+                    const weekColor = paidWeekColor(wIdx);
                     return (
                       <div key={wIdx} className="pay-cell" title={myPayments.weeks[wIdx]}
                         style={{
                           width: '30px', height: '30px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '10px', fontWeight: 700,
-                          background: isFuture ? C.creme : isPaid ? C.successBg : C.dangerBg,
-                          color: isFuture ? C.muted : isPaid ? C.success : C.danger,
-                          border: '1px solid ' + C.border,
+                          background: isFuture ? C.creme : isPaid ? weekColor : C.dangerBg,
+                          color: isFuture ? C.muted : isPaid ? 'white' : C.danger,
+                          border: '1px solid ' + (isPaid ? weekColor : C.border),
                         }}>
                         W{wIdx}
                       </div>
@@ -749,12 +755,13 @@ function MemberContent() {
                         {weekKeysSorted.map((wIdx) => {
                           const isPaid = myPayments.payments[slotNum]?.[wIdx] || false;
                           const isFuture = new Date(myPayments.weeks[wIdx]) > new Date();
+                          const weekColor = paidWeekColor(wIdx);
                           return (
                             <td key={wIdx} style={{ textAlign: 'center', padding: 6 }}>
                               <div style={{
                                 width: 26, height: 26, margin: '0 auto', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: isPaid ? C.bordeaux : isFuture ? C.creme : C.dangerBg,
-                                border: '1.5px solid ' + (isPaid ? C.bordeaux : C.border),
+                                background: isPaid ? weekColor : isFuture ? C.creme : C.dangerBg,
+                                border: '1.5px solid ' + (isPaid ? weekColor : C.border),
                               }}>
                                 {isPaid && <span style={{ color: C.dore, fontSize: 13, fontWeight: 700 }}>{'\u2713'}</span>}
                               </div>
