@@ -26,6 +26,11 @@ const C = {
 
 const WEEKS_PER_PAGE = 6;
 
+// Same rotating palette as the member portal, so each week's paid color
+// matches between the admin grid and what members see on their side.
+const PAID_WEEK_COLORS = ['#3F7D5C', '#2F5BA8', '#9A6A00', '#7B4B94', '#1F7A8C', '#C77B3D'];
+const paidWeekColor = (wIdx: string) => PAID_WEEK_COLORS[parseInt(wIdx, 10) % PAID_WEEK_COLORS.length] || PAID_WEEK_COLORS[0];
+
 interface Slot {
   slotNumber: string;
   memberId: string;
@@ -606,6 +611,23 @@ export default function PaymentGridPage() {
           outline: 2px solid ${C.or};
           outline-offset: 1px;
         }
+        .tarsyn-group-name-admin{
+          background: linear-gradient(90deg, ${C.bordeaux} 0%, #A85578 20%, ${C.bordeaux} 40%, ${C.bordeaux} 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: inline-block;
+          animation: tarsyn-shimmer-admin 4s linear infinite, tarsyn-slide-admin 3s ease-in-out infinite;
+        }
+        @keyframes tarsyn-shimmer-admin {
+          0% { background-position: 0% center; }
+          100% { background-position: -200% center; }
+        }
+        @keyframes tarsyn-slide-admin {
+          0%, 100% { transform: translateX(-6px); }
+          50% { transform: translateX(6px); }
+        }
         @media print {
           .tarsyn-no-print { display: none !important; }
         }
@@ -637,11 +659,11 @@ export default function PaymentGridPage() {
                 flexShrink: 0,
               }}
             >
-              💳
+              {'\u{1F4B3}'}
             </div>
             <div>
               <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
-                Payment Grid — {groupName}
+                Payment Grid - <span className="tarsyn-group-name-admin">{groupName}</span>
               </h1>
               <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
@@ -1037,6 +1059,7 @@ export default function PaymentGridPage() {
                     </td>
                     {visibleWeeks.map(([weekIdx]) => {
                       const isPaid = pendingPayments[slotNum]?.[weekIdx] || false;
+                      const weekColor = paidWeekColor(weekIdx);
                       return (
                         <td
                           key={weekIdx}
@@ -1058,14 +1081,14 @@ export default function PaymentGridPage() {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              background: isPaid ? C.bordeaux : C.creme,
-                              border: '1.5px solid ' + (isPaid ? C.bordeaux : C.border),
+                              background: isPaid ? weekColor : C.creme,
+                              border: '1.5px solid ' + (isPaid ? weekColor : C.border),
                               transition: 'all 0.15s',
                             }}
                           >
                             {isPaid && (
                               <span style={{ color: C.or, fontSize: 15, fontWeight: 700 }}>
-                                ✓
+                                {'\u2713'}
                               </span>
                             )}
                           </div>

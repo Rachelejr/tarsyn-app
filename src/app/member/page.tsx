@@ -539,11 +539,16 @@ function MemberContent() {
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
-          animation: tarsyn-shimmer 4s linear infinite;
+          display: inline-block;
+          animation: tarsyn-shimmer 4s linear infinite, tarsyn-slide 3s ease-in-out infinite;
         }
         @keyframes tarsyn-shimmer {
           0% { background-position: 0% center; }
           100% { background-position: -200% center; }
+        }
+        @keyframes tarsyn-slide {
+          0%, 100% { transform: translateX(-6px); }
+          50% { transform: translateX(6px); }
         }
         .tarsyn-pay-now-btn{ animation: tarsyn-pulse 2.2s ease-in-out infinite; }
         @keyframes tarsyn-pulse {
