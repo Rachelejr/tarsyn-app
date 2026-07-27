@@ -116,8 +116,16 @@ async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string,
 export async function GET(req: NextRequest) {
   // Protect this endpoint: Vercel Cron sends this header automatically when
   // CRON_SECRET is set as an environment variable.
+  // Vercel Cron sends the secret as a header automatically. For manual testing
+  // from a browser address bar (no custom headers possible), a ?secret=
+  // query parameter is also accepted.
   const authHeader = req.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== 'Bearer ' + process.env.CRON_SECRET) {
+  const querySecret = req.nextUrl.searchParams.get('secret');
+  const isAuthorized =
+    !process.env.CRON_SECRET ||
+    authHeader === 'Bearer ' + process.env.CRON_SECRET ||
+    querySecret === process.env.CRON_SECRET;
+  if (!isAuthorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
