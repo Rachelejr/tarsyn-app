@@ -89,6 +89,11 @@ function OverviewContent() {
   const [editingMember, setEditingMember] = useState<any>(null);
   const [memberEditName, setMemberEditName] = useState('');
   const [memberEditPayoutDate, setMemberEditPayoutDate] = useState('');
+  const [memberEditAmount, setMemberEditAmount] = useState('');
+  const [memberEditCurrency, setMemberEditCurrency] = useState('USD');
+  const [memberEditPhone, setMemberEditPhone] = useState('');
+  const [memberEditEmail, setMemberEditEmail] = useState('');
+  const [memberEditCountry, setMemberEditCountry] = useState('');
   const [savingMember, setSavingMember] = useState(false);
 
   useEffect(() => {
@@ -130,16 +135,26 @@ function OverviewContent() {
     if (!editingMember || !memberEditName.trim()) return;
     setSavingMember(true);
     try {
-      await updateDoc(doc(db, 'members', editingMember.id), {
+      const updates = {
         name: memberEditName.trim(),
+        fullName: memberEditName.trim(),
         payoutDate: memberEditPayoutDate || null,
-      });
-      setMembers(members.map(m => m.id === editingMember.id
-        ? { ...m, name: memberEditName.trim(), payoutDate: memberEditPayoutDate || null }
-        : m));
+        expectedAmount: parseFloat(memberEditAmount) || 0,
+        currency: memberEditCurrency,
+        phone: memberEditPhone.trim(),
+        email: memberEditEmail.trim(),
+        country: memberEditCountry,
+      };
+      await updateDoc(doc(db, 'members', editingMember.id), updates);
+      setMembers(members.map(m => m.id === editingMember.id ? { ...m, ...updates } : m));
       setEditingMember(null);
       setMemberEditName('');
       setMemberEditPayoutDate('');
+      setMemberEditAmount('');
+      setMemberEditCurrency('USD');
+      setMemberEditPhone('');
+      setMemberEditEmail('');
+      setMemberEditCountry('');
     } catch (e) { console.error(e); }
     setSavingMember(false);
   };
@@ -272,9 +287,10 @@ function OverviewContent() {
       )}
 
       {editingMember && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px' }}>
+          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '440px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Member</h3>
+
             <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Name</label>
             <input
               value={memberEditName}
@@ -282,6 +298,66 @@ function OverviewContent() {
               placeholder="Member name..."
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
             />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Phone</label>
+                <input
+                  value={memberEditPhone}
+                  onChange={e => setMemberEditPhone(e.target.value)}
+                  placeholder="+1 234 567 8900"
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Email</label>
+                <input
+                  type="email"
+                  value={memberEditEmail}
+                  onChange={e => setMemberEditEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Country</label>
+            <select
+              value={memberEditCountry}
+              onChange={e => setMemberEditCountry(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px', background: 'white' }}
+            >
+              <option value="">Select country...</option>
+              <option>United States</option><option>Haiti</option><option>France</option>
+              <option>Canada</option><option>United Kingdom</option><option>Nigeria</option>
+              <option>Senegal</option><option>Ivory Coast</option><option>Cameroon</option>
+              <option>Other</option>
+            </select>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Contribution Amount</label>
+                <input
+                  type="number" min="0" step="0.01"
+                  value={memberEditAmount}
+                  onChange={e => setMemberEditAmount(e.target.value)}
+                  placeholder="0.00"
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Currency</label>
+                <select
+                  value={memberEditCurrency}
+                  onChange={e => setMemberEditCurrency(e.target.value)}
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                >
+                  <option>USD</option><option>EUR</option><option>GBP</option>
+                  <option>CAD</option><option>HTG</option><option>XOF</option>
+                </select>
+              </div>
+            </div>
+
             <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Payout Date</label>
             <input
               type="date"
@@ -289,8 +365,17 @@ function OverviewContent() {
               onChange={e => setMemberEditPayoutDate(e.target.value)}
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
             />
+
+            <p style={{ fontSize: '11px', color: '#A08B7D', margin: '0 0 16px', lineHeight: 1.5 }}>
+              Note: this does not change the member's position in the rotation or their number of parts. Editing the contribution amount only affects future weeks, not weeks already marked paid.
+            </p>
+
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setEditingMember(null); setMemberEditName(''); setMemberEditPayoutDate(''); }} className="btn-action"
+              <button onClick={() => {
+                setEditingMember(null);
+                setMemberEditName(''); setMemberEditPayoutDate(''); setMemberEditAmount('');
+                setMemberEditCurrency('USD'); setMemberEditPhone(''); setMemberEditEmail(''); setMemberEditCountry('');
+              }} className="btn-action"
                 style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                 Cancel
               </button>
@@ -397,7 +482,16 @@ function OverviewContent() {
                       <td style={{ padding: '10px 10px' }}>
                         {m.role !== 'admin' && (
                           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                            <button onClick={() => { setEditingMember(m); setMemberEditName(m.name || ''); setMemberEditPayoutDate(m.payoutDate || ''); }} className="btn-action pill"
+                            <button onClick={() => {
+                              setEditingMember(m);
+                              setMemberEditName(m.name || m.fullName || '');
+                              setMemberEditPayoutDate(m.payoutDate || '');
+                              setMemberEditAmount(String(m.expectedAmount || ''));
+                              setMemberEditCurrency(m.currency || 'USD');
+                              setMemberEditPhone(m.phone || '');
+                              setMemberEditEmail(m.email || '');
+                              setMemberEditCountry(m.country || '');
+                            }} className="btn-action pill"
                               style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
                               {'\u270f\ufe0f'} Edit
                             </button>
