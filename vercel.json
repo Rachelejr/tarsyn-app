@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/weekly-automation",
-      "schedule": "0 13 * * 1"
+      "schedule": "0 4 * * 1"
     }
   ]
 }

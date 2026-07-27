@@ -3,6 +3,14 @@ import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const DEFAULT_LOGO = 'https://tarsyn-app.com/tarsyn-logo.svg';
+
+function logoBlock(logoUrl?: string) {
+  const src = logoUrl || DEFAULT_LOGO;
+  return '<div style="text-align: center; margin-bottom: 20px;">' +
+    '<img src="' + src + '" alt="TARSYN" style="height: 40px; width: auto; max-width: 200px;" />' +
+    '</div>';
+}
 
 function computeOverdue(grid: any, members: Record<string, any>) {
   const weeks: Record<string, string> = grid.weeks || {};
@@ -46,14 +54,14 @@ function computeOverdue(grid: any, members: Record<string, any>) {
   return results;
 }
 
-async function sendReminderEmail(memberEmail: string, memberName: string, groupName: string, amount: number, adminName: string) {
+async function sendReminderEmail(memberEmail: string, memberName: string, groupName: string, amount: number, adminName: string, logoUrl?: string) {
   await resend.emails.send({
     from: 'TARSYN <noreply@tarsyn-app.com>',
     to: memberEmail,
     subject: 'Reminder: Contribution due - ' + groupName,
     html:
       '<div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
-      '<div style="text-align: center; margin-bottom: 20px;"><div style="background: #6B2D4E; display: inline-block; padding: 10px 22px; border-radius: 12px;"><span style="color: #E9C77B; font-weight: 800; font-size: 20px;">TARSYN</span></div></div>' +
+      logoBlock(logoUrl) +
       '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Hello ' + memberName + '</h2>' +
       '<p style="color: #7A5068; font-size: 14px; margin: 0 0 20px;">This is an automatic weekly reminder from ' + groupName + '. Your contribution is currently overdue.</p>' +
       '<div style="background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">' +
@@ -66,7 +74,7 @@ async function sendReminderEmail(memberEmail: string, memberName: string, groupN
   });
 }
 
-async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]) {
+async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[], logoUrl?: string) {
   const rows = groupsSummary.map((g) =>
     '<tr><td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#4A1F38;">' + g.groupName + '</td>' +
     '<td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#3F7D5C;text-align:center;">' + g.paidCount + '</td>' +
@@ -80,7 +88,7 @@ async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]
     subject: 'Your weekly TARSYN summary',
     html:
       '<div style="font-family: Inter, sans-serif; max-width: 560px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
-      '<div style="text-align: center; margin-bottom: 20px;"><div style="background: #6B2D4E; display: inline-block; padding: 10px 22px; border-radius: 12px;"><span style="color: #E9C77B; font-weight: 800; font-size: 20px;">TARSYN</span></div></div>' +
+      logoBlock(logoUrl) +
       '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 16px;">Your Weekly Summary</h2>' +
       '<table style="width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;">' +
       '<tr style="background:#6B2D4E;"><th style="padding:8px 12px;color:white;text-align:left;font-size:11px;">GROUP</th>' +
@@ -93,7 +101,7 @@ async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]
   });
 }
 
-async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string, groupName: string, payoutDate: string, organizerEmail?: string) {
+async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string, groupName: string, payoutDate: string, organizerEmail?: string, logoUrl?: string) {
   await resend.emails.send({
     from: 'TARSYN <noreply@tarsyn-app.com>',
     to: memberEmail,
@@ -101,7 +109,7 @@ async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string,
     subject: 'Your payout is coming up - ' + groupName,
     html:
       '<div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
-      '<div style="text-align: center; margin-bottom: 20px;"><div style="background: #6B2D4E; display: inline-block; padding: 10px 22px; border-radius: 12px;"><span style="color: #E9C77B; font-weight: 800; font-size: 20px;">TARSYN</span></div></div>' +
+      logoBlock(logoUrl) +
       '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Good news, ' + memberName + '!</h2>' +
       '<p style="color: #7A5068; font-size: 14px; margin: 0 0 20px;">Your turn to receive the pooled contribution in <strong>' + groupName + '</strong> is coming up soon.</p>' +
       '<div style="background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">' +
@@ -142,7 +150,9 @@ export async function GET(req: NextRequest) {
 
       try {
         const groupSnap = await adminDb.collection('groups').doc(groupId).get();
-        const groupName = groupSnap.exists ? (groupSnap.data() as any)?.name || 'Your Group' : 'Your Group';
+        const groupData = groupSnap.exists ? groupSnap.data() as any : null;
+        const groupName = groupData?.name || 'Your Group';
+        const logoUrl = groupData?.groupBrand?.logo || undefined;
 
         const membersSnap = await adminDb.collection('members').where('groupId', '==', groupId).get();
         const membersById: Record<string, any> = {};
@@ -155,7 +165,7 @@ export async function GET(req: NextRequest) {
           totalOwed += item.amountOwed;
           if (item.member.email) {
             try {
-              await sendReminderEmail(item.member.email, item.member.fullName || item.member.name || 'Member', groupName, item.amountOwed, 'your organizer');
+              await sendReminderEmail(item.member.email, item.member.fullName || item.member.name || 'Member', groupName, item.amountOwed, 'your organizer', logoUrl);
               results.remindersSent++;
             } catch (e: any) {
               results.errors.push('reminder failed for ' + item.memberId + ': ' + e.message);
@@ -182,14 +192,14 @@ export async function GET(req: NextRequest) {
           });
           if (hasUpcoming && member.email && !member.payoutReminderSent) {
             try {
-              const groupSnap2 = await adminDb.collection('groups').doc(groupId).get();
               const organizerData = grid.organizerId ? await adminAuth.getUser(grid.organizerId).catch(() => null) : null;
               await sendUpcomingPayoutNotice(
                 member.email,
                 member.fullName || member.name || 'Member',
                 groupName,
                 datesToCheck.find((d) => { const dt = new Date(d); return dt >= now && dt <= in7Days; }) || '',
-                organizerData?.email
+                organizerData?.email,
+                logoUrl
               );
               await adminDb.collection('members').doc(member.id).update({ payoutReminderSent: true });
               results.payoutNoticesSent++;
