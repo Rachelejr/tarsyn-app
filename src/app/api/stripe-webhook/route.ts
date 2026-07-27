@@ -236,6 +236,38 @@ export async function POST(req: NextRequest) {
             console.error('[webhook] receipt generation failed (non-blocking):', receiptErr);
           }
 
+          // Sync the Digital Register's Cycle columns too, so a card payment
+          // shows up there automatically (week index N maps to Cycle N+1).
+          try {
+            const memberSnap2 = await adminDb.collection('members').doc(memberId).get();
+            const memberData2 = memberSnap2.exists ? memberSnap2.data() as any : {};
+            const contributionPerWeek = meta.contributionCents
+              ? (parseInt(meta.contributionCents) / 100) / Math.max(1, weekIdxList.length)
+              : 0;
+            const registerSyncPromises = weekIdxList.map((wIdx: string) => {
+              const cycleNumber = parseInt(wIdx, 10) + 1;
+              const registerDocId = memberId + '_cycle' + cycleNumber;
+              return adminDb.collection('payments').doc(registerDocId).set({
+                organizerId: organizerId || '',
+                memberId,
+                memberName: memberData2.fullName || memberData2.name || '',
+                amount: contributionPerWeek,
+                currency: (meta.currency || 'usd').toUpperCase(),
+                paymentDate: grid.weeks ? grid.weeks[wIdx] : '',
+                paymentMethod: 'Card (Stripe)',
+                status: 'confirmed',
+                cycle: 'Cycle ' + cycleNumber,
+                contributionType: 'Weekly Contribution',
+                notes: 'Auto-synced from card payment (W' + wIdx + ')',
+                recordedBy: 'system',
+                createdAt: new Date(),
+              }, { merge: true });
+            });
+            await Promise.all(registerSyncPromises);
+          } catch (registerSyncErr) {
+            console.error('[webhook] register sync failed (non-blocking):', registerSyncErr);
+          }
+
           // Audit log entry for the organizer's dashboard.
           try {
             await adminDb.collection('audit_logs').add({

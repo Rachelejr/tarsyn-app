@@ -361,6 +361,53 @@ export default function PaymentGridPage() {
     }
   }
 
+  async function syncRegisterCycles(
+    previousPayments: Record<string, Record<string, boolean>>,
+    newPayments: Record<string, Record<string, boolean>>
+  ) {
+    if (!grid) return;
+    const syncPromises: Promise<any>[] = [];
+
+    Object.entries(grid.slots).forEach(([slotNum, slot]) => {
+      const weekEntriesLocal = Object.entries(grid.weeks);
+      weekEntriesLocal.forEach(([weekIdx, weekDate]) => {
+        const wasPaid = previousPayments[slotNum]?.[weekIdx] || false;
+        const isNowPaid = newPayments[slotNum]?.[weekIdx] || false;
+        if (!wasPaid && isNowPaid) {
+          // Week index maps directly to a Register cycle number: W0 -> Cycle 1, W1 -> Cycle 2, etc.
+          const cycleNumber = parseInt(weekIdx, 10) + 1;
+          const memberAmount = memberAmounts[slot.memberId] ?? weeklyAmount;
+          const registerDocId = slot.memberId + '_cycle' + cycleNumber;
+          syncPromises.push(
+            setDoc(
+              doc(db, 'payments', registerDocId),
+              {
+                organizerId: grid.organizerId,
+                memberId: slot.memberId,
+                memberName: slot.memberName,
+                amount: memberAmount || 0,
+                currency: grid.currency || 'USD',
+                paymentDate: weekDate,
+                paymentMethod: 'Grid',
+                status: 'confirmed',
+                cycle: 'Cycle ' + cycleNumber,
+                contributionType: 'Weekly Contribution',
+                notes: 'Auto-synced from Payment Grid (W' + weekIdx + ')',
+                recordedBy: 'system',
+                createdAt: serverTimestamp(),
+              },
+              { merge: true }
+            )
+          );
+        }
+      });
+    });
+
+    if (syncPromises.length > 0) {
+      await Promise.all(syncPromises);
+    }
+  }
+
   async function handleSaveAll() {
     if (!grid) return;
     setSavingAll(true);
@@ -382,6 +429,7 @@ export default function PaymentGridPage() {
       );
 
       await generateReceiptsForNewlyPaid(grid.payments, pendingPayments);
+      await syncRegisterCycles(grid.payments, pendingPayments);
 
       setGrid((prev) => (prev ? { ...prev, payments: pendingPayments } : prev));
     } catch (err) {
