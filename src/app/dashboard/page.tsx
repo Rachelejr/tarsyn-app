@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -80,7 +80,14 @@ function OverviewContent() {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingGroup, setEditingGroup] = useState<any>(null);
-  const [newGroupName, setNewGroupName] = useState('');
+  const [groupEditName, setGroupEditName] = useState('');
+  const [groupEditFrequency, setGroupEditFrequency] = useState('Weekly');
+  const [groupEditAmount, setGroupEditAmount] = useState('');
+  const [groupEditCurrency, setGroupEditCurrency] = useState('USD');
+  const [groupEditRegion, setGroupEditRegion] = useState('');
+  const [groupEditStartDate, setGroupEditStartDate] = useState('');
+  const [groupEditStatus, setGroupEditStatus] = useState('active');
+  const [groupEditDescription, setGroupEditDescription] = useState('');
   const [savingGroup, setSavingGroup] = useState(false);
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
@@ -119,14 +126,32 @@ function OverviewContent() {
     return () => unsub();
   }, [router]);
 
-  const handleSaveGroupName = async () => {
-    if (!editingGroup || !newGroupName.trim()) return;
+  const handleSaveGroup = async () => {
+    if (!editingGroup || !groupEditName.trim()) return;
     setSavingGroup(true);
     try {
-      await updateDoc(doc(db, 'groups', editingGroup.id), { name: newGroupName.trim() });
-      setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, name: newGroupName.trim() } : g));
+      const updates = {
+        name: groupEditName.trim(),
+        frequency: groupEditFrequency,
+        contribution: parseFloat(groupEditAmount) || 0,
+        amountPerMember: parseFloat(groupEditAmount) || 0,
+        currency: groupEditCurrency,
+        region: groupEditRegion.trim(),
+        startDate: groupEditStartDate || null,
+        status: groupEditStatus,
+        description: groupEditDescription.trim(),
+      };
+      await updateDoc(doc(db, 'groups', editingGroup.id), updates);
+      setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, ...updates } : g));
       setEditingGroup(null);
-      setNewGroupName('');
+      setGroupEditName('');
+      setGroupEditFrequency('Weekly');
+      setGroupEditAmount('');
+      setGroupEditCurrency('USD');
+      setGroupEditRegion('');
+      setGroupEditStartDate('');
+      setGroupEditStatus('active');
+      setGroupEditDescription('');
     } catch (e) { console.error(e); }
     setSavingGroup(false);
   };
@@ -263,22 +288,108 @@ function OverviewContent() {
       `}</style>
 
       {editingGroup && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Group Name</h3>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px' }}>
+          <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '440px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Group</h3>
+
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Group Name</label>
             <input
-              value={newGroupName}
-              onChange={e => setNewGroupName(e.target.value)}
-              placeholder="New group name..."
-              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+              value={groupEditName}
+              onChange={e => setGroupEditName(e.target.value)}
+              placeholder="Group name..."
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
             />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Frequency</label>
+                <select
+                  value={groupEditFrequency}
+                  onChange={e => setGroupEditFrequency(e.target.value)}
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                >
+                  <option>Weekly</option><option>Bi-Weekly</option><option>Monthly</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Status</label>
+                <select
+                  value={groupEditStatus}
+                  onChange={e => setGroupEditStatus(e.target.value)}
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                >
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Contribution Amount</label>
+                <input
+                  type="number" min="0" step="0.01"
+                  value={groupEditAmount}
+                  onChange={e => setGroupEditAmount(e.target.value)}
+                  placeholder="0.00"
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Currency</label>
+                <select
+                  value={groupEditCurrency}
+                  onChange={e => setGroupEditCurrency(e.target.value)}
+                  style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                >
+                  <option>USD</option><option>EUR</option><option>GBP</option>
+                  <option>CAD</option><option>HTG</option><option>XOF</option>
+                </select>
+              </div>
+            </div>
+
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Region</label>
+            <input
+              value={groupEditRegion}
+              onChange={e => setGroupEditRegion(e.target.value)}
+              placeholder="e.g. United States, Haiti..."
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
+            />
+
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Start Date</label>
+            <input
+              type="date"
+              value={groupEditStartDate}
+              onChange={e => setGroupEditStartDate(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
+            />
+
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Description</label>
+            <textarea
+              value={groupEditDescription}
+              onChange={e => setGroupEditDescription(e.target.value)}
+              placeholder="Optional description..."
+              rows={3}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', fontFamily: 'Inter, sans-serif', resize: 'vertical' as const }}
+            />
+
+            <p style={{ fontSize: '11px', color: '#A08B7D', margin: '0 0 16px', lineHeight: 1.5 }}>
+              Note: changing the contribution amount here does not retroactively change individual members' amounts already set. Edit each member separately if needed.
+            </p>
+
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setEditingGroup(null); setNewGroupName(''); }} className="btn-action"
+              <button onClick={() => {
+                setEditingGroup(null);
+                setGroupEditName(''); setGroupEditFrequency('Weekly'); setGroupEditAmount('');
+                setGroupEditCurrency('USD'); setGroupEditRegion(''); setGroupEditStartDate('');
+                setGroupEditStatus('active'); setGroupEditDescription('');
+              }} className="btn-action"
                 style={{ flex: 1, padding: '12px', background: 'transparent', color: '#6B2D4E', border: '2px solid #6B2D4E', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button onClick={handleSaveGroupName} disabled={savingGroup} className="btn-action"
-                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={handleSaveGroup} disabled={savingGroup || !groupEditName.trim()} className="btn-action"
+                style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', opacity: (savingGroup || !groupEditName.trim()) ? 0.6 : 1 }}>
                 {savingGroup ? 'Saving...' : 'Save'}
               </button>
             </div>
@@ -439,7 +550,17 @@ function OverviewContent() {
                       style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
                       {'\ud83d\udcca'} Payment Grid
                     </button>
-                    <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
+                    <button onClick={() => {
+                      setEditingGroup(g);
+                      setGroupEditName(g.name || '');
+                      setGroupEditFrequency(g.frequency || 'Weekly');
+                      setGroupEditAmount(String(g.contribution || g.amountPerMember || ''));
+                      setGroupEditCurrency(g.currency || 'USD');
+                      setGroupEditRegion(g.region || '');
+                      setGroupEditStartDate(g.startDate || '');
+                      setGroupEditStatus(g.status || 'active');
+                      setGroupEditDescription(g.description || '');
+                    }} className="btn-action"
                       style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
                       {'\u270f\ufe0f'} Edit
                     </button>
