@@ -142,6 +142,7 @@ export async function GET(req: NextRequest) {
   try {
     const gridsSnap = await adminDb.collection('paymentGrids').get();
     const organizerSummaries: Record<string, any[]> = {};
+    const organizerLogos: Record<string, string | undefined> = {};
 
     for (const gridDoc of gridsSnap.docs) {
       const groupId = gridDoc.id.replace(/_current$/, '');
@@ -177,6 +178,13 @@ export async function GET(req: NextRequest) {
         const paidCount = Object.keys(membersById).length - overdue.length;
         if (!organizerSummaries[grid.organizerId]) organizerSummaries[grid.organizerId] = [];
         organizerSummaries[grid.organizerId].push({ groupName, paidCount, overdueCount: overdue.length, totalOwed });
+        // Remember the first available group logo per organizer, used for
+        // the weekly summary email header (an organizer may run several
+        // groups; we just need one representative logo, falling back to
+        // the default TARSYN logo if none of their groups has one).
+        if (!organizerLogos[grid.organizerId] && logoUrl) {
+          organizerLogos[grid.organizerId] = logoUrl;
+        }
 
         // --- 3. Upcoming payout notifications (within next 7 days, not yet notified) ---
         const now = new Date();
@@ -218,7 +226,7 @@ export async function GET(req: NextRequest) {
       try {
         const organizerUser = await adminAuth.getUser(organizerId);
         if (organizerUser.email) {
-          await sendOrganizerSummary(organizerUser.email, groupsSummary);
+          await sendOrganizerSummary(organizerUser.email, groupsSummary, organizerLogos[organizerId]);
           results.summariesSent++;
         }
       } catch (e: any) {
