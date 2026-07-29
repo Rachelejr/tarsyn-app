@@ -1,4 +1,4 @@
-﻿import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -20,12 +20,16 @@ export const auth = getAuth(app);
 export const storage = getStorage(app);
 export default app;
 
-// SECOND NAMED FIREBASE APP INSTANCE - used exclusively by the member portal
-// (src/app/member/page.tsx) so an admin session and a member session can be
-// signed in at the same time in the same browser without one overwriting
-// the other. The default 'auth' above stays for admin/organizer pages.
-const memberApp = getApps().find(a => a.name === 'memberApp')
-  || initializeApp(firebaseConfig, 'memberApp');
+// Second, independently named Firebase app instance used exclusively by the
+// member portal (/member). This exists because /dashboard (admin) and
+// /member (member portal) share the same browser and, without this
+// separation, a second Firebase Auth sign-in in one tab silently overwrites
+// the session of the other tab - so an organizer testing their own member
+// view (or a member and an admin both using the app in the same browser)
+// would get logged out of one side unexpectedly.
+const MEMBER_APP_NAME = "memberApp";
+const memberApp = getApps().find(a => a.name === MEMBER_APP_NAME)
+  || initializeApp(firebaseConfig, MEMBER_APP_NAME);
 
 export const memberDb = getFirestore(memberApp);
 export const memberAuth = getAuth(memberApp);
