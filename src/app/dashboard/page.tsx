@@ -143,6 +143,16 @@ function OverviewContent() {
       };
       await updateDoc(doc(db, 'groups', editingGroup.id), updates);
       setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, ...updates } : g));
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          await addDoc(collection(db, 'audit_logs'), {
+            organizerId: currentUser.uid, category: 'Group',
+            action: 'Edited group', user: currentUser.email || '',
+            details: groupEditName.trim(), createdAt: serverTimestamp(),
+          });
+        }
+      } catch (auditErr) { /* silent - audit logging must never block group edit */ }
       setEditingGroup(null);
       setGroupEditName('');
       setGroupEditFrequency('Weekly');
