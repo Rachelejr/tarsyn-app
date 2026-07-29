@@ -81,6 +81,16 @@ export default function RecordContribution() {
         recordedBy: user.uid,
         createdAt: serverTimestamp(),
       });
+      try {
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId: user.uid, category: 'Payment',
+          action: 'Recorded payment',
+          user: user.email || '',
+          details: (member?.name || 'Unknown member') + ' - ' + amount + ' ' + currency + ' (' + effectivePaymentMethod + ', ' + receiptNumber + ')',
+          createdAt: serverTimestamp(),
+        });
+      } catch (auditErr) { /* silent - audit logging must never block payment recording */ }
+
       setSuccess('Payment recorded! Receipt: ' + receiptNumber);
       setSelectedMember(''); setAmount(''); setPaymentDate(''); setNotes(''); setCustomPaymentMethod(''); setPaymentMethod('Cash');
     } catch(e) {
