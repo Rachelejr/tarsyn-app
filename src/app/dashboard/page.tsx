@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import TrialGuard from '@/components/TrialGuard';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
@@ -172,6 +172,16 @@ function OverviewContent() {
       };
       await updateDoc(doc(db, 'members', editingMember.id), updates);
       setMembers(members.map(m => m.id === editingMember.id ? { ...m, ...updates } : m));
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          await addDoc(collection(db, 'audit_logs'), {
+            organizerId: currentUser.uid, category: 'Member',
+            action: 'Edited member', user: currentUser.email || '',
+            details: memberEditName.trim(), createdAt: serverTimestamp(),
+          });
+        }
+      } catch (auditErr) { /* silent - audit logging must never block member edit */ }
       setEditingMember(null);
       setMemberEditName('');
       setMemberEditPayoutDate('');
@@ -189,6 +199,19 @@ function OverviewContent() {
     try {
       await updateDoc(doc(db, 'members', memberId), { status: newStatus });
       setMembers(members.map(m => m.id === memberId ? { ...m, status: newStatus } : m));
+      try {
+        const currentUser = auth.currentUser;
+        const targetMember = members.find(m => m.id === memberId);
+        if (currentUser) {
+          await addDoc(collection(db, 'audit_logs'), {
+            organizerId: currentUser.uid, category: 'Member',
+            action: newStatus === 'active' ? 'Activated member' : 'Paused member',
+            user: currentUser.email || '',
+            details: (targetMember?.name || targetMember?.fullName || memberId),
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (auditErr) { /* silent - audit logging must never block status update */ }
     } catch (e) { console.error(e); }
     setUpdatingMember(null);
   };
@@ -199,6 +222,16 @@ function OverviewContent() {
     try {
       await deleteDoc(doc(db, 'members', memberId));
       setMembers(members.filter(m => m.id !== memberId));
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          await addDoc(collection(db, 'audit_logs'), {
+            organizerId: currentUser.uid, category: 'Member',
+            action: 'Deleted member', user: currentUser.email || '',
+            details: memberName, createdAt: serverTimestamp(),
+          });
+        }
+      } catch (auditErr) { /* silent - audit logging must never block member deletion */ }
     } catch (e) { console.error(e); }
     setDeletingMember(null);
   };
