@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -26,6 +26,21 @@ const inputStyle = {
 
 const labelStyle = { fontSize: 12, fontWeight: 600, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5, display: 'block', marginBottom: 6 };
 
+// Reads a group's normal per-share contribution amount from whichever field
+// it happens to be stored under (this mirrors the fallback chain used by
+// /api/audit-all-groups, so "normal amount" means the same thing everywhere
+// in the app).
+function getGroupContributionAmount(group: any): number | null {
+  if (!group) return null;
+  const amount =
+    group?.contributionSettings?.amount ??
+    group?.contribution ??
+    group?.amountPerMember ??
+    group?.weeklyAmount ??
+    null;
+  return typeof amount === 'number' ? amount : (amount ? parseFloat(amount) : null);
+}
+
 function AddMemberContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,6 +55,10 @@ function AddMemberContent() {
     role: 'member', position: '', payoutDate: '', expectedAmount: '0',
     currency: 'USD', status: 'pending', notes: '', shares: '1',
   });
+  // Tracks whether the admin has manually edited Expected Amount, so we
+  // stop overwriting it with the group's default once they've typed
+  // their own value (e.g. for a member with a special/reduced amount).
+  const [expectedAmountTouched, setExpectedAmountTouched] = useState(false);
   const [payoutDates, setPayoutDates] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -47,6 +66,7 @@ function AddMemberContent() {
   const [tynId, setTynId] = useState('');
   const [nextPosition, setNextPosition] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const [groupMemberCount, setGroupMemberCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -94,10 +114,25 @@ function AddMemberContent() {
       const q = query(collection(db, 'members'), where('groupId', '==', selectedGroupId));
       const snap = await getDocs(q);
       setNextPosition(snap.size + 1);
+      setGroupMemberCount(snap.size);
       setForm(f => ({ ...f, position: String(snap.size + 1) }));
     };
     fetchCount();
   }, [selectedGroupId]);
+
+  // Auto-fill Expected Amount from the selected group's normal contribution
+  // amount, so admins aren't left to type it in freehand every time (that
+  // free-text field was the source of the corrupted expectedAmount bug —
+  // typos/blank defaults with no reference value to check against).
+  // Only auto-fills if the admin hasn't already typed their own value.
+  useEffect(() => {
+    if (!selectedGroupId || expectedAmountTouched) return;
+    const group = groups.find(g => g.id === selectedGroupId);
+    const amount = getGroupContributionAmount(group);
+    if (amount != null) {
+      setForm(f => ({ ...f, expectedAmount: String(amount) }));
+    }
+  }, [selectedGroupId, groups, expectedAmountTouched]);
 
   // TYN-ID = [Initiale prenom][Initiale nom]-[numero sequentiel 3 chiffres], ex: JD-001
   useEffect(() => {
@@ -210,7 +245,7 @@ function AddMemberContent() {
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
-            <button onClick={() => { setSuccess(false); setInviteStatus(null); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
+            <button onClick={() => { setSuccess(false); setInviteStatus(null); setExpectedAmountTouched(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
               style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Add Another
             </button>
@@ -219,6 +254,17 @@ function AddMemberContent() {
       </div>
     );
   }
+
+  const selectedGroup = groups.find(g => g.id === selectedGroupId);
+  const groupContributionAmount = getGroupContributionAmount(selectedGroup);
+  // Total payout the member will receive at their turn = the group's normal
+  // per-share contribution amount x the number of members currently in the
+  // group (everyone contributes each cycle, one member collects the pot).
+  // This is display-only (not stored on the member doc) so it always
+  // reflects the group's live member count rather than going stale.
+  const totalPayoutAmount = groupContributionAmount != null
+    ? groupContributionAmount * Math.max(groupMemberCount, 1)
+    : null;
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
@@ -271,7 +317,7 @@ function AddMemberContent() {
               ) : (
                 <div>
                   <label style={labelStyle}>Select Group *</label>
-                  <select style={inputStyle} value={selectedGroupId} onChange={e => setSelectedGroupId(e.target.value)}>
+                  <select style={inputStyle} value={selectedGroupId} onChange={e => { setSelectedGroupId(e.target.value); setExpectedAmountTouched(false); }}>
                     <option value="">Choose a group...</option>
                     {groups.map(g => (
                       <option key={g.id} value={g.id}>{g.name}</option>
@@ -366,8 +412,20 @@ function AddMemberContent() {
                   <input style={inputStyle} type="number" min="1" step="1" value={form.shares} onChange={e => set('shares', e.target.value)} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Expected Amount (per part)</label>
-                  <input style={inputStyle} type="number" min="0" step="0.01" value={form.expectedAmount} onChange={e => set('expectedAmount', e.target.value)} />
+                  <label style={labelStyle}>
+                    Expected Amount (per part)
+                    {groupContributionAmount != null && !expectedAmountTouched && (
+                      <span style={{ color: C.or, fontWeight: 700, textTransform: 'none' as const, letterSpacing: 0, marginLeft: 6 }}>
+                        (auto-filled from group)
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    style={inputStyle}
+                    type="number" min="0" step="0.01"
+                    value={form.expectedAmount}
+                    onChange={e => { set('expectedAmount', e.target.value); setExpectedAmountTouched(true); }}
+                  />
                 </div>
                 <div>
                   <label style={labelStyle}>Currency</label>
@@ -390,6 +448,14 @@ function AddMemberContent() {
                   </p>
                 </div>
               )}
+              {totalPayoutAmount != null && (
+                <div style={{ marginTop: 14, padding: '10px 14px', background: '#F0F9F0', borderRadius: 10, border: '1px solid #C8E6C8' }}>
+                  <p style={{ fontSize: 12, color: C.text, margin: 0, lineHeight: 1.6 }}>
+                    At their payout turn, this member is expected to receive approximately{' '}
+                    <strong>{form.currency} {totalPayoutAmount.toFixed(2)}</strong> ({groupMemberCount || 1} member{groupMemberCount === 1 ? '' : 's'} x {form.currency} {groupContributionAmount?.toFixed(2)} contribution). This is calculated automatically and not stored - it will update if the group's member count changes.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
@@ -402,9 +468,8 @@ function AddMemberContent() {
                 <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Back to Dashboard</button>
               </div>
             </div>
-          </div>
 
-          <div style={{ background: C.blanc, borderRadius: 16, padding: '22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky' as const, top: 24 }}>
+            <div style={{ background: C.blanc, borderRadius: 16, padding: '22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky' as const, top: 24 }}>
             <h3 style={{ fontSize: 13, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 16px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
               Member Summary
             </h3>
@@ -416,6 +481,7 @@ function AddMemberContent() {
               { label: 'Amount / Part', value: form.currency + ' ' + (parseFloat(form.expectedAmount) || 0).toFixed(2) },
               { label: 'Parts', value: form.shares || '1' },
               { label: 'Total / week', value: form.currency + ' ' + ((parseFloat(form.expectedAmount) || 0) * (parseInt(form.shares) || 1)).toFixed(2) },
+              { label: 'Est. Payout Amount', value: totalPayoutAmount != null ? form.currency + ' ' + totalPayoutAmount.toFixed(2) : '-' },
               { label: parseInt(form.shares) > 1 ? 'Payout Dates' : 'Payout Date', value: payoutDates.filter(Boolean).join(', ') || '-' },
               { label: 'Position', value: '#' + (form.position || nextPosition) },
               { label: 'Status', value: form.status.charAt(0).toUpperCase() + form.status.slice(1) },
