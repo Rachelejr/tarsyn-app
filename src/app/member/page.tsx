@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -864,11 +864,7 @@ function MemberContent() {
                             {deletingId === d.id ? '...' : 'Delete'}
                           </button>
                         )}
-                        {d.source === 'admin' && d.uploadedBy !== uid && (
-                          <button onClick={() => handleDeleteAdminDoc(d)} disabled={deletingId === d.id} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
-                            {deletingId === d.id ? '...' : 'Delete'}
-                          </button>
-                        )}
+
                         <button onClick={() => setExpandedDocId(expandedDocId === d.id ? null : d.id)}
                           style={{ background: expandedDocId === d.id ? C.bordeaux : 'white', color: expandedDocId === d.id ? 'white' : C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                           Comments

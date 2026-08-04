@@ -20,6 +20,20 @@ export async function POST(req: NextRequest) {
     const visibleTo: string[] = Array.isArray(data.visibleTo) ? data.visibleTo : [];
     const isAuthorized = data.uploadedBy === userId || visibleTo.includes(userId);
 
+    // Admin-issued documents (e.g. official receipts) are never deletable
+    // by a member through this route, even if they are the member the
+    // receipt was issued to - only the organizer can remove those.
+    if (data.source === 'admin') {
+      return NextResponse.json({ error: 'Admin-issued documents cannot be deleted by members' }, { status: 403 });
+    }
+
+    // Admin-issued documents (e.g. official receipts) are never deletable
+    // by a member through this route, even if they are the member the
+    // receipt was issued to - only the organizer can remove those.
+    if (data.source === 'admin') {
+      return NextResponse.json({ error: 'Admin-issued documents cannot be deleted by members' }, { status: 403 });
+    }
+
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Not authorized to delete this document' }, { status: 403 });
     }
