@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -42,7 +42,7 @@ export default function RegisterPage() {
         trialEndsAt: trialEndsAt.toISOString(),
       });
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/dashboard/create-workspace'; }, 1800);
+      setTimeout(() => { window.location.href = '/dashboard/create-tontine'; }, 1800);
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered.');
@@ -67,7 +67,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
         trialEndsAt: trialEndsAt.toISOString(),
       }, { merge: true });
-      window.location.href = '/dashboard/create-workspace';
+      window.location.href = '/dashboard/create-tontine';
     } catch {
       setError('Google sign-up failed. Please try again.');
     }
@@ -79,7 +79,7 @@ export default function RegisterPage() {
         <Nav/>
         <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
           <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',textAlign:'center',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
-            <div style={{fontSize:'64px',marginBottom:'16px'}}>🎉</div>
+            <div style={{fontSize:'64px',marginBottom:'16px'}}>??</div>
             <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Account Created!</h2>
             <p style={{color:'#6B2D4E',fontSize:'14px',lineHeight:'1.6',marginBottom:'24px'}}>
               Welcome to TARSYN, <strong style={{color:'#6B2D4E'}}>{name}</strong>!<br/>
@@ -89,8 +89,8 @@ export default function RegisterPage() {
               <div style={{width:'28px',height:'28px',border:'3px solid #EAD9BE',borderTopColor:'#6B2D4E',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <a href="/dashboard/create-workspace" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#8B3A5E',textDecoration:'underline'}}>
-              Continue now →
+            <a href="/dashboard/create-tontine" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#8B3A5E',textDecoration:'underline'}}>
+              Continue now ?
             </a>
           </div>
         </div>
@@ -105,14 +105,14 @@ export default function RegisterPage() {
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
         <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
           <div style={{textAlign:'center',marginBottom:'32px'}}>
-            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>✦</div>
+            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>?</div>
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
             <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join the <strong style={{color:'#E9C77B'}}>TARSYN</strong> community</p>
           </div>
 
           {error && (
             <div style={{background:'#fdecea',border:'1px solid #f5c6cb',color:'#C0392B',padding:'12px 16px',borderRadius:'10px',fontSize:'13px',marginBottom:'20px'}}>
-              ⚠️ {error}
+              ?? {error}
             </div>
           )}
 
