@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -433,7 +433,7 @@ export default function DocumentsPage() {
                   {activeTab === 'reviews' && (
                     <div style={{ maxWidth: '420px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
-                        <span style={{ fontSize: '30px', color: C.or }}>{'*'.repeat(Math.round(avgRating)) + 'o'.repeat(5 - Math.round(avgRating))}</span>
+                        <span style={{ fontSize: '26px', letterSpacing: '2px' }}>{[1, 2, 3, 4, 5].map(n => (<span key={n} style={{ color: n <= Math.round(avgRating) ? C.or : C.border }}>{'\u2605'}</span>))}</span>
                         <div>
                           <p style={{ fontWeight: 800, fontSize: '18px', color: C.texteFonce, margin: 0 }}>{avgRating.toFixed(1)} / 5</p>
                           <p style={{ fontSize: '12px', color: C.texteGris, margin: 0 }}>{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
@@ -444,7 +444,7 @@ export default function DocumentsPage() {
                         <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
                           {[1, 2, 3, 4, 5].map(n => (
                             <span key={n} className="star" onClick={() => submitReview(n)}
-                              style={{ fontSize: '26px', color: n <= myRating ? C.or : C.border }}>*</span>
+                              style={{ fontSize: '26px', color: n <= myRating ? C.or : C.border }}>{'\u2605'}</span>
                           ))}
                         </div>
                       ) : (
