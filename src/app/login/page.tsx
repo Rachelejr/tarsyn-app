@@ -56,9 +56,12 @@ function LoginPageInner() {
           // landing on "create a group" every login made no sense once
           // an admin already has one or more groups running.
           try {
-            const gq = query(collection(db, 'groups'), where('organizerId', '==', uid));
-            const gsnap = await getDocs(gq);
-            window.location.href = gsnap.empty ? '/dashboard/create-tontine' : '/dashboard';
+            const [byOrganizer, byAdmin] = await Promise.all([
+              getDocs(query(collection(db, 'groups'), where('organizerId', '==', uid))),
+              getDocs(query(collection(db, 'groups'), where('adminId', '==', uid))),
+            ]);
+            const hasGroups = !byOrganizer.empty || !byAdmin.empty;
+            window.location.href = hasGroups ? '/dashboard' : '/dashboard/create-tontine';
           } catch {
             window.location.href = '/dashboard';
           }

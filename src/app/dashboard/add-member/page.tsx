@@ -469,7 +469,9 @@ function AddMemberContent() {
               </div>
             </div>
 
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky' as const, top: 24 }}>
+          </div>
+
+          <div style={{ background: C.blanc, borderRadius: 16, padding: '22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky' as const, top: 24 }}>
             <h3 style={{ fontSize: 13, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 16px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
               Member Summary
             </h3>

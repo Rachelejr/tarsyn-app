@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
@@ -41,6 +41,13 @@ interface Group {
   groupBrand?: GroupBrand;
 }
 
+interface GroupStats {
+  memberCount: number;
+  totalCollected: number;
+  currency: string;
+  sampleMembers: { name: string; active: boolean }[];
+}
+
 export default function BrandingPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +69,9 @@ export default function BrandingPage() {
   const [showTarsynBadge, setShowTarsynBadge] = useState(true);
   const [enabled, setEnabled] = useState(true);
 
+  const [groupStats, setGroupStats] = useState<GroupStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
@@ -74,6 +84,7 @@ export default function BrandingPage() {
         if (list.length > 0) {
           setSelectedGroupId(list[0].id);
           loadGroupBrand(list[0]);
+          loadGroupStats(list[0].id);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
@@ -96,6 +107,48 @@ export default function BrandingPage() {
     setSelectedGroupId(groupId);
     const g = groups.find(x => x.id === groupId);
     if (g) loadGroupBrand(g);
+    loadGroupStats(groupId);
+  };
+
+  // --- Real member count, real amount collected, and real member names for the Live Preview ---
+  const loadGroupStats = async (groupId: string) => {
+    if (!groupId) { setGroupStats(null); return; }
+    setStatsLoading(true);
+    try {
+      const membersSnap = await getDocs(query(collection(db, 'members'), where('groupId', '==', groupId)));
+      const membersById: Record<string, any> = {};
+      membersSnap.docs.forEach(d => { membersById[d.id] = { id: d.id, ...d.data() }; });
+
+      let totalCollected = 0;
+      let currency = 'USD';
+      try {
+        const gridSnap = await getDoc(doc(db, 'paymentGrids', groupId + '_current'));
+        if (gridSnap.exists()) {
+          const grid = gridSnap.data() as any;
+          const slots: Record<string, any> = grid.slots || {};
+          const payments: Record<string, Record<string, boolean>> = grid.payments || {};
+          Object.entries(slots).forEach(([slotNum, slot]: [string, any]) => {
+            const member = membersById[slot.memberId];
+            if (!member) return;
+            if (member.currency) currency = member.currency;
+            const amount = member.expectedAmount || 0;
+            const slotPayments = payments[slotNum] || {};
+            Object.values(slotPayments).forEach(paid => { if (paid) totalCollected += amount; });
+          });
+        }
+      } catch (gridErr) { /* no grid yet for this group - collected stays 0 */ }
+
+      const sampleMembers = membersSnap.docs.slice(0, 2).map(d => ({
+        name: d.data().fullName || d.data().name || 'Member',
+        active: d.data().status !== 'paused',
+      }));
+
+      setGroupStats({ memberCount: membersSnap.size, totalCollected, currency, sampleMembers });
+    } catch (e) {
+      console.error(e);
+      setGroupStats(null);
+    }
+    setStatsLoading(false);
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -264,7 +317,7 @@ export default function BrandingPage() {
 
           {enabled && (
             <div style={{ background: '#FBF0D9', color: '#9C7A2E', borderRadius: '10px', padding: '9px 14px', fontSize: '11.5px', fontWeight: 700, marginBottom: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {'\u26A0'} Preview only - sample data, not connected to your real group
+              {'\u26A0'} Preview - shows your real group data. This is a mockup layout, not the exact member portal design.
             </div>
           )}
 
@@ -299,7 +352,10 @@ export default function BrandingPage() {
                 </div>
                 <div style={{ flex: 1, padding: '16px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-                    {[['Members', '--'], ['Collected', '$--']].map(([label, val]) => (
+                    {[
+                      ['Members', statsLoading ? '...' : String(groupStats?.memberCount ?? 0)],
+                      ['Collected', statsLoading ? '...' : `${groupStats?.currency || 'USD'} ${(groupStats?.totalCollected ?? 0).toFixed(0)}`],
+                    ].map(([label, val]) => (
                       <div key={label} style={{ background: C.creme, borderRadius: '8px', padding: '10px' }}>
                         <p style={{ fontSize: '9px', color: C.muted, margin: 0, textTransform: 'uppercase' }}>{label}</p>
                         <p style={{ fontSize: '15px', fontWeight: 800, color: primaryColor, margin: '2px 0 0' }}>{val}</p>
@@ -307,12 +363,18 @@ export default function BrandingPage() {
                     ))}
                   </div>
                   <div style={{ border: `1px solid ${C.border}`, borderRadius: '8px', overflow: 'hidden' }}>
-                    {['Member 1', 'Member 2'].map((n, i) => (
-                      <div key={n} style={{ padding: '7px 10px', fontSize: '10px', color: C.text, borderBottom: i === 0 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>{n}</span>
-                        <span style={{ color: secondaryColor, fontWeight: 700 }}>Active</span>
-                      </div>
-                    ))}
+                    {statsLoading ? (
+                      <div style={{ padding: '10px', fontSize: '10px', color: C.muted, textAlign: 'center' }}>Loading members...</div>
+                    ) : groupStats && groupStats.sampleMembers.length > 0 ? (
+                      groupStats.sampleMembers.map((m, i) => (
+                        <div key={m.name + i} style={{ padding: '7px 10px', fontSize: '10px', color: C.text, borderBottom: i === 0 && groupStats.sampleMembers.length > 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{m.name}</span>
+                          <span style={{ color: m.active ? secondaryColor : C.muted, fontWeight: 700 }}>{m.active ? 'Active' : 'Paused'}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '10px', fontSize: '10px', color: C.muted, textAlign: 'center' }}>No members yet</div>
+                    )}
                   </div>
                 </div>
               </div>
