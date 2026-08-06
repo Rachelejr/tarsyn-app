@@ -66,7 +66,7 @@ export default function RecordContribution() {
       await addDoc(collection(db, 'payments'), {
         organizerId: user.uid,
         memberId: selectedMember,
-        memberName: member?.name,
+        memberName: member?.name || member?.fullName || '(no name)',
         memberTynId: member?.tynId,
         amount: parseFloat(amount),
         currency,
@@ -159,7 +159,7 @@ export default function RecordContribution() {
               <select value={selectedMember} onChange={e => setSelectedMember(e.target.value)} style={inputStyle}>
                 <option value="">Select a member...</option>
                 {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name} — {m.tynId}</option>
+                  <option key={m.id} value={m.id}>{m.name || m.fullName} — {m.tynId}</option>
                 ))}
               </select>
             </div>

@@ -113,9 +113,18 @@ function AddMemberContent() {
     const fetchCount = async () => {
       const q = query(collection(db, 'members'), where('groupId', '==', selectedGroupId));
       const snap = await getDocs(q);
-      setNextPosition(snap.size + 1);
+      // Base the next position on the highest position currently in use, not
+      // just the member count - counting alone produces duplicate position
+      // numbers whenever a member has been deleted (leaving a gap) or when
+      // two members get added in close succession.
+      const highestPosition = snap.docs.reduce((max, d) => {
+        const pos = Number(d.data().position) || 0;
+        return pos > max ? pos : max;
+      }, 0);
+      const computedNext = highestPosition + 1;
+      setNextPosition(computedNext);
       setGroupMemberCount(snap.size);
-      setForm(f => ({ ...f, position: String(snap.size + 1) }));
+      setForm(f => ({ ...f, position: String(computedNext) }));
     };
     fetchCount();
   }, [selectedGroupId]);

@@ -225,6 +225,12 @@ function OverviewContent() {
     setUpdatingMember(null);
   };
 
+  const getPaymentMemberName = (p: any) => {
+    if (p.memberName && p.memberName !== '(no name)') return p.memberName;
+    const linkedMember = members.find(m => m.id === p.memberId);
+    return linkedMember?.name || linkedMember?.fullName || p.memberName || '(no name)';
+  };
+
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     if (!confirm(`Are you sure you want to delete ${memberName}?`)) return;
     setDeletingMember(memberId);
@@ -632,7 +638,7 @@ function OverviewContent() {
                     <tr key={m.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
                       <td style={{ padding: '10px 10px', color: '#6B2D4E', fontWeight: 700, fontSize: '13px' }}>#{m.position}</td>
                       <td style={{ padding: '10px 10px', color: '#C4748E', fontFamily: 'monospace', fontSize: '12px' }}>{m.tynId}</td>
-                      <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{m.name}</td>
+                      <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{m.name || m.fullName || '-'}</td>
                       <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{m.payoutDate || '-'}</td>
                       <td style={{ padding: '10px 10px' }}>
                         <span className="pill" style={{
@@ -670,7 +676,7 @@ function OverviewContent() {
                                 {'\u23f8\ufe0f'} Pause
                               </button>
                             )}
-                            <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id} className="btn-action pill"
+                            <button onClick={() => handleDeleteMember(m.id, m.name || m.fullName || 'this member')} disabled={deletingMember === m.id} className="btn-action pill"
                               style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
                               {deletingMember === m.id ? '...' : '\ud83d\uddd1\ufe0f Delete'}
                             </button>
@@ -693,7 +699,7 @@ function OverviewContent() {
               {pendingProofs.map((p, i) => (
                 <div key={p.id} style={{ background: '#FBEEDD', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
-                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: '0 0 2px' }}>{p.memberName}</p>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: '0 0 2px' }}>{getPaymentMemberName(p)}</p>
                     <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{p.amount} {p.currency} - {p.paymentDate} - {p.paymentMethod}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -739,7 +745,7 @@ function OverviewContent() {
                           {p.receiptNumber || '-'}
                         </a>
                       </td>
-                      <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{p.memberName}</td>
+                      <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{getPaymentMemberName(p)}</td>
                       <td style={{ padding: '10px 10px', color: '#2E7D32', fontWeight: 700, fontSize: '13px' }}>{p.amount} {p.currency}</td>
                       <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{p.paymentMethod}</td>
                       <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{p.paymentDate}</td>
