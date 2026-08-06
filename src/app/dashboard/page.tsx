@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
-import TrialGuard from '@/components/TrialGuard';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
 function useCountUp(target: number, duration = 700) {
@@ -808,9 +807,5 @@ function OverviewContent() {
 }
 
 export default function Overview() {
-  return (
-    <TrialGuard>
-      <OverviewContent />
-    </TrialGuard>
-  );
+  return <OverviewContent />;
 }

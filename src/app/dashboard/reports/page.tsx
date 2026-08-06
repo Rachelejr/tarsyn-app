@@ -15,7 +15,21 @@ const C = {
 
 interface Contribution { id: string; memberName: string; amount: number; method?: string; date?: string; status: string; receiptNumber?: string; memberId?: string; }
 interface Member { id: string; fullName: string; status: string; }
-interface Group { id: string; name: string; amountPerMember?: number; }
+interface Group { id: string; name: string; amountPerMember?: number; contribution?: number; weeklyAmount?: number; contributionSettings?: { amount?: number }; }
+
+// Same fallback chain used elsewhere in the app (e.g. add-member) so the
+// expected total is calculated consistently no matter which field a given
+// group actually stores its contribution amount under.
+function getGroupContributionAmount(group: any): number {
+  if (!group) return 0;
+  const amount =
+    group?.contributionSettings?.amount ??
+    group?.contribution ??
+    group?.amountPerMember ??
+    group?.weeklyAmount ??
+    0;
+  return typeof amount === 'number' ? amount : (parseFloat(amount) || 0);
+}
 
 function ReportsContent() {
   const router = useRouter();
@@ -103,7 +117,7 @@ function ReportsContent() {
   const confirmedCount = filtered.filter(c => c.status === 'confirmed').length;
   const pendingCount = filtered.filter(c => c.status === 'pending').length;
   const currentGroup = groups.find(g => g.id === groupId);
-  const expectedTotal = members.length * (currentGroup?.amountPerMember || 0);
+  const expectedTotal = members.length * getGroupContributionAmount(currentGroup);
 
   const exportCSV = () => {
     const rows = [['Receipt', 'Member', 'Amount', 'Method', 'Date', 'Status']];

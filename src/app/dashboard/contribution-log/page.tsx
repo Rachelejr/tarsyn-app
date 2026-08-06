@@ -1,11 +1,10 @@
 ﻿'use client';
 
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import TrialGuard from '@/components/TrialGuard';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import * as XLSX from 'xlsx';
 
@@ -94,8 +93,11 @@ function DonutChart({ data }: { data: { status: PaymentStatus; count: number }[]
 
 function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlGroupId = searchParams.get('groupId') || '';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [organizerId, setOrganizerId] = useState('');
+  const [activeGroupId, setActiveGroupId] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [members, setMembers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
@@ -119,22 +121,47 @@ function RegisterContent() {
       setOrganizerId(u.uid);
       setUserEmail(u.email || '');
       try {
-        const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
-        const gsnap = await getDocs(gq);
-        if (!gsnap.empty) setGroup({ id: gsnap.docs[0].id, ...gsnap.docs[0].data() });
+        // Resolve which group this register is for. If a groupId is given in
+        // the URL, use that group specifically - otherwise fall back to the
+        // admin's first group (previous behavior, kept for old links).
+        let resolvedGroupId = urlGroupId;
+        if (resolvedGroupId) {
+          const gSnapDirect = await getDocs(query(collection(db, 'groups'), where('__name__', '==', resolvedGroupId)));
+          if (!gSnapDirect.empty) setGroup({ id: gSnapDirect.docs[0].id, ...gSnapDirect.docs[0].data() });
+        } else {
+          const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
+          const gsnap = await getDocs(gq);
+          if (!gsnap.empty) {
+            resolvedGroupId = gsnap.docs[0].id;
+            setGroup({ id: gsnap.docs[0].id, ...gsnap.docs[0].data() });
+          }
+        }
+        setActiveGroupId(resolvedGroupId);
 
-        const mq = query(collection(db, 'members'), where('organizerId', '==', u.uid));
+        // Members are scoped to this specific group, not to every member
+        // this admin has across all their groups - otherwise an admin
+        // running more than one tontine would see everyone's data mixed
+        // together on a single group's register.
+        const mq = resolvedGroupId
+          ? query(collection(db, 'members'), where('groupId', '==', resolvedGroupId))
+          : query(collection(db, 'members'), where('organizerId', '==', u.uid));
         const msnap = await getDocs(mq);
-        setMembers(msnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const groupMembers = msnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setMembers(groupMembers);
 
+        // Payment documents don't carry a groupId field, only organizerId
+        // and memberId - so we fetch this admin's payments and keep only
+        // the ones belonging to a member of the resolved group.
         const pq = query(collection(db, 'payments'), where('organizerId', '==', u.uid));
         const psnap = await getDocs(pq);
-        setPayments(psnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const allPayments = psnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const memberIds = new Set(groupMembers.map(m => m.id));
+        setPayments(resolvedGroupId ? allPayments.filter((p: any) => memberIds.has(p.memberId)) : allPayments);
       } catch (e) { console.error(e); }
       setLoading(false);
     });
     return () => unsub();
-  }, [router]);
+  }, [router, urlGroupId]);
 
   const cycles = useMemo(() => {
     const set = new Set<number>();
@@ -241,12 +268,14 @@ function RegisterContent() {
           name: String(name), tynId: row['TYN-ID'] || row['tynId'] || `TYN-IMP-${Date.now()}-${added}`,
           position: Number(row['#'] || row['position'] || members.length + added + 1),
           status: (row['Status'] || row['status'] || 'pending').toLowerCase(),
-          payoutDate: row['Payout Date'] || row['payoutDate'] || '', organizerId, source: 'excel-import', createdAt: serverTimestamp(),
+          payoutDate: row['Payout Date'] || row['payoutDate'] || '', organizerId, groupId: activeGroupId || undefined, source: 'excel-import', createdAt: serverTimestamp(),
         });
         added++;
       }
       setImportMsg(`OK ${added} imported, ${skipped} skipped.`);
-      const mq = query(collection(db, 'members'), where('organizerId', '==', organizerId));
+      const mq = activeGroupId
+        ? query(collection(db, 'members'), where('groupId', '==', activeGroupId))
+        : query(collection(db, 'members'), where('organizerId', '==', organizerId));
       const msnap = await getDocs(mq);
       setMembers(msnap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (err) {
@@ -661,8 +690,8 @@ function RegisterContent() {
 
 export default function ContributionLogPage() {
   return (
-    <TrialGuard>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading...</div>}>
       <RegisterContent />
-    </TrialGuard>
+    </Suspense>
   );
 }
