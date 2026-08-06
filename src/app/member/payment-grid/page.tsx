@@ -36,6 +36,7 @@ function MyPaymentGridContent() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [groupName, setGroupName] = useState('');
+  const [groupNames, setGroupNames] = useState<Record<string, string>>({});
   const [memberships, setMemberships] = useState<any[]>([]);
   const [view, setView] = useState<MemberView | null>(null);
 
@@ -49,6 +50,25 @@ function MyPaymentGridContent() {
 
         const memberships = memberSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
         setMemberships(memberships);
+
+        // Look up a readable name for every distinct group this member
+        // belongs to, so the switcher above the grid shows "AVANCON"
+        // instead of a raw Firestore document ID when someone is in more
+        // than one group.
+        if (memberships.length > 1) {
+          const distinctGroupIds = Array.from(new Set(memberships.map((m) => m.groupId).filter(Boolean)));
+          const nameEntries = await Promise.all(
+            distinctGroupIds.map(async (gid) => {
+              try {
+                const gSnap = await getDoc(doc(db, 'groups', gid));
+                return [gid, gSnap.exists() ? (gSnap.data().name || gid) : gid] as const;
+              } catch {
+                return [gid, gid] as const;
+              }
+            })
+          );
+          setGroupNames(Object.fromEntries(nameEntries));
+        }
 
         let target = memberships[0];
         if (targetGroupId) {
@@ -120,7 +140,7 @@ function MyPaymentGridContent() {
                   cursor: 'pointer',
                 }}
               >
-                {m.groupId}
+                {groupNames[m.groupId] || m.groupId}
               </button>
             ))}
           </div>
