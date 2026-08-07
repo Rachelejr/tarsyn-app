@@ -48,7 +48,9 @@ function JoinContent() {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -106,8 +108,19 @@ function JoinContent() {
       setSuccess(true);
       setTimeout(() => router.push('/member'), 1500);
     } catch (err: any) {
+      if (err?.code === 'auth/email-already-in-use') {
+        // A TARSYN account can belong to members across several different
+        // groups - this is expected, not an error. Switch straight to sign
+        // in so joining a second (or third...) group with the same email
+        // is one smooth step instead of a dead-end message.
+        setMode('signin');
+        setPassword('');
+        setConfirmPassword('');
+        setError('You already have a TARSYN account with this email. Sign in below to join this group too.');
+        setSubmitting(false);
+        return;
+      }
       const msgs: Record<string, string> = {
-        'auth/email-already-in-use': 'This email already has an account. Try "Sign in instead" below.',
         'auth/invalid-email': 'Invalid email address.',
         'auth/weak-password': 'Password is too weak.',
         'auth/wrong-password': 'Incorrect password.',
@@ -207,12 +220,26 @@ function JoinContent() {
             <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>
               {mode === 'signup' ? 'Create a Password (8 characters minimum)' : 'Password'}
             </label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" style={inputStyle} />
+            <div style={{ position: 'relative' as const }}>
+              <input type={showPassword ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="Password" style={{ ...inputStyle, paddingRight: 64 }} />
+              <button type="button" onClick={() => setShowPassword(s => !s)}
+                style={{ position: 'absolute' as const, right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.bordeaux, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 6px' }}>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           {mode === 'signup' && (
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>Confirm Password</label>
-              <input type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm password" style={inputStyle} />
+              <div style={{ position: 'relative' as const }}>
+                <input type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm password" style={{ ...inputStyle, paddingRight: 64 }} />
+                <button type="button" onClick={() => setShowConfirmPassword(s => !s)}
+                  style={{ position: 'absolute' as const, right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.bordeaux, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 6px' }}>
+                  {showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
           )}
 
