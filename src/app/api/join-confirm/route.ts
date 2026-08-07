@@ -70,9 +70,8 @@ export async function POST(req: NextRequest) {
             html:
               '<div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
               '<div style="text-align: center; margin-bottom: 20px;">' +
-              '<div style="background: #6B2D4E; display: inline-block; padding: 10px 22px; border-radius: 12px;">' +
-              '<span style="color: #E9C77B; font-weight: 800; font-size: 20px;">TARSYN</span>' +
-              '</div></div>' +
+              '<img src="https://tarsyn-app.com/tarsyn-logo.svg" alt="TARSYN" style="height: 36px; width: auto; max-width: 180px;" />' +
+              '</div>' +
               '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Good news - a member just joined</h2>' +
               '<div style="background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">' +
               '<p style="color: #6B2D4E; font-size: 15px; font-weight: 700; margin: 0 0 6px;">' + memberName + '</p>' +

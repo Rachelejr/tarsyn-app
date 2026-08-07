@@ -23,9 +23,7 @@ export async function POST(req: NextRequest) {
                 ${groupLogo ? `
                 <img src="${groupLogo}" alt="${tontineName}" style="max-height: 56px; max-width: 220px; border-radius: 8px;" />
                 ` : `
-                <div style="background: #6B2D4E; display: inline-block; padding: 12px 24px; border-radius: 12px;">
-                  <span style="color: #D4AF7A; font-weight: 800; font-size: 22px;">TARSYN</span>
-                </div>
+                <img src="https://tarsyn-app.com/tarsyn-logo.svg" alt="TARSYN" style="height: 40px; width: auto; max-width: 200px;" />
                 `}
               </div>
               <h2 style="color: #6B2D4E; font-size: 22px; font-weight: 800; margin: 0 0 8px;">

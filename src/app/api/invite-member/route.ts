@@ -18,9 +18,7 @@ export async function POST(req: NextRequest) {
       html: `
         <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 auto; background: #FAF0E6; padding: 32px; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="background: #6B2D4E; display: inline-block; padding: 12px 24px; border-radius: 12px;">
-              <span style="color: #D4AF7A; font-weight: 800; font-size: 22px;">TARSYN</span>
-            </div>
+            <img src="https://tarsyn-app.com/tarsyn-logo.svg" alt="TARSYN" style="height: 40px; width: auto; max-width: 200px;" />
           </div>
           <h2 style="color: #6B2D4E; font-size: 22px; font-weight: 800; margin: 0 0 8px;">
             Hello ${memberName} 👋
