@@ -4,6 +4,18 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Same TYN-ID scheme used everywhere else in the app: [first initial][last
+// initial]-[3-digit sequence]. Members invited by email at group creation
+// only get a placeholder ID like "XX-003" (no name is known yet at that
+// point) - once they set their real name here, the ID is upgraded to match.
+function computeTynId(fullName: string, sequence: number): string {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  const firstInitial = parts[0]?.[0]?.toUpperCase() || 'X';
+  const lastInitial = parts.length > 1 ? parts[parts.length - 1][0]?.toUpperCase() || firstInitial : firstInitial;
+  const seq = String(sequence).padStart(3, '0');
+  return firstInitial + lastInitial + '-' + seq;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { memberId, userId, name, email } = await req.json();
@@ -27,6 +39,16 @@ export async function POST(req: NextRequest) {
     };
     if (name) updateData.name = name;
     if (email) updateData.email = email;
+
+    // Upgrade the placeholder TYN-ID ("XX-00X") to real initials now that
+    // the member has provided their name, keeping the same sequence number
+    // they were originally assigned so it stays unique within the group.
+    const currentTynId = memberData.tynId || '';
+    if (name && /^XX-\d{3}$/.test(currentTynId)) {
+      const seqMatch = currentTynId.match(/(\d{3})$/);
+      const sequence = seqMatch ? parseInt(seqMatch[1], 10) : (memberData.position || 1);
+      updateData.tynId = computeTynId(name, sequence);
+    }
 
     await memberRef.update(updateData);
 
