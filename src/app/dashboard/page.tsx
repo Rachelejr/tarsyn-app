@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
 function useCountUp(target: number, duration = 700) {
@@ -103,13 +103,13 @@ function OverviewContent() {
   const [savingMember, setSavingMember] = useState(false);
 
   useEffect(() => {
+    let unsubMembers: (() => void) | null = null;
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
-        const [userSnap, gsnap, msnap, psnap] = await Promise.all([
+        const [userSnap, gsnap, psnap] = await Promise.all([
           getDoc(doc(db, 'users', u.uid)),
           getDocs(query(collection(db, 'groups'), where('organizerId', '==', u.uid))),
-          getDocs(query(collection(db, 'members'), where('organizerId', '==', u.uid))),
           getDocs(query(collection(db, 'payments'), where('organizerId', '==', u.uid))),
         ]);
 
@@ -117,12 +117,20 @@ function OverviewContent() {
         setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
 
         setGroups(gsnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setMembers(msnap.docs.map(d => ({ id: d.id, ...d.data() })));
         setPayments(psnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+        // Members are kept live rather than fetched once: a member's status
+        // flips from "pending" to "active" server-side the moment they
+        // finish creating their account through the invite link, and the
+        // admin should see that reflected here without reloading the page.
+        const membersQuery = query(collection(db, 'members'), where('organizerId', '==', u.uid));
+        unsubMembers = onSnapshot(membersQuery, (snap) => {
+          setMembers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        });
       } catch (e) { console.error(e); }
       setLoading(false);
     });
-    return () => unsub();
+    return () => { unsub(); if (unsubMembers) unsubMembers(); };
   }, [router]);
 
   const handleSaveGroup = async () => {

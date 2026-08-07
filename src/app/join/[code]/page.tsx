@@ -46,6 +46,7 @@ function JoinContent() {
   const [mode, setMode] = useState<'signup' | 'signin'>('signup');
 
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -75,6 +76,7 @@ function JoinContent() {
     if (mode === 'signup') {
       if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
       if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+      if (!lookup.fullName && !fullName.trim()) { setError('Please enter your full name.'); return; }
     }
     if (!email) { setError('Email is required.'); return; }
 
@@ -83,7 +85,8 @@ function JoinContent() {
       let userId: string;
       if (mode === 'signup') {
         const result = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(result.user, { displayName: lookup.fullName || '' });
+        const resolvedName = lookup.fullName || fullName.trim();
+        await updateProfile(result.user, { displayName: resolvedName });
         userId = result.user.uid;
       } else {
         const result = await signInWithEmailAndPassword(auth, email, password);
@@ -93,7 +96,7 @@ function JoinContent() {
       const confirmRes = await fetch('/api/join-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId: lookup.memberId, userId, name: lookup.fullName, email }),
+        body: JSON.stringify({ memberId: lookup.memberId, userId, name: lookup.fullName || fullName.trim(), email }),
       });
       if (!confirmRes.ok) {
         const data = await confirmRes.json().catch(() => ({}));
@@ -190,6 +193,12 @@ function JoinContent() {
         )}
 
         <form onSubmit={handleSubmit}>
+          {!lookup.fullName && mode === 'signup' && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>Full Name</label>
+              <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" style={inputStyle} />
+            </div>
+          )}
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>Email Address</label>
             <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} />

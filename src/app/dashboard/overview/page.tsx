@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
 function useCountUp(target: number, duration = 700) {
@@ -91,6 +91,7 @@ function OverviewContent() {
   const [savingMember, setSavingMember] = useState(false);
 
   useEffect(() => {
+    let unsubMembers: (() => void) | null = null;
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
@@ -104,9 +105,13 @@ function OverviewContent() {
         setGroups(groupList);
 
         if (groupList.length > 0) {
+          // Live-updated so a member's status flips from "pending" to
+          // "active" here automatically the moment they finish creating
+          // their account, without the admin needing to reload the page.
           const mq = query(collection(db, 'members'), where('organizerId', '==', u.uid));
-          const ms = await getDocs(mq);
-          setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
+          unsubMembers = onSnapshot(mq, (snap) => {
+            setMembers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          });
 
           const pq = query(collection(db, 'payments'), where('organizerId', '==', u.uid));
           const ps = await getDocs(pq);
@@ -115,7 +120,7 @@ function OverviewContent() {
       } catch (e) { console.error(e); }
       setLoading(false);
     });
-    return () => unsub();
+    return () => { unsub(); if (unsubMembers) unsubMembers(); };
   }, [router]);
 
   const handleSaveGroupName = async () => {

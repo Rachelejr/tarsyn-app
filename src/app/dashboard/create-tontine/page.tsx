@@ -330,17 +330,52 @@ export default function CreateTontinePage() {
         });
       } catch (auditErr) { /* silent - audit logging must never block group creation */ }
 
+      // Emails entered at this step previously only triggered an email send
+      // with a group-level invite code - no "members" document was ever
+      // created for them, so the link could never actually be completed
+      // (the join page looks up a member by invite code, and none existed).
+      // Each invited email now gets a real pending member record with its
+      // own invite code, exactly like the standard Add Member flow does.
       if (emailList.length > 0) {
-        await fetch('/api/send-invite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            emails: emailList,
-            tontineName: customName || selectedRegion?.name,
-            region, contribution, currency, frequency, startDate,
-            tontineId: docRef.id, tontineCode, inviteCode, inviteLink,
-          }),
-        });
+        const memberInvites: { email: string; inviteCode: string }[] = [];
+        for (let i = 0; i < emailList.length; i++) {
+          const email = emailList[i];
+          const memberInviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+          try {
+            await addDoc(collection(db, 'members'), {
+              organizerId: user.uid,
+              groupId: docRef.id,
+              email,
+              fullName: '',
+              tynId: `XX-${String(i + 1).padStart(3, '0')}`,
+              position: i + 1,
+              status: 'pending',
+              role: 'member',
+              expectedAmount: parseFloat(contribution) || 0,
+              currency,
+              payoutDate: '',
+              inviteCode: memberInviteCode,
+              source: 'group-creation-invite',
+              createdAt: serverTimestamp(),
+            });
+            memberInvites.push({ email, inviteCode: memberInviteCode });
+          } catch (memberErr) {
+            console.error('Could not create pending member for', email, memberErr);
+          }
+        }
+
+        await Promise.allSettled(memberInvites.map(m =>
+          fetch('/api/send-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              emails: [m.email],
+              tontineName: customName || selectedRegion?.name,
+              region, contribution, currency, frequency, startDate,
+              inviteLink: `https://tarsyn-app.com/join/${m.inviteCode}`,
+            }),
+          })
+        ));
       }
 
       setSavedGroup({
