@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, X, Plus,
@@ -234,11 +234,15 @@ export default function CreateChurchPage() {
     if (services.length === 0) return setError('Add at least one worship service.');
     if (!leadPastor.trim()) return setError('Lead Pastor / Leader name is required.');
 
+    const user = auth.currentUser;
+    if (!user) { router.push('/login'); return; }
+
     setSaving(true);
     try {
       const code = `CHU-${Date.now().toString().slice(-6)}`;
       const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
       await addDoc(collection(db, 'churches'), {
+        organizerId: user.uid,
         churchName: churchName.trim(), shortName, legalName, registrationNumber, taxId,
         code, denomination, primaryLanguage, secondaryLanguage, country, region, city, address, zipCode,
         description: description.trim(), foundedDate, churchType, estimatedMembers, seatingCapacity,
@@ -251,6 +255,14 @@ export default function CreateChurchPage() {
         status: 'active',
         createdAt: serverTimestamp(),
       });
+      try {
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId: user.uid, category: 'Group',
+          action: 'Created church',
+          user: user.email || '', details: churchName.trim() + ' - ' + code,
+          createdAt: serverTimestamp(),
+        });
+      } catch (auditErr) { /* silent - audit logging must never block church creation */ }
       setSaved({ churchName, code, inviteCode });
     } catch (e) {
       console.error(e);
@@ -302,9 +314,9 @@ export default function CreateChurchPage() {
             <span style={{ color: C.primary, fontWeight: 700, fontSize: '13px', fontFamily: 'monospace' }}>{saved.inviteCode}</span>
           </div>
         </div>
-        <button className="church-btn" onClick={() => router.push('/dashboard')}
+        <button className="church-btn" onClick={() => router.push('/dashboard/church')}
           style={{ width: '100%', background: C.primary, color: 'white', padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          Dashboard <ArrowRight size={16} />
+          My Churches <ArrowRight size={16} />
         </button>
         <p style={{ fontSize: '11px', color: C.textGris, marginTop: '16px' }}>
           Badge Center, full HR, and detailed accounting are configured next, inside the Church module.
@@ -324,9 +336,9 @@ export default function CreateChurchPage() {
 
             <div style={{ background: `linear-gradient(150deg, ${C.primary} 0%, ${C.secondary} 100%)`, padding: '20px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
               <div>
-                <button className="church-btn" onClick={() => router.push('/dashboard')}
+                <button className="church-btn" onClick={() => router.push('/dashboard/church')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.accent, fontSize: '13px', fontWeight: 600, marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ArrowLeft size={14} /> Back to Dashboard
+                  <ArrowLeft size={14} /> Back to My Churches
                 </button>
                 <h1 style={{ color: 'white', fontSize: '22px', fontWeight: 700, margin: '0 0 4px', letterSpacing: '-0.3px' }}>{churchName || 'Create a Church'}</h1>
                 <p style={{ color: '#F3EEFC', fontSize: '13px', margin: 0, opacity: 0.9 }}>Church Management System — Step {currentStepIndex + 1} of {TABS.length}</p>
