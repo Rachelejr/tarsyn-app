@@ -64,10 +64,10 @@ export default function MyChurchesPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' as const, gap: '12px' }}>
           <div>
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/workspace/select-module')}
               style={{ background: 'none', border: 'none', color: C.textGris, fontSize: '13px', cursor: 'pointer', padding: 0, marginBottom: '8px' }}
             >
-              &larr; Back to Dashboard
+              &larr; Back to Modules
             </button>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: C.textDark, margin: 0 }}>My Churches</h1>
           </div>
