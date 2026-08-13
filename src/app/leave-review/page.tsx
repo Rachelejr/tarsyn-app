@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, db } from '@/lib/firebase';
+import { auth, memberAuth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -31,12 +31,28 @@ export default function LeaveReviewPage() {
   const [text, setText] = useState('');
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) { router.push('/login'); return; }
-      setUid(u.uid);
+    // This page is reached from both the organizer dashboard and the member
+    // portal, which run on two fully separate Firebase Auth instances. It
+    // must accept whichever one is actually signed in, and wait for BOTH to
+    // report their state before deciding no one is signed in — checking
+    // only one (as before) meant a signed-in member was never recognized
+    // here and got bounced straight back to /login, then back to /member.
+    let orgUser: any = null;
+    let memberUser: any = null;
+    let orgChecked = false;
+    let memberChecked = false;
+
+    const resolve = () => {
+      if (!orgChecked || !memberChecked) return;
+      const user = orgUser || memberUser;
+      if (!user) { router.push('/login'); return; }
+      setUid(user.uid);
       setLoading(false);
-    });
-    return () => unsub();
+    };
+
+    const unsubOrg = onAuthStateChanged(auth, (u) => { orgUser = u; orgChecked = true; resolve(); });
+    const unsubMember = onAuthStateChanged(memberAuth, (u) => { memberUser = u; memberChecked = true; resolve(); });
+    return () => { unsubOrg(); unsubMember(); };
   }, [router]);
 
   const handleSubmit = async () => {
