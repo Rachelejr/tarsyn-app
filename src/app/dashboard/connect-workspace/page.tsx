@@ -23,6 +23,14 @@ type Workspace = {
   country: string;
 };
 
+// Same mapping used in workspace/select-module/page.tsx — kept identical so
+// a module chosen there always lands on its own creation screen here too,
+// instead of silently falling back to Tontine for every module.
+const MODULE_ROUTES: Record<string, string> = {
+  'tontine-sol': '/dashboard/create-tontine',
+  'church': '/dashboard/create-church',
+};
+
 function ConnectWorkspaceInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,7 +77,12 @@ function ConnectWorkspaceInner() {
       await updateDoc(doc(db, 'workspaces', selectedId), {
         activeModules: arrayUnion(moduleSlug),
       });
-      router.push(`/dashboard/create-tontine?workspaceId=${selectedId}`);
+      const target = MODULE_ROUTES[moduleSlug];
+      if (target) {
+        router.push(`${target}?workspaceId=${selectedId}`);
+      } else {
+        router.push(`/dashboard/coming-soon?module=${moduleSlug}&workspaceId=${selectedId}`);
+      }
     } catch (err: any) {
       console.error('CONNECT MODULE ERROR:', err);
       setError(`Could not connect this module: ${err.code || err.message || 'unknown error'}`);
