@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, memberAuth, db } from '@/lib/firebase';
+import { auth, memberAuth, db, memberDb } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -21,6 +21,11 @@ const C = {
 export default function LeaveReviewPage() {
   const router = useRouter();
   const [uid, setUid] = useState('');
+  // Tracks which of the two separate Firebase apps actually authenticated
+  // this person, so the write below goes through the matching Firestore
+  // instance — writing through the wrong one carries no valid auth token
+  // for that instance and Firestore silently rejects it as unauthenticated.
+  const [activeDb, setActiveDb] = useState(db);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -44,10 +49,17 @@ export default function LeaveReviewPage() {
 
     const resolve = () => {
       if (!orgChecked || !memberChecked) return;
-      const user = orgUser || memberUser;
-      if (!user) { router.push('/login'); return; }
-      setUid(user.uid);
-      setLoading(false);
+      if (orgUser) {
+        setActiveDb(db);
+        setUid(orgUser.uid);
+        setLoading(false);
+      } else if (memberUser) {
+        setActiveDb(memberDb);
+        setUid(memberUser.uid);
+        setLoading(false);
+      } else {
+        router.push('/login');
+      }
     };
 
     const unsubOrg = onAuthStateChanged(auth, (u) => { orgUser = u; orgChecked = true; resolve(); });
@@ -62,7 +74,7 @@ export default function LeaveReviewPage() {
     }
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'testimonials'), {
+      await addDoc(collection(activeDb, 'testimonials'), {
         authorId: uid,
         authorName: authorName.trim(),
         authorRole,
@@ -73,6 +85,7 @@ export default function LeaveReviewPage() {
       });
       setSubmitted(true);
     } catch (e) {
+      console.error('Testimonial submit failed:', e);
       alert('Could not submit your review. Please try again.');
     } finally {
       setSubmitting(false);
