@@ -29,6 +29,11 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box', outline: 'none',
 };
 
+// Only leadership / staff roles get a login by default — most congregation
+// members are simply recorded, not given an account. The admin can still
+// override this per person with the checkbox below.
+const ROLES_NEEDING_ACCOUNT_BY_DEFAULT = new Set(['Deacon', 'Elder', 'Staff', 'Department Head']);
+
 interface Church { id: string; churchName?: string; }
 
 function AddChurchMemberContent() {
@@ -45,6 +50,8 @@ function AddChurchMemberContent() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('Member');
+  const [needsAccount, setNeedsAccount] = useState(false);
+  const [needsAccountTouched, setNeedsAccountTouched] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -71,11 +78,19 @@ function AddChurchMemberContent() {
     return () => unsub();
   }, [router, urlChurchId]);
 
+  const handleRoleChange = (newRole: string) => {
+    setRole(newRole);
+    if (!needsAccountTouched) {
+      setNeedsAccount(ROLES_NEEDING_ACCOUNT_BY_DEFAULT.has(newRole));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!selectedChurchId) return setError('Please select a church.');
     if (!fullName.trim()) return setError('Full name is required.');
+    if (needsAccount && !email.trim()) return setError('An email is required to give this person a login account.');
 
     setSaving(true);
     try {
@@ -87,7 +102,10 @@ function AddChurchMemberContent() {
         email: email.trim(),
         phone: phone.trim(),
         role,
-        status: 'pending',
+        needsAccount,
+        // A member who doesn't need a login is simply recorded as active
+        // right away — there is no invitation to accept, nothing pending.
+        status: needsAccount ? 'pending' : 'active',
         inviteCode: memberInviteCode,
         createdAt: serverTimestamp(),
       });
@@ -101,7 +119,9 @@ function AddChurchMemberContent() {
         });
       } catch (auditErr) { /* silent - audit logging must never block member creation */ }
 
-      if (!email.trim()) {
+      if (!needsAccount) {
+        setInviteStatus(null);
+      } else if (!email.trim()) {
         setInviteStatus('no-email');
       } else {
         const selectedChurch = churches.find(c => c.id === selectedChurchId);
@@ -139,13 +159,14 @@ function AddChurchMemberContent() {
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: C.textDark, margin: '0 0 8px' }}>Member Added</h2>
           <p style={{ fontSize: '13px', color: C.textGris, margin: '0 0 20px' }}>
-            {inviteStatus === 'sent' && 'An invitation email was sent.'}
-            {inviteStatus === 'failed' && 'The member was added, but the invitation email could not be sent.'}
-            {inviteStatus === 'no-email' && 'The member was added without an email — no invitation was sent.'}
+            {!needsAccount && 'This member has been recorded as active — no account or invitation was needed.'}
+            {needsAccount && inviteStatus === 'sent' && 'An invitation email was sent so they can create their login.'}
+            {needsAccount && inviteStatus === 'failed' && 'The member was added, but the invitation email could not be sent.'}
+            {needsAccount && inviteStatus === 'no-email' && 'The member was added without an email — no invitation was sent.'}
           </p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button
-              onClick={() => { setSuccess(false); setFullName(''); setEmail(''); setPhone(''); setRole('Member'); setInviteStatus(null); }}
+              onClick={() => { setSuccess(false); setFullName(''); setEmail(''); setPhone(''); setRole('Member'); setNeedsAccount(false); setNeedsAccountTouched(false); setInviteStatus(null); }}
               style={{ background: 'white', color: C.primary, border: `1.5px solid ${C.primary}`, borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
             >
               Add Another
@@ -211,14 +232,33 @@ function AddChurchMemberContent() {
 
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>Role</label>
-            <select value={role} onChange={e => setRole(e.target.value)} style={inputStyle}>
+            <select value={role} onChange={e => handleRoleChange(e.target.value)} style={inputStyle}>
               <option>Member</option>
-              <option>Deacon</option>
-              <option>Elder</option>
               <option>Volunteer</option>
               <option>Choir</option>
               <option>Youth Leader</option>
+              <option>Deacon</option>
+              <option>Elder</option>
+              <option>Department Head</option>
+              <option>Staff</option>
             </select>
+          </div>
+
+          <div style={{ marginBottom: '20px', background: C.bg, borderRadius: '12px', padding: '14px 16px', border: `1.5px solid ${C.borderMed}` }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={needsAccount}
+                onChange={e => { setNeedsAccount(e.target.checked); setNeedsAccountTouched(true); }}
+                style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: C.primary, flexShrink: 0 }}
+              />
+              <span>
+                <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 700, color: C.textDark }}>This person needs a login account</span>
+                <span style={{ display: 'block', fontSize: '12px', color: C.textGris, marginTop: '2px' }}>
+                  Only leaders, admin staff, and department heads typically need one. Most members are simply recorded — no invitation or sign-in required.
+                </span>
+              </span>
+            </label>
           </div>
 
           <button
