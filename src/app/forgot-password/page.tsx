@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
     <div style={{minHeight:'100vh',background:'#FBEEDD',display:'flex',flexDirection:'column'}}>
       <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
         <div>
-          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
           <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
         </div>
       </nav>

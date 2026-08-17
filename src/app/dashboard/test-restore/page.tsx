@@ -48,7 +48,7 @@ export default function Dashboard() {
         <div onClick={() => router.push('/')} style={{display:'flex',alignItems:'center',gap:'10px',cursor:'pointer'}}>
           <div style={{width:'36px',height:'36px',background:'#E9C77B',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,color:'#6B2D4E',fontSize:'14px'}}>T</div>
           <div>
-            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
             <div style={{color:'rgba(251,238,221,0.6)',fontSize:'10px',letterSpacing:'2px'}}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>

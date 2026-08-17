@@ -489,7 +489,7 @@ function SubscriptionContent() {
 
       <nav style={{ background: '#6B2D4E', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+          <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <DateTimeWeather textColor="#FBEEDD" />
