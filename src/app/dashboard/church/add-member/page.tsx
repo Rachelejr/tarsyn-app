@@ -125,7 +125,7 @@ function AddChurchMemberContent() {
         setInviteStatus('no-email');
       } else {
         const selectedChurch = churches.find(c => c.id === selectedChurchId);
-        const inviteLink = 'https://tarsyn-app.com/join-church/' + memberInviteCode;
+        const inviteLink = 'https://unimunity.com/join-church/' + memberInviteCode;
         try {
           const res = await fetch('/api/send-church-invite', {
             method: 'POST',

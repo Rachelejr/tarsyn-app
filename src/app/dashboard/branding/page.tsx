@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -31,7 +31,7 @@ interface GroupBrand {
   primaryColor?: string;
   secondaryColor?: string;
   fontFamily?: string;
-  showTarsynBadge?: boolean;
+  showUNIMUNITYBadge?: boolean;
   enabled?: boolean;
 }
 
@@ -66,7 +66,7 @@ export default function BrandingPage() {
   const [secondaryColor, setSecondaryColor] = useState('#E9C77B');
   const [fontFamily, setFontFamily] = useState('Inter');
   const [logoUrl, setLogoUrl] = useState('');
-  const [showTarsynBadge, setShowTarsynBadge] = useState(true);
+  const [showUNIMUNITYBadge, setShowUNIMUNITYBadge] = useState(true);
   const [enabled, setEnabled] = useState(true);
 
   const [groupStats, setGroupStats] = useState<GroupStats | null>(null);
@@ -99,7 +99,7 @@ export default function BrandingPage() {
     setSecondaryColor(b?.secondaryColor || '#E9C77B');
     setFontFamily(b?.fontFamily || 'Inter');
     setLogoUrl(b?.logo || '');
-    setShowTarsynBadge(b?.showTarsynBadge !== false);
+    setShowUNIMUNITYBadge(b?.showUNIMUNITYBadge !== false);
     setEnabled(b?.enabled !== false);
   };
 
@@ -176,7 +176,7 @@ export default function BrandingPage() {
     try {
       const groupBrand: GroupBrand = {
         logo: logoUrl, slogan: slogan.trim(), primaryColor, secondaryColor,
-        fontFamily, showTarsynBadge, enabled,
+        fontFamily, showUNIMUNITYBadge, enabled,
       };
       await updateDoc(doc(db, 'groups', selectedGroupId), { groupBrand });
       setGroups(prev => prev.map(g => g.id === selectedGroupId ? { ...g, groupBrand } : g));
@@ -190,13 +190,13 @@ export default function BrandingPage() {
   };
 
   const handleReset = () => {
-    if (!confirm('Reset branding to TARSYN defaults for this group?')) return;
+    if (!confirm('Reset branding to UNIMUNITY defaults for this group?')) return;
     setSlogan('');
     setPrimaryColor('#6B2D4E');
     setSecondaryColor('#E9C77B');
     setFontFamily('Inter');
     setLogoUrl('');
-    setShowTarsynBadge(true);
+    setShowUNIMUNITYBadge(true);
     setEnabled(true);
   };
 
@@ -204,9 +204,9 @@ export default function BrandingPage() {
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '18px' }}>
-      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
-      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
-      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'tarsyn-spin 0.8s linear infinite' }} />
+      <style>{`@keyframes UNIMUNITY-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', width: 'auto' }} />
+      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'UNIMUNITY-spin 0.8s linear infinite' }} />
     </div>
   );
 
@@ -284,7 +284,7 @@ export default function BrandingPage() {
                 <button onClick={() => setLogoUrl('')} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Remove</button>
               </div>
             ) : (
-              <p className="bs-help" style={{ margin: '0 0 10px' }}>No custom logo - default TARSYN mark shown.</p>
+              <p className="bs-help" style={{ margin: '0 0 10px' }}>No custom logo - default UNIMUNITY mark shown.</p>
             )}
             <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
               style={{ width: '100%', background: C.creme, color: C.bordeaux, border: `1.5px solid ${C.border}`, padding: '9px', borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer' }}>
@@ -304,9 +304,9 @@ export default function BrandingPage() {
 
           <div className="bs-section">
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={showTarsynBadge} onChange={e => setShowTarsynBadge(e.target.checked)}
+              <input type="checkbox" checked={showUNIMUNITYBadge} onChange={e => setShowUNIMUNITYBadge(e.target.checked)}
                 style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: C.bordeaux }} />
-              <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px' }}>Show &quot;Powered by TARSYN&quot;</span>
+              <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px' }}>Show &quot;Powered by UNIMUNITY&quot;</span>
             </label>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function BrandingPage() {
 
           {!enabled ? (
             <div style={{ background: 'white', borderRadius: '14px', padding: '40px 20px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-              <p style={{ color: C.muted, fontSize: '13px' }}>White Label is disabled for this group. Members see the default TARSYN experience.</p>
+              <p style={{ color: C.muted, fontSize: '13px' }}>White Label is disabled for this group. Members see the default UNIMUNITY experience.</p>
             </div>
           ) : (
             <div style={{ background: 'white', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.10)', fontFamily }}>
@@ -379,9 +379,9 @@ export default function BrandingPage() {
                 </div>
               </div>
 
-              {showTarsynBadge && (
+              {showUNIMUNITYBadge && (
                 <div style={{ textAlign: 'center', padding: '8px 0', borderTop: `1px solid ${C.border}` }}>
-                  <span style={{ color: C.muted, fontSize: '9px' }}>Powered by TARSYN</span>
+                  <span style={{ color: C.muted, fontSize: '9px' }}>Powered by UNIMUNITY</span>
                 </div>
               )}
             </div>
@@ -415,13 +415,13 @@ export default function BrandingPage() {
                 style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: C.bordeaux }} />
               <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px' }}>Enable White Label</span>
             </label>
-            <p className="bs-help">Turn off to revert this group to the default TARSYN look.</p>
+            <p className="bs-help">Turn off to revert this group to the default UNIMUNITY look.</p>
           </div>
 
           <div className="bs-section">
             <button onClick={handleReset}
               style={{ width: '100%', background: '#FFEBEE', color: '#C62828', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-              Reset to TARSYN default
+              Reset to UNIMUNITY default
             </button>
           </div>
 

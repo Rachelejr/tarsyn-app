@@ -7,13 +7,13 @@ export async function POST(req: Request) {
   try {
     const { email, otp } = await req.json();
     await resend.emails.send({
-      from: "TARSYN <noreply@tarsyn-app.com>",
+      from: "UNIMUNITY <noreply@unimunity.com>",
       to: email,
-      subject: "Your TARSYN verification code",
+      subject: "Your UNIMUNITY verification code",
       html: `
         <div style="font-family:Inter,sans-serif;max-width:480px;margin:0 auto;padding:2rem;background:#FAF0E6;border-radius:16px;">
           <div style="text-align:center;margin-bottom:1.5rem;">
-            <img src="https://tarsyn-app.com/tarsyn-logo.svg" alt="TARSYN" style="height:40px;width:auto;max-width:200px;" />
+            <img src="https://unimunity.com/unimunity-logo.png" alt="UNIMUNITY" style="height:48px;width:auto;max-width:220px;" />
           </div>
           <h3 style="color:#6B2D4E;text-align:center;">Your verification code</h3>
           <div style="background:#fff;border-radius:12px;padding:1.5rem;text-align:center;margin:1rem 0;">

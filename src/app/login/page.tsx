@@ -268,12 +268,12 @@ function LoginPageInner() {
       <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
         <div style={{ marginBottom: '2rem' }}>
-          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', width: 'auto', display: 'block' }} /></a>
           <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY. YOUR POWER.</p>
         </div>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
-        <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Access your TARSYN account</p>
+        <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Access your UNIMUNITY account</p>
 
         {error && (
           <div style={{ background: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.88rem', marginBottom: '1rem' }}>

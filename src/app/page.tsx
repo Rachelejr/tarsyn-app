@@ -34,8 +34,8 @@ const LANGUAGES = [
 ];
 
 const T: Record<string, Record<string, string>> = {
-  en:  { hero1:'The Smart Way to Manage', hero2:'Your Community', cta:'Create Free Account', signin:'Sign In', trusted:'BUILT FOR COMMUNITIES WORLDWIDE', sub:'Track contributions, manage members, organize your activities, and view your reports automatically.', auto:'AUTO MODE', expert:'EXPERT MODE', startAuto:'Start with Auto Mode', startExpert:'Start with Expert Mode', modeTitle:'How do you want to use TARSYN?', modeSubtitle:'Choose the experience that fits your community.' },
-  fr:  { hero1:'La fa\u00e7on intelligente de g\u00e9rer', hero2:'votre communaut\u00e9', cta:'Cr\u00e9er un compte gratuit', signin:'Se connecter', trusted:'CON\u00c7U POUR LES COMMUNAUT\u00c9S DU MONDE ENTIER', sub:'Suivez les contributions, g\u00e9rez les membres, organisez vos activit\u00e9s et consultez vos rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en mode auto', startExpert:'Commencer en mode expert', modeTitle:'Comment souhaitez-vous utiliser TARSYN ?', modeSubtitle:'Choisissez l\u2019exp\u00e9rience adapt\u00e9e \u00e0 votre communaut\u00e9.' },
+  en:  { hero1:'The Smart Way to Manage', hero2:'Your Community', cta:'Create Free Account', signin:'Sign In', trusted:'BUILT FOR COMMUNITIES WORLDWIDE', sub:'Track contributions, manage members, organize your activities, and view your reports automatically.', auto:'AUTO MODE', expert:'EXPERT MODE', startAuto:'Start with Auto Mode', startExpert:'Start with Expert Mode', modeTitle:'How do you want to use UNIMUNITY?', modeSubtitle:'Choose the experience that fits your community.' },
+  fr:  { hero1:'La fa\u00e7on intelligente de g\u00e9rer', hero2:'votre communaut\u00e9', cta:'Cr\u00e9er un compte gratuit', signin:'Se connecter', trusted:'CON\u00c7U POUR LES COMMUNAUT\u00c9S DU MONDE ENTIER', sub:'Suivez les contributions, g\u00e9rez les membres, organisez vos activit\u00e9s et consultez vos rapports automatiquement.', auto:'MODE AUTO', expert:'MODE EXPERT', startAuto:'Commencer en mode auto', startExpert:'Commencer en mode expert', modeTitle:'Comment souhaitez-vous utiliser UNIMUNITY ?', modeSubtitle:'Choisissez l\u2019exp\u00e9rience adapt\u00e9e \u00e0 votre communaut\u00e9.' },
   ht:  { hero1:'Fason Entelijan pou Jere', hero2:'Kominote Ou', cta:'Kreye Kont Gratis', signin:'Konekte', trusted:'F\u00c8T POU KOMINOTE TOUT KOTE SOU LAT\u00c8', sub:'Swiv kontribisyon, jere manm, jenere resi ak rap\u00f2 otomatikman.', auto:'MOD OTOMATIK', expert:'MOD EKSP\u00c8', startAuto:'K\u00f2manse ak Mod Otomatik', startExpert:'K\u00f2manse ak Mod Eksp\u00e8' },
   es:  { hero1:'La Forma Inteligente de Gestionar', hero2:'Tu Comunidad', cta:'Crear Cuenta Gratis', signin:'Iniciar Sesi\u00f3n', trusted:'CREADO PARA COMUNIDADES DE TODO EL MUNDO', sub:'Rastrea contribuciones, gestiona miembros, genera recibos e informes autom\u00e1ticamente.', auto:'MODO AUTO', expert:'MODO EXPERTO', startAuto:'Empezar en Modo Auto', startExpert:'Empezar en Modo Experto' },
   pt:  { hero1:'A Forma Inteligente de Gerir', hero2:'Sua Comunidade', cta:'Criar Conta Gr\u00e1tis', signin:'Entrar', trusted:'CRIADO PARA COMUNIDADES EM TODO O MUNDO', sub:'Acompanhe contribui\u00e7\u00f5es, gerencie membros, gere recibos e relat\u00f3rios automaticamente.', auto:'MODO AUTO', expert:'MODO ESPECIALISTA', startAuto:'Come\u00e7ar no Modo Auto', startExpert:'Come\u00e7ar no Modo Especialista' },
@@ -76,7 +76,7 @@ const COMMUNITY_IMGS = [
 const AUTO_FEATURES = [
   {icon:'\ud83d\udd14', key:'Automatic reminders sent for you'},
   {icon:'\ud83e\uddfe', key:'Receipts generated automatically'},
-  {icon:'\ud83d\udd04', key:'Rotation calculated by TARSYN'},
+  {icon:'\ud83d\udd04', key:'Rotation calculated by UNIMUNITY'},
   {icon:'\ud83d\udd35', key:'Big buttons - no reading required'},
   {icon:'\ud83c\udf0d', key:'Works in 25 languages'},
 ];
@@ -89,10 +89,10 @@ const EXPERT_FEATURES = [
 ];
 
 const FAQ = [
-  {q:'Is TARSYN free?', a:'Yes! TARSYN is free to use. A small 0.5% platform fee applies per distribution - only when money is distributed.'},
-  {q:'How many members can a group have?', a:'Unlimited. TARSYN supports groups of 2 to 10,000+ members with no restrictions.'},
+  {q:'Is UNIMUNITY free?', a:'Yes! UNIMUNITY is free to use. A small 0.5% platform fee applies per distribution - only when money is distributed.'},
+  {q:'How many members can a group have?', a:'Unlimited. UNIMUNITY supports groups of 2 to 10,000+ members with no restrictions.'},
   {q:'Is my data secure?', a:'Absolutely. Each group has a completely isolated, encrypted space. No group can ever see another group\'s data.'},
-  {q:'Can I use TARSYN in my language?', a:'Yes! TARSYN supports 25 languages with auto-detection. More languages are added regularly.'},
+  {q:'Can I use UNIMUNITY in my language?', a:'Yes! UNIMUNITY supports 25 languages with auto-detection. More languages are added regularly.'},
   {q:'Do I need to be tech-savvy?', a:'No. Auto Mode is designed for anyone - big buttons, automatic everything, no reading required.'},
 ];
 
@@ -157,10 +157,10 @@ export default function HomePage() {
         .nav-link:hover{opacity:0.8;}
         select option{padding:8px;}
         @media (max-width: 640px) {
-          .tarsyn-hero { padding: 60px 20px 50px !important; }
-          .tarsyn-hero h1, .tarsyn-hero h2 { font-size: 32px !important; }
-          .tarsyn-hero-deco { display: none !important; }
-          .tarsyn-hero p { font-size: 15px !important; }
+          .UNIMUNITY-hero { padding: 60px 20px 50px !important; }
+          .UNIMUNITY-hero h1, .UNIMUNITY-hero h2 { font-size: 32px !important; }
+          .UNIMUNITY-hero-deco { display: none !important; }
+          .UNIMUNITY-hero p { font-size: 15px !important; }
         }
       `}</style>
 
@@ -194,7 +194,7 @@ export default function HomePage() {
       <nav style={{background:'#FBEEDD',padding:'14px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 16px rgba(107,45,78,0.12)',borderBottom:'1px solid #D9C0CC'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div>
-            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>TARSYN</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo.svg" alt="Tarsyn" style={{height:'48px'}}/></a>
+            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="Unimunity" style={{height:'64px'}}/></a>
             <div style={{color:'#8B3A5E',fontSize:'12px',letterSpacing:'1.5px',fontWeight:700,fontStyle:'italic',marginTop:'4px'}}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>
@@ -215,11 +215,11 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <div className="tarsyn-hero" style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}}>{'\ud83e\udd1d'}</div>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}}>{'\ud83d\udcb0'}</div>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}}>{'\ud83c\udf0d'}</div>
-        <div className="tarsyn-hero-deco floating" style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}}>{'\u2b50'}</div>
+      <div className="UNIMUNITY-hero" style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'90px 32px 70px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+        <div className="UNIMUNITY-hero-deco floating" style={{position:'absolute',top:'20px',left:'5%',opacity:0.10,fontSize:'80px',pointerEvents:'none'}}>{'\ud83e\udd1d'}</div>
+        <div className="UNIMUNITY-hero-deco floating" style={{position:'absolute',top:'30px',right:'6%',opacity:0.10,fontSize:'65px',pointerEvents:'none',animationDelay:'1s'}}>{'\ud83d\udcb0'}</div>
+        <div className="UNIMUNITY-hero-deco floating" style={{position:'absolute',bottom:'30px',left:'8%',opacity:0.08,fontSize:'55px',pointerEvents:'none',animationDelay:'0.5s'}}>{'\ud83c\udf0d'}</div>
+        <div className="UNIMUNITY-hero-deco floating" style={{position:'absolute',bottom:'40px',right:'10%',opacity:0.08,fontSize:'50px',pointerEvents:'none',animationDelay:'1.5s'}}>{'\u2b50'}</div>
         <div style={{position:'relative',zIndex:1}}>
           <div style={{display:'inline-block',background:'rgba(233,199,123,0.15)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'20px',padding:'6px 18px',marginBottom:'24px'}}>
             <span style={{color:'#E9C77B',fontSize:'12px',fontWeight:'600',letterSpacing:'2px'}}>{'\ud83c\udf0d'} {t(lang,'trusted')}</span>
@@ -335,7 +335,7 @@ export default function HomePage() {
           {[
             {step:'1',icon:'\ud83d\udcdd',title:'Create your group',desc:'Sign up, choose your mode and invite your members in minutes.'},
             {step:'2',icon:'\ud83d\udcb0',title:'Record contributions',desc:'Each payment is confirmed instantly with a receipt and QR code.'},
-            {step:'3',icon:'\ud83d\udd04',title:'TARSYN handles the rest',desc:'Rotation, reminders, reports - all automatic. You focus on your community.'},
+            {step:'3',icon:'\ud83d\udd04',title:'UNIMUNITY handles the rest',desc:'Rotation, reminders, reports - all automatic. You focus on your community.'},
           ].map(s=>(
             <div key={s.step} style={{background:'white',border:'1px solid #EAD9BE',borderRadius:'16px',padding:'28px 20px',textAlign:'center'}}>
               <div style={{width:'48px',height:'48px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',color:'#E9C77B',fontWeight:'800',fontSize:'18px'}}>{s.step}</div>
@@ -349,10 +349,10 @@ export default function HomePage() {
 
       <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
-        <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'32px',fontSize:'14px'}}>Real reviews from real TARSYN organizers and members</p>
+        <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'32px',fontSize:'14px'}}>Real reviews from real UNIMUNITY organizers and members</p>
         <div style={{maxWidth:'480px',margin:'0 auto',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'18px',padding:'36px'}}>
           <div style={{fontSize:'30px',marginBottom:'10px'}}>{'\ud83d\udcac'}</div>
-          <p style={{color:'#FBEEDD',fontSize:'14px',marginBottom:'20px',lineHeight:'1.6'}}>Are you already using TARSYN? Share your experience with future organizers.</p>
+          <p style={{color:'#FBEEDD',fontSize:'14px',marginBottom:'20px',lineHeight:'1.6'}}>Are you already using UNIMUNITY? Share your experience with future organizers.</p>
           <a href="/leave-review" style={{display:'inline-block',padding:'12px 28px',background:'#E9C77B',color:'#6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'800',textDecoration:'none'}}>
             Leave a Testimonial
           </a>
@@ -361,7 +361,7 @@ export default function HomePage() {
 
       <div style={{background:'#FBEEDD',padding:'64px 32px'}}>
         <h3 style={{color:'#6B2D4E',fontSize:'30px',fontWeight:'800',marginBottom:'8px',textAlign:'center'}}>Frequently Asked Questions</h3>
-        <p style={{color:'#6B2D4E',marginBottom:'44px',textAlign:'center',fontSize:'15px'}}>Everything you need to know about TARSYN</p>
+        <p style={{color:'#6B2D4E',marginBottom:'44px',textAlign:'center',fontSize:'15px'}}>Everything you need to know about UNIMUNITY</p>
         <div style={{maxWidth:'700px',margin:'0 auto',display:'flex',flexDirection:'column',gap:'8px'}}>
           {FAQ.map((f,i)=>(
             <div key={i} className="faq-item" style={{border:'1px solid #EAD9BE',borderRadius:'12px',overflow:'hidden',background:'white'}}>
@@ -379,7 +379,7 @@ export default function HomePage() {
       </div>
 
       <div style={{background:'#6B2D4E',padding:'56px 32px',textAlign:'center'}}>
-        <h3 style={{color:'#FBEEDD',fontSize:'26px',fontWeight:'800',marginBottom:'8px'}}>Stay updated with TARSYN</h3>
+        <h3 style={{color:'#FBEEDD',fontSize:'26px',fontWeight:'800',marginBottom:'8px'}}>Stay updated with UNIMUNITY</h3>
         <p style={{color:'rgba(251,238,221,0.65)',marginBottom:'28px',fontSize:'14px'}}>Get notified when new languages and features are added</p>
         {emailSent ? (
           <div style={{background:'rgba(74,124,89,0.3)',border:'1px solid rgba(74,124,89,0.5)',borderRadius:'12px',padding:'16px 24px',display:'inline-block',color:'#90EE90',fontWeight:'600'}}>
@@ -401,3 +401,4 @@ export default function HomePage() {
     </div>
   );
 }
+

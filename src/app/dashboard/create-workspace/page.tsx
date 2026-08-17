@@ -133,7 +133,7 @@ export default function CreateWorkspacePage() {
             <input className="gld-input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Grace Community Church"
               style={{ width: '100%', padding: '13px 15px', border: `1.5px solid ${C.border}`, borderRadius: '12px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }} />
             <p style={{ fontSize: '11px', color: C.textGris, margin: '6px 0 0' }}>
-              Examples: Grace Community Church · TARSYN Investment Club · Hope Cooperative · Youth Association
+              Examples: Grace Community Church · UNIMUNITY Investment Club · Hope Cooperative · Youth Association
             </p>
           </div>
 

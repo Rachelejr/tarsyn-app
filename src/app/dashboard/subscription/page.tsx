@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -24,9 +24,9 @@ const SUB_T: Record<string, Record<string, string>> = {
     trial: '30-Day Free Trial', cancel: 'Cancel Anytime', secure: 'Secure Payments',
     monthly: 'Monthly', annual: 'Annual', save: 'SAVE 17%',
     compare: 'Compare Plans', compareSub: "See exactly what's included in each plan.",
-    why: 'Why Choose TARSYN', whySub: 'Built specifically for community savings groups.',
+    why: 'Why Choose UNIMUNITY', whySub: 'Built specifically for community savings groups.',
     reviewsTitle: 'What Our Community Says', reviewsSub: 'Your experience matters - share it with future organizers.',
-    leaveReview: 'Leave a Testimonial', reviewCta: "Are you a TARSYN organizer or member? We'd love to hear from you.",
+    leaveReview: 'Leave a Testimonial', reviewCta: "Are you a UNIMUNITY organizer or member? We'd love to hear from you.",
     faqTitle: 'Pricing Questions', faqSub: 'Everything you need to know about billing.',
     payments: 'Secure Payments',
   },
@@ -35,9 +35,9 @@ const SUB_T: Record<string, Record<string, string>> = {
     trial: 'Essai gratuit de 30 jours', cancel: 'Annulez \u00e0 tout moment', secure: 'Paiements s\u00e9curis\u00e9s',
     monthly: 'Mensuel', annual: 'Annuel', save: '\u00c9CONOMISEZ 17%',
     compare: 'Comparer les forfaits', compareSub: 'Voyez exactement ce qui est inclus dans chaque forfait.',
-    why: 'Pourquoi choisir TARSYN', whySub: 'Con\u00e7u sp\u00e9cifiquement pour les groupes d\u2019\u00e9pargne communautaire.',
+    why: 'Pourquoi choisir UNIMUNITY', whySub: 'Con\u00e7u sp\u00e9cifiquement pour les groupes d\u2019\u00e9pargne communautaire.',
     reviewsTitle: 'Ce que dit notre communaut\u00e9', reviewsSub: 'Votre exp\u00e9rience compte - partagez-la avec de futurs organisateurs.',
-    leaveReview: 'Laisser un t\u00e9moignage', reviewCta: 'Vous \u00eates organisateur ou membre TARSYN ? Nous aimerions vous entendre.',
+    leaveReview: 'Laisser un t\u00e9moignage', reviewCta: 'Vous \u00eates organisateur ou membre UNIMUNITY ? Nous aimerions vous entendre.',
     faqTitle: 'Questions sur la facturation', faqSub: 'Tout ce que vous devez savoir sur la facturation.',
     payments: 'Paiements s\u00e9curis\u00e9s',
   },
@@ -46,9 +46,9 @@ const SUB_T: Record<string, Record<string, string>> = {
     trial: '30 Jou Es\u00e8 Gratis', cancel: 'Anile Nenp\u00f2t Kil\u00e8', secure: 'Peman Sekirize',
     monthly: 'Chak Mwa', annual: 'Chak Ane', save: 'EKONOMIZE 17%',
     compare: 'Konpare Plan Yo', compareSub: 'Gade egzakteman sa ki enkli nan chak plan.',
-    why: 'Poukisa Chwazi TARSYN', whySub: 'F\u00e8t espesyalman pou gwoup epay kominot\u00e8 yo.',
+    why: 'Poukisa Chwazi UNIMUNITY', whySub: 'F\u00e8t espesyalman pou gwoup epay kominot\u00e8 yo.',
     reviewsTitle: 'Sa Kominote Nou An Di', reviewsSub: 'Eksperyans ou konte - pataje l ak fiti \u00f2ganizat\u00e8 yo.',
-    leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon \u00f2ganizat\u00e8 oswa manm TARSYN? Nou ta renmen tande ou.',
+    leaveReview: 'Kite yon Temwayaj', reviewCta: 'Ou se yon \u00f2ganizat\u00e8 oswa manm UNIMUNITY? Nou ta renmen tande ou.',
     faqTitle: 'Kesyon sou Peman', faqSub: 'Tout sa ou bezwen konnen sou fakti.',
     payments: 'Peman Sekirize',
   },
@@ -57,9 +57,9 @@ const SUB_T: Record<string, Record<string, string>> = {
     trial: 'Prueba Gratis de 30 D\u00edas', cancel: 'Cancela Cuando Quieras', secure: 'Pagos Seguros',
     monthly: 'Mensual', annual: 'Anual', save: 'AHORRA 17%',
     compare: 'Comparar Planes', compareSub: 'Ve exactamente qu\u00e9 incluye cada plan.',
-    why: 'Por Qu\u00e9 Elegir TARSYN', whySub: 'Dise\u00f1ado espec\u00edficamente para grupos de ahorro comunitario.',
+    why: 'Por Qu\u00e9 Elegir UNIMUNITY', whySub: 'Dise\u00f1ado espec\u00edficamente para grupos de ahorro comunitario.',
     reviewsTitle: 'Lo Que Dice Nuestra Comunidad', reviewsSub: 'Tu experiencia importa - comp\u00e1rtela con futuros organizadores.',
-    leaveReview: 'Dejar un Testimonio', reviewCta: '\u00bfEres organizador o miembro de TARSYN? Nos encantar\u00eda saber de ti.',
+    leaveReview: 'Dejar un Testimonio', reviewCta: '\u00bfEres organizador o miembro de UNIMUNITY? Nos encantar\u00eda saber de ti.',
     faqTitle: 'Preguntas sobre Precios', faqSub: 'Todo lo que necesitas saber sobre la facturaci\u00f3n.',
     payments: 'Pagos Seguros',
   },
@@ -68,9 +68,9 @@ const SUB_T: Record<string, Record<string, string>> = {
     trial: 'Teste Gr\u00e1tis de 30 Dias', cancel: 'Cancele a Qualquer Momento', secure: 'Pagamentos Seguros',
     monthly: 'Mensal', annual: 'Anual', save: 'ECONOMIZE 17%',
     compare: 'Comparar Planos', compareSub: 'Veja exatamente o que est\u00e1 inclu\u00eddo em cada plano.',
-    why: 'Por Que Escolher a TARSYN', whySub: 'Criado especificamente para grupos de poupan\u00e7a comunit\u00e1ria.',
+    why: 'Por Que Escolher a UNIMUNITY', whySub: 'Criado especificamente para grupos de poupan\u00e7a comunit\u00e1ria.',
     reviewsTitle: 'O Que Nossa Comunidade Diz', reviewsSub: 'Sua experi\u00eancia importa - compartilhe com futuros organizadores.',
-    leaveReview: 'Deixar um Depoimento', reviewCta: 'Voc\u00ea \u00e9 organizador ou membro da TARSYN? Adorar\u00edamos ouvir voc\u00ea.',
+    leaveReview: 'Deixar um Depoimento', reviewCta: 'Voc\u00ea \u00e9 organizador ou membro da UNIMUNITY? Adorar\u00edamos ouvir voc\u00ea.',
     faqTitle: 'Perguntas Sobre Cobran\u00e7a', faqSub: 'Tudo o que voc\u00ea precisa saber sobre cobran\u00e7a.',
     payments: 'Pagamentos Seguros',
   },
@@ -155,7 +155,7 @@ interface PlanDef {
   scaling?: { membersIncrement: number; priceIncrement: number };
 }
 
-const SALES_EMAIL = 'sales@tarsyn-app.com';
+const SALES_EMAIL = 'sales@unimunity.com';
 
 const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
   'price_1TipthJk3DYYTrgp7LEDrLgE': 'starter',
@@ -276,9 +276,9 @@ const PLANS: PlanDef[] = [
 
 const LoadingScreen = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FBEEDD', gap: '18px' }}>
-    <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
-    <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
-    <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: '#6B2D4E', animation: 'tarsyn-spin 0.8s linear infinite' }} />
+    <style>{`@keyframes UNIMUNITY-spin { to { transform: rotate(360deg); } }`}</style>
+    <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', width: 'auto' }} />
+    <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: '#6B2D4E', animation: 'UNIMUNITY-spin 0.8s linear infinite' }} />
   </div>
 );
 
@@ -447,7 +447,7 @@ function SubscriptionContent() {
   };
 
   const handleContactSales = () => {
-    window.location.href = `mailto:${SALES_EMAIL}?subject=Enterprise%20plan%20inquiry%20-%20TARSYN`;
+    window.location.href = `mailto:${SALES_EMAIL}?subject=Enterprise%20plan%20inquiry%20-%20UNIMUNITY`;
   };
 
   if (loading) return <LoadingScreen />;
@@ -456,40 +456,40 @@ function SubscriptionContent() {
     <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
       <style>{`
         @media (max-width: 860px) {
-          .tarsyn-plans-grid {
+          .UNIMUNITY-plans-grid {
             grid-template-columns: 1fr !important;
             gap: 18px !important;
           }
-          .tarsyn-page-container {
+          .UNIMUNITY-page-container {
             padding: 24px 16px !important;
           }
         }
-        .tarsyn-cta-btn {
+        .UNIMUNITY-cta-btn {
           transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
         }
-        .tarsyn-cta-btn:hover:not(:disabled) {
+        .UNIMUNITY-cta-btn:hover:not(:disabled) {
           transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
-        .tarsyn-cta-btn:active:not(:disabled) {
+        .UNIMUNITY-cta-btn:active:not(:disabled) {
           transform: translateY(0);
         }
-        .tarsyn-plan-card {
+        .UNIMUNITY-plan-card {
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
-        .tarsyn-plan-card:hover {
+        .UNIMUNITY-plan-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 16px 40px rgba(107,45,78,0.18) !important;
           border-color: #E9C77B !important;
         }
-        .tarsyn-price-value {
+        .UNIMUNITY-price-value {
           transition: opacity 0.2s ease;
         }
       `}</style>
 
       <nav style={{ background: '#6B2D4E', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
+          <img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <DateTimeWeather textColor="#FBEEDD" />
@@ -526,10 +526,10 @@ function SubscriptionContent() {
       )}
 
 
-      <div className="tarsyn-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
+      <div className="UNIMUNITY-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
         {showSuccess && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-            <span>Subscription activated successfully. Welcome to TARSYN.</span>
+            <span>Subscription activated successfully. Welcome to UNIMUNITY.</span>
             <button onClick={() => setShowSuccess(false)} style={{ background: 'transparent', border: 'none', color: '#2E7D32', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
           </div>
         )}
@@ -607,7 +607,7 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        <div className="tarsyn-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '18px', alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '18px', alignItems: 'stretch' }}>
           {PLANS.map((plan) => {
             const isCurrent = activePlanId === plan.id;
             const price = billingPeriod === 'monthly' ? plan.priceMonthly : plan.priceAnnual;
@@ -617,7 +617,7 @@ function SubscriptionContent() {
             const annualSavings = plan.priceMonthly && plan.priceAnnual ? Math.round(plan.priceMonthly * 12 - plan.priceAnnual) : 0;
 
             return (
-              <div key={plan.id} className="tarsyn-plan-card" style={{
+              <div key={plan.id} className="UNIMUNITY-plan-card" style={{
                 background: 'white', borderRadius: '22px', padding: '26px 20px',
                 boxShadow: plan.badge ? '0 12px 40px rgba(107,45,78,0.16)' : '0 4px 20px rgba(0,0,0,0.05)',
                 border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '2px solid #F0E4D0'),
@@ -653,10 +653,10 @@ function SubscriptionContent() {
 
                 <div style={{ margin: '0 0 4px', textAlign: 'center' }}>
                   {price === null ? (
-                    <span className="tarsyn-price-value" style={{ color: '#4A1F38', fontSize: '30px', fontWeight: 800 }}>Custom</span>
+                    <span className="UNIMUNITY-price-value" style={{ color: '#4A1F38', fontSize: '30px', fontWeight: 800 }}>Custom</span>
                   ) : (
                     <>
-                      <span className="tarsyn-price-value" style={{ color: '#4A1F38', fontSize: '34px', fontWeight: 800 }}>${price}</span>
+                      <span className="UNIMUNITY-price-value" style={{ color: '#4A1F38', fontSize: '34px', fontWeight: 800 }}>${price}</span>
                       <span style={{ color: '#8A7A6D', fontSize: '13px' }}>{periodLabel}</span>
                     </>
                   )}
@@ -728,7 +728,7 @@ function SubscriptionContent() {
                     </div>
                   ) : (
                     <button
-                      className="tarsyn-cta-btn"
+                      className="UNIMUNITY-cta-btn"
                       onClick={() => {
                         if (hasActiveSub) {
                           handleUpdateSubscription(priceId, plan.name);
@@ -763,7 +763,7 @@ function SubscriptionContent() {
 
                 {plan.ctaAction === 'contact' && (
                   <button
-                    className="tarsyn-cta-btn"
+                    className="UNIMUNITY-cta-btn"
                     onClick={handleContactSales}
                     style={{
                       width: '100%', height: '38px', background: 'transparent', color: plan.color,
@@ -781,9 +781,9 @@ function SubscriptionContent() {
 
         <div style={{ marginTop: '10px', background: 'white', borderRadius: '12px', padding: '10px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <h3 style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 800, margin: '0 0 2px' }}>Need Enterprise pricing?</h3>
-          <p style={{ color: '#6B2D4E', fontSize: '10px', margin: '0 0 6px' }}>Contact TARSYN Sales Team</p>
+          <p style={{ color: '#6B2D4E', fontSize: '10px', margin: '0 0 6px' }}>Contact UNIMUNITY Sales Team</p>
           <button
-            className="tarsyn-cta-btn"
+            className="UNIMUNITY-cta-btn"
             onClick={handleContactSales}
             style={{
               height: '30px', padding: '0 18px', background: '#6B2D4E', color: '#FBEEDD',
@@ -928,7 +928,7 @@ function SubscriptionContent() {
       </div>
 
       <footer style={{ background: '#6B2D4E', textAlign: 'center', padding: '14px', color: 'rgba(251,238,221,0.6)', fontSize: '12px' }}>
-        <span style={{ color: '#E9C77B', fontWeight: 700 }}>TARSYN&trade;</span>{' '}
+        <span style={{ color: '#E9C77B', fontWeight: 700 }}>UNIMUNITY&trade;</span>{' '}
         <span>A product of <strong style={{ color: 'rgba(251,238,221,0.9)' }}>Ma Production Luxenn Zara LLC</strong></span>
         {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
       </footer>

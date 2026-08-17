@@ -109,14 +109,14 @@ function JoinContent() {
       setTimeout(() => router.push('/member'), 1500);
     } catch (err: any) {
       if (err?.code === 'auth/email-already-in-use') {
-        // A TARSYN account can belong to members across several different
+        // A UNIMUNITY account can belong to members across several different
         // groups - this is expected, not an error. Switch straight to sign
         // in so joining a second (or third...) group with the same email
         // is one smooth step instead of a dead-end message.
         setMode('signin');
         setPassword('');
         setConfirmPassword('');
-        setError('You already have a TARSYN account with this email. Sign in below to join this group too.');
+        setError('You already have a UNIMUNITY account with this email. Sign in below to join this group too.');
         setSubmitting(false);
         return;
       }
@@ -191,7 +191,7 @@ function JoinContent() {
           <div style={{ width: 52, height: 52, background: C.bordeaux, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 22, color: C.or }}>+</div>
           <h1 style={{ color: C.bordeaux, fontSize: 22, fontWeight: 700, margin: '0 0 6px' }}>You're invited!</h1>
           <p style={{ color: C.text, fontSize: 14, margin: 0 }}>
-            Join <strong>{lookup.groupName || 'your group'}</strong> on TARSYN
+            Join <strong>{lookup.groupName || 'your group'}</strong> on UNIMUNITY
           </p>
         </div>
 
@@ -251,9 +251,9 @@ function JoinContent() {
 
         <p style={{ textAlign: 'center', fontSize: 12.5, color: C.muted, margin: 0 }}>
           {mode === 'signup' ? (
-            <>Already have a TARSYN account? <span onClick={() => { setMode('signin'); setError(''); }} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Sign in instead</span></>
+            <>Already have a UNIMUNITY account? <span onClick={() => { setMode('signin'); setError(''); }} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Sign in instead</span></>
           ) : (
-            <>New to TARSYN? <span onClick={() => { setMode('signup'); setError(''); }} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create an account</span></>
+            <>New to UNIMUNITY? <span onClick={() => { setMode('signup'); setError(''); }} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create an account</span></>
           )}
         </p>
       </div>

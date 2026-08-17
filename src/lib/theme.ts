@@ -1,4 +1,4 @@
-// TARSYN — Palette officielle (4 couleurs)
+// UNIMUNITY — Palette officielle (4 couleurs)
 // import { C } from '@/lib/theme';
 // Ne pas ajouter de nouvelles couleurs sans validation.
 

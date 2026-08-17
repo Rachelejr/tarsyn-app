@@ -257,14 +257,14 @@ export default function DocumentsPage() {
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.creme, gap: '18px' }}>
-      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
-      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
-      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bleu, animation: 'tarsyn-spin 0.8s linear infinite' }} />
+      <style>{`@keyframes UNIMUNITY-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', width: 'auto' }} />
+      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bleu, animation: 'UNIMUNITY-spin 0.8s linear infinite' }} />
     </div>
   );
 
   return (
-    <div className="tarsyn-docs-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
+    <div className="UNIMUNITY-docs-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{__html: `
         .doc-row{transition:all .15s ease;cursor:pointer;}
         .doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(74,31,56,0.10);}
@@ -276,20 +276,20 @@ export default function DocumentsPage() {
         .scroll-thin::-webkit-scrollbar{width:6px;}
         .scroll-thin::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px;}
         @media (max-width: 900px) {
-          .tarsyn-docs-root { height: auto !important; min-height: 100vh; overflow: visible !important; }
-          .tarsyn-docs-main { flex-direction: column !important; height: auto !important; overflow: visible !important; }
-          .tarsyn-docs-list { width: 100% !important; max-height: 320px; }
-          .tarsyn-docs-detail { min-height: 400px; }
+          .UNIMUNITY-docs-root { height: auto !important; min-height: 100vh; overflow: visible !important; }
+          .UNIMUNITY-docs-main { flex-direction: column !important; height: auto !important; overflow: visible !important; }
+          .UNIMUNITY-docs-list { width: 100% !important; max-height: 320px; }
+          .UNIMUNITY-docs-detail { min-height: 400px; }
         }
         @media (max-width: 600px) {
-          .tarsyn-docs-topbar { padding: 12px 16px !important; }
-          .tarsyn-docs-topbar h1 { font-size: 15px !important; }
-          .tarsyn-docs-actions { flex-wrap: wrap !important; }
+          .UNIMUNITY-docs-topbar { padding: 12px 16px !important; }
+          .UNIMUNITY-docs-topbar h1 { font-size: 15px !important; }
+          .UNIMUNITY-docs-actions { flex-wrap: wrap !important; }
         }
       `}} />
 
       {/* TOP BAR - group info */}
-      <div className="tarsyn-docs-topbar" style={{ flexShrink: 0, background: C.bleu, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="UNIMUNITY-docs-topbar" style={{ flexShrink: 0, background: C.bleu, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
           <div>
@@ -307,10 +307,10 @@ export default function DocumentsPage() {
       </div>
 
       {/* MAIN ROW - list (left) + selected doc (right) */}
-      <div className="tarsyn-docs-main" style={{ flex: 1, display: 'flex', minHeight: 0, padding: '16px', gap: '16px' }}>
+      <div className="UNIMUNITY-docs-main" style={{ flex: 1, display: 'flex', minHeight: 0, padding: '16px', gap: '16px' }}>
 
         {/* LEFT - Documents list */}
-        <div className="tarsyn-docs-list" style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
+        <div className="UNIMUNITY-docs-list" style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
           <div style={{ padding: '16px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -368,7 +368,7 @@ export default function DocumentsPage() {
         </div>
 
         {/* RIGHT - Selected document + tabs */}
-        <div className="tarsyn-docs-detail" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, gap: '16px' }}>
+        <div className="UNIMUNITY-docs-detail" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, gap: '16px' }}>
 
           {!selectedDoc ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)' }}>
@@ -377,7 +377,7 @@ export default function DocumentsPage() {
           ) : (
             <>
               {/* Selected doc panel */}
-              <div className="tarsyn-docs-panel" style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="UNIMUNITY-docs-panel" style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: getFileIcon(selectedDoc.type).color, flexShrink: 0 }}>
                   {getFileIcon(selectedDoc.type).label}
                 </div>
@@ -385,7 +385,7 @@ export default function DocumentsPage() {
                   <p style={{ color: C.texteFonce, fontWeight: 800, fontSize: '15px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedDoc.name}</p>
                   <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>{formatSize(selectedDoc.size)} - {selectedDoc.category} - v{selectedDoc.version || 1}</p>
                 </div>
-                <div className="tarsyn-docs-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="UNIMUNITY-docs-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <a href={selectedDoc.url} target="_blank" rel="noreferrer" onClick={() => logAction('Previewed')}
                     style={{ background: C.ivoire, color: C.bleuFonce, border: `1.5px solid ${C.bleu}`, padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
                   <button onClick={handleDownload} style={{ background: C.bleu, color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Download</button>

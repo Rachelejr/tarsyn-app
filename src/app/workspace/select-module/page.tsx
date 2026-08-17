@@ -132,7 +132,7 @@ function ChooseModuleInner() {
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div>
-              <img src="/images/tarsyn-logo.png" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} />
+              <img src="/images/UNIMUNITY-logo.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
               <div style={{ color: 'rgba(251,238,221,0.9)', fontSize: '12px', fontWeight: 700, letterSpacing: '1.5px', marginTop: '4px' }}>YOUR COMMUNITY. YOUR POWER.</div>
             </div>
           </div>

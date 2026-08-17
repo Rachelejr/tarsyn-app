@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -152,7 +152,7 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
   const filtered = options.filter(o => o.toLowerCase().includes(query.toLowerCase()));
   return (
     <div style={{ position: 'relative' }}>
-      <button type="button" onClick={() => setOpen(o => !o)} className="tarsyn-field"
+      <button type="button" onClick={() => setOpen(o => !o)} className="UNIMUNITY-field"
         style={{ ...inp, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
         <span>{value}</span>
         <span style={{ color: C.texteGris, fontSize: '11px' }}>{'\u25be'}</span>
@@ -291,7 +291,7 @@ export default function CreateTontinePage() {
 
       const tontineCode = generateCode('TTN');
       const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
-      const inviteLink = `https://tarsyn-app.com/join/${inviteCode}`;
+      const inviteLink = `https://unimunity.com/join/${inviteCode}`;
 
       const docRef = await addDoc(collection(db, 'groups'), {
         organizerId: user.uid,
@@ -372,7 +372,7 @@ export default function CreateTontinePage() {
               emails: [m.email],
               tontineName: customName || selectedRegion?.name,
               region, contribution, currency, frequency, startDate,
-              inviteLink: `https://tarsyn-app.com/join/${m.inviteCode}`,
+              inviteLink: `https://unimunity.com/join/${m.inviteCode}`,
             }),
           })
         ));
@@ -396,37 +396,37 @@ export default function CreateTontinePage() {
 
   const sharedStyles = (
     <style jsx global>{`
-      .tarsyn-field:focus {
+      .UNIMUNITY-field:focus {
         border-color: ${C.dore} !important;
         box-shadow: 0 0 0 3px rgba(233,199,123,0.20);
         background: white !important;
       }
-      .tarsyn-btn { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
-      .tarsyn-btn:hover:not(:disabled) {
+      .UNIMUNITY-btn { transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease; }
+      .UNIMUNITY-btn:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: 0 8px 22px rgba(107,45,78,0.25);
         filter: brightness(1.03);
       }
-      .tarsyn-btn:active:not(:disabled) { transform: translateY(0); }
-      .tarsyn-pill { transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
-      .tarsyn-pill:hover { transform: translateY(-1px); }
-      .tarsyn-summary-value { transition: color 0.25s ease, font-size 0.25s ease; }
-      .tarsyn-privacy-card { transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease; }
-      .tarsyn-privacy-card:hover { transform: translateY(-1px); }
-      .tarsyn-tab { transition: background 0.2s ease, color 0.2s ease; }
+      .UNIMUNITY-btn:active:not(:disabled) { transform: translateY(0); }
+      .UNIMUNITY-pill { transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
+      .UNIMUNITY-pill:hover { transform: translateY(-1px); }
+      .UNIMUNITY-summary-value { transition: color 0.25s ease, font-size 0.25s ease; }
+      .UNIMUNITY-privacy-card { transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease; }
+      .UNIMUNITY-privacy-card:hover { transform: translateY(-1px); }
+      .UNIMUNITY-tab { transition: background 0.2s ease, color 0.2s ease; }
       @media (min-width: 769px) {
-        .tarsyn-live-summary { position: sticky; top: 24px; }
+        .UNIMUNITY-live-summary { position: sticky; top: 24px; }
       }
       @media (max-width: 768px) {
-        .tarsyn-tontine-grid { grid-template-columns: 1fr !important; }
-        .tarsyn-live-summary { position: relative !important; top: 0 !important; }
-        .tarsyn-row-3 { grid-template-columns: 1fr !important; }
-        .tarsyn-row-2 { grid-template-columns: 1fr !important; }
-        .tarsyn-tabs { overflow-x: auto; }
+        .UNIMUNITY-tontine-grid { grid-template-columns: 1fr !important; }
+        .UNIMUNITY-live-summary { position: relative !important; top: 0 !important; }
+        .UNIMUNITY-row-3 { grid-template-columns: 1fr !important; }
+        .UNIMUNITY-row-2 { grid-template-columns: 1fr !important; }
+        .UNIMUNITY-tabs { overflow-x: auto; }
       }
       @media (min-width: 769px) and (max-width: 1024px) {
-        .tarsyn-tontine-grid { grid-template-columns: 1fr !important; }
-        .tarsyn-live-summary { position: relative !important; top: 0 !important; }
+        .UNIMUNITY-tontine-grid { grid-template-columns: 1fr !important; }
+        .UNIMUNITY-live-summary { position: relative !important; top: 0 !important; }
       }
     `}</style>
   );
@@ -459,7 +459,7 @@ export default function CreateTontinePage() {
             <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 8px' }}>Invite Link</p>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <p style={{ color: C.bordeaux, fontSize: '12px', wordBreak: 'break-all', fontWeight: '600', flex: 1, margin: 0 }}>{savedGroup.inviteLink}</p>
-              <button className="tarsyn-btn" onClick={() => copyLink(savedGroup.inviteLink)}
+              <button className="UNIMUNITY-btn" onClick={() => copyLink(savedGroup.inviteLink)}
                 style={{ background: copied ? '#2E7D32' : C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', padding: '6px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {copied ? <Check size={13} /> : <CopyIcon size={13} />} {copied ? 'Copied' : 'Copy'}
               </button>
@@ -467,11 +467,11 @@ export default function CreateTontinePage() {
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <button className="tarsyn-btn" onClick={() => router.push('/dashboard/add-member')}
+          <button className="UNIMUNITY-btn" onClick={() => router.push('/dashboard/add-member')}
             style={{ background: C.dore, color: C.bordeaux, padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <UserPlus size={16} /> Invite Members
           </button>
-          <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
+          <button className="UNIMUNITY-btn" onClick={() => router.push('/dashboard')}
             style={{ background: C.bordeaux, color: 'white', padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             Dashboard <ArrowRight size={16} />
           </button>
@@ -511,11 +511,11 @@ export default function CreateTontinePage() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="tarsyn-btn" onClick={() => setShowReview(false)}
+          <button className="UNIMUNITY-btn" onClick={() => setShowReview(false)}
             style={{ flex: 1, background: C.creme, color: C.bordeaux, padding: '14px', borderRadius: '18px', border: `2px solid ${C.bordeaux}`, fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <ArrowLeft size={16} /> Edit
           </button>
-          <button className="tarsyn-btn" onClick={handleSubmit} disabled={saving}
+          <button className="UNIMUNITY-btn" onClick={handleSubmit} disabled={saving}
             style={{ flex: 2, background: C.bordeaux, color: 'white', padding: '14px', borderRadius: '18px', border: 'none', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             {saving ? 'Creating...' : <>Confirm & Create <Check size={16} /></>}
           </button>
@@ -527,13 +527,13 @@ export default function CreateTontinePage() {
   return (
     <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' }}>
       {sharedStyles}
-      <div className="tarsyn-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
+      <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
 
         <div>
           <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
 
             <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A5E 100%)`, padding: '20px 28px' }}>
-              <button className="tarsyn-btn" onClick={() => router.push('/dashboard')}
+              <button className="UNIMUNITY-btn" onClick={() => router.push('/dashboard')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ArrowLeft size={14} /> Back to Dashboard
               </button>
@@ -541,9 +541,9 @@ export default function CreateTontinePage() {
               <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
             </div>
 
-            <div className="tarsyn-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
+            <div className="UNIMUNITY-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
               {TABS.map(t => (
-                <button key={t.key} className="tarsyn-tab" onClick={() => setActiveTab(t.key)}
+                <button key={t.key} className="UNIMUNITY-tab" onClick={() => setActiveTab(t.key)}
                   style={{
                     padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer',
                     fontSize: '13px', fontWeight: activeTab === t.key ? '700' : '500',
@@ -561,10 +561,10 @@ export default function CreateTontinePage() {
 
               {activeTab === 'identity' && (
                 <Card title="Region & Identity">
-                  <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                     <div>
                       <FieldLabel label="Region / Country" required />
-                      <select className="tarsyn-field" value={region} onChange={e => setRegion(e.target.value)} style={inp}>
+                      <select className="UNIMUNITY-field" value={region} onChange={e => setRegion(e.target.value)} style={inp}>
                         <option value="">{'\u2014' + ' Select a country or region ' + '\u2014'}</option>
                         {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} {'\u2014'} {r.name}</option>)}
                       </select>
@@ -581,7 +581,7 @@ export default function CreateTontinePage() {
                   </div>
                   <div>
                     <FieldLabel label="Tontine Name" required />
-                    <input className="tarsyn-field" type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="e.g. My Sol 2026" style={inp} />
+                    <input className="UNIMUNITY-field" type="text" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="e.g. My Sol 2026" style={inp} />
                   </div>
                 </Card>
               )}
@@ -589,31 +589,31 @@ export default function CreateTontinePage() {
               {activeTab === 'finance' && (
                 <>
                   <Card title="Financial Settings">
-                    <div className="tarsyn-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    <div className="UNIMUNITY-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                       <div>
                         <FieldLabel label="Number of Members" required />
-                        <input className="tarsyn-field" type="number" value={numMembers} onChange={e => setNumMembers(e.target.value)} min={2} max={500} placeholder="e.g. 12" style={inp} />
+                        <input className="UNIMUNITY-field" type="number" value={numMembers} onChange={e => setNumMembers(e.target.value)} min={2} max={500} placeholder="e.g. 12" style={inp} />
                       </div>
                       <div>
                         <FieldLabel label="Contribution Amount" required />
-                        <input className="tarsyn-field" type="number" value={contribution} onChange={e => setContribution(e.target.value)} min={1} placeholder="e.g. 200" style={inp} />
+                        <input className="UNIMUNITY-field" type="number" value={contribution} onChange={e => setContribution(e.target.value)} min={1} placeholder="e.g. 200" style={inp} />
                       </div>
                       <div>
                         <FieldLabel label="Currency" />
-                        <select className="tarsyn-field" value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
+                        <select className="UNIMUNITY-field" value={currency} onChange={e => setCurrency(e.target.value)} style={inp}>
                           {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
                         </select>
                       </div>
                     </div>
-                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <FieldLabel label="Start Date" required />
-                        <input className="tarsyn-field" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                        <input className="UNIMUNITY-field" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
                           min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} style={inp} />
                       </div>
                       <div>
                         <FieldLabel label="Payment Frequency" />
-                        <select className="tarsyn-field" value={frequency} onChange={e => setFrequency(e.target.value)} style={inp}>
+                        <select className="UNIMUNITY-field" value={frequency} onChange={e => setFrequency(e.target.value)} style={inp}>
                           {FREQUENCIES.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
                       </div>
@@ -629,27 +629,27 @@ export default function CreateTontinePage() {
                     </p>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: depositMode !== 'No Deposit' ? '16px' : 0, flexWrap: 'wrap' }}>
                       {DEPOSIT_MODES.map(d => (
-                        <button key={d} className="tarsyn-pill" onClick={() => setDepositMode(d)}
+                        <button key={d} className="UNIMUNITY-pill" onClick={() => setDepositMode(d)}
                           style={{ padding: '8px 16px', borderRadius: '20px', border: `2px solid ${depositMode === d ? C.bordeaux : C.roseMoyen}`, background: depositMode === d ? C.bordeaux : 'white', color: depositMode === d ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px' }}>
                           {d}
                         </button>
                       ))}
                     </div>
                     {depositMode !== 'No Deposit' && (
-                      <div className="tarsyn-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                      <div className="UNIMUNITY-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                         <div>
                           <FieldLabel label="Deposit Amount" />
-                          <select className="tarsyn-field" value={depositMultiplier} onChange={e => setDepositMultiplier(e.target.value)} style={inp}>
+                          <select className="UNIMUNITY-field" value={depositMultiplier} onChange={e => setDepositMultiplier(e.target.value)} style={inp}>
                             {DEPOSIT_MULTIPLIERS.map(m => <option key={m} value={m}>{m}</option>)}
                           </select>
                           {depositMultiplier === 'Custom Amount' && (
-                            <input className="tarsyn-field" type="number" value={depositCustomAmount} onChange={e => setDepositCustomAmount(e.target.value)}
+                            <input className="UNIMUNITY-field" type="number" value={depositCustomAmount} onChange={e => setDepositCustomAmount(e.target.value)}
                               placeholder="e.g. 50" style={{ ...inp, marginTop: '8px' }} />
                           )}
                         </div>
                         <div>
                           <FieldLabel label="Refund Policy" />
-                          <select className="tarsyn-field" value={refundPolicy} onChange={e => setRefundPolicy(e.target.value)} style={inp}>
+                          <select className="UNIMUNITY-field" value={refundPolicy} onChange={e => setRefundPolicy(e.target.value)} style={inp}>
                             {REFUND_POLICIES.map(r => <option key={r} value={r}>{r}</option>)}
                           </select>
                         </div>
@@ -672,12 +672,12 @@ export default function CreateTontinePage() {
                     <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 12px' }}>
                       Required. Set the commission rate and the minimum pool amount it applies to.
                     </p>
-                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <FieldLabel label="Commission Rate" required />
                         <div style={{ display: 'flex', gap: '8px' }}>
                           {COMMISSIONS.map(c => (
-                            <button key={c} className="tarsyn-pill" onClick={() => setCommission(c)}
+                            <button key={c} className="UNIMUNITY-pill" onClick={() => setCommission(c)}
                               style={{ flex: 1, padding: '9px 0', borderRadius: '12px', border: `2px solid ${commission === c ? C.bordeaux : C.roseMoyen}`, background: commission === c ? C.bordeaux : 'white', color: commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
                               {c}
                             </button>
@@ -686,7 +686,7 @@ export default function CreateTontinePage() {
                       </div>
                       <div>
                         <FieldLabel label="Applies From (minimum pool amount)" required />
-                        <input className="tarsyn-field" type="number" value={commissionThreshold} onChange={e => setCommissionThreshold(e.target.value)} min={1} placeholder={`e.g. 100 ${currency}`} style={inp} />
+                        <input className="UNIMUNITY-field" type="number" value={commissionThreshold} onChange={e => setCommissionThreshold(e.target.value)} min={1} placeholder={`e.g. 100 ${currency}`} style={inp} />
                         <p style={{ fontSize: '11px', color: C.texteGris, margin: '6px 0 0' }}>
                           Commission of {commission} is taken only once the total pool reaches this amount.
                         </p>
@@ -699,22 +699,22 @@ export default function CreateTontinePage() {
               {activeTab === 'rotation' && (
                 <>
                   <Card title="Rotation & Payment Settings">
-                    <div className="tarsyn-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                    <div className="UNIMUNITY-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       <div>
                         <FieldLabel label="Rotation Type" />
-                        <select className="tarsyn-field" value={rotationType} onChange={e => setRotationType(e.target.value)} style={inp}>
+                        <select className="UNIMUNITY-field" value={rotationType} onChange={e => setRotationType(e.target.value)} style={inp}>
                           {ROTATION_TYPES.map(r => <option key={r}>{r}</option>)}
                         </select>
                       </div>
                       <div>
                         <FieldLabel label="Payment Method" />
-                        <select className="tarsyn-field" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={inp}>
+                        <select className="UNIMUNITY-field" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={inp}>
                           {PAYMENT_METHODS.map(p => <option key={p}>{p}</option>)}
                         </select>
                       </div>
                       <div>
                         <FieldLabel label="Position Strategy" />
-                        <select className="tarsyn-field" value={positionStrategy} onChange={e => setPositionStrategy(e.target.value)} style={inp}>
+                        <select className="UNIMUNITY-field" value={positionStrategy} onChange={e => setPositionStrategy(e.target.value)} style={inp}>
                           {POSITION_STRATEGIES.map(p => <option key={p}>{p}</option>)}
                         </select>
                       </div>
@@ -752,22 +752,22 @@ export default function CreateTontinePage() {
                   <Card title="Rules">
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                       {RULES_TEMPLATES.map(t => (
-                        <button key={t.label} className="tarsyn-pill" onClick={() => { setRulesTemplate(t.label); setRules(t.text); }}
+                        <button key={t.label} className="UNIMUNITY-pill" onClick={() => { setRulesTemplate(t.label); setRules(t.text); }}
                           style={{ padding: '6px 16px', borderRadius: '20px', border: `2px solid ${rulesTemplate === t.label ? C.bordeaux : C.roseMoyen}`, background: rulesTemplate === t.label ? C.bordeaux : 'white', color: rulesTemplate === t.label ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
                           {t.label}
                         </button>
                       ))}
                     </div>
-                    <textarea className="tarsyn-field" value={rules} onChange={e => setRules(e.target.value)} rows={3}
+                    <textarea className="UNIMUNITY-field" value={rules} onChange={e => setRules(e.target.value)} rows={3}
                       placeholder="Group rules..." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
                   </Card>
 
                   <Card title="Privacy Mode">
-                    <div className="tarsyn-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                    <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
                       {PRIVACY_MODES.map(p => {
                         const isActive = privacyMode === p.value;
                         return (
-                          <button key={p.value} type="button" className="tarsyn-privacy-card" onClick={() => setPrivacyMode(p.value)}
+                          <button key={p.value} type="button" className="UNIMUNITY-privacy-card" onClick={() => setPrivacyMode(p.value)}
                             style={{ border: `2px solid ${isActive ? C.bordeaux : C.roseMoyen}`, borderRadius: '12px', padding: '8px 12px', cursor: 'pointer', background: isActive ? C.roseClair : 'white', textAlign: 'left', font: 'inherit' }}>
                             <p style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', margin: '0 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               {p.value}
@@ -809,11 +809,11 @@ export default function CreateTontinePage() {
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <input className="tarsyn-field" type="email" value={emailInput} onChange={e => setEmailInput(e.target.value)}
+                      <input className="UNIMUNITY-field" type="email" value={emailInput} onChange={e => setEmailInput(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && addEmail()}
                         placeholder="e.g. member@gmail.com"
                         style={{ ...inp, flex: 1, background: 'white' }} />
-                      <button className="tarsyn-btn" onClick={addEmail}
+                      <button className="UNIMUNITY-btn" onClick={addEmail}
                         style={{ padding: '10px 16px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <UserPlus size={14} /> Add
                       </button>
@@ -835,7 +835,7 @@ export default function CreateTontinePage() {
                     <span key={t.key} style={{ width: '6px', height: '6px', borderRadius: '50%', background: TABS.findIndex(x => x.key === activeTab) >= i ? C.bordeaux : '#E8DCC8' }} />
                   ))}
                 </div>
-                <button className="tarsyn-btn" onClick={handleReview} disabled={!isFormValid || saving}
+                <button className="UNIMUNITY-btn" onClick={handleReview} disabled={!isFormValid || saving}
                   style={{ padding: '13px 26px', background: !isFormValid ? '#E8DCC8' : C.bordeaux, color: !isFormValid ? '#9C8F78' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {saving ? 'Creating...' : <>Create Tontine <ArrowRight size={16} /></>}
                 </button>
@@ -847,7 +847,7 @@ export default function CreateTontinePage() {
           </div>
         </div>
 
-        <div className="tarsyn-live-summary">
+        <div className="UNIMUNITY-live-summary">
           <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
             <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 10px', letterSpacing: '-0.1px' }}>Live Summary</h3>
 
@@ -874,13 +874,13 @@ export default function CreateTontinePage() {
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
                 <span style={{ color: C.texteGris, fontSize: '12px' }}>{item.label}</span>
-                <span className="tarsyn-summary-value" style={{ color: (item as any).gold ? C.dore : C.texteFonce, fontWeight: (item as any).gold ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
+                <span className="UNIMUNITY-summary-value" style={{ color: (item as any).gold ? C.dore : C.texteFonce, fontWeight: (item as any).gold ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
               </div>
             ))}
             {totalPool > 0 && (
               <div style={{ marginTop: '14px', background: `linear-gradient(135deg, ${C.bordeaux}, #8B3A5E)`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
                 <p style={{ color: C.roseClair, fontSize: '11px', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL POOL</p>
-                <p className="tarsyn-summary-value" style={{ color: C.dore, fontSize: '22px', fontWeight: '800', margin: '0' }}>{totalPool} {currency}</p>
+                <p className="UNIMUNITY-summary-value" style={{ color: C.dore, fontSize: '22px', fontWeight: '800', margin: '0' }}>{totalPool} {currency}</p>
               </div>
             )}
             <div style={{ marginTop: '14px' }}>

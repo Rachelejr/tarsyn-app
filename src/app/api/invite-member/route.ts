@@ -12,19 +12,19 @@ export async function POST(req: NextRequest) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'TARSYN <noreply@tarsyn-app.com>',
+      from: 'UNIMUNITY <noreply@unimunity.com>',
       to: memberEmail,
-      subject: `🎉 You've been invited to join ${groupName} on TARSYN`,
+      subject: `🎉 You've been invited to join ${groupName} on UNIMUNITY`,
       html: `
         <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 auto; background: #FAF0E6; padding: 32px; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <img src="https://tarsyn-app.com/tarsyn-logo.svg" alt="TARSYN" style="height: 40px; width: auto; max-width: 200px;" />
+            <img src="https://unimunity.com/unimunity-logo.png" alt="UNIMUNITY" style="height: 48px; width: auto; max-width: 220px;" />
           </div>
           <h2 style="color: #6B2D4E; font-size: 22px; font-weight: 800; margin: 0 0 8px;">
             Hello ${memberName} 👋
           </h2>
           <p style="color: #7A5068; font-size: 15px; margin: 0 0 24px;">
-            <strong>${adminName}</strong> has invited you to join <strong>${groupName}</strong> on TARSYN.
+            <strong>${adminName}</strong> has invited you to join <strong>${groupName}</strong> on UNIMUNITY.
           </p>
           <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
             <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Group</p>

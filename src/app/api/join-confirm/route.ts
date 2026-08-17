@@ -86,13 +86,13 @@ export async function POST(req: NextRequest) {
         const organizerEmail = organizerUser.email;
         if (organizerEmail) {
           await resend.emails.send({
-            from: 'TARSYN <noreply@tarsyn-app.com>',
+            from: 'UNIMUNITY <noreply@unimunity.com>',
             to: organizerEmail,
-            subject: memberName + ' is now active on TARSYN',
+            subject: memberName + ' is now active on UNIMUNITY',
             html:
               '<div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
               '<div style="text-align: center; margin-bottom: 20px;">' +
-              '<img src="https://tarsyn-app.com/tarsyn-logo.svg" alt="TARSYN" style="height: 36px; width: auto; max-width: 180px;" />' +
+              '<img src="https://unimunity.com/unimunity-logo.png" alt="UNIMUNITY" style="height: 44px; width: auto; max-width: 200px;" />' +
               '</div>' +
               '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Good news - a member just joined</h2>' +
               '<div style="background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">' +
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
               (groupName ? '<p style="color: #7A5068; font-size: 13px; margin: 0;">Group: ' + groupName + '</p>' : '') +
               '</div>' +
               '<p style="color: #7A5068; font-size: 13px; margin: 0;">They have successfully created their account and can now view their payment grid and pay their contribution online.</p>' +
-              '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by TARSYN(TM) - Ma Production Luxenn Zara LLC</p>' +
+              '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
               '</div>',
           });
         }

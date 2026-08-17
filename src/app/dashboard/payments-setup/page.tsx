@@ -108,7 +108,7 @@ function PaymentsSetupContent() {
           <div style={{ width: 48, height: 48, borderRadius: 13, background: C.blanc, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20, color: C.or }}>$</div>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Payments Setup</h1>
-            <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Connect your bank account so members can pay you directly through TARSYN.</p>
+            <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Connect your bank account so members can pay you directly through UNIMUNITY.</p>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ function PaymentsSetupContent() {
           ) : (
             <div>
               <p style={{ fontSize: 14, color: C.text, margin: '0 0 18px', lineHeight: 1.6 }}>
-                You have not connected a bank account yet. Once connected, members will be able to pay their contributions by card directly through TARSYN, and the money goes straight to your own bank account - TARSYN never holds your funds.
+                You have not connected a bank account yet. Once connected, members will be able to pay their contributions by card directly through UNIMUNITY, and the money goes straight to your own bank account - UNIMUNITY never holds your funds.
               </p>
               <button onClick={handleConnect} disabled={starting}
                 style={{ background: C.bordeaux, color: C.blanc, border: 'none', borderRadius: 10, padding: '12px 22px', fontSize: 14, fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', opacity: starting ? 0.7 : 1 }}>
@@ -164,7 +164,7 @@ function PaymentsSetupContent() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 40, letterSpacing: 0.3 }}>
-          Powered by TARSYNTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
+          Powered by UNIMUNITYTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
         </p>
       </div>
     </div>

@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
     <div style={{minHeight:'100vh',background:'#FBEEDD',display:'flex',flexDirection:'column'}}>
       <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
         <div>
-          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
           <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
         </div>
       </nav>
@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
                 <div style={{fontWeight:'700',marginBottom:'8px'}}>📋 Next steps:</div>
                 <div style={{lineHeight:'1.8'}}>
                   1. Open your email inbox<br/>
-                  2. Click the reset link from TARSYN<br/>
+                  2. Click the reset link from UNIMUNITY<br/>
                   3. Create a new password<br/>
                   4. Come back and sign in
                 </div>
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
-        <span style={{color:'#E9C77B',fontWeight:700}}>TARSYN&trade;</span>{' '}
+        <span style={{color:'#E9C77B',fontWeight:700}}>UNIMUNITY&trade;</span>{' '}
         <span>A product of <strong style={{color:'rgba(251,238,221,0.9)'}}>Ma Production Luxenn Zara LLC</strong></span>
         {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
       </footer>

@@ -58,7 +58,7 @@ function MemberContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
-  const [branding, setBranding] = useState<{ slogan?: string; primaryColor?: string; secondaryColor?: string; logo?: string; showTarsynBadge?: boolean; enabled?: boolean } | null>(null);
+  const [branding, setBranding] = useState<{ slogan?: string; primaryColor?: string; secondaryColor?: string; logo?: string; showUNIMUNITYBadge?: boolean; enabled?: boolean } | null>(null);
   const [activity, setActivity] = useState<any[]>([]);
 
   // --- Payment grid (member view) state ---
@@ -523,7 +523,7 @@ function MemberContent() {
   const weeksToShow = showAllWeeks ? weekKeysSorted : weekKeysSorted.slice(0, 8);
 
   return (
-    <div className="tarsyn-mem-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
+    <div className="UNIMUNITY-mem-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{__html: `
         .cat-pill{transition:all 0.15s ease;cursor:pointer;}
         .doc-row{transition:all 0.15s ease;}
@@ -533,47 +533,47 @@ function MemberContent() {
         .qa-btn{transition:all 0.15s ease;cursor:pointer;}
         .qa-btn:hover{transform:translateY(-1px);}
         .pay-cell{transition:all 0.15s ease;}
-        .tarsyn-group-name{
+        .UNIMUNITY-group-name{
           background: linear-gradient(90deg, #E9C77B 0%, #FFF6E0 20%, #E9C77B 40%, #E9C77B 100%);
           background-size: 200% auto;
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
           display: inline-block;
-          animation: tarsyn-shimmer 4s linear infinite, tarsyn-slide 3s ease-in-out infinite;
+          animation: UNIMUNITY-shimmer 4s linear infinite, UNIMUNITY-slide 3s ease-in-out infinite;
         }
-        @keyframes tarsyn-shimmer {
+        @keyframes UNIMUNITY-shimmer {
           0% { background-position: 0% center; }
           100% { background-position: -200% center; }
         }
-        @keyframes tarsyn-slide {
+        @keyframes UNIMUNITY-slide {
           0%, 100% { transform: translateX(-6px); }
           50% { transform: translateX(6px); }
         }
-        .tarsyn-pay-now-btn{ animation: tarsyn-pulse 2.2s ease-in-out infinite; }
-        @keyframes tarsyn-pulse {
+        .UNIMUNITY-pay-now-btn{ animation: UNIMUNITY-pulse 2.2s ease-in-out infinite; }
+        @keyframes UNIMUNITY-pulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(107,45,78,0.35); }
           50% { box-shadow: 0 0 0 8px rgba(107,45,78,0); }
         }
         @media (max-width: 1050px) {
-          .tarsyn-mem-grid { grid-template-columns: 240px 1fr !important; }
-          .tarsyn-mem-right { display: none !important; }
+          .UNIMUNITY-mem-grid { grid-template-columns: 240px 1fr !important; }
+          .UNIMUNITY-mem-right { display: none !important; }
         }
         @media (max-width: 700px) {
-          .tarsyn-mem-root { height: auto !important; overflow: visible !important; }
-          .tarsyn-mem-grid { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
-          .tarsyn-mem-left, .tarsyn-mem-center { overflow: visible !important; max-height: none !important; position: static !important; }
-          .tarsyn-mem-nav { padding: 12px 16px !important; }
+          .UNIMUNITY-mem-root { height: auto !important; overflow: visible !important; }
+          .UNIMUNITY-mem-grid { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
+          .UNIMUNITY-mem-left, .UNIMUNITY-mem-center { overflow: visible !important; max-height: none !important; position: static !important; }
+          .UNIMUNITY-mem-nav { padding: 12px 16px !important; }
         }
       `}} />
 
-      <nav className="tarsyn-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', position: 'relative', zIndex: 3 }}>
+      <nav className="UNIMUNITY-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', position: 'relative', zIndex: 3 }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           {effectiveBranding?.logo && (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
           )}
           <div>
-            <div className="tarsyn-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'TARSYN'}</div>
+            <div className="UNIMUNITY-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'UNIMUNITY'}</div>
             {effectiveBranding?.slogan && (
               <div style={{ color: 'rgba(233,199,123,0.7)', fontSize: '10px', letterSpacing: '0.05em', marginTop: '2px' }}>{effectiveBranding.slogan}</div>
             )}
@@ -620,12 +620,12 @@ function MemberContent() {
       </div>
 
       {/* 3-column grid */}
-      <div className="tarsyn-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px', minHeight: 0 }}>
+      <div className="UNIMUNITY-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px', minHeight: 0 }}>
 
         {/* LEFT - Group Info */}
-        <div className="tarsyn-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
+        <div className="UNIMUNITY-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
           <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
-            <h1 className="tarsyn-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word' }}>{groupName || 'Your Group'}</h1>
+            <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word' }}>{groupName || 'Your Group'}</h1>
             {activeMember && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
@@ -690,7 +690,7 @@ function MemberContent() {
                   <p style={{ fontSize: '11px', color: C.success, margin: '0 0 10px', fontWeight: 700 }}>All caught up!</p>
                 )}
 
-                <button onClick={handleOpenPayModal} className="tarsyn-pay-now-btn"
+                <button onClick={handleOpenPayModal} className="UNIMUNITY-pay-now-btn"
                   style={{ width: '100%', padding: '9px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', marginBottom: '4px' }}>
                   Pay Now
                 </button>
@@ -742,7 +742,7 @@ function MemberContent() {
         </div>
 
         {/* CENTER - Documents (main) */}
-        <div className="tarsyn-mem-center" style={{ padding: '24px 26px', overflowY: 'auto' }}>
+        <div className="UNIMUNITY-mem-center" style={{ padding: '24px 26px', overflowY: 'auto' }}>
 
           {/* My Payment Grid (full table, read-only, this member's rows only) */}
           {myPayments && (
@@ -882,17 +882,17 @@ function MemberContent() {
             </div>
           )}
 
-          {(!effectiveBranding?.logo || effectiveBranding?.showTarsynBadge !== false) && (
+          {(!effectiveBranding?.logo || effectiveBranding?.showUNIMUNITYBadge !== false) && (
             <div style={{ textAlign: 'center', padding: '18px 0 4px' }}>
               <span style={{ color: C.texteGris, fontSize: '11px', opacity: 0.7 }}>
-                Powered by TARSYN{'\u2122'} {'\u00b7'} A product of Ma Production Luxenn Zara LLC {'\u00b7'} {'\u00a9'} 2026 All Rights Reserved {'\u00b7'} Version 1.0.0
+                Powered by UNIMUNITY{'\u2122'} {'\u00b7'} A product of Ma Production Luxenn Zara LLC {'\u00b7'} {'\u00a9'} 2026 All Rights Reserved {'\u00b7'} Version 1.0.0
               </span>
             </div>
           )}
         </div>
 
         {/* RIGHT - Activity / Insights */}
-        <div className="tarsyn-mem-right" style={{ borderLeft: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto', background: C.creme }}>
+        <div className="UNIMUNITY-mem-right" style={{ borderLeft: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto', background: C.creme }}>
           <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>Recent uploads</p>
           {recentUploads.length === 0 ? (
             <p style={{ color: C.muted, fontSize: '12px', marginBottom: '20px' }}>No documents yet.</p>

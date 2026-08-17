@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        metadata: { tarsynUserId: uid },
+        metadata: { UNIMUNITYUserId: uid },
       });
       accountId = account.id;
 

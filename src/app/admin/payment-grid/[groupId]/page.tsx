@@ -327,13 +327,13 @@ export default function PaymentGridPage() {
           const amountLabel = memberAmount ? '$' + memberAmount.toLocaleString() : 'Amount not set';
           const receiptHtml =
             '<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">' +
-            '<h2 style="color:#6B2D4E;">TARSYN Payment Receipt</h2>' +
+            '<h2 style="color:#6B2D4E;">UNIMUNITY Payment Receipt</h2>' +
             '<p><strong>Group:</strong> ' + groupName + '</p>' +
             '<p><strong>Member:</strong> ' + slot.memberName + '</p>' +
             '<p><strong>Week:</strong> W' + weekIdx + ' (' + weekDate + ')</p>' +
             '<p><strong>Amount:</strong> ' + amountLabel + '</p>' +
             '<p><strong>Status:</strong> Paid</p>' +
-            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYN(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
+            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by UNIMUNITY(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
             '</body></html>';
           const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 
@@ -654,30 +654,30 @@ export default function PaymentGridPage() {
   return (
     <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 20px' }}>
       <style>{`
-        .tarsyn-cell { transition: all 0.15s ease; }
-        .tarsyn-cell:hover .tarsyn-box {
+        .UNIMUNITY-cell { transition: all 0.15s ease; }
+        .UNIMUNITY-cell:hover .UNIMUNITY-box {
           outline: 2px solid ${C.or};
           outline-offset: 1px;
         }
-        .tarsyn-group-name-admin{
+        .UNIMUNITY-group-name-admin{
           background: linear-gradient(90deg, ${C.bordeaux} 0%, #A85578 20%, ${C.bordeaux} 40%, ${C.bordeaux} 100%);
           background-size: 200% auto;
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
           display: inline-block;
-          animation: tarsyn-shimmer-admin 4s linear infinite, tarsyn-slide-admin 3s ease-in-out infinite;
+          animation: UNIMUNITY-shimmer-admin 4s linear infinite, UNIMUNITY-slide-admin 3s ease-in-out infinite;
         }
-        @keyframes tarsyn-shimmer-admin {
+        @keyframes UNIMUNITY-shimmer-admin {
           0% { background-position: 0% center; }
           100% { background-position: -200% center; }
         }
-        @keyframes tarsyn-slide-admin {
+        @keyframes UNIMUNITY-slide-admin {
           0%, 100% { transform: translateX(-6px); }
           50% { transform: translateX(6px); }
         }
         @media print {
-          .tarsyn-no-print { display: none !important; }
+          .UNIMUNITY-no-print { display: none !important; }
         }
       `}</style>
 
@@ -711,7 +711,7 @@ export default function PaymentGridPage() {
             </div>
             <div>
               <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
-                Payment Grid -{' '}<span className="tarsyn-group-name-admin" style={{ marginLeft: 6 }}>{groupName}</span>
+                Payment Grid -{' '}<span className="UNIMUNITY-group-name-admin" style={{ marginLeft: 6 }}>{groupName}</span>
               </h1>
               <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
                 Track every member&apos;s weekly contributions.
@@ -720,7 +720,7 @@ export default function PaymentGridPage() {
           </div>
 
           {/* Primary action bar */}
-          <div className="tarsyn-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="UNIMUNITY-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => router.push('/dashboard/overview?groupId=' + groupId)} style={btnStyle('secondary')}>
               ← Overview
             </button>
@@ -744,7 +744,7 @@ export default function PaymentGridPage() {
         {/* Unsaved changes banner */}
         {hasChanges && (
           <div
-            className="tarsyn-no-print"
+            className="UNIMUNITY-no-print"
             style={{
               background: C.warningBg,
               border: '1px solid ' + C.or,
@@ -816,7 +816,7 @@ export default function PaymentGridPage() {
 
         {/* Period calendar + search */}
         <div
-          className="tarsyn-no-print"
+          className="UNIMUNITY-no-print"
           style={{
             display: 'flex',
             gap: 10,
@@ -876,7 +876,7 @@ export default function PaymentGridPage() {
 
         {showStartDateEditor && (
           <div
-            className="tarsyn-no-print"
+            className="UNIMUNITY-no-print"
             style={{
               background: C.warningBg,
               border: '1px solid ' + C.or,
@@ -946,7 +946,7 @@ export default function PaymentGridPage() {
 
         {/* Week navigation + quick actions */}
         <div
-          className="tarsyn-no-print"
+          className="UNIMUNITY-no-print"
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -1111,7 +1111,7 @@ export default function PaymentGridPage() {
                       return (
                         <td
                           key={weekIdx}
-                          className="tarsyn-cell"
+                          className="UNIMUNITY-cell"
                           onClick={() => toggleQueuedPayment(slotNum, weekIdx)}
                           style={{
                             textAlign: 'center',
@@ -1120,7 +1120,7 @@ export default function PaymentGridPage() {
                           }}
                         >
                           <div
-                            className="tarsyn-box"
+                            className="UNIMUNITY-box"
                             style={{
                               width: 30,
                               height: 30,
@@ -1158,7 +1158,7 @@ export default function PaymentGridPage() {
 
         {/* Footer */}
         <div
-          className="tarsyn-no-print"
+          className="UNIMUNITY-no-print"
           style={{
             marginTop: 28,
             paddingTop: 18,
@@ -1168,7 +1168,7 @@ export default function PaymentGridPage() {
             color: C.texteGris,
           }}
         >
-          Powered by TARSYN™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
+          Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
           Rights Reserved · v1.0.0
         </div>
       </div>

@@ -84,7 +84,7 @@ export default function RegisterPage() {
               <div style={{fontWeight:'700',marginBottom:'8px'}}>📋 Next steps:</div>
               <div style={{lineHeight:'1.8'}}>
                 1. Open your email inbox<br/>
-                2. Click the verification link from TARSYN<br/>
+                2. Click the verification link from UNIMUNITY<br/>
                 3. Come back and sign in<br/>
                 4. You'll receive a 2FA code for extra security
               </div>
@@ -117,7 +117,7 @@ export default function RegisterPage() {
           <div style={{textAlign:'center',marginBottom:'32px'}}>
             <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>✦</div>
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
-            <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join your <strong style={{color:'#E9C77B'}}>TARSYN</strong> community</p>
+            <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join your <strong style={{color:'#E9C77B'}}>UNIMUNITY</strong> community</p>
           </div>
 
           {/* Badge sécurité */}
@@ -207,7 +207,7 @@ export default function RegisterPage() {
               <input type="checkbox" id="terms" checked={agreed} onChange={e=>setAgreed(e.target.checked)}
                 style={{marginTop:'2px',accentColor:'#6B2D4E',width:'16px',height:'16px',cursor:'pointer'}}/>
               <label htmlFor="terms" style={{fontSize:'12px',color:'#6B2D4E',lineHeight:'1.6',cursor:'pointer'}}>
-                I agree to TARSYN's <a href="#" style={{color:'#8B3A5E',fontWeight:'600'}}>Terms & Conditions</a> and <a href="#" style={{color:'#8B3A5E',fontWeight:'600'}}>Privacy Policy</a>. I understand that my data is protected and isolated from other groups.
+                I agree to UNIMUNITY's <a href="#" style={{color:'#8B3A5E',fontWeight:'600'}}>Terms & Conditions</a> and <a href="#" style={{color:'#8B3A5E',fontWeight:'600'}}>Privacy Policy</a>. I understand that my data is protected and isolated from other groups.
               </label>
             </div>
 
@@ -241,7 +241,7 @@ function Nav() {
   return (
     <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
       <div>
-        <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+        <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
         <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px'}}>YOUR COMMUNITY. YOUR POWER.</div>
       </div>
     </nav>
@@ -251,7 +251,7 @@ function Nav() {
 function Footer() {
   return (
     <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
-      <span style={{color:'#E9C77B',fontWeight:700}}>TARSYN&trade;</span>{' '}
+      <span style={{color:'#E9C77B',fontWeight:700}}>UNIMUNITY&trade;</span>{' '}
       <span>A product of <strong style={{color:'rgba(251,238,221,0.9)'}}>Ma Production Luxenn Zara LLC</strong></span>
       {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
     </footer>

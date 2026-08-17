@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -94,9 +94,9 @@ function ReportsContent() {
 
   if (!mounted || groupsLoading) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '18px' }}>
-      <style>{`@keyframes tarsyn-spin { to { transform: rotate(360deg); } }`}</style>
-      <img src="/tarsyn-logo.svg" alt="TARSYN" style={{ height: '52px', width: 'auto' }} />
-      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'tarsyn-spin 0.8s linear infinite' }} />
+      <style>{`@keyframes UNIMUNITY-spin { to { transform: rotate(360deg); } }`}</style>
+      <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', width: 'auto' }} />
+      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'UNIMUNITY-spin 0.8s linear infinite' }} />
     </div>
   );
 
@@ -125,7 +125,7 @@ function ReportsContent() {
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'tarsyn-report.csv'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'UNIMUNITY-report.csv'; a.click();
   };
 
   const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5 };
@@ -229,7 +229,7 @@ function ReportsContent() {
         )}
 
         <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 32, letterSpacing: 0.3 }}>
-          Powered by TARSYN - A product of Ma Production Luxenn Zara LLC - 2026 All Rights Reserved - v1.0.0
+          Powered by UNIMUNITY - A product of Ma Production Luxenn Zara LLC - 2026 All Rights Reserved - v1.0.0
         </p>
       </div>
     </div>

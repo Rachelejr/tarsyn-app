@@ -6,8 +6,8 @@ import { Resend } from 'resend';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const ADMIN_NOTIFICATION_EMAIL = 'sales@tarsyn-app.com';
-const SUPPORT_LOG_EMAIL = 'support@tarsyn-app.com';
+const ADMIN_NOTIFICATION_EMAIL = 'sales@unimunity.com';
+const SUPPORT_LOG_EMAIL = 'support@unimunity.com';
 
 const PRICE_ID_TO_PLAN_NAME: Record<string, string> = {
   'price_1TkzC7JBtj4UALaPm0ZOEB1T': 'Starter (monthly)',
@@ -34,7 +34,7 @@ async function sendSubscriptionCreatedNotification(params: {
     : 'N/A';
   const timestamp = new Date().toISOString();
 
-  const subject = `New TARSYN Subscription - ${planLabel}`;
+  const subject = `New UNIMUNITY Subscription - ${planLabel}`;
   const htmlBody = `
     <h2>New subscription created</h2>
     <p><strong>Customer:</strong> ${customerName || 'N/A'} (${customerEmail || 'N/A'})</p>
@@ -47,7 +47,7 @@ async function sendSubscriptionCreatedNotification(params: {
 
   try {
     await resend.emails.send({
-      from: 'noreply@tarsyn-app.com',
+      from: 'noreply@unimunity.com',
       to: ADMIN_NOTIFICATION_EMAIL,
       subject,
       html: htmlBody,
@@ -59,7 +59,7 @@ async function sendSubscriptionCreatedNotification(params: {
 
   try {
     await resend.emails.send({
-      from: 'noreply@tarsyn-app.com',
+      from: 'noreply@unimunity.com',
       to: SUPPORT_LOG_EMAIL,
       subject: `[Log] ${subject}`,
       html: htmlBody,
@@ -209,13 +209,13 @@ export async function POST(req: NextRequest) {
             const weeksLabel = weekIdxList.map((w: string) => 'W' + w).join(', ');
             const receiptHtml =
               '<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">' +
-              '<h2 style="color:#6B2D4E;">TARSYN Payment Receipt</h2>' +
+              '<h2 style="color:#6B2D4E;">UNIMUNITY Payment Receipt</h2>' +
               '<p><strong>Member:</strong> ' + (memberData.fullName || memberData.name || '') + '</p>' +
               '<p><strong>Weeks:</strong> ' + weeksLabel + '</p>' +
               '<p><strong>Amount:</strong> ' + currencyLabel + ' ' + contributionAmount.toFixed(2) + '</p>' +
               '<p><strong>Payment method:</strong> Card (via Stripe)</p>' +
               '<p><strong>Status:</strong> Paid</p>' +
-              '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by TARSYN(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
+              '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by UNIMUNITY(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
               '</body></html>';
             const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 

@@ -195,7 +195,7 @@ function AddMemberContent() {
         setInviteStatus('no-email');
       } else {
         const selectedGroup = groups.find(g => g.id === selectedGroupId);
-        const memberInviteLink = 'https://tarsyn-app.com/join/' + memberInviteCode;
+        const memberInviteLink = 'https://unimunity.com/join/' + memberInviteCode;
         try {
           const inviteRes = await fetch('/api/send-invite', {
             method: 'POST',
@@ -510,7 +510,7 @@ function AddMemberContent() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 40, letterSpacing: 0.3 }}>
-          Powered by TARSYNTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
+          Powered by UNIMUNITYTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
         </p>
       </div>
     </div>

@@ -82,7 +82,7 @@ export default function RegisterPage() {
             <div style={{fontSize:'64px',marginBottom:'16px'}}>??</div>
             <h2 style={{color:'#6B2D4E',fontSize:'24px',fontWeight:'700',marginBottom:'12px'}}>Account Created!</h2>
             <p style={{color:'#6B2D4E',fontSize:'14px',lineHeight:'1.6',marginBottom:'24px'}}>
-              Welcome to TARSYN, <strong style={{color:'#6B2D4E'}}>{name}</strong>!<br/>
+              Welcome to UNIMUNITY, <strong style={{color:'#6B2D4E'}}>{name}</strong>!<br/>
               Setting up your workspace...
             </p>
             <div style={{display:'flex',justifyContent:'center'}}>
@@ -107,7 +107,7 @@ export default function RegisterPage() {
           <div style={{textAlign:'center',marginBottom:'32px'}}>
             <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>?</div>
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
-            <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join the <strong style={{color:'#E9C77B'}}>TARSYN</strong> community</p>
+            <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join the <strong style={{color:'#E9C77B'}}>UNIMUNITY</strong> community</p>
           </div>
 
           {error && (
@@ -175,7 +175,7 @@ function Nav() {
   return (
     <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
       <div>
-        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',display:'none'}}>TARSYN</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="Tarsyn" style={{height:'24px'}}/></a>
+        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{height:'24px'}}/></a>
         <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px',fontStyle:'italic'}}>YOUR COMMUNITY. YOUR POWER.</div>
       </div>
     </nav>
@@ -185,7 +185,7 @@ function Nav() {
 function Footer() {
   return (
     <footer style={{background:'#6B2D4E',textAlign:'center',padding:'14px',color:'rgba(251,238,221,0.6)',fontSize:'12px'}}>
-      <span style={{color:'#E9C77B',fontWeight:700}}>TARSYN&trade;</span>{' '}
+      <span style={{color:'#E9C77B',fontWeight:700}}>UNIMUNITY&trade;</span>{' '}
       <span>A product of <strong style={{color:'rgba(251,238,221,0.9)'}}>Ma Production Luxenn Zara LLC</strong></span>
       {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
     </footer>

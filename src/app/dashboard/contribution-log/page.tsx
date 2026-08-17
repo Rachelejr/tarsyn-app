@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -236,7 +236,7 @@ function RegisterContent() {
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Register');
-    XLSX.writeFile(wb, `TARSYN_Register_${group?.name || 'Group'}.xlsx`);
+    XLSX.writeFile(wb, `UNIMUNITY_Register_${group?.name || 'Group'}.xlsx`);
   };
 
   const handleExportCSV = () => {
@@ -246,7 +246,7 @@ function RegisterContent() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `TARSYN_Register_${group?.name || 'Group'}.csv`; a.click();
+    a.href = url; a.download = `UNIMUNITY_Register_${group?.name || 'Group'}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -300,7 +300,7 @@ function RegisterContent() {
         code = Math.random().toString(36).substr(2, 8).toUpperCase();
         await updateDoc(doc(db, 'members', m.id), { inviteCode: code });
       }
-      const inviteLink = 'https://tarsyn-app.com/join/' + code;
+      const inviteLink = 'https://unimunity.com/join/' + code;
       const res = await fetch('/api/send-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -392,7 +392,7 @@ function RegisterContent() {
             <p style={{ color: C.goldLight, fontWeight: 800, fontSize: '13.5px', margin: 0, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {group?.officialName || group?.name || 'Your Org'}
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '9px', margin: 0 }}>Powered by TARSYNTM</p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '9px', margin: 0 }}>Powered by UNIMUNITYTM</p>
           </div>
         </div>
 
@@ -657,7 +657,7 @@ function RegisterContent() {
 
           <div className="no-print" style={{ textAlign: 'center', padding: '20px 0 0' }}>
             <p style={{ color: C.gray, fontSize: '10.5px', margin: 0 }}>
-              Powered by TARSYNTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
+              Powered by UNIMUNITYTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
             </p>
           </div>
         </div>

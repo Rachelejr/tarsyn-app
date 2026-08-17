@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
@@ -29,7 +29,7 @@ export default function SubscribePage() {
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>⏰</div>
           <h1 style={{ color: C.goldDark, fontSize: '26px', fontWeight: 800, margin: '0 0 8px' }}>Your Free Trial Has Ended</h1>
           <p style={{ color: C.textGris, fontSize: '14px', margin: 0 }}>
-            Subscribe to continue using TARSYN for your community.
+            Subscribe to continue using UNIMUNITY for your community.
           </p>
         </div>
 

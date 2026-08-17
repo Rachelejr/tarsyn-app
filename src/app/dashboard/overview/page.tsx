@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -250,9 +250,9 @@ function OverviewContent() {
           animation: fadeUp 0.25s ease forwards;
         }
         @media (max-width: 700px) {
-          .tarsyn-ov-nav { grid-template-columns: 1fr auto !important; padding: 10px 14px !important; }
-          .tarsyn-ov-nav-title { display: none !important; }
-          .tarsyn-ov-container { padding: 14px 14px !important; }
+          .UNIMUNITY-ov-nav { grid-template-columns: 1fr auto !important; padding: 10px 14px !important; }
+          .UNIMUNITY-ov-nav-title { display: none !important; }
+          .UNIMUNITY-ov-container { padding: 14px 14px !important; }
         }
       `}</style>
 
@@ -312,7 +312,7 @@ function OverviewContent() {
         </div>
       )}
 
-      <nav className="tarsyn-ov-nav" style={{
+      <nav className="UNIMUNITY-ov-nav" style={{
         background: 'linear-gradient(135deg, #6B2D4E 0%, #4A1F38 100%)',
         padding: '12px 28px',
         display: 'grid',
@@ -323,13 +323,13 @@ function OverviewContent() {
       }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
           <div>
-            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/tarsyn-logo-white.svg" alt="TARSYN" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/UNIMUNITY-logo-white.svg" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
             <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>
 
-        <div className="tarsyn-ov-nav-title fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
-          <h1 style={{ color: '#F0DCE8', fontSize: '17px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>TARSYN Handles the Rest</h1>
+        <div className="UNIMUNITY-ov-nav-title fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
+          <h1 style={{ color: '#F0DCE8', fontSize: '17px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>UNIMUNITY Handles the Rest</h1>
           <p style={{ color: 'rgba(251,238,221,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
         </div>
 
@@ -341,7 +341,7 @@ function OverviewContent() {
         </div>
       </nav>
 
-      <div className="tarsyn-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 24px 20px', background: '#FFFDF7', borderRadius: '20px', border: '1px solid #EAD9BE', boxShadow: '0 4px 24px rgba(107,45,78,0.06)' }}>
+      <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 24px 20px', background: '#FFFDF7', borderRadius: '20px', border: '1px solid #EAD9BE', boxShadow: '0 4px 24px rgba(107,45,78,0.06)' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
           <StatCard label="Total Members" value={members.length} icon="👥" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />

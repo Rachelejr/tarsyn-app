@@ -3,12 +3,12 @@ import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const DEFAULT_LOGO = 'https://tarsyn-app.com/tarsyn-logo.svg';
+const DEFAULT_LOGO = 'https://unimunity.com/unimunity-logo.png';
 
 function logoBlock(logoUrl?: string) {
   const src = logoUrl || DEFAULT_LOGO;
   return '<div style="text-align: center; margin-bottom: 20px;">' +
-    '<img src="' + src + '" alt="TARSYN" style="height: 40px; width: auto; max-width: 200px;" />' +
+    '<img src="' + src + '" alt="UNIMUNITY" style="height: 48px; width: auto; max-width: 220px;" />' +
     '</div>';
 }
 
@@ -56,7 +56,7 @@ function computeOverdue(grid: any, members: Record<string, any>) {
 
 async function sendReminderEmail(memberEmail: string, memberName: string, groupName: string, amount: number, adminName: string, logoUrl?: string) {
   await resend.emails.send({
-    from: 'TARSYN <noreply@tarsyn-app.com>',
+    from: 'UNIMUNITY <noreply@unimunity.com>',
     to: memberEmail,
     subject: 'Reminder: Contribution due - ' + groupName,
     html:
@@ -68,8 +68,8 @@ async function sendReminderEmail(memberEmail: string, memberName: string, groupN
       '<p style="color: #7A5068; font-size: 12px; margin: 0 0 6px; text-transform: uppercase;">Amount Due</p>' +
       '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">$' + amount.toFixed(2) + '</p>' +
       '</div>' +
-      '<p style="color: #7A5068; font-size: 12.5px; margin: 0;">Please log in to TARSYN to view your payment grid and pay online if available.</p>' +
-      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by TARSYN(TM) - Ma Production Luxenn Zara LLC</p>' +
+      '<p style="color: #7A5068; font-size: 12.5px; margin: 0;">Please log in to UNIMUNITY to view your payment grid and pay online if available.</p>' +
+      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
       '</div>',
   });
 }
@@ -83,9 +83,9 @@ async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]
   ).join('');
 
   await resend.emails.send({
-    from: 'TARSYN <noreply@tarsyn-app.com>',
+    from: 'UNIMUNITY <noreply@unimunity.com>',
     to: organizerEmail,
-    subject: 'Your weekly TARSYN summary',
+    subject: 'Your weekly UNIMUNITY summary',
     html:
       '<div style="font-family: Inter, sans-serif; max-width: 560px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
       logoBlock(logoUrl) +
@@ -96,14 +96,14 @@ async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]
       '<th style="padding:8px 12px;color:white;text-align:right;font-size:11px;">AMOUNT OWED</th></tr>' +
       rows +
       '</table>' +
-      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by TARSYN(TM) - Ma Production Luxenn Zara LLC</p>' +
+      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
       '</div>',
   });
 }
 
 async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string, groupName: string, payoutDate: string, organizerEmail?: string, logoUrl?: string) {
   await resend.emails.send({
-    from: 'TARSYN <noreply@tarsyn-app.com>',
+    from: 'UNIMUNITY <noreply@unimunity.com>',
     to: memberEmail,
     cc: organizerEmail ? [organizerEmail] : undefined,
     subject: 'Your payout is coming up - ' + groupName,
@@ -116,7 +116,7 @@ async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string,
       '<p style="color: #7A5068; font-size: 12px; margin: 0 0 6px; text-transform: uppercase;">Payout Date</p>' +
       '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">' + payoutDate + '</p>' +
       '</div>' +
-      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by TARSYN(TM) - Ma Production Luxenn Zara LLC</p>' +
+      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
       '</div>',
   });
 }
@@ -181,7 +181,7 @@ export async function GET(req: NextRequest) {
         // Remember the first available group logo per organizer, used for
         // the weekly summary email header (an organizer may run several
         // groups; we just need one representative logo, falling back to
-        // the default TARSYN logo if none of their groups has one).
+        // the default UNIMUNITY logo if none of their groups has one).
         if (!organizerLogos[grid.organizerId] && logoUrl) {
           organizerLogos[grid.organizerId] = logoUrl;
         }

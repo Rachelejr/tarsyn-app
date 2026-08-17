@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 
@@ -23,7 +23,7 @@ export default function DateTimeWeather({ textColor = 'rgba(255,255,255,0.7)', f
   }, []);
 
   useEffect(() => {
-    const cached = sessionStorage.getItem('tarsyn_weather');
+    const cached = sessionStorage.getItem('UNIMUNITY_weather');
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -48,7 +48,7 @@ export default function DateTimeWeather({ textColor = 'rgba(255,255,255,0.7)', f
           setTemp(t);
           setTempUnit('F');
           setLocationLabel(label);
-          sessionStorage.setItem('tarsyn_weather', JSON.stringify({ temp: t, unit: 'F', label, ts: Date.now() }));
+          sessionStorage.setItem('UNIMUNITY_weather', JSON.stringify({ temp: t, unit: 'F', label, ts: Date.now() }));
         }
       } catch (e) {
         // silent - weather is a nice-to-have, never block the page

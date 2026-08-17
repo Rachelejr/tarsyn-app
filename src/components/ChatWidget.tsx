@@ -1,6 +1,6 @@
 ﻿'use client';
 import { useEffect, useRef, useState } from 'react';
-import { auth, db } from '@/lib/firebase';
+import { auth, memberAuth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
@@ -67,13 +67,14 @@ const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [
 ];
 
 // Small deterministic gradient per name, so each avatar has a distinct but stable color.
+// All variations stay within the UNIMUNITY brand palette (bordeaux / or / crème).
 const AVATAR_GRADIENTS = [
   ['#6B2D4E', '#9C4A6E'],
-  ['#4A6E9C', '#6B94C9'],
-  ['#2E7D5E', '#4CAF8A'],
-  ['#9C6B2D', '#D4A05A'],
+  ['#4A1F38', '#6B2D4E'],
+  ['#8A5A2D', '#E9C77B'],
   ['#7D2E5E', '#B4548E'],
-  ['#2D549C', '#5A8AD4'],
+  ['#9C6B2D', '#D4A05A'],
+  ['#5E2D4A', '#8A4A6E'],
 ];
 function avatarGradient(name: string) {
   const idx = (name?.charCodeAt(0) || 0) % AVATAR_GRADIENTS.length;
@@ -82,7 +83,9 @@ function avatarGradient(name: string) {
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [memberUser, setMemberUser] = useState<any>(null);
+  const user = memberUser || adminUser;
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatName, setActiveChatName] = useState('');
@@ -119,7 +122,11 @@ export default function ChatWidget() {
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    const unsub = onAuthStateChanged(auth, (u) => setAdminUser(u));
+    return () => unsub();
+  }, []);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(memberAuth, (u) => setMemberUser(u));
     return () => unsub();
   }, []);
   useEffect(() => {
@@ -336,46 +343,61 @@ export default function ChatWidget() {
         .cw-msg-action-btn{transition:opacity .12s ease, background .12s ease;}
         .cw-msg-action-btn:hover{background:rgba(0,0,0,0.06) !important;}
         .cw-menu-item:hover{background:${C.bg} !important;}
+        .cw-launcher-btn{transition:transform .18s ease, box-shadow .18s ease;}
+        .cw-launcher-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 8px 22px rgba(74,31,56,0.38) !important;}
       `}} />
       {!open && (
-        <button onClick={() => setOpen(true)}
-          style={{ width: '58px', height: '58px', borderRadius: '50%', background: C.bordeaux, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,0,0,0.25)', fontSize: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          💬
+        <button onClick={() => setOpen(true)} className="cw-launcher-btn"
+          style={{
+            width: '60px', height: '60px', borderRadius: '50%',
+            background: `linear-gradient(145deg, ${C.bordeaux}, ${C.bordeauxDark})`,
+            border: `2px solid ${C.dore}`, cursor: 'pointer',
+            boxShadow: '0 6px 18px rgba(74,31,56,0.32)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={C.dore} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
         </button>
       )}
       {open && (
-        <div style={{ width: '340px', height: '480px', background: C.white, borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-          <div style={{ background: C.white, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: C.bordeaux, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ width: '340px', height: '480px', background: C.white, borderRadius: '16px', boxShadow: '0 12px 36px rgba(74,31,56,0.28)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', border: `1px solid ${C.border}` }}>
+          <div style={{ background: `linear-gradient(120deg, ${C.bordeaux}, ${C.bordeauxDark})`, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: C.white, borderBottom: `2px solid ${C.dore}` }}>
             {activeChatId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
-                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
+                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
                 <div onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: `linear-gradient(135deg, ${avatarGradient(activeChatName)[0]}, ${avatarGradient(activeChatName)[1]})`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', color: 'white',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)', border: `1.5px solid ${C.dore}`,
                 }}>
                   {activeChatName?.[0]?.toUpperCase() || '?'}
                 </div>
-                <span style={{ fontWeight: 700, fontSize: '14px' }}>{activeChatName}</span>
+                <span style={{ fontWeight: 700, fontSize: '14px', color: C.white }}>{activeChatName}</span>
                 </div>
               </div>
             ) : (
-              <span style={{ fontWeight: 700, fontSize: '15px' }}>💬 Chats</span>
+              <span style={{ fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', color: C.white, letterSpacing: '0.3px' }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.dore} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+                Messages
+              </span>
             )}
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
               {!activeChatId && (
                 <button onClick={() => setShowSearch(!showSearch)}
-                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '16px', cursor: 'pointer' }}>➕</button>
+                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', fontWeight: 700, cursor: 'pointer', lineHeight: 1 }}>+</button>
               )}
               {activeChatId && (
                 <button onClick={() => setShowMenu(!showMenu)}
-                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer' }}>⋮</button>
+                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', cursor: 'pointer' }}>⋮</button>
               )}
               <button onClick={() => setOpen(false)}
-                style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '16px', cursor: 'pointer' }}>✕</button>
+                style={{ background: 'none', border: 'none', color: C.dore, fontSize: '16px', cursor: 'pointer' }}>✕</button>
               {showMenu && activeChatId && (
                 <div style={{ position: 'absolute', right: 0, top: '28px', background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', minWidth: '170px', zIndex: 30, overflow: 'hidden', border: `1px solid ${C.border}` }}>
                   <button onClick={handleClearChat} disabled={clearing}
@@ -741,7 +763,7 @@ export default function ChatWidget() {
                   {activeChatName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 4px' }}>{activeChatName}</h3>
-                <p style={{ color: C.textGris, fontSize: '12px', margin: '0 0 18px' }}>TARSYN member</p>
+                <p style={{ color: C.textGris, fontSize: '12px', margin: '0 0 18px' }}>UNIMUNITY member</p>
                 <button onClick={() => setShowProfileModal(false)}
                   style={{ width: '100%', padding: '10px', background: C.bordeaux, color: C.dore, border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
                   Close

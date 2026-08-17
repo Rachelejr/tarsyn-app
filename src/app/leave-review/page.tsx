@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -114,7 +114,7 @@ export default function LeaveReviewPage() {
         ) : (
           <div style={{ background: C.blanc, borderRadius: '16px', padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <p style={{ color: C.bordeaux, fontSize: '14px', margin: '0 0 22px', lineHeight: 1.6 }}>
-              Tell other communities what you think of TARSYN. Approved reviews may be shown on our homepage to help others discover us.
+              Tell other communities what you think of UNIMUNITY. Approved reviews may be shown on our homepage to help others discover us.
             </p>
 
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: C.bordeaux, marginBottom: '6px' }}>Your name</label>
@@ -141,7 +141,7 @@ export default function LeaveReviewPage() {
             </div>
 
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: C.bordeaux, marginBottom: '6px' }}>Your review</label>
-            <textarea value={text} onChange={e => setText(e.target.value)} rows={5} placeholder="What do you like about TARSYN? How has it helped your community?"
+            <textarea value={text} onChange={e => setText(e.target.value)} rows={5} placeholder="What do you like about UNIMUNITY? How has it helped your community?"
               style={{ width: '100%', padding: '10px 14px', border: '1.5px solid ' + C.orLight, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '20px', resize: 'vertical', fontFamily: 'inherit' }} />
 
             <button onClick={handleSubmit} disabled={submitting}
