@@ -57,6 +57,7 @@ export default function BrandingPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showRemoveBtn, setShowRemoveBtn] = useState(false);
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
@@ -280,8 +281,20 @@ export default function BrandingPage() {
             <label className="bs-label">Logo</label>
             {logoUrl ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <img src={logoUrl} alt="Logo" style={{ maxHeight: '36px', maxWidth: '100px' }} />
-                <button onClick={() => setLogoUrl('')} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Remove</button>
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  onClick={() => setShowRemoveBtn(prev => !prev)}
+                  style={{ maxHeight: '36px', maxWidth: '100px', cursor: 'pointer' }}
+                />
+                {showRemoveBtn && (
+                  <button
+                    onClick={() => { setLogoUrl(''); setShowRemoveBtn(false); }}
+                    style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             ) : (
               <p className="bs-help" style={{ margin: '0 0 10px' }}>No custom logo - default UNIMUNITY mark shown.</p>
