@@ -128,7 +128,6 @@ export default function BrandingPage() {
     loadGroupStats(groupId);
   };
 
-  // --- Real member count, real amount collected, and real member names for the Live Preview ---
   const loadGroupStats = async (groupId: string) => {
     if (!groupId) { setGroupStats(null); return; }
     setStatsLoading(true);
@@ -248,6 +247,7 @@ export default function BrandingPage() {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
       <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@400;700;800&family=Montserrat:wght@400;600;700;800&family=Lato:wght@400;700;800&family=Merriweather:wght@400;700;800&family=Oswald:wght@400;600;700&family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;700;800&display=swap');
         .bs-input, .bs-select { width: 100%; padding: 9px 12px; border: 1.5px solid ${C.border}; border-radius: 10px; font-size: 13px; outline: none; box-sizing: border-box; background: white; }
         .bs-label { color: ${C.bordeaux}; font-size: 12px; font-weight: 700; margin: 0 0 6px; display: block; text-transform: uppercase; letter-spacing: 0.04em; }
         .bs-section { margin-bottom: 22px; }
@@ -294,7 +294,6 @@ export default function BrandingPage() {
 
       <div className="bs-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: viewMode === 'edit' ? '300px 1fr 300px' : '1fr', minHeight: 0 }}>
 
-        {/* LEFT - Settings Panel */}
         {viewMode === 'edit' && (
           <div className="bs-col" style={{ borderRight: `1px solid ${C.border}`, padding: '22px', overflowY: 'auto' }}>
             <p style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 18px' }}>Settings</p>
@@ -369,7 +368,6 @@ export default function BrandingPage() {
           </div>
         )}
 
-        {/* CENTER - Live Preview */}
         <div className="bs-col" style={{ padding: viewMode === 'preview' ? '32px 40px' : '22px', overflowY: 'auto', background: C.creme, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ width: '100%', maxWidth: viewMode === 'preview' ? '1000px' : 'none' }}>
             <p style={{
@@ -415,26 +413,21 @@ export default function BrandingPage() {
                 borderRadius: '14px',
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
-                fontFamily,
+                fontFamily: `'${fontFamily}', sans-serif`,
                 width: '100%',
               }}>
-                {/* Mini app header */}
-                <div style={{ background: primaryColor, padding: '18px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" style={{ maxHeight: '34px', maxWidth: '130px' }} />
-                    ) : (
-                      <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: secondaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: primaryColor }}>T</div>
-                    )}
-                    <div>
-                      <div style={{ color: secondaryColor, fontWeight: 800, fontSize: '18px', lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
-                      {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: '3px' }}>{slogan}</div>}
-                    </div>
+                <div style={{ background: primaryColor, padding: '20px 28px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Logo" style={{ maxHeight: '52px', maxWidth: '200px', objectFit: 'contain' }} />
+                  ) : (
+                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: secondaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px', fontWeight: 800, color: primaryColor }}>T</div>
+                  )}
+                  <div>
+                    <div style={{ color: secondaryColor, fontWeight: 800, fontSize: '20px', lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
+                    {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: '4px' }}>{slogan}</div>}
                   </div>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(255,255,255,0.15)' }} />
                 </div>
 
-                {/* Mini app body - sidebar + content */}
                 <div style={{ display: 'flex', minHeight: '340px' }}>
                   <div style={{ width: '120px', background: C.creme, borderRight: `1px solid ${C.border}`, padding: '18px 12px', flexShrink: 0 }}>
                     {['Home', 'Members', 'Payments', 'Docs'].map((item, i) => (
@@ -480,7 +473,6 @@ export default function BrandingPage() {
           </div>
         </div>
 
-        {/* RIGHT - Advanced Settings */}
         {viewMode === 'edit' && (
           <div className="bs-col bs-advanced" style={{ borderLeft: `1px solid ${C.border}`, padding: '22px', overflowY: 'auto' }}>
             <p style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 18px' }}>Advanced</p>
