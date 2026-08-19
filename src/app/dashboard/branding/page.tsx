@@ -370,88 +370,114 @@ export default function BrandingPage() {
         )}
 
         {/* CENTER - Live Preview */}
-        <div className="bs-col" style={{ padding: '22px', overflowY: 'auto', background: C.creme }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 14px' }}>
-            <p style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Live preview</p>
-            {viewMode === 'preview' && (
-              <button onClick={() => setViewMode('edit')}
-                style={{ background: C.bordeaux, color: C.orLight, border: 'none', padding: '7px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '11.5px', fontWeight: 700 }}>
-                Edit branding
-              </button>
-            )}
-          </div>
+        <div className="bs-col" style={{ padding: viewMode === 'preview' ? '32px 40px' : '22px', overflowY: 'auto', background: C.creme, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: '100%', maxWidth: viewMode === 'preview' ? '1000px' : 'none' }}>
+            <p style={{
+              color: viewMode === 'preview' ? C.bordeaux : C.muted,
+              fontSize: viewMode === 'preview' ? '18px' : '11px',
+              fontWeight: 700,
+              textTransform: viewMode === 'preview' ? 'none' : 'uppercase',
+              letterSpacing: viewMode === 'preview' ? 'normal' : '0.05em',
+              margin: '0 0 14px',
+              textAlign: viewMode === 'preview' ? 'center' : 'left',
+            }}>
+              Live preview
+            </p>
 
-          {enabled && (
-            <div style={{ background: '#FBF0D9', color: '#9C7A2E', borderRadius: '10px', padding: '9px 14px', fontSize: '11.5px', fontWeight: 700, marginBottom: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {'\u26A0'} Preview - shows your real group data. This is a mockup layout, not the exact member portal design.
-            </div>
-          )}
-
-          {!enabled ? (
-            <div style={{ background: 'white', borderRadius: '14px', padding: '40px 20px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-              <p style={{ color: C.muted, fontSize: '13px' }}>White Label is disabled for this group. Members see the default UNIMUNITY experience.</p>
-            </div>
-          ) : (
-            <div style={{ background: 'white', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.10)', fontFamily, maxWidth: viewMode === 'preview' ? '700px' : 'none', margin: viewMode === 'preview' ? '0 auto' : '0' }}>
-              {/* Mini app header */}
-              <div style={{ background: primaryColor, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" style={{ maxHeight: '26px', maxWidth: '100px' }} />
-                  ) : (
-                    <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: secondaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: primaryColor }}>T</div>
-                  )}
-                  <div>
-                    <div style={{ color: secondaryColor, fontWeight: 800, fontSize: '14px', lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
-                    {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: '2px' }}>{slogan}</div>}
-                  </div>
-                </div>
-                <div style={{ width: '22px', height: '22px', borderRadius: '5px', background: 'rgba(255,255,255,0.15)' }} />
+            {enabled && (
+              <div style={{
+                background: '#FBF0D9',
+                color: '#9C7A2E',
+                borderRadius: '10px',
+                padding: '10px 16px',
+                fontSize: '12px',
+                fontWeight: 700,
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: viewMode === 'preview' ? 'center' : 'flex-start',
+                gap: '6px',
+                width: viewMode === 'preview' ? '100%' : 'auto',
+                boxSizing: 'border-box',
+                textAlign: 'left',
+              }}>
+                {'\u26A0'} Preview - shows your real group data. This is a mockup layout, not the exact member portal design.
               </div>
+            )}
 
-              {/* Mini app body - sidebar + content */}
-              <div style={{ display: 'flex', minHeight: '260px' }}>
-                <div style={{ width: '90px', background: C.creme, borderRight: `1px solid ${C.border}`, padding: '14px 10px', flexShrink: 0 }}>
-                  {['Home', 'Members', 'Payments', 'Docs'].map((item, i) => (
-                    <div key={item} style={{ padding: '6px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 600, color: i === 0 ? primaryColor : C.muted, background: i === 0 ? secondaryColor + '33' : 'transparent', marginBottom: '4px' }}>{item}</div>
-                  ))}
+            {!enabled ? (
+              <div style={{ background: 'white', borderRadius: '14px', padding: '40px 20px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <p style={{ color: C.muted, fontSize: '13px' }}>White Label is disabled for this group. Members see the default UNIMUNITY experience.</p>
+              </div>
+            ) : (
+              <div style={{
+                background: 'white',
+                borderRadius: '14px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
+                fontFamily,
+                width: '100%',
+              }}>
+                {/* Mini app header */}
+                <div style={{ background: primaryColor, padding: '18px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo" style={{ maxHeight: '34px', maxWidth: '130px' }} />
+                    ) : (
+                      <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: secondaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: primaryColor }}>T</div>
+                    )}
+                    <div>
+                      <div style={{ color: secondaryColor, fontWeight: 800, fontSize: '18px', lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
+                      {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: '3px' }}>{slogan}</div>}
+                    </div>
+                  </div>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(255,255,255,0.15)' }} />
                 </div>
-                <div style={{ flex: 1, padding: '16px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-                    {[
-                      ['Members', statsLoading ? '...' : String(groupStats?.memberCount ?? 0)],
-                      ['Collected', statsLoading ? '...' : `${groupStats?.currency || 'USD'} ${(groupStats?.totalCollected ?? 0).toFixed(0)}`],
-                    ].map(([label, val]) => (
-                      <div key={label} style={{ background: C.creme, borderRadius: '8px', padding: '10px' }}>
-                        <p style={{ fontSize: '9px', color: C.muted, margin: 0, textTransform: 'uppercase' }}>{label}</p>
-                        <p style={{ fontSize: '15px', fontWeight: 800, color: primaryColor, margin: '2px 0 0' }}>{val}</p>
-                      </div>
+
+                {/* Mini app body - sidebar + content */}
+                <div style={{ display: 'flex', minHeight: '340px' }}>
+                  <div style={{ width: '120px', background: C.creme, borderRight: `1px solid ${C.border}`, padding: '18px 12px', flexShrink: 0 }}>
+                    {['Home', 'Members', 'Payments', 'Docs'].map((item, i) => (
+                      <div key={item} style={{ padding: '9px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, color: i === 0 ? primaryColor : C.muted, background: i === 0 ? secondaryColor + '33' : 'transparent', marginBottom: '5px' }}>{item}</div>
                     ))}
                   </div>
-                  <div style={{ border: `1px solid ${C.border}`, borderRadius: '8px', overflow: 'hidden' }}>
-                    {statsLoading ? (
-                      <div style={{ padding: '10px', fontSize: '10px', color: C.muted, textAlign: 'center' }}>Loading members...</div>
-                    ) : groupStats && groupStats.sampleMembers.length > 0 ? (
-                      groupStats.sampleMembers.map((m, i) => (
-                        <div key={m.name + i} style={{ padding: '7px 10px', fontSize: '10px', color: C.text, borderBottom: i === 0 && groupStats.sampleMembers.length > 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>{m.name}</span>
-                          <span style={{ color: m.active ? secondaryColor : C.muted, fontWeight: 700 }}>{m.active ? 'Active' : 'Paused'}</span>
+                  <div style={{ flex: 1, padding: '22px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                      {[
+                        ['Members', statsLoading ? '...' : String(groupStats?.memberCount ?? 0)],
+                        ['Collected', statsLoading ? '...' : `${groupStats?.currency || 'USD'} ${(groupStats?.totalCollected ?? 0).toFixed(0)}`],
+                      ].map(([label, val]) => (
+                        <div key={label} style={{ background: C.creme, borderRadius: '10px', padding: '14px' }}>
+                          <p style={{ fontSize: '10.5px', color: C.muted, margin: 0, textTransform: 'uppercase' }}>{label}</p>
+                          <p style={{ fontSize: '19px', fontWeight: 800, color: primaryColor, margin: '3px 0 0' }}>{val}</p>
                         </div>
-                      ))
-                    ) : (
-                      <div style={{ padding: '10px', fontSize: '10px', color: C.muted, textAlign: 'center' }}>No members yet</div>
-                    )}
+                      ))}
+                    </div>
+                    <div style={{ border: `1px solid ${C.border}`, borderRadius: '10px', overflow: 'hidden' }}>
+                      {statsLoading ? (
+                        <div style={{ padding: '14px', fontSize: '12px', color: C.muted, textAlign: 'center' }}>Loading members...</div>
+                      ) : groupStats && groupStats.sampleMembers.length > 0 ? (
+                        groupStats.sampleMembers.map((m, i) => (
+                          <div key={m.name + i} style={{ padding: '10px 14px', fontSize: '12px', color: C.text, borderBottom: i === 0 && groupStats.sampleMembers.length > 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{m.name}</span>
+                            <span style={{ color: m.active ? secondaryColor : C.muted, fontWeight: 700 }}>{m.active ? 'Active' : 'Paused'}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ padding: '14px', fontSize: '12px', color: C.muted, textAlign: 'center' }}>No members yet</div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {showUNIMUNITYBadge && (
-                <div style={{ textAlign: 'center', padding: '8px 0', borderTop: `1px solid ${C.border}` }}>
-                  <span style={{ color: C.muted, fontSize: '9px' }}>Powered by UNIMUNITY</span>
-                </div>
-              )}
-            </div>
-          )}
+                {showUNIMUNITYBadge && (
+                  <div style={{ textAlign: 'center', padding: '10px 0', borderTop: `1px solid ${C.border}` }}>
+                    <span style={{ color: C.muted, fontSize: '10.5px' }}>Powered by UNIMUNITY</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* RIGHT - Advanced Settings */}
