@@ -23,11 +23,23 @@ const C = {
   border: '#EAD9BE',
 };
 
-const FONTS = ['Inter', 'Georgia', 'Poppins', 'Roboto', 'Playfair Display'];
+const FONTS = [
+  'Inter', 'Georgia', 'Poppins', 'Roboto', 'Playfair Display',
+  'Montserrat', 'Lato', 'Merriweather', 'Oswald', 'Raleway',
+];
+
+const SLOGAN_SIZES = [
+  { label: 'Small', value: 9 },
+  { label: 'Medium', value: 12 },
+  { label: 'Large', value: 15 },
+  { label: 'Extra Large', value: 18 },
+];
 
 interface GroupBrand {
   logo?: string;
   slogan?: string;
+  sloganColor?: string;
+  sloganFontSize?: number;
   primaryColor?: string;
   secondaryColor?: string;
   fontFamily?: string;
@@ -63,6 +75,8 @@ export default function BrandingPage() {
   const [selectedGroupId, setSelectedGroupId] = useState('');
 
   const [slogan, setSlogan] = useState('');
+  const [sloganColor, setSloganColor] = useState('#ffffff');
+  const [sloganFontSize, setSloganFontSize] = useState(9);
   const [primaryColor, setPrimaryColor] = useState('#6B2D4E');
   const [secondaryColor, setSecondaryColor] = useState('#E9C77B');
   const [fontFamily, setFontFamily] = useState('Inter');
@@ -96,6 +110,8 @@ export default function BrandingPage() {
   const loadGroupBrand = (g: Group) => {
     const b = g.groupBrand;
     setSlogan(b?.slogan || '');
+    setSloganColor(b?.sloganColor || '#ffffff');
+    setSloganFontSize(b?.sloganFontSize || 9);
     setPrimaryColor(b?.primaryColor || '#6B2D4E');
     setSecondaryColor(b?.secondaryColor || '#E9C77B');
     setFontFamily(b?.fontFamily || 'Inter');
@@ -176,7 +192,7 @@ export default function BrandingPage() {
     setSaved(false);
     try {
       const groupBrand: GroupBrand = {
-        logo: logoUrl, slogan: slogan.trim(), primaryColor, secondaryColor,
+        logo: logoUrl, slogan: slogan.trim(), sloganColor, sloganFontSize, primaryColor, secondaryColor,
         fontFamily, showUNIMUNITYBadge, enabled,
       };
       await updateDoc(doc(db, 'groups', selectedGroupId), { groupBrand });
@@ -193,6 +209,8 @@ export default function BrandingPage() {
   const handleReset = () => {
     if (!confirm('Reset branding to UNIMUNITY defaults for this group?')) return;
     setSlogan('');
+    setSloganColor('#ffffff');
+    setSloganFontSize(9);
     setPrimaryColor('#6B2D4E');
     setSecondaryColor('#E9C77B');
     setFontFamily('Inter');
@@ -278,6 +296,22 @@ export default function BrandingPage() {
           </div>
 
           <div className="bs-section">
+            <label className="bs-label">Slogan color</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="color" value={sloganColor} onChange={e => setSloganColor(e.target.value)}
+                style={{ width: '40px', height: '38px', border: `1.5px solid ${C.border}`, borderRadius: '8px', cursor: 'pointer', padding: '2px' }} />
+              <input className="bs-input" value={sloganColor} onChange={e => setSloganColor(e.target.value)} style={{ fontFamily: 'monospace' }} />
+            </div>
+          </div>
+
+          <div className="bs-section">
+            <label className="bs-label">Slogan size</label>
+            <select className="bs-select" value={sloganFontSize} onChange={e => setSloganFontSize(Number(e.target.value))}>
+              {SLOGAN_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
+
+          <div className="bs-section">
             <label className="bs-label">Logo</label>
             {logoUrl ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -350,7 +384,7 @@ export default function BrandingPage() {
                   )}
                   <div>
                     <div style={{ color: secondaryColor, fontWeight: 800, fontSize: '14px', lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
-                    {slogan && <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '9px', marginTop: '2px' }}>{slogan}</div>}
+                    {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: '2px' }}>{slogan}</div>}
                   </div>
                 </div>
                 <div style={{ width: '22px', height: '22px', borderRadius: '5px', background: 'rgba(255,255,255,0.15)' }} />
