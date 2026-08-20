@@ -82,7 +82,6 @@ const CURRENCIES = [
 ];
 
 const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual', 'Annual'];
-const COMMISSIONS = ['0.5%', '1%', '1.5%', '2%'];
 const ROTATION_TYPES = ['Fixed', 'Random', 'Admin Managed'];
 const PAYMENT_METHODS = ['Cash', 'Transfer', 'Mobile Money', 'CashApp', 'Zelle', 'Mixed'];
 const POSITION_STRATEGIES = ['Manual', 'Automatic', 'Random'];
@@ -107,6 +106,20 @@ const LANGUAGES = [
 const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
 const DEPOSIT_MULTIPLIERS = ['1\u00d7 Contribution', '2\u00d7 Contribution', 'Custom Amount'];
 const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
+
+// Commission is now calculated automatically based on the total pool amount,
+// instead of being manually selected. Adjust these thresholds if needed.
+const COMMISSION_TIERS: { min: number; max: number; rate: number }[] = [
+  { min: 0, max: 500, rate: 0.5 },
+  { min: 500, max: 2000, rate: 1 },
+  { min: 2000, max: 5000, rate: 1.5 },
+  { min: 5000, max: Infinity, rate: 2 },
+];
+
+function getCommissionRatePercent(totalPool: number): number {
+  const tier = COMMISSION_TIERS.find(t => totalPool >= t.min && totalPool < t.max);
+  return (tier || COMMISSION_TIERS[COMMISSION_TIERS.length - 1]).rate;
+}
 
 const frequencyMonths: Record<string, number> = {
   'Weekly': 0.25, 'Bi-weekly': 0.5, 'Monthly': 1,
@@ -195,8 +208,6 @@ export default function CreateTontinePage() {
   const [currency, setCurrency] = useState('USD');
   const [frequency, setFrequency] = useState('Monthly');
   const [startDate, setStartDate] = useState('');
-  const [commission, setCommission] = useState('1%');
-  const [commissionThreshold, setCommissionThreshold] = useState('');
   const [rotationType, setRotationType] = useState('Fixed');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [positionStrategy, setPositionStrategy] = useState('Manual');
@@ -217,14 +228,19 @@ export default function CreateTontinePage() {
   const numM = parseInt(numMembers) || 0;
   const contrib = parseFloat(contribution) || 0;
   const totalPool = numM * contrib;
-  const commissionRate = parseFloat(commission) / 100;
+
+  // Commission rate is derived automatically from the total pool - no manual selection needed.
+  const commissionRatePercent = getCommissionRatePercent(totalPool);
+  const commission = `${commissionRatePercent}%`;
+  const commissionRate = commissionRatePercent / 100;
   const organizerRevenue = totalPool * commissionRate;
+
   const cycleDuration = numM * (frequencyMonths[frequency] || 1);
-  const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate && commissionThreshold && parseFloat(commissionThreshold) > 0);
+  const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate);
 
   const tabCompletion: Record<string, boolean> = {
     identity: !!region && customName.trim().length >= 2,
-    finance: !!numMembers && parseInt(numMembers) >= 2 && !!contribution && parseFloat(contribution) > 0 && !!startDate && !!commissionThreshold && parseFloat(commissionThreshold) > 0,
+    finance: !!numMembers && parseInt(numMembers) >= 2 && !!contribution && parseFloat(contribution) > 0 && !!startDate,
     rotation: true,
     rules: !!rules.trim(),
     invite: emailList.length > 0,
@@ -278,7 +294,6 @@ export default function CreateTontinePage() {
     if (!contribution || parseFloat(contribution) <= 0) return setError('Contribution amount must be greater than 0.');
     if (!startDate) return setError('Please choose a start date.');
     if (new Date(startDate) <= new Date()) return setError('Start date must be in the future.');
-    if (!commissionThreshold || parseFloat(commissionThreshold) <= 0) return setError('Commission threshold amount is required.');
     setShowReview(true);
   };
 
@@ -304,8 +319,7 @@ export default function CreateTontinePage() {
         amountPerMember: parseFloat(contribution),
         contribution: parseFloat(contribution),
         currency, frequency, paymentFrequency: frequency,
-        startDate, commission, commissionRate: parseFloat(commission),
-        commissionThreshold: parseFloat(commissionThreshold),
+        startDate, commission, commissionRate: commissionRatePercent,
         rotationType, paymentMethod, positionStrategy,
         privacyMode, adminVisibility,
         rulesTemplate, rules, confidential, language,
@@ -500,7 +514,7 @@ export default function CreateTontinePage() {
             { label: 'Estimated End Date', value: estimatedEndDate },
             { label: 'Start Date', value: startDate },
             { label: 'Privacy', value: privacyMode },
-            { label: 'Commission', value: `${commission} (from ${commissionThreshold} ${currency})` },
+            { label: 'Commission', value: `${commission} (auto, based on total pool)` },
             { label: 'Rotation', value: rotationType },
             { label: 'Payment', value: paymentMethod },
           ].map(item => (
@@ -670,27 +684,28 @@ export default function CreateTontinePage() {
 
                   <Card title="Organizer Commission">
                     <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 12px' }}>
-                      Required. Set the commission rate and the minimum pool amount it applies to.
+                      Automatically calculated based on your total pool amount \u2014 no manual selection needed.
                     </p>
-                    <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: C.creme, borderRadius: '14px', padding: '16px 20px', flexWrap: 'wrap', gap: '12px' }}>
                       <div>
-                        <FieldLabel label="Commission Rate" required />
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {COMMISSIONS.map(c => (
-                            <button key={c} className="UNIMUNITY-pill" onClick={() => setCommission(c)}
-                              style={{ flex: 1, padding: '9px 0', borderRadius: '12px', border: `2px solid ${commission === c ? C.bordeaux : C.roseMoyen}`, background: commission === c ? C.bordeaux : 'white', color: commission === c ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
-                              {c}
-                            </button>
-                          ))}
-                        </div>
+                        <p style={{ fontSize: '11px', color: C.texteGris, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Commission Rate</p>
+                        <p style={{ fontSize: '24px', fontWeight: '800', color: C.bordeaux, margin: 0 }}>{commission}</p>
                       </div>
-                      <div>
-                        <FieldLabel label="Applies From (minimum pool amount)" required />
-                        <input className="UNIMUNITY-field" type="number" value={commissionThreshold} onChange={e => setCommissionThreshold(e.target.value)} min={1} placeholder={`e.g. 100 ${currency}`} style={inp} />
-                        <p style={{ fontSize: '11px', color: C.texteGris, margin: '6px 0 0' }}>
-                          Commission of {commission} is taken only once the total pool reaches this amount.
-                        </p>
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ fontSize: '11px', color: C.texteGris, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Based on Total Pool</p>
+                        <p style={{ fontSize: '15px', fontWeight: '700', color: C.texteFonce, margin: 0 }}>{totalPool > 0 ? `${totalPool} ${currency}` : '\u2014'}</p>
                       </div>
+                    </div>
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      {COMMISSION_TIERS.map((t, i) => {
+                        const isActive = totalPool >= t.min && totalPool < t.max;
+                        return (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', padding: '4px 6px', borderRadius: '6px', background: isActive ? C.roseClair : 'transparent', color: isActive ? C.bordeaux : C.texteGris, fontWeight: isActive ? 700 : 400 }}>
+                            <span>{t.max === Infinity ? `${t.min}+ ${currency}` : `${t.min} \u2013 ${t.max} ${currency}`}</span>
+                            <span>{t.rate}%</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </Card>
                 </>
@@ -868,6 +883,7 @@ export default function CreateTontinePage() {
               { label: 'Frequency', value: frequency },
               ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '\u2014' }] : []),
               { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '\u2014', gold: true },
+              { label: 'Commission Rate', value: totalPool > 0 ? commission : '\u2014' },
               { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '\u2014', gold: true },
               { label: 'Start Date', value: startDate || '\u2014' },
               { label: 'Estimated End Date', value: estimatedEndDate },
