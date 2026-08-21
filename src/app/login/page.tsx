@@ -51,20 +51,9 @@ function LoginPageInner() {
         if (redirectTo) {
           window.location.href = redirectTo;
         } else {
-          // Send brand-new admins (no groups yet) to create their first
-          // tontine, but existing admins straight to their dashboard -
-          // landing on "create a group" every login made no sense once
-          // an admin already has one or more groups running.
-          try {
-            const [byOrganizer, byAdmin] = await Promise.all([
-              getDocs(query(collection(db, 'groups'), where('organizerId', '==', uid))),
-              getDocs(query(collection(db, 'groups'), where('adminId', '==', uid))),
-            ]);
-            const hasGroups = !byOrganizer.empty || !byAdmin.empty;
-            window.location.href = hasGroups ? '/dashboard' : '/dashboard/create-tontine';
-          } catch {
-            window.location.href = '/dashboard';
-          }
+          // Admins always land on their dashboard after login - no more
+          // routing brand-new admins to create-tontine first.
+          window.location.href = '/dashboard';
         }
       } else {
         // MEMBER: move the session to the dedicated memberAuth instance so
