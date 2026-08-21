@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import {
   MapPin, Wallet, Repeat, FileText, UserPlus,
-  ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X,
+  ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X, Settings,
 } from 'lucide-react';
+import { DEFAULT_COMMISSION_TIERS, CommissionTier } from '../commission-settings/page';
 
 const C = {
   bordeaux:   '#6B2D4E',
@@ -107,18 +109,9 @@ const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
 const DEPOSIT_MULTIPLIERS = ['1\u00d7 Contribution', '2\u00d7 Contribution', 'Custom Amount'];
 const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
 
-// Commission is now calculated automatically based on the total pool amount,
-// instead of being manually selected. Adjust these thresholds if needed.
-const COMMISSION_TIERS: { min: number; max: number; rate: number }[] = [
-  { min: 0, max: 500, rate: 0.5 },
-  { min: 500, max: 2000, rate: 1 },
-  { min: 2000, max: 5000, rate: 1.5 },
-  { min: 5000, max: Infinity, rate: 2 },
-];
-
-function getCommissionRatePercent(totalPool: number): number {
-  const tier = COMMISSION_TIERS.find(t => totalPool >= t.min && totalPool < t.max);
-  return (tier || COMMISSION_TIERS[COMMISSION_TIERS.length - 1]).rate;
+function getCommissionRatePercent(totalPool: number, tiers: CommissionTier[]): number {
+  const tier = tiers.find(t => totalPool >= t.min && (t.max === null || totalPool < t.max));
+  return (tier || tiers[tiers.length - 1])?.rate ?? 0;
 }
 
 const frequencyMonths: Record<string, number> = {
@@ -200,6 +193,8 @@ export default function CreateTontinePage() {
   const [showReview, setShowReview] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [commissionTiers, setCommissionTiers] = useState<CommissionTier[]>(DEFAULT_COMMISSION_TIERS);
+
   const [region, setRegion] = useState('');
   const [customName, setCustomName] = useState('');
   const [language, setLanguage] = useState('English');
@@ -224,13 +219,28 @@ export default function CreateTontinePage() {
   const [depositCustomAmount, setDepositCustomAmount] = useState('');
   const [refundPolicy, setRefundPolicy] = useState(REFUND_POLICIES[0]);
 
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (!u) return;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', u.uid));
+        const saved = userDoc.exists() ? userDoc.data()?.commissionTiers : null;
+        if (Array.isArray(saved) && saved.length > 0) {
+          setCommissionTiers(saved);
+        }
+      } catch (e) {
+        console.error('Could not load custom commission tiers, using defaults', e);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const selectedRegion = REGIONS.find(r => r.region === region);
   const numM = parseInt(numMembers) || 0;
   const contrib = parseFloat(contribution) || 0;
   const totalPool = numM * contrib;
 
-  // Commission rate is derived automatically from the total pool - no manual selection needed.
-  const commissionRatePercent = getCommissionRatePercent(totalPool);
+  const commissionRatePercent = getCommissionRatePercent(totalPool, commissionTiers);
   const commission = `${commissionRatePercent}%`;
   const commissionRate = commissionRatePercent / 100;
   const organizerRevenue = totalPool * commissionRate;
@@ -344,12 +354,6 @@ export default function CreateTontinePage() {
         });
       } catch (auditErr) { /* silent - audit logging must never block group creation */ }
 
-      // Emails entered at this step previously only triggered an email send
-      // with a group-level invite code - no "members" document was ever
-      // created for them, so the link could never actually be completed
-      // (the join page looks up a member by invite code, and none existed).
-      // Each invited email now gets a real pending member record with its
-      // own invite code, exactly like the standard Add Member flow does.
       if (emailList.length > 0) {
         const memberInvites: { email: string; inviteCode: string }[] = [];
         for (let i = 0; i < emailList.length; i++) {
@@ -683,9 +687,15 @@ export default function CreateTontinePage() {
                   </Card>
 
                   <Card title="Organizer Commission">
-                    <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 12px' }}>
-                      Automatically calculated based on your total pool amount \u2014 no manual selection needed.
-                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
+                      <p style={{ fontSize: '12px', color: C.texteGris, margin: 0 }}>
+                        Automatically calculated based on your total pool amount and your own commission tiers.
+                      </p>
+                      <button onClick={() => router.push('/dashboard/commission-settings')}
+                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '5px', background: 'none', border: `1.5px solid ${C.roseMoyen}`, color: C.bordeaux, borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        <Settings size={12} /> Customize tiers
+                      </button>
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: C.creme, borderRadius: '14px', padding: '16px 20px', flexWrap: 'wrap', gap: '12px' }}>
                       <div>
                         <p style={{ fontSize: '11px', color: C.texteGris, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Commission Rate</p>
@@ -697,11 +707,11 @@ export default function CreateTontinePage() {
                       </div>
                     </div>
                     <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      {COMMISSION_TIERS.map((t, i) => {
-                        const isActive = totalPool >= t.min && totalPool < t.max;
+                      {commissionTiers.map((t, i) => {
+                        const isActive = totalPool >= t.min && (t.max === null || totalPool < t.max);
                         return (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', padding: '4px 6px', borderRadius: '6px', background: isActive ? C.roseClair : 'transparent', color: isActive ? C.bordeaux : C.texteGris, fontWeight: isActive ? 700 : 400 }}>
-                            <span>{t.max === Infinity ? `${t.min}+ ${currency}` : `${t.min} \u2013 ${t.max} ${currency}`}</span>
+                            <span>{t.max === null ? `${t.min}+ ${currency}` : `${t.min} \u2013 ${t.max} ${currency}`}</span>
                             <span>{t.rate}%</span>
                           </div>
                         );
