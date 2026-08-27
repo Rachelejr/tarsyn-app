@@ -61,17 +61,17 @@ export default function SwitchWorkspacePage() {
           });
         }
 
-        // Safety net: if this page is somehow reached with 0 or 1 active
-        // module, don't leave the admin stuck here.
+        // Brand-new admin with nothing set up yet: nothing to choose from,
+        // so send them straight to module selection instead of showing an
+        // empty screen.
         if (found.length === 0) {
           router.push('/workspace/select-module');
           return;
         }
-        if (found.length === 1) {
-          router.push(found[0].href);
-          return;
-        }
 
+        // Otherwise, always show the switcher - even with a single active
+        // module - so the admin sees where they're going and can add more
+        // modules from here.
         setWorkspaces(found);
       } catch (e) {
         console.error(e);
@@ -90,11 +90,15 @@ export default function SwitchWorkspacePage() {
     );
   }
 
+  const subtitle = workspaces.length === 1
+    ? 'Continue to your workspace, or activate another module.'
+    : 'You have more than one module active. Pick where you want to go.';
+
   return (
     <div style={{ minHeight: '100vh', background: C.creme, padding: '0 0 64px' }}>
       <div style={{ background: `linear-gradient(160deg, ${C.bordeaux} 0%, ${C.bordeauxDark} 100%)`, padding: '56px 32px 40px', textAlign: 'center' }}>
         <h1 style={{ color: 'white', fontSize: '30px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Workspace</h1>
-        <p style={{ color: 'rgba(251,238,221,0.8)', fontSize: '14px', margin: 0 }}>You have more than one module active. Pick where you want to go.</p>
+        <p style={{ color: 'rgba(251,238,221,0.8)', fontSize: '14px', margin: 0 }}>{subtitle}</p>
       </div>
 
       <div style={{ maxWidth: '640px', margin: '32px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
