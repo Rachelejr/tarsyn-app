@@ -95,7 +95,8 @@ export default function MyChurchesPage() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
             {churches.map((c) => (
-              <div key={c.id} style={{ background: C.cardBg, border: `1px solid ${C.borderSoft}`, borderRadius: '16px', padding: '20px' }}>
+              <div key={c.id} onClick={() => router.push(`/dashboard/church/${c.id}`)}
+                style={{ background: C.cardBg, border: `1px solid ${C.borderSoft}`, borderRadius: '16px', padding: '20px', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                   <h2 style={{ fontSize: '17px', fontWeight: 800, color: C.textDark, margin: 0 }}>{c.churchName || '(Unnamed church)'}</h2>
                   <span style={{
