@@ -53,6 +53,33 @@ export default function SecurityCenterPage() {
       new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Turns a raw navigator.userAgent string into a short readable label like
+  // "Chrome on Windows". If the stored value is already short (older entries
+  // saved before this formatting existed, e.g. "Chrome on Windows" or
+  // "Safari on macOS"), it's returned as-is instead of being re-parsed.
+  const formatDevice = (device?: string) => {
+    if (!device) return 'Unknown device';
+    if (device.length < 60 && !device.includes('Mozilla')) return device;
+
+    let browser = 'Unknown browser';
+    if (/Edg\//.test(device)) browser = 'Edge';
+    else if (/OPR\//.test(device)) browser = 'Opera';
+    else if (/Chrome\//.test(device) && !/Chromium/.test(device)) browser = 'Chrome';
+    else if (/CriOS\//.test(device)) browser = 'Chrome';
+    else if (/FxiOS\//.test(device)) browser = 'Firefox';
+    else if (/Firefox\//.test(device)) browser = 'Firefox';
+    else if (/Safari\//.test(device) && !/Chrome\//.test(device)) browser = 'Safari';
+
+    let os = 'Unknown OS';
+    if (/Windows/.test(device)) os = 'Windows';
+    else if (/iPhone|iPad|iPod/.test(device)) os = 'iOS';
+    else if (/Mac OS X/.test(device)) os = 'macOS';
+    else if (/Android/.test(device)) os = 'Android';
+    else if (/Linux/.test(device)) os = 'Linux';
+
+    return `${browser} on ${os}`;
+  };
+
   const handleRevokeAll = async () => {
     if (!user) return;
     if (!confirm('This will sign you out of all devices, including this one. You will need to sign in again. Continue?')) return;
@@ -135,7 +162,7 @@ export default function SecurityCenterPage() {
                 <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: C.creme, borderRadius: '10px' }}>
                   <div>
                     <p style={{ color: C.text, fontSize: '13px', fontWeight: 700, margin: 0 }}>{h.action || 'Signed in'}</p>
-                    <p style={{ color: C.muted, fontSize: '11.5px', margin: '2px 0 0' }}>{h.device || 'Unknown device'}</p>
+                    <p style={{ color: C.muted, fontSize: '11.5px', margin: '2px 0 0' }}>{formatDevice(h.device)}</p>
                   </div>
                   <span style={{ color: C.muted, fontSize: '12px' }}>{formatDate(h.createdAt)}</span>
                 </div>
