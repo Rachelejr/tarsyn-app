@@ -42,7 +42,7 @@ export default function RegisterPage() {
         trialEndsAt: trialEndsAt.toISOString(),
       });
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/dashboard/create-tontine'; }, 1800);
+      setTimeout(() => { window.location.href = '/workspace/select-module'; }, 1800);
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered.');
@@ -67,7 +67,7 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
         trialEndsAt: trialEndsAt.toISOString(),
       }, { merge: true });
-      window.location.href = '/dashboard/create-tontine';
+      window.location.href = '/workspace/select-module';
     } catch {
       setError('Google sign-up failed. Please try again.');
     }
@@ -89,7 +89,7 @@ export default function RegisterPage() {
               <div style={{width:'28px',height:'28px',border:'3px solid #EAD9BE',borderTopColor:'#6B2D4E',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <a href="/dashboard/create-tontine" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#8B3A5E',textDecoration:'underline'}}>
+            <a href="/workspace/select-module" style={{display:'block',marginTop:'20px',fontSize:'13px',color:'#8B3A5E',textDecoration:'underline'}}>
               Continue now ?
             </a>
           </div>
