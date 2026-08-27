@@ -51,9 +51,30 @@ function LoginPageInner() {
         if (redirectTo) {
           window.location.href = redirectTo;
         } else {
-          // Admins always land on their dashboard after login - no more
-          // routing brand-new admins to create-tontine first.
-          window.location.href = '/dashboard';
+          // Multi-module routing: an admin can have Tontine and/or Church
+          // active at the same time. Send them straight to their only
+          // module, let them pick between several, or to module selection
+          // if they haven't activated anything yet.
+          try {
+            const [byOrganizer, byAdmin, churchesSnap] = await Promise.all([
+              getDocs(query(collection(db, 'groups'), where('organizerId', '==', uid))),
+              getDocs(query(collection(db, 'groups'), where('adminId', '==', uid))),
+              getDocs(query(collection(db, 'churches'), where('organizerId', '==', uid))),
+            ]);
+            const hasTontine = !byOrganizer.empty || !byAdmin.empty;
+            const hasChurch = !churchesSnap.empty;
+            const activeCount = (hasTontine ? 1 : 0) + (hasChurch ? 1 : 0);
+
+            if (activeCount === 0) {
+              window.location.href = '/workspace/select-module';
+            } else if (activeCount === 1) {
+              window.location.href = hasTontine ? '/dashboard' : '/dashboard/church';
+            } else {
+              window.location.href = '/workspace/switch';
+            }
+          } catch {
+            window.location.href = '/dashboard';
+          }
         }
       } else {
         // MEMBER: move the session to the dedicated memberAuth instance so
