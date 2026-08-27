@@ -1,0 +1,39 @@
+﻿
+  src\app\dashboard\church\add-member\page.tsx:83:    if (!needsAccountTouched) {
+  src\app\dashboard\church\add-member\page.tsx:84:      setNeedsAccount(ROLES_NEEDING_ACCOUNT_BY_DEFAULT.has(newRole));
+  src\app\dashboard\church\add-member\page.tsx:85:    }
+  src\app\dashboard\church\add-member\page.tsx:86:  };
+  src\app\dashboard\church\add-member\page.tsx:87:
+  src\app\dashboard\church\add-member\page.tsx:88:  const handleSubmit = async (e: React.FormEvent) => {
+  src\app\dashboard\church\add-member\page.tsx:89:    e.preventDefault();
+  src\app\dashboard\church\add-member\page.tsx:90:    setError('');
+  src\app\dashboard\church\add-member\page.tsx:91:    if (!selectedChurchId) return setError('Please select a 
+church.');
+  src\app\dashboard\church\add-member\page.tsx:92:    if (!fullName.trim()) return setError('Full name is required.');
+  src\app\dashboard\church\add-member\page.tsx:93:    if (needsAccount && !email.trim()) return setError('An email is 
+required to give this person a login account.');
+  src\app\dashboard\church\add-member\page.tsx:94:
+  src\app\dashboard\church\add-member\page.tsx:95:    setSaving(true);
+  src\app\dashboard\church\add-member\page.tsx:96:    try {
+  src\app\dashboard\church\add-member\page.tsx:97:      const memberInviteCode = Math.random().toString(36).substr(2, 
+8).toUpperCase();
+> src\app\dashboard\church\add-member\page.tsx:98:      await addDoc(collection(db, 'churchMembers'), {
+  src\app\dashboard\church\add-member\page.tsx:99:        organizerId,
+  src\app\dashboard\church\add-member\page.tsx:100:        churchId: selectedChurchId,
+  src\app\dashboard\church\add-member\page.tsx:101:        fullName: fullName.trim(),
+  src\app\dashboard\church\add-member\page.tsx:102:        email: email.trim(),
+  src\app\dashboard\church\add-member\page.tsx:103:        phone: phone.trim(),
+  src\app\dashboard\church\add-member\page.tsx:104:        role,
+  src\app\dashboard\church\add-member\page.tsx:105:        needsAccount,
+  src\app\dashboard\church\add-member\page.tsx:106:        // A member who doesn't need a login is simply recorded as 
+active
+  src\app\dashboard\church\add-member\page.tsx:107:        // right away — there is no invitation to accept, nothing 
+pending.
+  src\app\dashboard\church\add-member\page.tsx:108:        status: needsAccount ? 'pending' : 'active',
+  src\app\dashboard\church\add-member\page.tsx:109:        inviteCode: memberInviteCode,
+  src\app\dashboard\church\add-member\page.tsx:110:        createdAt: serverTimestamp(),
+  src\app\dashboard\church\add-member\page.tsx:111:      });
+  src\app\dashboard\church\add-member\page.tsx:112:
+  src\app\dashboard\church\add-member\page.tsx:113:      try {
+
+

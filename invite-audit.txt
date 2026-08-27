@@ -1,0 +1,181 @@
+﻿
+  app\dashboard\contribution-log\page.tsx:261:      const rows: any[] = XLSX.utils.sheet_to_json(ws);
+  app\dashboard\contribution-log\page.tsx:262:      let added = 0, skipped = 0;
+  app\dashboard\contribution-log\page.tsx:263:      for (const row of rows) {
+  app\dashboard\contribution-log\page.tsx:264:        const name = row['Name'] || row['name'];
+  app\dashboard\contribution-log\page.tsx:265:        if (!name) { skipped++; continue; }
+  app\dashboard\contribution-log\page.tsx:266:        if (members.find(m => (m.fullName || m.name)?.toLowerCase() === 
+String(name).toLowerCase())) { skipped++; continue; }
+  app\dashboard\contribution-log\page.tsx:267:        await addDoc(collection(db, 'members'), {
+  app\dashboard\contribution-log\page.tsx:268:          name: String(name), tynId: row['TYN-ID'] || row['tynId'] || 
+`TYN-IMP-${Date.now()}-${added}`,
+  app\dashboard\contribution-log\page.tsx:269:          position: Number(row['#'] || row['position'] || members.length 
++ added + 1),
+  app\dashboard\contribution-log\page.tsx:270:          status: (row['Status'] || row['status'] || 
+'pending').toLowerCase(),
+  app\dashboard\contribution-log\page.tsx:271:          payoutDate: row['Payout Date'] || row['payoutDate'] || '', 
+organizerId, groupId: activeGroupId || undefined, source: 'excel-import', createdAt: serverTimestamp(),
+  app\dashboard\contribution-log\page.tsx:272:        });
+  app\dashboard\contribution-log\page.tsx:273:        added++;
+  app\dashboard\contribution-log\page.tsx:274:      }
+  app\dashboard\contribution-log\page.tsx:275:      setImportMsg(`OK ${added} imported, ${skipped} skipped.`);
+  app\dashboard\contribution-log\page.tsx:276:      const mq = activeGroupId
+  app\dashboard\contribution-log\page.tsx:277:        ? query(collection(db, 'members'), where('groupId', '==', 
+activeGroupId))
+  app\dashboard\contribution-log\page.tsx:278:        : query(collection(db, 'members'), where('organizerId', '==', 
+organizerId));
+  app\dashboard\contribution-log\page.tsx:279:      const msnap = await getDocs(mq);
+  app\dashboard\contribution-log\page.tsx:280:      setMembers(msnap.docs.map(d => ({ id: d.id, ...d.data() })));
+  app\dashboard\contribution-log\page.tsx:281:    } catch (err) {
+  app\dashboard\contribution-log\page.tsx:282:      setImportMsg('x Import failed.');
+  app\dashboard\contribution-log\page.tsx:283:    } finally {
+  app\dashboard\contribution-log\page.tsx:284:      setImporting(false);
+  app\dashboard\contribution-log\page.tsx:285:      e.target.value = '';
+  app\dashboard\contribution-log\page.tsx:286:    }
+  app\dashboard\contribution-log\page.tsx:287:  };
+  app\dashboard\contribution-log\page.tsx:288:
+  app\dashboard\contribution-log\page.tsx:289:  const handlePrint = () => window.print();
+  app\dashboard\contribution-log\page.tsx:290:
+  app\dashboard\contribution-log\page.tsx:291:  const handleResendInvite = async (m: any) => {
+  app\dashboard\contribution-log\page.tsx:292:    if (!m.email) {
+  app\dashboard\contribution-log\page.tsx:293:      alert('This member has no email on file. Add one before sending an 
+invitation.');
+  app\dashboard\contribution-log\page.tsx:294:      return;
+  app\dashboard\contribution-log\page.tsx:295:    }
+  app\dashboard\contribution-log\page.tsx:296:    setResendingId(m.id);
+  app\dashboard\contribution-log\page.tsx:297:    try {
+  app\dashboard\contribution-log\page.tsx:298:      let code = m.inviteCode;
+  app\dashboard\contribution-log\page.tsx:299:      if (!code) {
+  app\dashboard\contribution-log\page.tsx:300:        code = Math.random().toString(36).substr(2, 8).toUpperCase();
+  app\dashboard\contribution-log\page.tsx:301:        await updateDoc(doc(db, 'members', m.id), { inviteCode: code });
+  app\dashboard\contribution-log\page.tsx:302:      }
+  app\dashboard\contribution-log\page.tsx:303:      const inviteLink = 'https://unimunity.com/join/' + code;
+  app\dashboard\contribution-log\page.tsx:304:      const res = await fetch('/api/send-invite', {
+  app\dashboard\contribution-log\page.tsx:305:        method: 'POST',
+  app\dashboard\contribution-log\page.tsx:306:        headers: { 'Content-Type': 'application/json' },
+  app\dashboard\contribution-log\page.tsx:307:        body: JSON.stringify({
+  app\dashboard\contribution-log\page.tsx:308:          emails: [m.email],
+  app\dashboard\contribution-log\page.tsx:309:          tontineName: group?.name,
+  app\dashboard\contribution-log\page.tsx:310:          region: group?.region,
+  app\dashboard\contribution-log\page.tsx:311:          contribution: group?.contribution || group?.amountPerMember,
+  app\dashboard\contribution-log\page.tsx:312:          currency: group?.currency,
+  app\dashboard\contribution-log\page.tsx:313:          frequency: group?.frequency,
+  app\dashboard\contribution-log\page.tsx:314:          startDate: group?.startDate,
+  app\dashboard\contribution-log\page.tsx:315:          inviteLink,
+  app\dashboard\contribution-log\page.tsx:316:        }),
+  app\dashboard\contribution-log\page.tsx:317:      });
+  app\dashboard\contribution-log\page.tsx:318:      const data = await res.json();
+  app\dashboard\contribution-log\page.tsx:319:      setResendResult(prev => ({ ...prev, [m.id]: (res.ok && data.sent > 
+0) ? 'sent' : 'failed' }));
+  app\dashboard\contribution-log\page.tsx:320:    } catch (e) {
+> app\dashboard\contribution-log\page.tsx:321:      console.error('Resend invite failed:', e);
+  app\dashboard\contribution-log\page.tsx:322:      setResendResult(prev => ({ ...prev, [m.id]: 'failed' }));
+  app\dashboard\contribution-log\page.tsx:323:    }
+  app\dashboard\contribution-log\page.tsx:324:    setResendingId(null);
+  app\dashboard\contribution-log\page.tsx:325:  };
+  app\dashboard\contribution-log\page.tsx:326:
+  app\dashboard\contribution-log\page.tsx:517:            </button>
+  app\dashboard\contribution-log\page.tsx:518:            <button className="btn-action" onClick={() => 
+fileInputRef.current?.click()} disabled={importing}
+  app\dashboard\contribution-log\page.tsx:519:              style={{ background: C.white, color: C.burgundyDark, 
+border: `1px solid ${C.lightGray}`, borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, 
+cursor: 'pointer' }}>
+  app\dashboard\contribution-log\page.tsx:520:              {importing ? ' Importing...' : ' Import Excel'}
+  app\dashboard\contribution-log\page.tsx:521:            </button>
+  app\dashboard\contribution-log\page.tsx:522:            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" 
+onChange={handleImportFile} style={{ display: 'none' }} />
+  app\dashboard\contribution-log\page.tsx:523:            {importMsg && <span style={{ fontSize: '12px', color: 
+C.burgundyDark, fontWeight: 600 }}>{importMsg}</span>}
+  app\dashboard\contribution-log\page.tsx:524:          </div>
+  app\dashboard\contribution-log\page.tsx:525:
+  app\dashboard\contribution-log\page.tsx:526:          <div className="fade-up" style={{ background: C.white, 
+borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(74,31,56,0.06)', marginBottom: '24px' }}>
+  app\dashboard\contribution-log\page.tsx:527:            <div style={{ overflowX: 'auto' }}>
+  app\dashboard\contribution-log\page.tsx:528:              <table style={{ width: '100%', borderCollapse: 'collapse', 
+fontSize: '12.5px' }}>
+  app\dashboard\contribution-log\page.tsx:529:                <thead>
+  app\dashboard\contribution-log\page.tsx:530:                  <tr style={{ background: C.burgundyDark }}>
+  app\dashboard\contribution-log\page.tsx:531:                    <th style={{ padding: '12px 10px', textAlign: 
+'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>#</th>
+  app\dashboard\contribution-log\page.tsx:532:                    <th style={{ padding: '12px 10px', textAlign: 
+'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Member</th>
+  app\dashboard\contribution-log\page.tsx:533:                    <th style={{ padding: '12px 10px', textAlign: 
+'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>TYN-ID</th>
+  app\dashboard\contribution-log\page.tsx:534:                    {cycles.map(c => (
+  app\dashboard\contribution-log\page.tsx:535:                      <th key={c} style={{ padding: '12px 8px', 
+textAlign: 'center', color: C.goldLight, fontWeight: 700, fontSize: '10.5px' }}>C{c}</th>
+  app\dashboard\contribution-log\page.tsx:536:                    ))}
+  app\dashboard\contribution-log\page.tsx:537:                    <th style={{ padding: '12px 10px', textAlign: 
+'right', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Balance</th>
+  app\dashboard\contribution-log\page.tsx:538:                    <th style={{ padding: '12px 10px', textAlign: 
+'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Last Paid</th>
+  app\dashboard\contribution-log\page.tsx:539:                    <th style={{ padding: '12px 10px', textAlign: 
+'center', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Invite</th>
+  app\dashboard\contribution-log\page.tsx:540:                  </tr>
+  app\dashboard\contribution-log\page.tsx:541:                </thead>
+  app\dashboard\contribution-log\page.tsx:542:                <tbody>
+  app\dashboard\contribution-log\page.tsx:543:                  {filteredMembers.sort((a, b) => (a.position || 0) - 
+(b.position || 0)).map((m, idx) => (
+  app\dashboard\contribution-log\page.tsx:544:                    <tr key={m.id} className="reg-row" onClick={() => 
+setSelectedMember(m)}
+  app\dashboard\contribution-log\page.tsx:545:                      style={{ borderBottom: `1px solid ${C.cream}`, 
+background: idx % 2 === 0 ? C.white : C.cream }}>
+  app\dashboard\contribution-log\page.tsx:546:                      <td style={{ padding: '10px 10px', color: C.gray, 
+fontWeight: 600 }}>{m.position || idx + 1}</td>
+  app\dashboard\contribution-log\page.tsx:547:                      <td style={{ padding: '10px 10px' }}>
+  app\dashboard\contribution-log\page.tsx:548:                        <div style={{ display: 'flex', alignItems: 
+'center', gap: '8px' }}>
+  app\dashboard\contribution-log\page.tsx:549:                          <div style={{
+  app\dashboard\contribution-log\page.tsx:550:                            width: '28px', height: '28px', borderRadius: 
+'50%', background: C.goldLight,
+  app\dashboard\contribution-log\page.tsx:551:                            display: 'flex', alignItems: 'center', 
+justifyContent: 'center', fontWeight: 800, color: C.burgundyDark, fontSize: '11px', flexShrink: 0, overflow: 'hidden',
+  app\dashboard\contribution-log\page.tsx:552:                          }}>
+  app\dashboard\contribution-log\page.tsx:553:                            {m.photoUrl ? <img src={m.photoUrl} alt="" 
+style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.fullName || m.name || 
+'?').charAt(0).toUpperCase()}
+  app\dashboard\contribution-log\page.tsx:554:                          </div>
+  app\dashboard\contribution-log\page.tsx:555:                          <span style={{ color: C.burgundyDark, 
+fontWeight: 700 }}>{m.fullName || m.name || '(no name)'}</span>
+  app\dashboard\contribution-log\page.tsx:556:                        </div>
+  app\dashboard\contribution-log\page.tsx:557:                      </td>
+  app\dashboard\contribution-log\page.tsx:558:                      <td style={{ padding: '10px 10px', color: C.gray, 
+fontSize: '11px' }}>{m.tynId}</td>
+  app\dashboard\contribution-log\page.tsx:559:                      {cycles.map(c => (
+  app\dashboard\contribution-log\page.tsx:560:                        <td key={c} style={{ padding: '8px 8px', 
+textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+  app\dashboard\contribution-log\page.tsx:561:                          <StatusCell 
+status={getStatusLabel(getPaymentFor(m.id, c))} onClick={e => {
+  app\dashboard\contribution-log\page.tsx:562:                            e.stopPropagation();
+  app\dashboard\contribution-log\page.tsx:563:                            setStatusMenu({ memberId: m.id, cycle: c, x: 
+e.clientX, y: e.clientY });
+  app\dashboard\contribution-log\page.tsx:564:                          }} />
+  app\dashboard\contribution-log\page.tsx:565:                        </td>
+  app\dashboard\contribution-log\page.tsx:566:                      ))}
+  app\dashboard\contribution-log\page.tsx:567:                      <td style={{ padding: '10px 10px', textAlign: 
+'right', color: C.burgundyDark, fontWeight: 700 }}>{getBalance(m.id).toLocaleString()}</td>
+  app\dashboard\contribution-log\page.tsx:568:                      <td style={{ padding: '10px 10px', color: C.gray, 
+fontSize: '11px' }}>{getLastPayment(m.id)}</td>
+  app\dashboard\contribution-log\page.tsx:569:                      <td style={{ padding: '10px 10px', textAlign: 
+'center' }} onClick={e => e.stopPropagation()}>
+  app\dashboard\contribution-log\page.tsx:570:                        {m.userId ? (
+  app\dashboard\contribution-log\page.tsx:571:                          <span style={{ fontSize: '10.5px', color: 
+C.gray }}>Registered</span>
+  app\dashboard\contribution-log\page.tsx:572:                        ) : resendResult[m.id] === 'sent' ? (
+  app\dashboard\contribution-log\page.tsx:573:                          <span style={{ fontSize: '10.5px', color: 
+'#3F7D5C', fontWeight: 700 }}>Sent</span>
+  app\dashboard\contribution-log\page.tsx:574:                        ) : (
+  app\dashboard\contribution-log\page.tsx:575:                          <button onClick={() => handleResendInvite(m)} 
+disabled={resendingId === m.id}
+  app\dashboard\contribution-log\page.tsx:576:                            style={{ background: C.white, color: 
+C.burgundy, border: `1.5px solid ${C.burgundy}`, borderRadius: '7px', padding: '5px 10px', fontSize: '10.5px', 
+fontWeight: 700, cursor: resendingId === m.id ? 'not-allowed' : 'pointer' }}>
+> app\dashboard\contribution-log\page.tsx:577:                            {resendingId === m.id ? 'Sending...' : 
+resendResult[m.id] === 'failed' ? 'Retry' : 'Resend Invite'}
+  app\dashboard\contribution-log\page.tsx:578:                          </button>
+  app\dashboard\contribution-log\page.tsx:579:                        )}
+  app\dashboard\contribution-log\page.tsx:580:                      </td>
+  app\dashboard\contribution-log\page.tsx:581:                    </tr>
+  app\dashboard\contribution-log\page.tsx:582:                  ))}
+
+

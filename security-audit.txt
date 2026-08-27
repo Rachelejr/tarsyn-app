@@ -1,0 +1,168 @@
+﻿
+app\dashboard\security\page.tsx:1:'use client';
+app\dashboard\security\page.tsx:3:import { useEffect, useState } from 'react';
+app\dashboard\security\page.tsx:4:import { useRouter } from 'next/navigation';
+app\dashboard\security\page.tsx:5:import { auth, db } from '@/lib/firebase';
+app\dashboard\security\page.tsx:6:import { onAuthStateChanged } from 'firebase/auth';
+app\dashboard\security\page.tsx:7:import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+app\dashboard\security\page.tsx:8:import DateTimeWeather from '@/components/DateTimeWeather';
+app\dashboard\security\page.tsx:10:const C = {
+app\dashboard\security\page.tsx:11:  bordeaux: '#6B2D4E',
+app\dashboard\security\page.tsx:12:  bordeauxDark: '#4A1F38',
+app\dashboard\security\page.tsx:13:  or: '#E9C77B',
+app\dashboard\security\page.tsx:14:  orLight: '#F0DCA8',
+app\dashboard\security\page.tsx:15:  creme: '#FBEEDD',
+app\dashboard\security\page.tsx:16:  blanc: '#FFFFFF',
+app\dashboard\security\page.tsx:17:  text: '#1a1a1a',
+app\dashboard\security\page.tsx:18:  muted: '#6b7280',
+app\dashboard\security\page.tsx:19:  green: '#2E7D32',
+app\dashboard\security\page.tsx:20:  greenBg: '#E8F5E9',
+app\dashboard\security\page.tsx:21:  red: '#C62828',
+app\dashboard\security\page.tsx:22:};
+app\dashboard\security\page.tsx:24:export default function SecurityCenterPage() {
+app\dashboard\security\page.tsx:25:  const router = useRouter();
+app\dashboard\security\page.tsx:26:  const [user, setUser] = useState<any>(null);
+app\dashboard\security\page.tsx:27:  const [history, setHistory] = useState<any[]>([]);
+app\dashboard\security\page.tsx:28:  const [loading, setLoading] = useState(true);
+app\dashboard\security\page.tsx:29:  const [revoking, setRevoking] = useState(false);
+app\dashboard\security\page.tsx:30:  const [revokeMsg, setRevokeMsg] = useState('');
+app\dashboard\security\page.tsx:32:  useEffect(() => {
+app\dashboard\security\page.tsx:33:    const unsub = onAuthStateChanged(auth, async (u) => {
+app\dashboard\security\page.tsx:34:      if (!u) { router.push('/login'); return; }
+app\dashboard\security\page.tsx:35:      setUser(u);
+app\dashboard\security\page.tsx:36:      try {
+app\dashboard\security\page.tsx:37:        const q = query(
+app\dashboard\security\page.tsx:38:          collection(db, 'login_history'),
+app\dashboard\security\page.tsx:39:          where('userId', '==', u.uid),
+app\dashboard\security\page.tsx:40:          orderBy('createdAt', 'desc')
+app\dashboard\security\page.tsx:41:        );
+app\dashboard\security\page.tsx:42:        const snap = await getDocs(q);
+app\dashboard\security\page.tsx:43:        setHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })).slice(0, 20));
+app\dashboard\security\page.tsx:44:      } catch (e) { console.error(e); }
+app\dashboard\security\page.tsx:45:      setLoading(false);
+app\dashboard\security\page.tsx:46:    });
+app\dashboard\security\page.tsx:47:    return () => unsub();
+app\dashboard\security\page.tsx:48:  }, [router]);
+app\dashboard\security\page.tsx:50:  const formatDate = (ts: any) => {
+app\dashboard\security\page.tsx:51:    if (!ts?.seconds) return '-';
+app\dashboard\security\page.tsx:52:    return new Date(ts.seconds * 1000).toLocaleDateString() + ' at ' +
+app\dashboard\security\page.tsx:53:      new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: 
+'2-digit' });
+app\dashboard\security\page.tsx:54:  };
+app\dashboard\security\page.tsx:56:  const handleRevokeAll = async () => {
+app\dashboard\security\page.tsx:57:    if (!user) return;
+app\dashboard\security\page.tsx:58:    if (!confirm('This will sign you out of all devices, including this one. You 
+will need to sign in again. Continue?')) return;
+app\dashboard\security\page.tsx:59:    setRevoking(true);
+app\dashboard\security\page.tsx:60:    setRevokeMsg('');
+app\dashboard\security\page.tsx:61:    try {
+app\dashboard\security\page.tsx:62:      const res = await fetch('/api/revoke-sessions', {
+app\dashboard\security\page.tsx:63:        method: 'POST',
+app\dashboard\security\page.tsx:64:        headers: { 'Content-Type': 'application/json' },
+app\dashboard\security\page.tsx:65:        body: JSON.stringify({ userId: user.uid }),
+app\dashboard\security\page.tsx:66:      });
+app\dashboard\security\page.tsx:67:      const data = await res.json();
+app\dashboard\security\page.tsx:68:      if (data.success) {
+app\dashboard\security\page.tsx:69:        await auth.signOut();
+app\dashboard\security\page.tsx:70:        router.push('/login');
+app\dashboard\security\page.tsx:71:      } else {
+app\dashboard\security\page.tsx:72:        setRevokeMsg('Could not sign out of all devices. Please try again.');
+app\dashboard\security\page.tsx:73:      }
+app\dashboard\security\page.tsx:74:    } catch (e) {
+app\dashboard\security\page.tsx:75:      setRevokeMsg('Could not sign out of all devices. Please try again.');
+app\dashboard\security\page.tsx:76:    }
+app\dashboard\security\page.tsx:77:    setRevoking(false);
+app\dashboard\security\page.tsx:78:  };
+app\dashboard\security\page.tsx:80:  if (loading) return (
+app\dashboard\security\page.tsx:81:    <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', 
+flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '18px' }}>
+app\dashboard\security\page.tsx:82:      <style>{`@keyframes UNIMUNITY-spin { to { transform: rotate(360deg); } 
+}`}</style>
+app\dashboard\security\page.tsx:83:      <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', 
+width: 'auto' }} />
+app\dashboard\security\page.tsx:84:      <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: 
+'3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'UNIMUNITY-spin 0.8s linear infinite' }} />
+app\dashboard\security\page.tsx:85:    </div>
+app\dashboard\security\page.tsx:86:  );
+app\dashboard\security\page.tsx:88:  return (
+app\dashboard\security\page.tsx:89:    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, 
+sans-serif' }}>
+app\dashboard\security\page.tsx:90:      <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 
+'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+app\dashboard\security\page.tsx:91:        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+app\dashboard\security\page.tsx:92:          <button onClick={() => router.push('/dashboard')} style={{ background: 
+'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>&lt;-</button>
+app\dashboard\security\page.tsx:93:          <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 
+0 }}>Security Center</h1>
+app\dashboard\security\page.tsx:94:        </div>
+app\dashboard\security\page.tsx:95:        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+app\dashboard\security\page.tsx:96:          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+app\dashboard\security\page.tsx:97:          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+app\dashboard\security\page.tsx:98:            style={{ background: 'transparent', border: '1px solid 
+rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+app\dashboard\security\page.tsx:99:            Sign Out
+app\dashboard\security\page.tsx:100:          </button>
+app\dashboard\security\page.tsx:101:        </div>
+app\dashboard\security\page.tsx:102:      </div>
+app\dashboard\security\page.tsx:104:      <div style={{ maxWidth: '780px', margin: '0 auto', padding: '32px 24px' }}>
+app\dashboard\security\page.tsx:106:        <div style={{ background: C.blanc, borderRadius: '16px', padding: '24px', 
+marginBottom: '20px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+app\dashboard\security\page.tsx:107:          <h2 style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 800, 
+margin: '0 0 4px' }}>Two-Factor Authentication</h2>
+app\dashboard\security\page.tsx:108:          <p style={{ color: C.muted, fontSize: '13px', margin: '0 0 16px' 
+}}>Every sign-in requires a 6-digit code sent to your email.</p>
+app\dashboard\security\page.tsx:109:          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', 
+background: C.greenBg, color: C.green, padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 700 }}>
+app\dashboard\security\page.tsx:110:            Enabled (Email verification)
+app\dashboard\security\page.tsx:111:          </div>
+app\dashboard\security\page.tsx:112:        </div>
+app\dashboard\security\page.tsx:114:        <div style={{ background: C.blanc, borderRadius: '16px', padding: '24px', 
+marginBottom: '20px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+app\dashboard\security\page.tsx:115:          <h2 style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 800, 
+margin: '0 0 4px' }}>Active Session</h2>
+app\dashboard\security\page.tsx:116:          <p style={{ color: C.muted, fontSize: '13px', margin: '0 0 16px' }}>
+app\dashboard\security\page.tsx:117:            If you no longer recognize a device in your history, you can sign out 
+everywhere at once.
+app\dashboard\security\page.tsx:118:          </p>
+app\dashboard\security\page.tsx:119:          <button onClick={handleRevokeAll} disabled={revoking}
+app\dashboard\security\page.tsx:120:            style={{ background: 'transparent', color: C.red, border: '1.5px solid 
+' + C.red, padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: revoking ? 
+'not-allowed' : 'pointer', opacity: revoking ? 0.6 : 1 }}>
+app\dashboard\security\page.tsx:121:            {revoking ? 'Signing out everywhere...' : 'Sign out of all devices'}
+app\dashboard\security\page.tsx:122:          </button>
+app\dashboard\security\page.tsx:123:          {revokeMsg && <p style={{ color: C.red, fontSize: '12px', marginTop: 
+'10px' }}>{revokeMsg}</p>}
+app\dashboard\security\page.tsx:124:        </div>
+app\dashboard\security\page.tsx:126:        <div style={{ background: C.blanc, borderRadius: '16px', padding: '24px', 
+boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+app\dashboard\security\page.tsx:127:          <h2 style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 800, 
+margin: '0 0 4px' }}>Connection History</h2>
+app\dashboard\security\page.tsx:128:          <p style={{ color: C.muted, fontSize: '13px', margin: '0 0 16px' }}>Last 
+20 sign-ins to your account.</p>
+app\dashboard\security\page.tsx:130:          {history.length === 0 ? (
+app\dashboard\security\page.tsx:131:            <p style={{ color: C.muted, fontSize: '13px' }}>No history recorded 
+yet.</p>
+app\dashboard\security\page.tsx:132:          ) : (
+app\dashboard\security\page.tsx:133:            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+app\dashboard\security\page.tsx:134:              {history.map((h) => (
+app\dashboard\security\page.tsx:135:                <div key={h.id} style={{ display: 'flex', justifyContent: 
+'space-between', alignItems: 'center', padding: '10px 14px', background: C.creme, borderRadius: '10px' }}>
+app\dashboard\security\page.tsx:136:                  <div>
+app\dashboard\security\page.tsx:137:                    <p style={{ color: C.text, fontSize: '13px', fontWeight: 700, 
+margin: 0 }}>{h.action || 'Signed in'}</p>
+app\dashboard\security\page.tsx:138:                    <p style={{ color: C.muted, fontSize: '11.5px', margin: '2px 0 
+0' }}>{h.device || 'Unknown device'}</p>
+app\dashboard\security\page.tsx:139:                  </div>
+app\dashboard\security\page.tsx:140:                  <span style={{ color: C.muted, fontSize: '12px' 
+}}>{formatDate(h.createdAt)}</span>
+app\dashboard\security\page.tsx:141:                </div>
+app\dashboard\security\page.tsx:142:              ))}
+app\dashboard\security\page.tsx:143:            </div>
+app\dashboard\security\page.tsx:144:          )}
+app\dashboard\security\page.tsx:145:        </div>
+app\dashboard\security\page.tsx:147:      </div>
+app\dashboard\security\page.tsx:148:    </div>
+app\dashboard\security\page.tsx:149:  );
+app\dashboard\security\page.tsx:150:}
+
+

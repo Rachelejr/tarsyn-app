@@ -1,0 +1,92 @@
+﻿
+> src\app\login\page.tsx:26:  const redirectByRole = async (uid: string, uEmail: string) => {
+  src\app\login\page.tsx:27:    try {
+  src\app\login\page.tsx:28:      let role = null;
+  src\app\login\page.tsx:29:      const userDoc = await getDoc(doc(db, 'users', uid));
+  src\app\login\page.tsx:30:      if (userDoc.exists()) {
+  src\app\login\page.tsx:31:        role = userDoc.data()?.role;
+  src\app\login\page.tsx:32:      } else {
+  src\app\login\page.tsx:33:        const q2 = query(collection(db, 'members'), where('email', '==', 
+uEmail));
+  src\app\login\page.tsx:34:        const s2 = await getDocs(q2);
+  src\app\login\page.tsx:35:        if (!s2.empty) {
+  src\app\login\page.tsx:36:          role = s2.docs[0].data()?.role;
+  src\app\login\page.tsx:37:        }
+  src\app\login\page.tsx:38:      }
+  src\app\login\page.tsx:39:      try {
+  src\app\login\page.tsx:40:        await addDoc(collection(db, 'login_history'), {
+  src\app\login\page.tsx:41:          userId: uid, action: 'Signed in',
+  src\app\login\page.tsx:42:          device: navigator.userAgent, createdAt: serverTimestamp(),
+  src\app\login\page.tsx:43:        });
+  src\app\login\page.tsx:44:        await addDoc(collection(db, 'audit_logs'), {
+  src\app\login\page.tsx:45:          organizerId: uid, category: 'Auth',
+  src\app\login\page.tsx:46:          action: 'Signed in', user: uEmail,
+  src\app\login\page.tsx:47:          details: 'Successful sign-in', createdAt: serverTimestamp(),
+  src\app\login\page.tsx:48:        });
+  src\app\login\page.tsx:49:      } catch (logErr) { /* silent - login logging must never block 
+sign-in */ }
+  src\app\login\page.tsx:50:      if (role === 'admin' || role === 'superadmin' || role === 
+'organizer') {
+  src\app\login\page.tsx:51:        if (redirectTo) {
+  src\app\login\page.tsx:52:          window.location.href = redirectTo;
+  src\app\login\page.tsx:53:        } else {
+  src\app\login\page.tsx:54:          // Send brand-new admins (no groups yet) to create their first
+  src\app\login\page.tsx:55:          // tontine, but existing admins straight to their dashboard -
+  src\app\login\page.tsx:56:          // landing on "create a group" every login made no sense once
+  src\app\login\page.tsx:57:          // an admin already has one or more groups running.
+  src\app\login\page.tsx:58:          try {
+  src\app\login\page.tsx:59:            const [byOrganizer, byAdmin] = await Promise.all([
+  src\app\login\page.tsx:60:              getDocs(query(collection(db, 'groups'), 
+where('organizerId', '==', uid))),
+  src\app\login\page.tsx:61:              getDocs(query(collection(db, 'groups'), where('adminId', 
+'==', uid))),
+  src\app\login\page.tsx:62:            ]);
+  src\app\login\page.tsx:63:            const hasGroups = !byOrganizer.empty || !byAdmin.empty;
+  src\app\login\page.tsx:64:            window.location.href = hasGroups ? '/dashboard' : 
+'/dashboard/create-tontine';
+  src\app\login\page.tsx:65:          } catch {
+  src\app\login\page.tsx:66:            window.location.href = '/dashboard';
+> src\app\login\page.tsx:152:      await redirectByRole(userId, userEmail);
+  src\app\login\page.tsx:153:    } catch {
+  src\app\login\page.tsx:154:      setError('Verification error. Please try again.');
+  src\app\login\page.tsx:155:    } finally {
+  src\app\login\page.tsx:156:      setLoading(false);
+  src\app\login\page.tsx:157:    }
+  src\app\login\page.tsx:158:  };
+  src\app\login\page.tsx:159:
+  src\app\login\page.tsx:160:  const handleResend = async () => {
+  src\app\login\page.tsx:161:    setError('');
+  src\app\login\page.tsx:162:    setCode(['', '', '', '', '', '']);
+  src\app\login\page.tsx:163:    await sendOTP(userId, userEmail);
+  src\app\login\page.tsx:164:    setResendMsg('New code sent!');
+  src\app\login\page.tsx:165:    setTimeout(() => setResendMsg(''), 4000);
+  src\app\login\page.tsx:166:  };
+  src\app\login\page.tsx:167:
+  src\app\login\page.tsx:168:  const handleGoogle = async () => {
+  src\app\login\page.tsx:169:    setError('');
+  src\app\login\page.tsx:170:    setLoading(true);
+  src\app\login\page.tsx:171:    try {
+  src\app\login\page.tsx:172:      await setPersistence(auth, keepConnected ? browserLocalPersistence 
+: browserSessionPersistence);
+  src\app\login\page.tsx:173:      const provider = new GoogleAuthProvider();
+  src\app\login\page.tsx:174:      provider.setCustomParameters({ prompt: 'select_account' });
+  src\app\login\page.tsx:175:      const result = await signInWithPopup(auth, provider);
+  src\app\login\page.tsx:176:      const credential = GoogleAuthProvider.credentialFromResult(result);
+  src\app\login\page.tsx:177:      setGoogleCredential(credential);
+  src\app\login\page.tsx:178:      setUserId(result.user.uid);
+  src\app\login\page.tsx:179:      setUserEmail(result.user.email!);
+  src\app\login\page.tsx:180:      await sendOTP(result.user.uid, result.user.email!);
+  src\app\login\page.tsx:181:      setStep('2fa');
+  src\app\login\page.tsx:182:    } catch (err: any) {
+  src\app\login\page.tsx:183:      setError(`Google sign-in error: ${err.code}`);
+  src\app\login\page.tsx:184:    } finally {
+  src\app\login\page.tsx:185:      setLoading(false);
+  src\app\login\page.tsx:186:    }
+  src\app\login\page.tsx:187:  };
+  src\app\login\page.tsx:188:
+  src\app\login\page.tsx:189:  const handleCodeChange = (index: number, value: string) => {
+  src\app\login\page.tsx:190:    const val = value.replace(/\D/g, '');
+  src\app\login\page.tsx:191:    const arr = [...code];
+  src\app\login\page.tsx:192:    arr[index] = val;
+
+

@@ -1,0 +1,115 @@
+﻿
+  src\app\admin\migrate-tyn-id\page.tsx:25:      if (forceRefresh) {
+  src\app\admin\migrate-tyn-id\page.tsx:26:        await u.getIdToken(true);
+  src\app\admin\migrate-tyn-id\page.tsx:27:      }
+> src\app\admin\migrate-tyn-id\page.tsx:28:      const snap = await getDoc(doc(db, 'users', u.uid));
+  src\app\admin\migrate-tyn-id\page.tsx:29:      const role = snap.exists() ? snap.data().role : null;
+  src\app\admin\migrate-tyn-id\page.tsx:30:      return role === 'admin' || role === 'superadmin';
+  src\app\admin\migrate-tyn-id\page.tsx:31:    } catch (e) {
+  src\app\admin\repair-members\page.tsx:27:      if (forceRefresh) {
+  src\app\admin\repair-members\page.tsx:28:        await u.getIdToken(true);
+  src\app\admin\repair-members\page.tsx:29:      }
+> src\app\admin\repair-members\page.tsx:30:      const snap = await getDoc(doc(db, 'users', u.uid));
+  src\app\admin\repair-members\page.tsx:31:      const role = snap.exists() ? snap.data().role : null;
+  src\app\admin\repair-members\page.tsx:32:      return role === 'admin' || role === 'superadmin';
+  src\app\admin\repair-members\page.tsx:33:    } catch (e) {
+  src\app\dashboard\commission-settings\page.tsx:53:      if (!u) { router.push('/login'); return; }
+  src\app\dashboard\commission-settings\page.tsx:54:      setUid(u.uid);
+  src\app\dashboard\commission-settings\page.tsx:55:      try {
+> src\app\dashboard\commission-settings\page.tsx:56:        const userDoc = await getDoc(doc(db, 
+'users', u.uid));
+  src\app\dashboard\commission-settings\page.tsx:57:        const saved = userDoc.exists() ? 
+userDoc.data()?.commissionTiers : null;
+  src\app\dashboard\commission-settings\page.tsx:58:        if (Array.isArray(saved) && saved.length 
+> 0) {
+  src\app\dashboard\commission-settings\page.tsx:59:          setTiers(saved);
+  src\app\dashboard\commission-settings\page.tsx:111:    setError('');
+  src\app\dashboard\commission-settings\page.tsx:112:    setSaving(true);
+  src\app\dashboard\commission-settings\page.tsx:113:    try {
+> src\app\dashboard\commission-settings\page.tsx:114:      await setDoc(doc(db, 'users', uid), { 
+commissionTiers: tiers }, { merge: true });
+  src\app\dashboard\commission-settings\page.tsx:115:      setSaved(true);
+  src\app\dashboard\commission-settings\page.tsx:116:      setTimeout(() => setSaved(false), 3000);
+  src\app\dashboard\commission-settings\page.tsx:117:    } catch (e) {
+  src\app\dashboard\create-tontine\page.tsx:223:    const unsub = onAuthStateChanged(auth, async (u) 
+=> {
+  src\app\dashboard\create-tontine\page.tsx:224:      if (!u) return;
+  src\app\dashboard\create-tontine\page.tsx:225:      try {
+> src\app\dashboard\create-tontine\page.tsx:226:        const userDoc = await getDoc(doc(db, 'users', 
+u.uid));
+  src\app\dashboard\create-tontine\page.tsx:227:        const saved = userDoc.exists() ? 
+userDoc.data()?.commissionTiers : null;
+  src\app\dashboard\create-tontine\page.tsx:228:        if (Array.isArray(saved) && saved.length > 0) 
+{
+  src\app\dashboard\create-tontine\page.tsx:229:          setCommissionTiers(saved);
+  src\app\dashboard\overview\page.tsx:95:    const unsub = onAuthStateChanged(auth, async (u) => {
+  src\app\dashboard\overview\page.tsx:96:      if (!u) { router.push('/login'); return; }
+  src\app\dashboard\overview\page.tsx:97:      try {
+> src\app\dashboard\overview\page.tsx:98:        const userSnap = await getDoc(doc(db, 'users', 
+u.uid));
+  src\app\dashboard\overview\page.tsx:99:        const role = userSnap.exists() ? 
+userSnap.data().role : null;
+  src\app\dashboard\overview\page.tsx:100:        setIsPlatformAdmin(role === 'admin' || role === 
+'superadmin');
+  src\app\dashboard\overview\page.tsx:101:
+  src\app\dashboard\reminders\page.tsx:68:      if (!u) { setGroupsLoading(false); return; }
+  src\app\dashboard\reminders\page.tsx:69:      setAdminUid(u.uid);
+  src\app\dashboard\reminders\page.tsx:70:      try {
+> src\app\dashboard\reminders\page.tsx:71:        const userSnap = await getDoc(doc(db, 'users', 
+u.uid));
+  src\app\dashboard\reminders\page.tsx:72:        setAdminName(userSnap.exists() ? 
+(userSnap.data().name || userSnap.data().displayName || u.email || 'Your organizer') : (u.email || 
+'Your organizer'));
+  src\app\dashboard\reminders\page.tsx:73:
+  src\app\dashboard\reminders\page.tsx:74:        const [byOrganizer, byAdmin] = await Promise.all([
+  src\app\dashboard\subscription\page.tsx:332:    const unsub = onAuthStateChanged(auth, async (u) => 
+{
+  src\app\dashboard\subscription\page.tsx:333:      if (!u) { router.push('/login'); return; }
+  src\app\dashboard\subscription\page.tsx:334:      setUser(u);
+> src\app\dashboard\subscription\page.tsx:335:      const userDoc = await getDoc(doc(db, 'users', 
+u.uid));
+  src\app\dashboard\subscription\page.tsx:336:      if (userDoc.exists()) {
+  src\app\dashboard\subscription\page.tsx:337:        setSubscription(userDoc.data()?.subscription);
+  src\app\dashboard\subscription\page.tsx:338:      }
+  src\app\dashboard\test-restore\page.tsx:17:    const unsub = onAuthStateChanged(auth, async (u) => {
+  src\app\dashboard\test-restore\page.tsx:18:      if (!u) { router.push('/login'); return; }
+  src\app\dashboard\test-restore\page.tsx:19:      try {
+> src\app\dashboard\test-restore\page.tsx:20:        const userDoc = await getDoc(doc(db, 'users', 
+u.uid));
+  src\app\dashboard\test-restore\page.tsx:21:        const userName = userDoc.exists() ? 
+userDoc.data()?.name : null;
+  src\app\dashboard\test-restore\page.tsx:22:        setAdminName(userName || u.displayName || 
+u.email?.split('@')[0] || 'Admin');
+  src\app\dashboard\test-restore\page.tsx:23:
+  src\app\dashboard\page.tsx:108:      if (!u) { router.push('/login'); return; }
+  src\app\dashboard\page.tsx:109:      try {
+  src\app\dashboard\page.tsx:110:        const [userSnap, gsnap, psnap] = await Promise.all([
+> src\app\dashboard\page.tsx:111:          getDoc(doc(db, 'users', u.uid)),
+  src\app\dashboard\page.tsx:112:          getDocs(query(collection(db, 'groups'), 
+where('organizerId', '==', u.uid))),
+  src\app\dashboard\page.tsx:113:          getDocs(query(collection(db, 'payments'), 
+where('organizerId', '==', u.uid))),
+  src\app\dashboard\page.tsx:114:        ]);
+  src\app\login\page.tsx:26:  const redirectByRole = async (uid: string, uEmail: string) => {
+  src\app\login\page.tsx:27:    try {
+  src\app\login\page.tsx:28:      let role = null;
+> src\app\login\page.tsx:29:      const userDoc = await getDoc(doc(db, 'users', uid));
+  src\app\login\page.tsx:30:      if (userDoc.exists()) {
+  src\app\login\page.tsx:31:        role = userDoc.data()?.role;
+  src\app\login\page.tsx:32:      } else {
+  src\app\register\page.tsx:34:      await updateProfile(result.user, { displayName: name.trim() });
+  src\app\register\page.tsx:35:      const trialEndsAt = new Date();
+  src\app\register\page.tsx:36:      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+> src\app\register\page.tsx:37:      await setDoc(doc(db, 'users', result.user.uid), {
+  src\app\register\page.tsx:38:        name: name.trim(),
+  src\app\register\page.tsx:39:        email,
+  src\app\register\page.tsx:40:        role: 'admin',
+  src\app\register\page.tsx:60:      const result = await signInWithPopup(auth, provider);
+  src\app\register\page.tsx:61:      const trialEndsAt = new Date();
+  src\app\register\page.tsx:62:      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+> src\app\register\page.tsx:63:      await setDoc(doc(db, 'users', result.user.uid), {
+  src\app\register\page.tsx:64:        name: result.user.displayName || '',
+  src\app\register\page.tsx:65:        email: result.user.email || '',
+  src\app\register\page.tsx:66:        role: 'admin',
+
+

@@ -1,0 +1,23 @@
+﻿=== C:\Users\mglau\tarsyn-app\src\app\api\join-church-confirm\route.ts ===
+
+=== C:\Users\mglau\tarsyn-app\src\app\api\join-church-lookup\route.ts ===
+
+=== C:\Users\mglau\tarsyn-app\src\app\api\send-church-invite\route.ts ===
+
+=== C:\Users\mglau\tarsyn-app\src\app\dashboard\church\page.tsx ===
+
+src\app\dashboard\church\page.tsx:45:      const q = query(collection(db, 'churches'), where('organizerId', '==', 
+user.uid));
+
+=== C:\Users\mglau\tarsyn-app\src\app\dashboard\church\add-member\page.tsx ===
+src\app\dashboard\church\add-member\page.tsx:66:        const q = query(collection(db, 'churches'), 
+where('organizerId', '==', u.uid));
+src\app\dashboard\church\add-member\page.tsx:98:      await addDoc(collection(db, 'churchMembers'), {
+
+=== C:\Users\mglau\tarsyn-app\src\app\dashboard\create-church\page.tsx ===
+src\app\dashboard\create-church\page.tsx:244:      await addDoc(collection(db, 'churches'), {
+
+=== C:\Users\mglau\tarsyn-app\src\app\join-church\[code]\page.tsx ===
+
+
+

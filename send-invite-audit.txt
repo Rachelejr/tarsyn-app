@@ -1,0 +1,88 @@
+﻿
+app\api\send-invite\route.ts:1:import { NextRequest, NextResponse } from 'next/server';
+app\api\send-invite\route.ts:2:import { Resend } from 'resend';
+app\api\send-invite\route.ts:4:const resend = new Resend(process.env.RESEND_API_KEY);
+app\api\send-invite\route.ts:6:export async function POST(req: NextRequest) {
+app\api\send-invite\route.ts:7:  try {
+app\api\send-invite\route.ts:8:    const { emails, tontineName, region, contribution, currency, frequency, startDate, 
+inviteLink, groupLogo } = await req.json();
+app\api\send-invite\route.ts:10:    if (!emails || !Array.isArray(emails) || emails.length === 0) {
+app\api\send-invite\route.ts:11:      return NextResponse.json({ error: 'No emails provided' }, { status: 400 });
+app\api\send-invite\route.ts:12:    }
+app\api\send-invite\route.ts:14:    const results = await Promise.allSettled(
+app\api\send-invite\route.ts:15:      emails.map((email: string) =>
+app\api\send-invite\route.ts:16:        resend.emails.send({
+app\api\send-invite\route.ts:17:          from: 'UNIMUNITY <noreply@unimunity.com>',
+app\api\send-invite\route.ts:18:          to: email,
+app\api\send-invite\route.ts:19:          subject: `🎉 You've been invited to join ${tontineName} on UNIMUNITY`,
+app\api\send-invite\route.ts:20:          html: `
+app\api\send-invite\route.ts:21:            <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 
+auto; background: #FAF0E6; padding: 32px; border-radius: 16px;">
+app\api\send-invite\route.ts:22:              <div style="text-align: center; margin-bottom: 24px;">
+app\api\send-invite\route.ts:23:                ${groupLogo ? `
+app\api\send-invite\route.ts:24:                <img src="${groupLogo}" alt="${tontineName}" style="max-height: 56px; 
+max-width: 220px; border-radius: 8px;" />
+app\api\send-invite\route.ts:25:                ` : `
+app\api\send-invite\route.ts:26:                <img src="https://unimunity.com/unimunity-logo.png" alt="UNIMUNITY" 
+style="height: 48px; width: auto; max-width: 220px;" />
+app\api\send-invite\route.ts:27:                `}
+app\api\send-invite\route.ts:28:              </div>
+app\api\send-invite\route.ts:29:              <h2 style="color: #6B2D4E; font-size: 22px; font-weight: 800; margin: 0 
+0 8px;">
+app\api\send-invite\route.ts:30:                Hello 👋
+app\api\send-invite\route.ts:31:              </h2>
+app\api\send-invite\route.ts:32:              <p style="color: #7A5068; font-size: 15px; margin: 0 0 24px;">
+app\api\send-invite\route.ts:33:                You've been invited to join <strong>${tontineName}</strong> on 
+UNIMUNITY.
+app\api\send-invite\route.ts:34:              </p>
+app\api\send-invite\route.ts:35:              <div style="background: white; border-radius: 12px; padding: 20px; 
+margin-bottom: 24px;">
+app\api\send-invite\route.ts:36:                <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; 
+text-transform: uppercase; letter-spacing: 1px;">Group Details</p>
+app\api\send-invite\route.ts:37:                <p style="color: #6B2D4E; font-size: 16px; font-weight: 700; margin: 0 
+0 6px;">${tontineName}</p>
+app\api\send-invite\route.ts:38:                <p style="color: #7A5068; font-size: 13px; margin: 0 0 4px;">Region: 
+${region || '—'}</p>
+app\api\send-invite\route.ts:39:                <p style="color: #7A5068; font-size: 13px; margin: 0 0 
+4px;">Contribution: ${contribution || '—'} ${currency || ''}</p>
+app\api\send-invite\route.ts:40:                <p style="color: #7A5068; font-size: 13px; margin: 0 0 
+4px;">Frequency: ${frequency || '—'}</p>
+app\api\send-invite\route.ts:41:                <p style="color: #7A5068; font-size: 13px; margin: 0;">Start Date: 
+${startDate || '—'}</p>
+app\api\send-invite\route.ts:42:              </div>
+app\api\send-invite\route.ts:43:              ${inviteLink ? `
+app\api\send-invite\route.ts:44:              <div style="text-align: center; margin-bottom: 24px;">
+app\api\send-invite\route.ts:45:                <a href="${inviteLink}" style="background: #6B2D4E; color: #D4AF7A; 
+padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; display: 
+inline-block;">
+app\api\send-invite\route.ts:46:                  Join Now →
+app\api\send-invite\route.ts:47:                </a>
+app\api\send-invite\route.ts:48:              </div>
+app\api\send-invite\route.ts:49:              <p style="color: #7A5068; font-size: 12px; text-align: center; margin: 
+0;">
+app\api\send-invite\route.ts:50:                Or copy this link: <a href="${inviteLink}" style="color: 
+#6B2D4E;">${inviteLink}</a>
+app\api\send-invite\route.ts:51:              </p>
+app\api\send-invite\route.ts:52:              ` : ''}
+app\api\send-invite\route.ts:53:              <p style="color: #7A5068; font-size: 13px; text-align: center; margin: 
+24px 0 0;">
+app\api\send-invite\route.ts:54:                Welcome to the community! 🎉
+app\api\send-invite\route.ts:55:              </p>
+app\api\send-invite\route.ts:56:            </div>
+app\api\send-invite\route.ts:57:          `,
+app\api\send-invite\route.ts:58:        })
+app\api\send-invite\route.ts:59:      )
+app\api\send-invite\route.ts:60:    );
+app\api\send-invite\route.ts:62:    const failed = results.filter(r => r.status === 'rejected');
+app\api\send-invite\route.ts:63:    if (failed.length > 0) {
+app\api\send-invite\route.ts:64:      console.error('Some invites failed:', failed);
+app\api\send-invite\route.ts:65:    }
+app\api\send-invite\route.ts:67:    return NextResponse.json({ success: true, sent: emails.length - failed.length, 
+failed: failed.length });
+app\api\send-invite\route.ts:68:  } catch (error) {
+app\api\send-invite\route.ts:69:    console.error('send-invite error:', error);
+app\api\send-invite\route.ts:70:    return NextResponse.json({ error: 'Failed to send invites' }, { status: 500 });
+app\api\send-invite\route.ts:71:  }
+app\api\send-invite\route.ts:72:}
+
+

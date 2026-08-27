@@ -1,0 +1,397 @@
+﻿
+app\dashboard\reminders\page.tsx:1:'use client';
+app\dashboard\reminders\page.tsx:3:import { useEffect, useState, Suspense } from 'react';
+app\dashboard\reminders\page.tsx:4:import { useRouter, useSearchParams } from 'next/navigation';
+app\dashboard\reminders\page.tsx:5:import { auth, db } from '@/lib/firebase';
+app\dashboard\reminders\page.tsx:6:import { onAuthStateChanged } from 'firebase/auth';
+app\dashboard\reminders\page.tsx:7:import { collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp } 
+from 'firebase/firestore';
+app\dashboard\reminders\page.tsx:8:import DateTimeWeather from '@/components/DateTimeWeather';
+app\dashboard\reminders\page.tsx:10:const C = {
+app\dashboard\reminders\page.tsx:11:  bordeaux: '#6B2D4E',
+app\dashboard\reminders\page.tsx:12:  bordeauxDark: '#4A1F38',
+app\dashboard\reminders\page.tsx:13:  or: '#E9C77B',
+app\dashboard\reminders\page.tsx:14:  orLight: '#F0DCA8',
+app\dashboard\reminders\page.tsx:15:  creme: '#FBEEDD',
+app\dashboard\reminders\page.tsx:16:  blanc: '#FFFFFF',
+app\dashboard\reminders\page.tsx:17:  text: '#1a1a1a',
+app\dashboard\reminders\page.tsx:18:  muted: '#6b7280',
+app\dashboard\reminders\page.tsx:19:  border: '#e5e7eb',
+app\dashboard\reminders\page.tsx:20:  success: '#3F7D5C',
+app\dashboard\reminders\page.tsx:21:  successBg: '#E4F0E9',
+app\dashboard\reminders\page.tsx:22:  danger: '#B0525F',
+app\dashboard\reminders\page.tsx:23:  dangerBg: '#F5E4E6',
+app\dashboard\reminders\page.tsx:24:  warning: '#9C7A2E',
+app\dashboard\reminders\page.tsx:25:  warningBg: '#FBF0D9',
+app\dashboard\reminders\page.tsx:26:};
+app\dashboard\reminders\page.tsx:28:type OverdueMember = {
+app\dashboard\reminders\page.tsx:29:  memberId: string;
+app\dashboard\reminders\page.tsx:30:  fullName: string;
+app\dashboard\reminders\page.tsx:31:  email: string;
+app\dashboard\reminders\page.tsx:32:  phone: string;
+app\dashboard\reminders\page.tsx:33:  missingWeeksCount: number;
+app\dashboard\reminders\page.tsx:34:  amountOwed: number;
+app\dashboard\reminders\page.tsx:35:  currency: string;
+app\dashboard\reminders\page.tsx:36:  earliestMissedDate: string;
+app\dashboard\reminders\page.tsx:37:};
+app\dashboard\reminders\page.tsx:39:type SendResult = { memberId: string; status: 'sending' | 'sent' | 'error'; 
+message?: string };
+app\dashboard\reminders\page.tsx:41:function RemindersContent() {
+app\dashboard\reminders\page.tsx:42:  const router = useRouter();
+app\dashboard\reminders\page.tsx:43:  const searchParams = useSearchParams();
+app\dashboard\reminders\page.tsx:44:  const urlGroupId = searchParams.get('groupId') || '';
+app\dashboard\reminders\page.tsx:46:  const [adminUid, setAdminUid] = useState('');
+app\dashboard\reminders\page.tsx:47:  const [adminName, setAdminName] = useState('');
+app\dashboard\reminders\page.tsx:48:  const [groups, setGroups] = useState<any[]>([]);
+app\dashboard\reminders\page.tsx:49:  const [groupsLoading, setGroupsLoading] = useState(true);
+app\dashboard\reminders\page.tsx:50:  const [selectedGroupId, setSelectedGroupId] = useState(urlGroupId);
+app\dashboard\reminders\page.tsx:51:  const [groupName, setGroupName] = useState('');
+app\dashboard\reminders\page.tsx:53:  const [overdue, setOverdue] = useState<OverdueMember[]>([]);
+app\dashboard\reminders\page.tsx:54:  const [gridExists, setGridExists] = useState(true);
+app\dashboard\reminders\page.tsx:55:  const [dataLoading, setDataLoading] = useState(false);
+app\dashboard\reminders\page.tsx:56:  const [search, setSearch] = useState('');
+app\dashboard\reminders\page.tsx:57:  const [selected, setSelected] = useState<Record<string, boolean>>({});
+app\dashboard\reminders\page.tsx:59:  const [sending, setSending] = useState(false);
+app\dashboard\reminders\page.tsx:60:  const [sendResults, setSendResults] = useState<Record<string, SendResult>>({});
+app\dashboard\reminders\page.tsx:61:  const [mounted, setMounted] = useState(false);
+app\dashboard\reminders\page.tsx:63:  useEffect(() => { setMounted(true); }, []);
+app\dashboard\reminders\page.tsx:65:  // --- Load the groups this admin organizes (handles organizerId or adminId) ---
+app\dashboard\reminders\page.tsx:66:  useEffect(() => {
+app\dashboard\reminders\page.tsx:67:    const unsub = onAuthStateChanged(auth, async (u) => {
+app\dashboard\reminders\page.tsx:68:      if (!u) { setGroupsLoading(false); return; }
+app\dashboard\reminders\page.tsx:69:      setAdminUid(u.uid);
+app\dashboard\reminders\page.tsx:70:      try {
+app\dashboard\reminders\page.tsx:71:        const userSnap = await getDoc(doc(db, 'users', u.uid));
+app\dashboard\reminders\page.tsx:72:        setAdminName(userSnap.exists() ? (userSnap.data().name || 
+userSnap.data().displayName || u.email || 'Your organizer') : (u.email || 'Your organizer'));
+app\dashboard\reminders\page.tsx:74:        const [byOrganizer, byAdmin] = await Promise.all([
+app\dashboard\reminders\page.tsx:75:          getDocs(query(collection(db, 'groups'), where('organizerId', '==', 
+u.uid))),
+app\dashboard\reminders\page.tsx:76:          getDocs(query(collection(db, 'groups'), where('adminId', '==', u.uid))),
+app\dashboard\reminders\page.tsx:77:        ]);
+app\dashboard\reminders\page.tsx:78:        const map = new Map<string, any>();
+app\dashboard\reminders\page.tsx:79:        byOrganizer.docs.forEach(d => map.set(d.id, { id: d.id, ...d.data() }));
+app\dashboard\reminders\page.tsx:80:        byAdmin.docs.forEach(d => map.set(d.id, { id: d.id, ...d.data() }));
+app\dashboard\reminders\page.tsx:81:        const groupList = Array.from(map.values());
+app\dashboard\reminders\page.tsx:82:        setGroups(groupList);
+app\dashboard\reminders\page.tsx:83:        if (!urlGroupId && groupList.length > 0) {
+app\dashboard\reminders\page.tsx:84:          setSelectedGroupId(groupList[0].id);
+app\dashboard\reminders\page.tsx:85:        }
+app\dashboard\reminders\page.tsx:86:      } catch (e) { console.error(e); }
+app\dashboard\reminders\page.tsx:87:      setGroupsLoading(false);
+app\dashboard\reminders\page.tsx:88:    });
+app\dashboard\reminders\page.tsx:89:    return () => unsub();
+app\dashboard\reminders\page.tsx:90:  }, [urlGroupId]);
+app\dashboard\reminders\page.tsx:92:  // --- Compute real overdue members from the payment grid ---
+app\dashboard\reminders\page.tsx:93:  useEffect(() => {
+app\dashboard\reminders\page.tsx:94:    if (!selectedGroupId) { setOverdue([]); return; }
+app\dashboard\reminders\page.tsx:95:    const loadOverdue = async () => {
+app\dashboard\reminders\page.tsx:96:      setDataLoading(true);
+app\dashboard\reminders\page.tsx:97:      setSelected({});
+app\dashboard\reminders\page.tsx:98:      setSendResults({});
+app\dashboard\reminders\page.tsx:99:      try {
+app\dashboard\reminders\page.tsx:100:        const gSnap = await getDoc(doc(db, 'groups', selectedGroupId));
+app\dashboard\reminders\page.tsx:101:        setGroupName(gSnap.exists() ? (gSnap.data().name || 'Group') : 'Group');
+app\dashboard\reminders\page.tsx:103:        const gridSnap = await getDoc(doc(db, 'paymentGrids', selectedGroupId + 
+'_current'));
+app\dashboard\reminders\page.tsx:104:        if (!gridSnap.exists()) {
+app\dashboard\reminders\page.tsx:105:          setGridExists(false);
+app\dashboard\reminders\page.tsx:106:          setOverdue([]);
+app\dashboard\reminders\page.tsx:107:          setDataLoading(false);
+app\dashboard\reminders\page.tsx:108:          return;
+app\dashboard\reminders\page.tsx:109:        }
+app\dashboard\reminders\page.tsx:110:        setGridExists(true);
+app\dashboard\reminders\page.tsx:111:        const grid = gridSnap.data() as any;
+app\dashboard\reminders\page.tsx:112:        const weeks: Record<string, string> = grid.weeks || {};
+app\dashboard\reminders\page.tsx:113:        const slots: Record<string, any> = grid.slots || {};
+app\dashboard\reminders\page.tsx:114:        const payments: Record<string, Record<string, boolean>> = grid.payments 
+|| {};
+app\dashboard\reminders\page.tsx:116:        const today = new Date();
+app\dashboard\reminders\page.tsx:117:        const elapsedWeekIdxs = Object.entries(weeks)
+app\dashboard\reminders\page.tsx:118:          .filter(([, dateStr]) => new Date(dateStr as string) <= today)
+app\dashboard\reminders\page.tsx:119:          .map(([idx]) => idx);
+app\dashboard\reminders\page.tsx:121:        const slotsByMember: Record<string, string[]> = {};
+app\dashboard\reminders\page.tsx:122:        Object.entries(slots).forEach(([slotNum, slot]: [string, any]) => {
+app\dashboard\reminders\page.tsx:123:          if (!slotsByMember[slot.memberId]) slotsByMember[slot.memberId] = [];
+app\dashboard\reminders\page.tsx:124:          slotsByMember[slot.memberId].push(slotNum);
+app\dashboard\reminders\page.tsx:125:        });
+app\dashboard\reminders\page.tsx:127:        const membersSnap = await getDocs(query(collection(db, 'members'), 
+where('groupId', '==', selectedGroupId)));
+app\dashboard\reminders\page.tsx:128:        const membersById: Record<string, any> = {};
+app\dashboard\reminders\page.tsx:129:        membersSnap.docs.forEach(d => { membersById[d.id] = { id: d.id, 
+...d.data() }; });
+app\dashboard\reminders\page.tsx:131:        const results: OverdueMember[] = [];
+app\dashboard\reminders\page.tsx:132:        Object.entries(slotsByMember).forEach(([memberId, slotNums]) => {
+app\dashboard\reminders\page.tsx:133:          const member = membersById[memberId];
+app\dashboard\reminders\page.tsx:134:          if (!member) return;
+app\dashboard\reminders\page.tsx:135:          let missingSlotWeeks = 0;
+app\dashboard\reminders\page.tsx:136:          const missingWeekIdxSet = new Set<string>();
+app\dashboard\reminders\page.tsx:137:          slotNums.forEach(slotNum => {
+app\dashboard\reminders\page.tsx:138:            elapsedWeekIdxs.forEach(wIdx => {
+app\dashboard\reminders\page.tsx:139:              const paid = payments?.[slotNum]?.[wIdx];
+app\dashboard\reminders\page.tsx:140:              if (!paid) {
+app\dashboard\reminders\page.tsx:141:                missingSlotWeeks++;
+app\dashboard\reminders\page.tsx:142:                missingWeekIdxSet.add(wIdx);
+app\dashboard\reminders\page.tsx:143:              }
+app\dashboard\reminders\page.tsx:144:            });
+app\dashboard\reminders\page.tsx:145:          });
+app\dashboard\reminders\page.tsx:146:          if (missingSlotWeeks > 0) {
+app\dashboard\reminders\page.tsx:147:            const missedDates = Array.from(missingWeekIdxSet).map(idx => 
+weeks[idx]).filter(Boolean).sort();
+app\dashboard\reminders\page.tsx:148:            results.push({
+app\dashboard\reminders\page.tsx:149:              memberId,
+app\dashboard\reminders\page.tsx:150:              fullName: member.fullName || member.name || '(no name)',
+app\dashboard\reminders\page.tsx:151:              email: member.email || '',
+app\dashboard\reminders\page.tsx:152:              phone: member.phone || '',
+app\dashboard\reminders\page.tsx:153:              missingWeeksCount: missingWeekIdxSet.size,
+app\dashboard\reminders\page.tsx:154:              amountOwed: (member.expectedAmount || 0) * missingSlotWeeks,
+app\dashboard\reminders\page.tsx:155:              currency: member.currency || 'USD',
+app\dashboard\reminders\page.tsx:156:              earliestMissedDate: missedDates[0] || '',
+app\dashboard\reminders\page.tsx:157:            });
+app\dashboard\reminders\page.tsx:158:          }
+app\dashboard\reminders\page.tsx:159:        });
+app\dashboard\reminders\page.tsx:160:        results.sort((a, b) => b.amountOwed - a.amountOwed);
+app\dashboard\reminders\page.tsx:161:        setOverdue(results);
+app\dashboard\reminders\page.tsx:162:      } catch (e) {
+app\dashboard\reminders\page.tsx:163:        console.error(e);
+app\dashboard\reminders\page.tsx:164:        setOverdue([]);
+app\dashboard\reminders\page.tsx:165:      }
+app\dashboard\reminders\page.tsx:166:      setDataLoading(false);
+app\dashboard\reminders\page.tsx:167:    };
+app\dashboard\reminders\page.tsx:168:    loadOverdue();
+app\dashboard\reminders\page.tsx:169:  }, [selectedGroupId]);
+app\dashboard\reminders\page.tsx:171:  const filtered = overdue.filter(m => 
+m.fullName.toLowerCase().includes(search.toLowerCase()));
+app\dashboard\reminders\page.tsx:172:  const selectedIds = Object.keys(selected).filter(id => selected[id]);
+app\dashboard\reminders\page.tsx:173:  const allFilteredSelected = filtered.length > 0 && filtered.every(m => 
+selected[m.memberId]);
+app\dashboard\reminders\page.tsx:175:  const toggleAll = () => {
+app\dashboard\reminders\page.tsx:176:    if (allFilteredSelected) {
+app\dashboard\reminders\page.tsx:177:      const next = { ...selected };
+app\dashboard\reminders\page.tsx:178:      filtered.forEach(m => { next[m.memberId] = false; });
+app\dashboard\reminders\page.tsx:179:      setSelected(next);
+app\dashboard\reminders\page.tsx:180:    } else {
+app\dashboard\reminders\page.tsx:181:      const next = { ...selected };
+app\dashboard\reminders\page.tsx:182:      filtered.forEach(m => { next[m.memberId] = true; });
+app\dashboard\reminders\page.tsx:183:      setSelected(next);
+app\dashboard\reminders\page.tsx:184:    }
+app\dashboard\reminders\page.tsx:185:  };
+app\dashboard\reminders\page.tsx:187:  const handleSend = async () => {
+app\dashboard\reminders\page.tsx:188:    if (selectedIds.length === 0) return;
+app\dashboard\reminders\page.tsx:189:    setSending(true);
+app\dashboard\reminders\page.tsx:190:    const initial: Record<string, SendResult> = {};
+app\dashboard\reminders\page.tsx:191:    selectedIds.forEach(id => { initial[id] = { memberId: id, status: 'sending' 
+}; });
+app\dashboard\reminders\page.tsx:192:    setSendResults(prev => ({ ...prev, ...initial }));
+app\dashboard\reminders\page.tsx:194:    for (const memberId of selectedIds) {
+app\dashboard\reminders\page.tsx:195:      const member = overdue.find(m => m.memberId === memberId);
+app\dashboard\reminders\page.tsx:196:      if (!member) continue;
+app\dashboard\reminders\page.tsx:197:      if (!member.email) {
+app\dashboard\reminders\page.tsx:198:        setSendResults(prev => ({ ...prev, [memberId]: { memberId, status: 
+'error', message: 'No email on file' } }));
+app\dashboard\reminders\page.tsx:199:        continue;
+app\dashboard\reminders\page.tsx:200:      }
+app\dashboard\reminders\page.tsx:201:      try {
+app\dashboard\reminders\page.tsx:202:        const res = await fetch('/api/send-reminder', {
+app\dashboard\reminders\page.tsx:203:          method: 'POST',
+app\dashboard\reminders\page.tsx:204:          headers: { 'Content-Type': 'application/json' },
+app\dashboard\reminders\page.tsx:205:          body: JSON.stringify({
+app\dashboard\reminders\page.tsx:206:            memberEmail: member.email,
+app\dashboard\reminders\page.tsx:207:            memberName: member.fullName,
+app\dashboard\reminders\page.tsx:208:            groupName: groupName,
+app\dashboard\reminders\page.tsx:209:            amount: member.amountOwed ? member.amountOwed.toFixed(2) : undefined,
+app\dashboard\reminders\page.tsx:210:            dueDate: member.earliestMissedDate || undefined,
+app\dashboard\reminders\page.tsx:211:            adminName: adminName,
+app\dashboard\reminders\page.tsx:212:          }),
+app\dashboard\reminders\page.tsx:213:        });
+app\dashboard\reminders\page.tsx:214:        if (!res.ok) {
+app\dashboard\reminders\page.tsx:215:          const errData = await res.json().catch(() => ({}));
+app\dashboard\reminders\page.tsx:216:          throw new Error(errData.error || 'Send failed');
+app\dashboard\reminders\page.tsx:217:        }
+app\dashboard\reminders\page.tsx:218:        setSendResults(prev => ({ ...prev, [memberId]: { memberId, status: 'sent' 
+} }));
+app\dashboard\reminders\page.tsx:219:        try {
+app\dashboard\reminders\page.tsx:220:          await addDoc(collection(db, 'audit_logs'), {
+app\dashboard\reminders\page.tsx:221:            organizerId: adminUid, category: 'Payment',
+app\dashboard\reminders\page.tsx:222:            action: 'Sent payment reminder',
+app\dashboard\reminders\page.tsx:223:            user: adminName, details: member.fullName + ' - ' + member.currency + 
+' ' + member.amountOwed.toFixed(2),
+app\dashboard\reminders\page.tsx:224:            createdAt: serverTimestamp(),
+app\dashboard\reminders\page.tsx:225:          });
+app\dashboard\reminders\page.tsx:226:        } catch (auditErr) { /* silent - audit logging must never block sending 
+*/ }
+app\dashboard\reminders\page.tsx:227:      } catch (e: any) {
+app\dashboard\reminders\page.tsx:228:        setSendResults(prev => ({ ...prev, [memberId]: { memberId, status: 
+'error', message: e?.message || 'Failed to send' } }));
+app\dashboard\reminders\page.tsx:229:      }
+app\dashboard\reminders\page.tsx:230:    }
+app\dashboard\reminders\page.tsx:231:    setSending(false);
+app\dashboard\reminders\page.tsx:232:  };
+app\dashboard\reminders\page.tsx:234:  if (!mounted) return null;
+app\dashboard\reminders\page.tsx:236:  return (
+app\dashboard\reminders\page.tsx:237:    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, 
+sans-serif' }}>
+app\dashboard\reminders\page.tsx:238:      <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
+app\dashboard\reminders\page.tsx:240:        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 
+'space-between', marginBottom: 20 }}>
+app\dashboard\reminders\page.tsx:241:          <button onClick={() => router.push('/dashboard')}
+app\dashboard\reminders\page.tsx:242:            style={{ background: 'none', border: 'none', color: C.muted, 
+fontSize: 13, cursor: 'pointer', padding: 0 }}>
+app\dashboard\reminders\page.tsx:243:            Back to Dashboard
+app\dashboard\reminders\page.tsx:244:          </button>
+app\dashboard\reminders\page.tsx:245:          <DateTimeWeather textColor={C.muted} />
+app\dashboard\reminders\page.tsx:246:        </div>
+app\dashboard\reminders\page.tsx:248:        <div style={{ display: 'flex', alignItems: 'center', gap: 14, 
+marginBottom: 24 }}>
+app\dashboard\reminders\page.tsx:249:          <div style={{ width: 48, height: 48, borderRadius: 13, background: 
+C.blanc, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', 
+fontWeight: 700, fontSize: 20, color: C.or }}>!</div>
+app\dashboard\reminders\page.tsx:250:          <div>
+app\dashboard\reminders\page.tsx:251:            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 
+}}>Send Reminders</h1>
+app\dashboard\reminders\page.tsx:252:            <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' 
+}}>Members shown below have missed at least one payment on the current grid.</p>
+app\dashboard\reminders\page.tsx:253:          </div>
+app\dashboard\reminders\page.tsx:254:        </div>
+app\dashboard\reminders\page.tsx:256:        <div style={{ background: C.blanc, borderRadius: 16, padding: '20px 
+24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 18 }}>
+app\dashboard\reminders\page.tsx:257:          {groupsLoading ? (
+app\dashboard\reminders\page.tsx:258:            <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>Loading your 
+groups...</p>
+app\dashboard\reminders\page.tsx:259:          ) : groups.length === 0 ? (
+app\dashboard\reminders\page.tsx:260:            <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>You have no 
+groups yet.</p>
+app\dashboard\reminders\page.tsx:261:          ) : (
+app\dashboard\reminders\page.tsx:262:            <div style={{ display: 'flex', gap: 14, alignItems: 'center', 
+flexWrap: 'wrap' as const }}>
+app\dashboard\reminders\page.tsx:263:              <div style={{ flex: 1, minWidth: 220 }}>
+app\dashboard\reminders\page.tsx:264:                <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, 
+textTransform: 'uppercase' as const, letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>Group</label>
+app\dashboard\reminders\page.tsx:265:                <select
+app\dashboard\reminders\page.tsx:266:                  style={{ width: '100%', padding: '10px 12px', borderRadius: 9, 
+border: '1.5px solid ' + C.border, fontSize: 14, color: C.text, background: C.blanc, outline: 'none', boxSizing: 
+'border-box' as const }}
+app\dashboard\reminders\page.tsx:267:                  value={selectedGroupId} onChange={e => 
+setSelectedGroupId(e.target.value)}>
+app\dashboard\reminders\page.tsx:268:                  {groups.map(g => <option key={g.id} 
+value={g.id}>{g.name}</option>)}
+app\dashboard\reminders\page.tsx:269:                </select>
+app\dashboard\reminders\page.tsx:270:              </div>
+app\dashboard\reminders\page.tsx:271:              <div style={{ display: 'flex', gap: 20 }}>
+app\dashboard\reminders\page.tsx:272:                <div>
+app\dashboard\reminders\page.tsx:273:                  <p style={{ fontSize: 11, color: C.muted, margin: '0 0 2px', 
+textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>Overdue</p>
+app\dashboard\reminders\page.tsx:274:                  <p style={{ fontSize: 20, fontWeight: 700, color: C.danger, 
+margin: 0 }}>{overdue.length}</p>
+app\dashboard\reminders\page.tsx:275:                </div>
+app\dashboard\reminders\page.tsx:276:                <div>
+app\dashboard\reminders\page.tsx:277:                  <p style={{ fontSize: 11, color: C.muted, margin: '0 0 2px', 
+textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>Selected</p>
+app\dashboard\reminders\page.tsx:278:                  <p style={{ fontSize: 20, fontWeight: 700, color: C.bordeaux, 
+margin: 0 }}>{selectedIds.length}</p>
+app\dashboard\reminders\page.tsx:279:                </div>
+app\dashboard\reminders\page.tsx:280:              </div>
+app\dashboard\reminders\page.tsx:281:            </div>
+app\dashboard\reminders\page.tsx:282:          )}
+app\dashboard\reminders\page.tsx:283:        </div>
+app\dashboard\reminders\page.tsx:285:        {selectedGroupId && !dataLoading && !gridExists && (
+app\dashboard\reminders\page.tsx:286:          <div style={{ background: C.warningBg, color: C.warning, borderRadius: 
+12, padding: '16px 20px', fontSize: 13, marginBottom: 18 }}>
+app\dashboard\reminders\page.tsx:287:            No payment grid has been created yet for this group, so there is 
+nothing to check for overdue members. Open the Payment Grid page for this group first.
+app\dashboard\reminders\page.tsx:288:          </div>
+app\dashboard\reminders\page.tsx:289:        )}
+app\dashboard\reminders\page.tsx:291:        {selectedGroupId && !dataLoading && gridExists && (
+app\dashboard\reminders\page.tsx:292:          <div style={{ background: C.blanc, borderRadius: 16, border: '1px solid 
+' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+app\dashboard\reminders\page.tsx:293:            <div style={{ padding: '16px 20px', borderBottom: '1px solid ' + 
+C.border, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const }}>
+app\dashboard\reminders\page.tsx:294:              <input
+app\dashboard\reminders\page.tsx:295:                placeholder="Search by name..."
+app\dashboard\reminders\page.tsx:296:                value={search} onChange={e => setSearch(e.target.value)}
+app\dashboard\reminders\page.tsx:297:                style={{ flex: 1, minWidth: 180, padding: '9px 12px', 
+borderRadius: 9, border: '1.5px solid ' + C.border, fontSize: 13, outline: 'none', boxSizing: 'border-box' as const }}
+app\dashboard\reminders\page.tsx:298:              />
+app\dashboard\reminders\page.tsx:299:              <button onClick={toggleAll} disabled={filtered.length === 0}
+app\dashboard\reminders\page.tsx:300:                style={{ background: C.creme, color: C.bordeaux, border: '1.5px 
+solid ' + C.orLight, borderRadius: 9, padding: '9px 14px', fontSize: 12.5, fontWeight: 700, cursor: filtered.length 
+=== 0 ? 'not-allowed' : 'pointer' }}>
+app\dashboard\reminders\page.tsx:301:                {allFilteredSelected ? 'Unselect All' : 'Select All'}
+app\dashboard\reminders\page.tsx:302:              </button>
+app\dashboard\reminders\page.tsx:303:              <button onClick={handleSend} disabled={selectedIds.length === 0 || 
+sending}
+app\dashboard\reminders\page.tsx:304:                style={{ background: C.bordeaux, color: C.blanc, border: 'none', 
+borderRadius: 9, padding: '9px 18px', fontSize: 12.5, fontWeight: 700, cursor: (selectedIds.length === 0 || sending) ? 
+'not-allowed' : 'pointer', opacity: (selectedIds.length === 0 || sending) ? 0.6 : 1 }}>
+app\dashboard\reminders\page.tsx:305:                {sending ? 'Sending...' : `Send Email Reminder 
+(${selectedIds.length})`}
+app\dashboard\reminders\page.tsx:306:              </button>
+app\dashboard\reminders\page.tsx:307:            </div>
+app\dashboard\reminders\page.tsx:309:            {filtered.length === 0 ? (
+app\dashboard\reminders\page.tsx:310:              <div style={{ padding: '40px 20px', textAlign: 'center', color: 
+C.success, fontSize: 14 }}>
+app\dashboard\reminders\page.tsx:311:                {overdue.length === 0 ? 'Nobody is overdue right now. Everyone is 
+caught up.' : 'No members match your search.'}
+app\dashboard\reminders\page.tsx:312:              </div>
+app\dashboard\reminders\page.tsx:313:            ) : (
+app\dashboard\reminders\page.tsx:314:              <div>
+app\dashboard\reminders\page.tsx:315:                {filtered.map(m => {
+app\dashboard\reminders\page.tsx:316:                  const result = sendResults[m.memberId];
+app\dashboard\reminders\page.tsx:317:                  return (
+app\dashboard\reminders\page.tsx:318:                    <div key={m.memberId} style={{ display: 'flex', alignItems: 
+'center', gap: 14, padding: '14px 20px', borderBottom: '1px solid ' + C.border }}>
+app\dashboard\reminders\page.tsx:319:                      <input type="checkbox" checked={!!selected[m.memberId]}
+app\dashboard\reminders\page.tsx:320:                        onChange={e => setSelected(prev => ({ ...prev, 
+[m.memberId]: e.target.checked }))}
+app\dashboard\reminders\page.tsx:321:                        style={{ width: 16, height: 16, cursor: 'pointer' }} />
+app\dashboard\reminders\page.tsx:322:                      <div style={{ flex: 1, minWidth: 160 }}>
+app\dashboard\reminders\page.tsx:323:                        <p style={{ fontSize: 14, fontWeight: 700, color: C.text, 
+margin: 0 }}>{m.fullName}</p>
+app\dashboard\reminders\page.tsx:324:                        <p style={{ fontSize: 12, color: C.muted, margin: '2px 0 
+0' }}>{m.email || 'No email on file'}{m.phone ? ' - ' + m.phone : ''}</p>
+app\dashboard\reminders\page.tsx:325:                      </div>
+app\dashboard\reminders\page.tsx:326:                      <div style={{ textAlign: 'right' as const, minWidth: 90 }}>
+app\dashboard\reminders\page.tsx:327:                        <p style={{ fontSize: 12, color: C.danger, fontWeight: 
+700, margin: 0 }}>{m.missingWeeksCount} week{m.missingWeeksCount > 1 ? 's' : ''} missed</p>
+app\dashboard\reminders\page.tsx:328:                        <p style={{ fontSize: 13, fontWeight: 700, color: C.text, 
+margin: '2px 0 0' }}>{m.currency} {m.amountOwed.toFixed(2)}</p>
+app\dashboard\reminders\page.tsx:329:                      </div>
+app\dashboard\reminders\page.tsx:330:                      <div style={{ minWidth: 100, textAlign: 'right' as const }}>
+app\dashboard\reminders\page.tsx:331:                        {result?.status === 'sending' && <span style={{ fontSize: 
+11.5, color: C.muted, fontWeight: 700 }}>Sending...</span>}
+app\dashboard\reminders\page.tsx:332:                        {result?.status === 'sent' && <span style={{ fontSize: 
+11.5, color: C.success, fontWeight: 700, background: C.successBg, padding: '4px 10px', borderRadius: 8 }}>Sent</span>}
+app\dashboard\reminders\page.tsx:333:                        {result?.status === 'error' && <span style={{ fontSize: 
+11.5, color: C.danger, fontWeight: 700, background: C.dangerBg, padding: '4px 10px', borderRadius: 8 }} 
+title={result.message}>Failed</span>}
+app\dashboard\reminders\page.tsx:334:                      </div>
+app\dashboard\reminders\page.tsx:335:                    </div>
+app\dashboard\reminders\page.tsx:336:                  );
+app\dashboard\reminders\page.tsx:337:                })}
+app\dashboard\reminders\page.tsx:338:              </div>
+app\dashboard\reminders\page.tsx:339:            )}
+app\dashboard\reminders\page.tsx:340:          </div>
+app\dashboard\reminders\page.tsx:341:        )}
+app\dashboard\reminders\page.tsx:343:        {selectedGroupId && dataLoading && (
+app\dashboard\reminders\page.tsx:344:          <div style={{ padding: '40px 20px', textAlign: 'center', color: 
+C.muted, fontSize: 14 }}>Checking payment grid...</div>
+app\dashboard\reminders\page.tsx:345:        )}
+app\dashboard\reminders\page.tsx:347:        <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 
+40, letterSpacing: 0.3 }}>
+app\dashboard\reminders\page.tsx:348:          Powered by UNIMUNITYTM - A product of Ma Production Luxenn Zara LLC - 
+(c) 2026 All Rights Reserved - v1.0.0
+app\dashboard\reminders\page.tsx:349:        </p>
+app\dashboard\reminders\page.tsx:350:      </div>
+app\dashboard\reminders\page.tsx:351:    </div>
+app\dashboard\reminders\page.tsx:352:  );
+app\dashboard\reminders\page.tsx:353:}
+app\dashboard\reminders\page.tsx:355:export default function RemindersPage() {
+app\dashboard\reminders\page.tsx:356:  return (
+app\dashboard\reminders\page.tsx:357:    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: 
+'#6b7280' }}>Loading...</div>}>
+app\dashboard\reminders\page.tsx:358:      <RemindersContent />
+app\dashboard\reminders\page.tsx:359:    </Suspense>
+app\dashboard\reminders\page.tsx:360:  );
+app\dashboard\reminders\page.tsx:361:}
+
+
