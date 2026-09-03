@@ -110,13 +110,46 @@ export default function SwitchWorkspacePage() {
         padding: '32px 32px 44px',
         borderBottom: `3px solid ${C.dore}`,
       }}>
-        <img
-          src="/unimunity-logo-white.png"
-          alt="Unimunity"
-          style={{ height: '34px', width: 'auto', display: 'block', marginBottom: '28px' }}
+        <div
+          aria-label="Unimunity"
+          role="img"
+          style={{
+            height: '52px',
+            width: '220px',
+            display: 'block',
+            marginBottom: '28px',
+            background: C.creme,
+            WebkitMaskImage: 'url(/unimunity-logo-white.png)',
+            maskImage: 'url(/unimunity-logo-white.png)',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+            WebkitMaskPosition: 'left center',
+            maskPosition: 'left center',
+          }}
         />
-        <h1 style={{ color: 'white', fontSize: '30px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.3px' }}>Choose Your Workspace</h1>
-        <p style={{ color: 'rgba(251,238,221,0.85)', fontSize: '14px', margin: 0 }}>{subtitle}</p>
+        <div style={{ textAlign: 'center' }}>
+          <h1
+            className="ws-title"
+            style={{
+              fontSize: '30px',
+              fontWeight: 800,
+              margin: '0 0 8px',
+              letterSpacing: '-0.3px',
+              display: 'inline-block',
+              backgroundImage: `linear-gradient(90deg, white 0%, ${C.dore} 45%, white 90%)`,
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Choose Your Workspace
+          </h1>
+          <p style={{ color: 'rgba(251,238,221,0.85)', fontSize: '14px', margin: 0 }}>{subtitle}</p>
+        </div>
       </div>
 
       <div style={{ maxWidth: '680px', margin: '36px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
@@ -175,6 +208,13 @@ export default function SwitchWorkspacePage() {
           transform: translateY(-3px);
           box-shadow: 0 10px 24px rgba(107,45,78,0.14);
           border-color: ${C.dore};
+        }
+        .ws-title {
+          animation: UNIMUNITY-shimmer 3.5s linear infinite;
+        }
+        @keyframes UNIMUNITY-shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
       `}</style>
     </div>
