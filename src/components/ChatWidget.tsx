@@ -176,12 +176,16 @@ export default function ChatWidget() {
   };
   const startChat = async (member: {userId:string;name:string}) => {
     if (!user) return;
-    const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name);
-    setActiveChatId(chatId);
-    setActiveChatName(member.name);
-    setShowSearch(false);
-    setSearchTerm('');
-    setSearchResults([]);
+    try {
+      const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name);
+      setActiveChatId(chatId);
+      setActiveChatName(member.name);
+      setShowSearch(false);
+      setSearchTerm('');
+      setSearchResults([]);
+    } catch (err: any) {
+      alert('CHAT DEBUG: ' + (err?.code || 'unknown') + ' - ' + (err?.message || String(err)));
+    }
   };
   const handleSend = async () => {
     if (!text.trim() || !user || !activeChatId) return;
