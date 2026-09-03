@@ -86,50 +86,43 @@ export default function ChooseModulePage() {
         borderBottom: `1px solid ${C.border}`,
         overflow: 'hidden',
       }}>
-        {/* Original (colored) logo, top left */}
-        <div
-          aria-label="Unimunity"
-          role="img"
-          style={{
-            position: 'absolute',
-            top: '24px',
-            left: '32px',
-            height: '38px',
-            width: '170px',
-            background: C.bordeaux,
-            WebkitMaskImage: 'url(/unimunity-logo-white.png)',
-            maskImage: 'url(/unimunity-logo-white.png)',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskPosition: 'left center',
-            maskPosition: 'left center',
-          }}
+        {/* Original logo, top left */}
+        <img
+          src="/unimunity-logo-color.png"
+          alt="UNIMUNITY"
+          style={{ position: 'absolute', top: '20px', left: '32px', height: '58px', width: 'auto' }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
         />
         <h1 className="module-title-slide" style={{ color: C.bordeaux, fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
         <p style={{ color: C.texteGris, fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
       </div>
       {/* Module grid — only visible:true modules are rendered */}
-      <div style={{ maxWidth: '760px', margin: '40px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+      <div style={{ maxWidth: '660px', margin: '40px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
         {visibleModules.map(m => (
-          <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '18px', padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '18px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 10px rgba(107,45,78,0.06)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div style={{ fontSize: '32px' }}>{m.icon}</div>
-              <span style={{ fontSize: '11px', background: C.rose, color: C.bordeaux, padding: '3px 10px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '12px',
+                background: `linear-gradient(145deg, ${C.dore}33, ${C.dore}11)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px',
+              }}>{m.icon}</div>
+              <span style={{ fontSize: '10px', background: C.rose, color: C.bordeaux, padding: '3px 9px', borderRadius: '20px', fontWeight: 700 }}>{m.version}</span>
             </div>
-            <h3 style={{ color: C.texteFonce, fontSize: '17px', fontWeight: 700, margin: '0 0 6px' }}>{m.title}</h3>
-            <p style={{ color: C.texteGris, fontSize: '13px', margin: '0 0 14px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '16px' }}>
+            <h3 style={{ color: C.texteFonce, fontSize: '15.5px', fontWeight: 700, margin: '0 0 5px' }}>{m.title}</h3>
+            <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: C.texteGris, marginBottom: '14px' }}>
               <span>⏱ Setup: {m.setupTime}</span>
               <span>{m.countries}</span>
             </div>
             <button onClick={() => handleActivate(m)}
-              style={{ width: '100%', padding: '12px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+              style={{ width: '100%', padding: '10px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '9px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
               Activate
             </button>
           </div>
         ))}
+      </div>
+      <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.85rem', color: '#888' }}>
+        UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
       </div>
     </div>
   );
