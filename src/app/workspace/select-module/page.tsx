@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useRouter } from 'next/navigation';
 const C = {
   bordeaux: '#6B2D4E',
@@ -26,23 +26,23 @@ type ModuleDef = {
   visible: boolean;
 };
 const MODULES: ModuleDef[] = [
-  { icon:'🤝', title:'Tontine / Sol', desc:'Cycles, rotation, receipts, organizer commission', version:'V1', setupTime:'~5 min', category:'Finance', countries:'Global', visible:true },
-  { icon:'⛪', title:'Church', desc:'Tithes, offerings, members, departments, badges', version:'V1', setupTime:'~10 min', category:'Faith', countries:'Global', visible:true },
-  { icon:'🏛️', title:'Association', desc:'Members, dues, events, votes, reports', version:'V1', setupTime:'~7 min', category:'Community', countries:'Global', visible:false },
-  { icon:'💼', title:'Investment', desc:'Projects, capital, returns, financial reports', version:'V1', setupTime:'~8 min', category:'Finance', countries:'Global', visible:false },
-  { icon:'🌾', title:'Agriculture', desc:'Cooperatives, harvests, group purchases', version:'V2', setupTime:'~6 min', category:'Agriculture', countries:'Select regions', visible:false },
-  { icon:'🤲', title:'Foundation', desc:'Donations, projects, impact reports, grants', version:'V2', setupTime:'~6 min', category:'Charity', countries:'Global', visible:false },
-  { icon:'🤝', title:'Cooperative', desc:'Shared resources, member shares, collective purchases', version:'V2', setupTime:'~6 min', category:'Community', countries:'Select regions', visible:false },
-  { icon:'🏢', title:'Organization', desc:'Members, structure, governance, reports', version:'V2', setupTime:'~7 min', category:'Community', countries:'Global', visible:false },
-  { icon:'🏥', title:'Health', desc:'Health mutuals, coverage, claims', version:'V3', setupTime:'~9 min', category:'Health', countries:'Select regions', visible:false },
-  { icon:'🏠', title:'Orphanage', desc:'Children records, sponsors, care plans, donations', version:'V2', setupTime:'~8 min', category:'Charity', countries:'Select regions', visible:false },
-  { icon:'🎉', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Community', countries:'Global', visible:false },
-  { icon:'🛒', title:'Commerce', desc:'Orders, inventory, group sales, vendor payouts', version:'V3', setupTime:'~10 min', category:'Commerce', countries:'Select regions', visible:false },
+  { icon:'??', title:'Tontine / Sol', desc:'Cycles, rotation, receipts, organizer commission', version:'V1', setupTime:'~5 min', category:'Finance', countries:'Global', visible:true },
+  { icon:'?', title:'Church', desc:'Tithes, offerings, members, departments, badges', version:'V1', setupTime:'~10 min', category:'Faith', countries:'Global', visible:true },
+  { icon:'???', title:'Association', desc:'Members, dues, events, votes, reports', version:'V1', setupTime:'~7 min', category:'Community', countries:'Global', visible:false },
+  { icon:'??', title:'Investment', desc:'Projects, capital, returns, financial reports', version:'V1', setupTime:'~8 min', category:'Finance', countries:'Global', visible:false },
+  { icon:'??', title:'Agriculture', desc:'Cooperatives, harvests, group purchases', version:'V2', setupTime:'~6 min', category:'Agriculture', countries:'Select regions', visible:false },
+  { icon:'??', title:'Foundation', desc:'Donations, projects, impact reports, grants', version:'V2', setupTime:'~6 min', category:'Charity', countries:'Global', visible:false },
+  { icon:'??', title:'Cooperative', desc:'Shared resources, member shares, collective purchases', version:'V2', setupTime:'~6 min', category:'Community', countries:'Select regions', visible:false },
+  { icon:'??', title:'Organization', desc:'Members, structure, governance, reports', version:'V2', setupTime:'~7 min', category:'Community', countries:'Global', visible:false },
+  { icon:'??', title:'Health', desc:'Health mutuals, coverage, claims', version:'V3', setupTime:'~9 min', category:'Health', countries:'Select regions', visible:false },
+  { icon:'??', title:'Orphanage', desc:'Children records, sponsors, care plans, donations', version:'V2', setupTime:'~8 min', category:'Charity', countries:'Select regions', visible:false },
+  { icon:'??', title:'Youth Club', desc:'Activities, members, events, fees', version:'V3', setupTime:'~5 min', category:'Community', countries:'Global', visible:false },
+  { icon:'??', title:'Commerce', desc:'Orders, inventory, group sales, vendor payouts', version:'V3', setupTime:'~10 min', category:'Commerce', countries:'Select regions', visible:false },
 ];
 
 // Each module goes straight to its own creation form. Tontine and Church
 // are fully independent from each other and from any shared "workspace"
-// concept — no popup, no list of existing organizations to choose from.
+// concept � no popup, no list of existing organizations to choose from.
 // Add a module's own creation route here as it gets built.
 const MODULE_ROUTES: Record<string, string> = {
   'Tontine / Sol': '/dashboard/create-tontine',
@@ -87,16 +87,21 @@ export default function ChooseModulePage() {
         overflow: 'hidden',
       }}>
         {/* Original logo, top left */}
-        <img
-          src="/unimunity-logo-color.png"
-          alt="UNIMUNITY"
-          style={{ position: 'absolute', top: '20px', left: '32px', height: '58px', width: 'auto' }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-        />
+        <div style={{ position: 'absolute', top: '20px', left: '32px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <img
+            src="/unimunity-logo-color.png"
+            alt="UNIMUNITY"
+            style={{ height: '76px', width: 'auto' }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+          <span style={{ fontSize: '10px', letterSpacing: '1.5px', color: C.bordeaux, fontWeight: 700, marginTop: '4px' }}>
+            YOUR COMMUNITY. YOUR POWER.
+          </span>
+        </div>
         <h1 className="module-title-slide" style={{ color: C.bordeaux, fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
         <p style={{ color: C.texteGris, fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
       </div>
-      {/* Module grid — only visible:true modules are rendered */}
+      {/* Module grid � only visible:true modules are rendered */}
       <div style={{ maxWidth: '660px', margin: '40px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
         {visibleModules.map(m => (
           <div key={m.title} className="module-card" style={{ background: 'white', border: `1.5px solid ${C.border}`, borderRadius: '16px', padding: '18px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 10px rgba(107,45,78,0.06)' }}>
@@ -111,7 +116,7 @@ export default function ChooseModulePage() {
             <h3 style={{ color: C.texteFonce, fontSize: '15.5px', fontWeight: 700, margin: '0 0 5px' }}>{m.title}</h3>
             <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px', lineHeight: 1.5, flex: 1 }}>{m.desc}</p>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: C.texteGris, marginBottom: '14px' }}>
-              <span>⏱ Setup: {m.setupTime}</span>
+              <span>? Setup: {m.setupTime}</span>
               <span>{m.countries}</span>
             </div>
             <button onClick={() => handleActivate(m)}
@@ -122,7 +127,7 @@ export default function ChooseModulePage() {
         ))}
       </div>
       <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.85rem', color: '#888' }}>
-        UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
+        UNIMUNITY� A product of Ma Production Luxenn Zara LLC � � 2026 All Rights Reserved � Version 1.0.0
       </div>
     </div>
   );
