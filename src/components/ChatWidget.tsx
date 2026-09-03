@@ -85,7 +85,7 @@ export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [memberUser, setMemberUser] = useState<any>(null);
-  const user = memberUser || adminUser;
+  const user = adminUser || memberUser;
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatName, setActiveChatName] = useState('');
