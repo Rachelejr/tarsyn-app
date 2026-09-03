@@ -80,20 +80,20 @@ export default function ChooseModulePage() {
       {/* Header */}
       <div style={{
         position: 'relative',
-        background: `linear-gradient(160deg, ${C.creme} 0%, ${C.rose} 100%)`,
+        background: `linear-gradient(160deg, #FFFFFF 0%, ${C.creme} 100%)`,
         padding: '48px 32px 40px',
         textAlign: 'center',
         borderBottom: `1px solid ${C.border}`,
         overflow: 'hidden',
       }}>
-        {/* Original (colored) logo, top right */}
+        {/* Original (colored) logo, top left */}
         <div
           aria-label="Unimunity"
           role="img"
           style={{
             position: 'absolute',
             top: '24px',
-            right: '32px',
+            left: '32px',
             height: '38px',
             width: '170px',
             background: C.bordeaux,
@@ -103,8 +103,8 @@ export default function ChooseModulePage() {
             maskRepeat: 'no-repeat',
             WebkitMaskSize: 'contain',
             maskSize: 'contain',
-            WebkitMaskPosition: 'right center',
-            maskPosition: 'right center',
+            WebkitMaskPosition: 'left center',
+            maskPosition: 'left center',
           }}
         />
         <h1 className="module-title-slide" style={{ color: C.bordeaux, fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
