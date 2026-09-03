@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 import { useEffect, useRef, useState } from 'react';
 import { auth, memberAuth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
 import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
 const C = {
   bordeaux: '#6B2D4E',
@@ -160,7 +160,8 @@ export default function ChatWidget() {
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
     if (term.trim().length < 2 || !user) { setSearchResults([]); return; }
-    const membersSnap = await getDocs(collection(db, 'members'));
+    const membersQ = query(collection(db, 'members'), where('organizerId', '==', user.uid));
+    const membersSnap = await getDocs(membersQ);
     const results: {userId:string;name:string;email:string}[] = [];
     const seen = new Set<string>();
     membersSnap.docs.forEach((d) => {
