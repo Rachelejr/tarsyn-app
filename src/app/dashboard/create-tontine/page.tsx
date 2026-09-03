@@ -19,64 +19,64 @@ const C = {
   texteGris:  '#6B2D4E',
 };
 const REGIONS = [
-  { region: 'United States', flag: '????', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'Canada', flag: '????', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'United Kingdom', flag: '????', name: 'Pardner' },
-  { region: 'France', flag: '????', name: 'Tontine' },
-  { region: 'Belgium', flag: '????', name: 'Tontine' },
-  { region: 'Switzerland', flag: '????', name: 'Tontine' },
-  { region: 'West Africa', flag: '??', name: 'Tontine' },
-  { region: 'Cameroon', flag: '????', name: 'Njangi' },
-  { region: 'Congo (DRC)', flag: '????', name: 'Likelemba' },
-  { region: 'Ghana', flag: '????', name: 'Susu' },
-  { region: 'Nigeria', flag: '????', name: 'Ajo / Esusu' },
-  { region: 'Senegal', flag: '????', name: 'Tontine' },
-  { region: 'Ivory Coast', flag: '????', name: 'Tontine' },
-  { region: 'Kenya', flag: '????', name: 'Chama' },
-  { region: 'Ethiopia', flag: '????', name: 'Iqub' },
-  { region: 'Haiti', flag: '????', name: 'Sol' },
-  { region: 'Dominican Republic', flag: '????', name: 'San / Mutualidad' },
-  { region: 'Jamaica', flag: '????', name: 'Partner' },
-  { region: 'Trinidad & Tobago', flag: '????', name: 'Sou-Sou' },
-  { region: 'Barbados', flag: '????', name: 'Meeting Turn' },
-  { region: 'Guyana', flag: '????', name: 'Box Hand' },
-  { region: 'Suriname', flag: '????', name: 'Kasmoni' },
-  { region: 'Cuba', flag: '????', name: 'Cundina' },
-  { region: 'Puerto Rico', flag: '????', name: 'Cundina' },
-  { region: 'Guadeloupe', flag: '????', name: 'Sou-Sou' },
-  { region: 'Martinique', flag: '????', name: 'Sou-Sou' },
-  { region: 'French Guiana', flag: '????', name: 'Sou-Sou' },
-  { region: 'Mexico', flag: '????', name: 'Tanda' },
-  { region: 'Colombia', flag: '????', name: 'Natillera' },
-  { region: 'Peru', flag: '????', name: 'Pandero' },
-  { region: 'Bolivia', flag: '????', name: 'Pasanaku' },
-  { region: 'India', flag: '????', name: 'Chit Fund' },
-  { region: 'Philippines', flag: '????', name: 'Paluwagan' },
-  { region: 'Vietnam', flag: '????', name: 'Hui' },
-  { region: 'China', flag: '????', name: 'Hui' },
-  { region: 'South Korea', flag: '????', name: 'Gye' },
-  { region: 'Japan', flag: '????', name: 'Ko' },
-  { region: 'Other / General', flag: '??', name: 'Rotating Savings' },
+  { region: 'United States', flag: '🇺🇸', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'Canada', flag: '🇨🇦', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'United Kingdom', flag: '🇬🇧', name: 'Pardner' },
+  { region: 'France', flag: '🇫🇷', name: 'Tontine' },
+  { region: 'Belgium', flag: '🇧🇪', name: 'Tontine' },
+  { region: 'Switzerland', flag: '🇨🇭', name: 'Tontine' },
+  { region: 'West Africa', flag: '🌍', name: 'Tontine' },
+  { region: 'Cameroon', flag: '🇨🇲', name: 'Njangi' },
+  { region: 'Congo (DRC)', flag: '🇨🇩', name: 'Likelemba' },
+  { region: 'Ghana', flag: '🇬🇭', name: 'Susu' },
+  { region: 'Nigeria', flag: '🇳🇬', name: 'Ajo / Esusu' },
+  { region: 'Senegal', flag: '🇸🇳', name: 'Tontine' },
+  { region: 'Ivory Coast', flag: '🇨🇮', name: 'Tontine' },
+  { region: 'Kenya', flag: '🇰🇪', name: 'Chama' },
+  { region: 'Ethiopia', flag: '🇪🇹', name: 'Iqub' },
+  { region: 'Haiti', flag: '🇭🇹', name: 'Sol' },
+  { region: 'Dominican Republic', flag: '🇩🇴', name: 'San / Mutualidad' },
+  { region: 'Jamaica', flag: '🇯🇲', name: 'Partner' },
+  { region: 'Trinidad & Tobago', flag: '🇹🇹', name: 'Sou-Sou' },
+  { region: 'Barbados', flag: '🇧🇧', name: 'Meeting Turn' },
+  { region: 'Guyana', flag: '🇬🇾', name: 'Box Hand' },
+  { region: 'Suriname', flag: '🇸🇷', name: 'Kasmoni' },
+  { region: 'Cuba', flag: '🇨🇺', name: 'Cundina' },
+  { region: 'Puerto Rico', flag: '🇵🇷', name: 'Cundina' },
+  { region: 'Guadeloupe', flag: '🇬🇵', name: 'Sou-Sou' },
+  { region: 'Martinique', flag: '🇲🇶', name: 'Sou-Sou' },
+  { region: 'French Guiana', flag: '🇬🇫', name: 'Sou-Sou' },
+  { region: 'Mexico', flag: '🇲🇽', name: 'Tanda' },
+  { region: 'Colombia', flag: '🇨🇴', name: 'Natillera' },
+  { region: 'Peru', flag: '🇵🇪', name: 'Pandero' },
+  { region: 'Bolivia', flag: '🇧🇴', name: 'Pasanaku' },
+  { region: 'India', flag: '🇮🇳', name: 'Chit Fund' },
+  { region: 'Philippines', flag: '🇵🇭', name: 'Paluwagan' },
+  { region: 'Vietnam', flag: '🇻🇳', name: 'Hui' },
+  { region: 'China', flag: '🇨🇳', name: 'Hui' },
+  { region: 'South Korea', flag: '🇰🇷', name: 'Gye' },
+  { region: 'Japan', flag: '🇯🇵', name: 'Ko' },
+  { region: 'Other / General', flag: '🌍', name: 'Rotating Savings' },
 ];
 const CURRENCIES = [
-  { code: 'USD', label: 'USD � US Dollar' },
-  { code: 'HTG', label: 'HTG � Haitian Gourde' },
-  { code: 'EUR', label: 'EUR � Euro' },
-  { code: 'CAD', label: 'CAD � Canadian Dollar' },
-  { code: 'GBP', label: 'GBP � British Pound' },
-  { code: 'XOF', label: 'XOF � CFA Franc' },
-  { code: 'NGN', label: 'NGN � Nigerian Naira' },
-  { code: 'GHS', label: 'GHS � Ghanaian Cedi' },
-  { code: 'INR', label: 'INR � Indian Rupee' },
-  { code: 'MXN', label: 'MXN � Mexican Peso' },
-  { code: 'PHP', label: 'PHP � Philippine Peso' },
-  { code: 'DOP', label: 'DOP � Dominican Peso' },
-  { code: 'TTD', label: 'TTD � T&T Dollar' },
-  { code: 'JMD', label: 'JMD � Jamaican Dollar' },
-  { code: 'BTC', label: 'BTC � Bitcoin' },
-  { code: 'ETH', label: 'ETH � Ethereum' },
-  { code: 'USDT', label: 'USDT � Tether (Optional Premium)' },
-  { code: 'USDC', label: 'USDC � USD Coin (Optional Premium)' },
+  { code: 'USD', label: 'USD — US Dollar' },
+  { code: 'HTG', label: 'HTG — Haitian Gourde' },
+  { code: 'EUR', label: 'EUR — Euro' },
+  { code: 'CAD', label: 'CAD — Canadian Dollar' },
+  { code: 'GBP', label: 'GBP — British Pound' },
+  { code: 'XOF', label: 'XOF — CFA Franc' },
+  { code: 'NGN', label: 'NGN — Nigerian Naira' },
+  { code: 'GHS', label: 'GHS — Ghanaian Cedi' },
+  { code: 'INR', label: 'INR — Indian Rupee' },
+  { code: 'MXN', label: 'MXN — Mexican Peso' },
+  { code: 'PHP', label: 'PHP — Philippine Peso' },
+  { code: 'DOP', label: 'DOP — Dominican Peso' },
+  { code: 'TTD', label: 'TTD — T&T Dollar' },
+  { code: 'JMD', label: 'JMD — Jamaican Dollar' },
+  { code: 'BTC', label: 'BTC — Bitcoin' },
+  { code: 'ETH', label: 'ETH — Ethereum' },
+  { code: 'USDT', label: 'USDT — Tether (Optional Premium)' },
+  { code: 'USDC', label: 'USDC — USD Coin (Optional Premium)' },
 ];
 const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual', 'Annual'];
 const ROTATION_TYPES = ['Fixed', 'Random', 'Admin Managed'];
@@ -101,7 +101,7 @@ const LANGUAGES = [
   'Hindi', 'Other',
 ];
 const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
-const DEPOSIT_MULTIPLIERS = ['1� Contribution', '2� Contribution', 'Custom Amount'];
+const DEPOSIT_MULTIPLIERS = ['1× Contribution', '2× Contribution', 'Custom Amount'];
 const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
 function getCommissionRatePercent(totalPool: number, tiers: CommissionTier[]): number {
   const tier = tiers.find(t => totalPool >= t.min && (t.max === null || totalPool < t.max));
@@ -149,7 +149,7 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
       <button type="button" onClick={() => setOpen(o => !o)} className="UNIMUNITY-field"
         style={{ ...inp, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
         <span>{value}</span>
-        <span style={{ color: C.texteGris, fontSize: '11px' }}>?</span>
+        <span style={{ color: C.texteGris, fontSize: '11px' }}>▾</span>
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)', zIndex: 30, maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
@@ -199,7 +199,7 @@ export default function CreateTontinePage() {
   const [emailInput, setEmailInput] = useState('');
   const [emailList, setEmailList] = useState<string[]>([]);
   const [depositMode, setDepositMode] = useState('No Deposit');
-  const [depositMultiplier, setDepositMultiplier] = useState('1� Contribution');
+  const [depositMultiplier, setDepositMultiplier] = useState('1× Contribution');
   const [depositCustomAmount, setDepositCustomAmount] = useState('');
   const [refundPolicy, setRefundPolicy] = useState(REFUND_POLICIES[0]);
   useEffect(() => {
@@ -238,8 +238,8 @@ export default function CreateTontinePage() {
   const progressPercent = Math.round(((currentStepIndex + 1) / TABS.length) * 100);
   const depositAmount = depositMode === 'No Deposit'
     ? 0
-    : depositMultiplier === '1� Contribution' ? contrib
-    : depositMultiplier === '2� Contribution' ? contrib * 2
+    : depositMultiplier === '1× Contribution' ? contrib
+    : depositMultiplier === '2× Contribution' ? contrib * 2
     : parseFloat(depositCustomAmount) || 0;
   const estimatedEndDate = (startDate && cycleDuration > 0)
     ? (() => {
@@ -247,7 +247,7 @@ export default function CreateTontinePage() {
         d.setMonth(d.getMonth() + Math.round(cycleDuration));
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       })()
-    : '�';
+    : '—';
   const generateCode = (prefix: string) => {
     const countryCode = region ? region.substring(0, 2).toUpperCase() : 'XX';
     const year = new Date().getFullYear();
@@ -290,7 +290,7 @@ export default function CreateTontinePage() {
       const docRef = await addDoc(collection(db, 'groups'), {
         organizerId: user.uid,
         tontineCode, region,
-        regionFlag: selectedRegion?.flag || '??',
+        regionFlag: selectedRegion?.flag || '🌍',
         regionalName: selectedRegion?.name || 'Rotating Savings',
         name: customName || selectedRegion?.name || 'Tontine',
         module: 'Tontine',
@@ -551,8 +551,8 @@ export default function CreateTontinePage() {
                     <div>
                       <FieldLabel label="Region / Country" required />
                       <select className="UNIMUNITY-field" value={region} onChange={e => setRegion(e.target.value)} style={inp}>
-                        <option value="">{'� Select a country or region �'}</option>
-                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} � {r.name}</option>)}
+                        <option value="">{'— Select a country or region —'}</option>
+                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
                       </select>
                       {selectedRegion && (
                         <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '8px', display: 'inline-block' }}>
@@ -640,7 +640,7 @@ export default function CreateTontinePage() {
                         <div>
                           <FieldLabel label="Computed Deposit" />
                           <div style={{ ...inp, background: C.creme, display: 'flex', alignItems: 'center', fontWeight: 700, color: C.bordeaux }}>
-                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '�'}
+                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—'}
                           </div>
                           {depositAmount === 0 && (
                             <p style={{ fontSize: '11px', color: '#DC2626', margin: '6px 0 0' }}>
@@ -668,7 +668,7 @@ export default function CreateTontinePage() {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <p style={{ fontSize: '11px', color: C.texteGris, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Based on Total Pool</p>
-                        <p style={{ fontSize: '15px', fontWeight: '700', color: C.texteFonce, margin: 0 }}>{totalPool > 0 ? `${totalPool} ${currency}` : '�'}</p>
+                        <p style={{ fontSize: '15px', fontWeight: '700', color: C.texteFonce, margin: 0 }}>{totalPool > 0 ? `${totalPool} ${currency}` : '—'}</p>
                       </div>
                     </div>
                     <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -676,7 +676,7 @@ export default function CreateTontinePage() {
                         const isActive = totalPool >= t.min && (t.max === null || totalPool < t.max);
                         return (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', padding: '4px 6px', borderRadius: '6px', background: isActive ? C.roseClair : 'transparent', color: isActive ? C.bordeaux : C.texteGris, fontWeight: isActive ? 700 : 400 }}>
-                            <span>{t.max === null ? `${t.min}+ ${currency}` : `${t.min} � ${t.max} ${currency}`}</span>
+                            <span>{t.max === null ? `${t.min}+ ${currency}` : `${t.min} – ${t.max} ${currency}`}</span>
                             <span>{t.rate}%</span>
                           </div>
                         );
@@ -712,7 +712,7 @@ export default function CreateTontinePage() {
                   <Card title="Position Preview">
                     {numM > 0 && startDate ? (
                       <div>
-                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview � {numMembers} members � {frequency}</p>
+                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview — {numMembers} members — {frequency}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                           {Array.from({ length: Math.min(numM, 6) }, (_, i) => {
                             const payoutDate = new Date(startDate);
@@ -771,7 +771,7 @@ export default function CreateTontinePage() {
                       </div>
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
-                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names � applies on top of the privacy mode above</div>
+                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
                       </div>
                     </button>
                   </Card>
@@ -842,15 +842,15 @@ export default function CreateTontinePage() {
               </div>
             </div>
             {[
-              { label: 'Group Name', value: customName || selectedRegion?.name || '�' },
-              { label: 'Members', value: numMembers || '�' },
-              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '�', gold: true },
+              { label: 'Group Name', value: customName || selectedRegion?.name || '—' },
+              { label: 'Members', value: numMembers || '—' },
+              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '—', gold: true },
               { label: 'Frequency', value: frequency },
-              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '�' }] : []),
-              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '�', gold: true },
-              { label: 'Commission Rate', value: totalPool > 0 ? commission : '�' },
-              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '�', gold: true },
-              { label: 'Start Date', value: startDate || '�' },
+              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—' }] : []),
+              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '—', gold: true },
+              { label: 'Commission Rate', value: totalPool > 0 ? commission : '—' },
+              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—', gold: true },
+              { label: 'Start Date', value: startDate || '—' },
               { label: 'Estimated End Date', value: estimatedEndDate },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
