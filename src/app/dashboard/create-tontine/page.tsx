@@ -514,7 +514,16 @@ export default function CreateTontinePage() {
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ArrowLeft size={14} /> Back to Dashboard
               </button>
-              <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '34px', width: 'auto', marginBottom: '12px', display: 'block' }} />
+              <div role="img" aria-label="UNIMUNITY"
+                style={{
+                  height: '34px', width: '160px', marginBottom: '12px',
+                  backgroundColor: C.creme,
+                  WebkitMaskImage: 'url(/unimunity-logo-white.png)',
+                  maskImage: 'url(/unimunity-logo-white.png)',
+                  WebkitMaskSize: 'contain', maskSize: 'contain',
+                  WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'left center', maskPosition: 'left center',
+                }} />
               <div style={{ textAlign: 'center' }}>
                 <h1 style={{ color: C.creme, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
                 <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
