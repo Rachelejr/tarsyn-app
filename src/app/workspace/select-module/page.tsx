@@ -67,12 +67,48 @@ export default function ChooseModulePage() {
       <style>{`
         .module-card { transition: all 0.2s ease; }
         .module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(107,45,78,0.15); }
+        .module-title-slide {
+          display: inline-block;
+          animation: UNIMUNITY-title-slide 3s ease-in-out infinite;
+        }
+        @keyframes UNIMUNITY-title-slide {
+          0% { transform: translateX(-14px); }
+          50% { transform: translateX(14px); }
+          100% { transform: translateX(-14px); }
+        }
       `}</style>
       {/* Header */}
-      <div style={{ background: `linear-gradient(160deg, ${C.bordeaux} 0%, #4A1F38 100%)`, padding: '48px 32px 40px', textAlign: 'center' }}>
-        <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '44px', width: 'auto', marginBottom: '20px' }} />
-        <h1 style={{ color: 'white', fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
-        <p style={{ color: 'rgba(251,238,221,0.8)', fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
+      <div style={{
+        position: 'relative',
+        background: `linear-gradient(160deg, ${C.creme} 0%, ${C.rose} 100%)`,
+        padding: '48px 32px 40px',
+        textAlign: 'center',
+        borderBottom: `1px solid ${C.border}`,
+        overflow: 'hidden',
+      }}>
+        {/* Original (colored) logo, top right */}
+        <div
+          aria-label="Unimunity"
+          role="img"
+          style={{
+            position: 'absolute',
+            top: '24px',
+            right: '32px',
+            height: '38px',
+            width: '170px',
+            background: C.bordeaux,
+            WebkitMaskImage: 'url(/unimunity-logo-white.png)',
+            maskImage: 'url(/unimunity-logo-white.png)',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+            WebkitMaskPosition: 'right center',
+            maskPosition: 'right center',
+          }}
+        />
+        <h1 className="module-title-slide" style={{ color: C.bordeaux, fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
+        <p style={{ color: C.texteGris, fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
       </div>
       {/* Module grid — only visible:true modules are rendered */}
       <div style={{ maxWidth: '760px', margin: '40px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
