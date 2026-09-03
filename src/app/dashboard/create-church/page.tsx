@@ -1,5 +1,4 @@
-'use client';
-
+﻿'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -7,7 +6,6 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, X, Plus,
 } from 'lucide-react';
-
 // ── CHURCH MODULE V2.0 — OFFICIAL VISUAL IDENTITY (turquoise + rose bebe) ──
 const C = {
   primary:    '#4FB8AE',   // turquoise
@@ -22,7 +20,6 @@ const C = {
   success:    '#5A8A6E',
   danger:     '#A14444',
 };
-
 const DENOMINATIONS = [
   'Non-denominational', 'Baptist', 'Catholic', 'Pentecostal', 'Methodist',
   'Evangelical', 'Orthodox', 'Lutheran', 'Presbyterian', 'Seventh-day Adventist',
@@ -30,28 +27,22 @@ const DENOMINATIONS = [
 ];
 const LANGUAGES = ['English', 'French', 'Spanish', 'Haitian Creole', 'Portuguese', 'Arabic', 'Other'];
 const CHURCH_TYPES = ['Single Campus', 'Multi Campus'];
-
 const ACTIVITY_TYPES = [
   'Prayer', 'Conference', 'Revival', 'Youth', 'Wedding', 'Baptism', 'Funeral', 'Classes', 'Retreat',
 ];
 const ATTENDANCE_METHODS = ['Manual', 'QR', 'Badge Scan', 'Mobile', 'Visitor Registration'];
-
 const DEPARTMENTS = [
   'Choir', 'Children', 'Youth', 'Women', 'Men', 'Prayer', 'Media', 'Finance',
   'Hospitality', 'Protocol', 'Security', 'Education', 'Missions', 'Healthcare',
   'Technology', 'Counseling', 'Administration',
 ];
-
 const MEMBERSHIP_MODES = [
   { value: 'Open', desc: 'Anyone can join freely' },
   { value: 'Invite Only', desc: 'Join by invitation only' },
   { value: 'Approval Required', desc: 'Leadership reviews each request' },
 ];
-
 const CURRENCIES = ['USD', 'HTG', 'EUR', 'CAD', 'GBP', 'XOF'];
-
 const STAFF_ROLES = ['Lead Pastor', 'Associate Pastor', 'Deacon', 'Elder', 'Administrator', 'Employee', 'Volunteer Coordinator'];
-
 const TABS = [
   { key: 'identity', label: 'Identity' },
   { key: 'branding', label: 'Branding' },
@@ -60,7 +51,6 @@ const TABS = [
   { key: 'finance', label: 'Membership & Finance' },
   { key: 'leadership', label: 'Leadership & HR' },
 ];
-
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
   border: `1.5px solid ${C.borderMed}`, borderRadius: '12px',
@@ -68,7 +58,6 @@ const inp: React.CSSProperties = {
   boxSizing: 'border-box', outline: 'none',
   transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
 };
-
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
     <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>
@@ -76,7 +65,6 @@ function FieldLabel({ label, required }: { label: string; required?: boolean }) 
     </label>
   );
 }
-
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ background: C.cardBg, border: `1px solid ${C.borderSoft}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
@@ -85,7 +73,6 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
     </div>
   );
 }
-
 function ImageUploadSlot({
   label, value, onChange, shape = 'square',
 }: { label: string; value: string | null; onChange: (dataUrl: string | null) => void; shape?: 'square' | 'circle' }) {
@@ -123,14 +110,12 @@ function ImageUploadSlot({
     </div>
   );
 }
-
 export default function CreateChurchPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('identity');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<any>(null);
   const [error, setError] = useState('');
-
   // STEP 1 — IDENTITY
   const [churchName, setChurchName] = useState('');
   const [shortName, setShortName] = useState('');
@@ -150,7 +135,6 @@ export default function CreateChurchPage() {
   const [churchType, setChurchType] = useState('Single Campus');
   const [estimatedMembers, setEstimatedMembers] = useState('');
   const [seatingCapacity, setSeatingCapacity] = useState('');
-
   // BRANDING
   const [logo, setLogo] = useState<string | null>(null);
   const [seal, setSeal] = useState<string | null>(null);
@@ -162,7 +146,6 @@ export default function CreateChurchPage() {
     'Show on Badge': true, 'Show on Attendance': false, 'Show on PDFs': true,
   });
   const toggleLogoSetting = (k: string) => setLogoSettings(prev => ({ ...prev, [k]: !prev[k] }));
-
   // STEP 2 — SERVICES & EVENTS
   const [services, setServices] = useState<{ day: string; start: string; end: string; room: string }[]>([]);
   const [serviceDay, setServiceDay] = useState('Sunday');
@@ -171,7 +154,6 @@ export default function CreateChurchPage() {
   const [serviceRoom, setServiceRoom] = useState('');
   const [activities, setActivities] = useState<string[]>([]);
   const [attendanceMethods, setAttendanceMethods] = useState<string[]>(['Manual']);
-
   const addService = () => {
     if (!serviceStart) return;
     setServices(prev => [...prev, { day: serviceDay, start: serviceStart, end: serviceEnd, room: serviceRoom }]);
@@ -180,7 +162,6 @@ export default function CreateChurchPage() {
   const removeService = (i: number) => setServices(prev => prev.filter((_, idx) => idx !== i));
   const toggleActivity = (a: string) => setActivities(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
   const toggleAttendanceMethod = (m: string) => setAttendanceMethods(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
-
   // STEP 3 — MINISTRIES
   const [departments, setDepartments] = useState<string[]>([]);
   const [customDept, setCustomDept] = useState('');
@@ -189,7 +170,6 @@ export default function CreateChurchPage() {
     const v = customDept.trim();
     if (v && !departments.includes(v)) { setDepartments(prev => [...prev, v]); setCustomDept(''); }
   };
-
   // STEP 4 — MEMBERSHIP + FINANCE
   const [membershipMode, setMembershipMode] = useState('Open');
   const [currency, setCurrency] = useState('USD');
@@ -201,7 +181,6 @@ export default function CreateChurchPage() {
   const EXPENSE_OPTIONS = ['Salary', 'Utilities', 'Maintenance', 'Mission', 'Supplies'];
   const toggleIncome = (v: string) => setIncomeCategories(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
   const toggleExpense = (v: string) => setExpenseCategories(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
-
   // STEP 5 — LEADERSHIP + HR
   const [leadPastor, setLeadPastor] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -214,7 +193,6 @@ export default function CreateChurchPage() {
     setStaffName('');
   };
   const removeStaff = (i: number) => setStaff(prev => prev.filter((_, idx) => idx !== i));
-
   const tabCompletion: Record<string, boolean> = {
     identity: churchName.trim().length >= 2 && !!country,
     branding: !!logo,
@@ -226,17 +204,14 @@ export default function CreateChurchPage() {
   const currentStepIndex = TABS.findIndex(t => t.key === activeTab);
   const progressPercent = Math.round(((currentStepIndex + 1) / TABS.length) * 100);
   const isFormValid = churchName.trim().length >= 2 && !!country && services.length > 0 && leadPastor.trim().length > 0;
-
   const handleCreate = async () => {
     setError('');
-    if (!churchName.trim() || churchName.trim().length < 2) return setError('Church name is required.');
-    if (!country) return setError('Country is required.');
-    if (services.length === 0) return setError('Add at least one worship service.');
-    if (!leadPastor.trim()) return setError('Lead Pastor / Leader name is required.');
-
+    if (!churchName.trim() || churchName.trim().length < 2) { setActiveTab('identity'); return setError('Church name is required (Identity tab).'); }
+    if (!country) { setActiveTab('identity'); return setError('Country is required (Identity tab).'); }
+    if (services.length === 0) { setActiveTab('services'); return setError('Add at least one worship service: fill in a Start time and click "Add Service" (Services & Events tab).'); }
+    if (!leadPastor.trim()) { setActiveTab('leadership'); return setError('Lead Pastor / Leader name is required (Leadership & HR tab).'); }
     const user = auth.currentUser;
     if (!user) { router.push('/login'); return; }
-
     setSaving(true);
     try {
       const code = `CHU-${Date.now().toString().slice(-6)}`;
@@ -271,7 +246,6 @@ export default function CreateChurchPage() {
       setSaving(false);
     }
   };
-
   const sharedStyles = (
     <style jsx global>{`
       .church-field:focus {
@@ -294,7 +268,6 @@ export default function CreateChurchPage() {
       }
     `}</style>
   );
-
   if (saved) return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
@@ -324,16 +297,13 @@ export default function CreateChurchPage() {
       </div>
     </div>
   );
-
   return (
     <div style={{ minHeight: '100vh', background: C.bg, padding: '18px 16px' }}>
       {sharedStyles}
       <div className="church-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
-
         <div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.primary}, ${C.secondary}, ${C.accent})`, borderRadius: '2px 2px 0 0' }} />
           <div style={{ background: '#fff', borderRadius: '0 0 20px 20px', border: `1px solid ${C.borderMed}`, borderTop: 'none', boxShadow: '0 12px 48px rgba(79,184,174,0.10)', overflow: 'hidden' }}>
-
             <div style={{ background: `linear-gradient(150deg, ${C.primary} 0%, ${C.secondary} 100%)`, padding: '20px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
               <div>
                 <button className="church-btn" onClick={() => router.push('/dashboard/church')}
@@ -349,7 +319,6 @@ export default function CreateChurchPage() {
                   : <span style={{ color: 'white', fontWeight: 800, fontSize: '18px' }}>{(churchName || 'C').charAt(0).toUpperCase()}</span>}
               </div>
             </div>
-
             <div style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.borderSoft}`, overflowX: 'auto' }}>
               {TABS.map(t => (
                 <button key={t.key} className="church-tab" onClick={() => setActiveTab(t.key)}
@@ -365,9 +334,7 @@ export default function CreateChurchPage() {
                 </button>
               ))}
             </div>
-
             <div style={{ padding: '20px 28px' }}>
-
               {activeTab === 'identity' && (
                 <>
                   <Card title="General Information">
@@ -423,7 +390,6 @@ export default function CreateChurchPage() {
                       </div>
                     </div>
                   </Card>
-
                   <Card title="Location">
                     <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                       <div>
@@ -450,7 +416,6 @@ export default function CreateChurchPage() {
                       </div>
                     </div>
                   </Card>
-
                   <Card title="Profile">
                     <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                       <div>
@@ -476,7 +441,6 @@ export default function CreateChurchPage() {
                   </Card>
                 </>
               )}
-
               {activeTab === 'branding' && (
                 <>
                   <Card title="Church Branding">
@@ -488,7 +452,6 @@ export default function CreateChurchPage() {
                       </div>
                     </div>
                   </Card>
-
                   <Card title="Identity Assets">
                     <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       <ImageUploadSlot label="Seal" value={seal} onChange={setSeal} />
@@ -499,7 +462,6 @@ export default function CreateChurchPage() {
                       <ImageUploadSlot label="Signature" value={signature} onChange={setSignature} />
                     </div>
                   </Card>
-
                   <Card title="Logo Usage Settings">
                     <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                       {Object.keys(logoSettings).map(k => (
@@ -515,7 +477,6 @@ export default function CreateChurchPage() {
                   </Card>
                 </>
               )}
-
               {activeTab === 'services' && (
                 <>
                   <Card title="Worship Schedule">
@@ -543,6 +504,11 @@ export default function CreateChurchPage() {
                       style={{ padding: '9px 16px', background: C.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
                       <Plus size={14} /> Add Service
                     </button>
+                    {services.length === 0 && (
+                      <p style={{ fontSize: '12px', color: C.danger, margin: '0 0 14px' }}>
+                        No service added yet — fill in a Start time above, then click "Add Service". This is required before you can create the church.
+                      </p>
+                    )}
                     {services.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {services.map((s, i) => (
@@ -556,7 +522,6 @@ export default function CreateChurchPage() {
                       </div>
                     )}
                   </Card>
-
                   <Card title="Activities">
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {ACTIVITY_TYPES.map(a => (
@@ -567,7 +532,6 @@ export default function CreateChurchPage() {
                       ))}
                     </div>
                   </Card>
-
                   <Card title="Attendance Tracking">
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {ATTENDANCE_METHODS.map(m => (
@@ -581,7 +545,6 @@ export default function CreateChurchPage() {
                   </Card>
                 </>
               )}
-
               {activeTab === 'ministries' && (
                 <Card title="Ministries & Departments">
                   <p style={{ fontSize: '12px', color: C.textGris, margin: '0 0 12px' }}>Select all that apply, or add a custom department.</p>
@@ -611,7 +574,6 @@ export default function CreateChurchPage() {
                   <p style={{ fontSize: '11px', color: C.textGris, margin: '12px 0 0' }}>Each department gets its own leader, volunteers, budget, calendar, and reports once configured inside the module.</p>
                 </Card>
               )}
-
               {activeTab === 'finance' && (
                 <>
                   <Card title="Membership Mode">
@@ -625,7 +587,6 @@ export default function CreateChurchPage() {
                       ))}
                     </div>
                   </Card>
-
                   <Card title="Finance Settings">
                     <div className="church-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '14px' }}>
                       <div>
@@ -678,7 +639,6 @@ export default function CreateChurchPage() {
                   </Card>
                 </>
               )}
-
               {activeTab === 'leadership' && (
                 <>
                   <Card title="Leadership">
@@ -693,7 +653,6 @@ export default function CreateChurchPage() {
                       </div>
                     </div>
                   </Card>
-
                   <Card title="Staff & HR (initial list)">
                     <div className="church-row-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '14px', alignItems: 'end' }}>
                       <div>
@@ -729,21 +688,19 @@ export default function CreateChurchPage() {
                   </Card>
                 </>
               )}
-
               {error && (
                 <div style={{ background: '#FBEDED', border: '1px solid #E8C5C5', borderRadius: '12px', padding: '12px 16px', color: C.danger, fontSize: '14px', marginTop: '16px' }}>
                   {error}
                 </div>
               )}
-
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', gap: '12px' }}>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {TABS.map((t, i) => (
                     <span key={t.key} style={{ width: '6px', height: '6px', borderRadius: '50%', background: currentStepIndex >= i ? C.primary : C.borderSoft }} />
                   ))}
                 </div>
-                <button className="church-btn" onClick={handleCreate} disabled={!isFormValid || saving}
-                  style={{ padding: '13px 26px', background: !isFormValid ? C.borderSoft : C.primary, color: !isFormValid ? '#9C8FB5' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: 700, cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : '0 4px 20px rgba(79,184,174,0.35)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button className="church-btn" onClick={handleCreate} disabled={saving}
+                  style={{ padding: '13px 26px', background: C.primary, color: 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', boxShadow: '0 4px 20px rgba(79,184,174,0.35)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {saving ? 'Creating...' : <>Create Church <ArrowRight size={16} /></>}
                 </button>
               </div>
@@ -754,11 +711,9 @@ export default function CreateChurchPage() {
           </div>
           <div style={{ height: '3px', background: `linear-gradient(90deg, ${C.accent}, ${C.secondary}, ${C.primary})`, borderRadius: '0 0 2px 2px' }} />
         </div>
-
         <div className="church-summary">
           <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(79,184,174,0.18)', border: `1px solid ${C.borderSoft}` }}>
             <h3 style={{ color: C.primary, fontSize: '15px', fontWeight: 800, margin: '0 0 10px' }}>Live Summary</h3>
-
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.textGris, marginBottom: '6px' }}>
                 <span>Step {currentStepIndex + 1} of {TABS.length}</span>
@@ -768,7 +723,6 @@ export default function CreateChurchPage() {
                 <div style={{ height: '100%', width: `${progressPercent}%`, background: C.secondary, borderRadius: '4px', transition: 'width 0.3s ease' }} />
               </div>
             </div>
-
             {[
               { label: 'Church Name', value: churchName || '—' },
               { label: 'Type', value: churchType },
@@ -787,7 +741,6 @@ export default function CreateChurchPage() {
                 <span style={{ color: (item as any).gold ? C.secondary : C.textDark, fontWeight: (item as any).gold ? 800 : 600, fontSize: '12px' }}>{item.value}</span>
               </div>
             ))}
-
             <div style={{ marginTop: '14px' }}>
               <p style={{ color: C.textGris, fontSize: '11px', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Required fields</p>
               {[
@@ -802,7 +755,6 @@ export default function CreateChurchPage() {
                 </div>
               ))}
             </div>
-
             <div style={{ marginTop: '14px', padding: '10px 12px', background: C.accent, borderRadius: '10px' }}>
               <p style={{ fontSize: '11px', color: C.primary, margin: 0, fontWeight: 600 }}>
                 Badge Center, full HR, ledger, documents, and analytics unlock after this church is created.
@@ -810,7 +762,6 @@ export default function CreateChurchPage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
