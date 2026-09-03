@@ -1,5 +1,4 @@
-'use client';
-
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -10,7 +9,6 @@ import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X, Settings,
 } from 'lucide-react';
 import { DEFAULT_COMMISSION_TIERS, CommissionTier } from '../commission-settings/page';
-
 const C = {
   bordeaux:   '#6B2D4E',
   dore:       '#E9C77B',
@@ -20,69 +18,66 @@ const C = {
   texteFonce: '#4A1F38',
   texteGris:  '#6B2D4E',
 };
-
 const REGIONS = [
-  { region: 'United States', flag: '\ud83c\uddfa\ud83c\uddf8', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'Canada', flag: '\ud83c\udde8\ud83c\udde6', name: 'Sou-Sou / Rotating Savings' },
-  { region: 'United Kingdom', flag: '\ud83c\uddec\ud83c\udde7', name: 'Pardner' },
-  { region: 'France', flag: '\ud83c\uddeb\ud83c\uddf7', name: 'Tontine' },
-  { region: 'Belgium', flag: '\ud83c\udde7\ud83c\uddea', name: 'Tontine' },
-  { region: 'Switzerland', flag: '\ud83c\udde8\ud83c\udded', name: 'Tontine' },
-  { region: 'West Africa', flag: '\ud83c\udf0d', name: 'Tontine' },
-  { region: 'Cameroon', flag: '\ud83c\udde8\ud83c\uddf2', name: 'Njangi' },
-  { region: 'Congo (DRC)', flag: '\ud83c\udde8\ud83c\udde9', name: 'Likelemba' },
-  { region: 'Ghana', flag: '\ud83c\uddec\ud83c\udded', name: 'Susu' },
-  { region: 'Nigeria', flag: '\ud83c\uddf3\ud83c\uddec', name: 'Ajo / Esusu' },
-  { region: 'Senegal', flag: '\ud83c\uddf8\ud83c\uddf3', name: 'Tontine' },
-  { region: 'Ivory Coast', flag: '\ud83c\udde8\ud83c\uddee', name: 'Tontine' },
-  { region: 'Kenya', flag: '\ud83c\uddf0\ud83c\uddea', name: 'Chama' },
-  { region: 'Ethiopia', flag: '\ud83c\uddea\ud83c\uddf9', name: 'Iqub' },
-  { region: 'Haiti', flag: '\ud83c\udded\ud83c\uddf9', name: 'Sol' },
-  { region: 'Dominican Republic', flag: '\ud83c\udde9\ud83c\uddf4', name: 'San / Mutualidad' },
-  { region: 'Jamaica', flag: '\ud83c\uddef\ud83c\uddf2', name: 'Partner' },
-  { region: 'Trinidad & Tobago', flag: '\ud83c\uddf9\ud83c\uddf9', name: 'Sou-Sou' },
-  { region: 'Barbados', flag: '\ud83c\udde7\ud83c\udde7', name: 'Meeting Turn' },
-  { region: 'Guyana', flag: '\ud83c\uddec\ud83c\uddfe', name: 'Box Hand' },
-  { region: 'Suriname', flag: '\ud83c\uddf8\ud83c\uddf7', name: 'Kasmoni' },
-  { region: 'Cuba', flag: '\ud83c\udde8\ud83c\uddfa', name: 'Cundina' },
-  { region: 'Puerto Rico', flag: '\ud83c\uddf5\ud83c\uddf7', name: 'Cundina' },
-  { region: 'Guadeloupe', flag: '\ud83c\uddec\ud83c\uddf5', name: 'Sou-Sou' },
-  { region: 'Martinique', flag: '\ud83c\uddf2\ud83c\uddf6', name: 'Sou-Sou' },
-  { region: 'French Guiana', flag: '\ud83c\uddec\ud83c\uddeb', name: 'Sou-Sou' },
-  { region: 'Mexico', flag: '\ud83c\uddf2\ud83c\uddfd', name: 'Tanda' },
-  { region: 'Colombia', flag: '\ud83c\udde8\ud83c\uddf4', name: 'Natillera' },
-  { region: 'Peru', flag: '\ud83c\uddf5\ud83c\uddea', name: 'Pandero' },
-  { region: 'Bolivia', flag: '\ud83c\udde7\ud83c\uddf4', name: 'Pasanaku' },
-  { region: 'India', flag: '\ud83c\uddee\ud83c\uddf3', name: 'Chit Fund' },
-  { region: 'Philippines', flag: '\ud83c\uddf5\ud83c\udded', name: 'Paluwagan' },
-  { region: 'Vietnam', flag: '\ud83c\uddfb\ud83c\uddf3', name: 'Hui' },
-  { region: 'China', flag: '\ud83c\udde8\ud83c\uddf3', name: 'Hui' },
-  { region: 'South Korea', flag: '\ud83c\uddf0\ud83c\uddf7', name: 'Gye' },
-  { region: 'Japan', flag: '\ud83c\uddef\ud83c\uddf5', name: 'Ko' },
-  { region: 'Other / General', flag: '\ud83c\udf0d', name: 'Rotating Savings' },
+  { region: 'United States', flag: '🇺🇸', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'Canada', flag: '🇨🇦', name: 'Sou-Sou / Rotating Savings' },
+  { region: 'United Kingdom', flag: '🇬🇧', name: 'Pardner' },
+  { region: 'France', flag: '🇫🇷', name: 'Tontine' },
+  { region: 'Belgium', flag: '🇧🇪', name: 'Tontine' },
+  { region: 'Switzerland', flag: '🇨🇭', name: 'Tontine' },
+  { region: 'West Africa', flag: '🌍', name: 'Tontine' },
+  { region: 'Cameroon', flag: '🇨🇲', name: 'Njangi' },
+  { region: 'Congo (DRC)', flag: '🇨🇩', name: 'Likelemba' },
+  { region: 'Ghana', flag: '🇬🇭', name: 'Susu' },
+  { region: 'Nigeria', flag: '🇳🇬', name: 'Ajo / Esusu' },
+  { region: 'Senegal', flag: '🇸🇳', name: 'Tontine' },
+  { region: 'Ivory Coast', flag: '🇨🇮', name: 'Tontine' },
+  { region: 'Kenya', flag: '🇰🇪', name: 'Chama' },
+  { region: 'Ethiopia', flag: '🇪🇹', name: 'Iqub' },
+  { region: 'Haiti', flag: '🇭🇹', name: 'Sol' },
+  { region: 'Dominican Republic', flag: '🇩🇴', name: 'San / Mutualidad' },
+  { region: 'Jamaica', flag: '🇯🇲', name: 'Partner' },
+  { region: 'Trinidad & Tobago', flag: '🇹🇹', name: 'Sou-Sou' },
+  { region: 'Barbados', flag: '🇧🇧', name: 'Meeting Turn' },
+  { region: 'Guyana', flag: '🇬🇾', name: 'Box Hand' },
+  { region: 'Suriname', flag: '🇸🇷', name: 'Kasmoni' },
+  { region: 'Cuba', flag: '🇨🇺', name: 'Cundina' },
+  { region: 'Puerto Rico', flag: '🇵🇷', name: 'Cundina' },
+  { region: 'Guadeloupe', flag: '🇬🇵', name: 'Sou-Sou' },
+  { region: 'Martinique', flag: '🇲🇶', name: 'Sou-Sou' },
+  { region: 'French Guiana', flag: '🇬🇫', name: 'Sou-Sou' },
+  { region: 'Mexico', flag: '🇲🇽', name: 'Tanda' },
+  { region: 'Colombia', flag: '🇨🇴', name: 'Natillera' },
+  { region: 'Peru', flag: '🇵🇪', name: 'Pandero' },
+  { region: 'Bolivia', flag: '🇧🇴', name: 'Pasanaku' },
+  { region: 'India', flag: '🇮🇳', name: 'Chit Fund' },
+  { region: 'Philippines', flag: '🇵🇭', name: 'Paluwagan' },
+  { region: 'Vietnam', flag: '🇻🇳', name: 'Hui' },
+  { region: 'China', flag: '🇨🇳', name: 'Hui' },
+  { region: 'South Korea', flag: '🇰🇷', name: 'Gye' },
+  { region: 'Japan', flag: '🇯🇵', name: 'Ko' },
+  { region: 'Other / General', flag: '🌍', name: 'Rotating Savings' },
 ];
-
 const CURRENCIES = [
-  { code: 'USD', label: 'USD \u2014 US Dollar' },
-  { code: 'HTG', label: 'HTG \u2014 Haitian Gourde' },
-  { code: 'EUR', label: 'EUR \u2014 Euro' },
-  { code: 'CAD', label: 'CAD \u2014 Canadian Dollar' },
-  { code: 'GBP', label: 'GBP \u2014 British Pound' },
-  { code: 'XOF', label: 'XOF \u2014 CFA Franc' },
-  { code: 'NGN', label: 'NGN \u2014 Nigerian Naira' },
-  { code: 'GHS', label: 'GHS \u2014 Ghanaian Cedi' },
-  { code: 'INR', label: 'INR \u2014 Indian Rupee' },
-  { code: 'MXN', label: 'MXN \u2014 Mexican Peso' },
-  { code: 'PHP', label: 'PHP \u2014 Philippine Peso' },
-  { code: 'DOP', label: 'DOP \u2014 Dominican Peso' },
-  { code: 'TTD', label: 'TTD \u2014 T&T Dollar' },
-  { code: 'JMD', label: 'JMD \u2014 Jamaican Dollar' },
-  { code: 'BTC', label: 'BTC \u2014 Bitcoin' },
-  { code: 'ETH', label: 'ETH \u2014 Ethereum' },
-  { code: 'USDT', label: 'USDT \u2014 Tether (Optional Premium)' },
-  { code: 'USDC', label: 'USDC \u2014 USD Coin (Optional Premium)' },
+  { code: 'USD', label: 'USD — US Dollar' },
+  { code: 'HTG', label: 'HTG — Haitian Gourde' },
+  { code: 'EUR', label: 'EUR — Euro' },
+  { code: 'CAD', label: 'CAD — Canadian Dollar' },
+  { code: 'GBP', label: 'GBP — British Pound' },
+  { code: 'XOF', label: 'XOF — CFA Franc' },
+  { code: 'NGN', label: 'NGN — Nigerian Naira' },
+  { code: 'GHS', label: 'GHS — Ghanaian Cedi' },
+  { code: 'INR', label: 'INR — Indian Rupee' },
+  { code: 'MXN', label: 'MXN — Mexican Peso' },
+  { code: 'PHP', label: 'PHP — Philippine Peso' },
+  { code: 'DOP', label: 'DOP — Dominican Peso' },
+  { code: 'TTD', label: 'TTD — T&T Dollar' },
+  { code: 'JMD', label: 'JMD — Jamaican Dollar' },
+  { code: 'BTC', label: 'BTC — Bitcoin' },
+  { code: 'ETH', label: 'ETH — Ethereum' },
+  { code: 'USDT', label: 'USDT — Tether (Optional Premium)' },
+  { code: 'USDC', label: 'USDC — USD Coin (Optional Premium)' },
 ];
-
 const FREQUENCIES = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'Bi-annual', 'Annual'];
 const ROTATION_TYPES = ['Fixed', 'Random', 'Admin Managed'];
 const PAYMENT_METHODS = ['Cash', 'Transfer', 'Mobile Money', 'CashApp', 'Zelle', 'Mixed'];
@@ -106,19 +101,16 @@ const LANGUAGES = [
   'Hindi', 'Other',
 ];
 const DEPOSIT_MODES = ['No Deposit', 'Optional Deposit', 'Mandatory Deposit'];
-const DEPOSIT_MULTIPLIERS = ['1\u00d7 Contribution', '2\u00d7 Contribution', 'Custom Amount'];
+const DEPOSIT_MULTIPLIERS = ['1× Contribution', '2× Contribution', 'Custom Amount'];
 const REFUND_POLICIES = ['Refundable at cycle end', 'Non-refundable', 'Refundable if no defaults'];
-
 function getCommissionRatePercent(totalPool: number, tiers: CommissionTier[]): number {
   const tier = tiers.find(t => totalPool >= t.min && (t.max === null || totalPool < t.max));
   return (tier || tiers[tiers.length - 1])?.rate ?? 0;
 }
-
 const frequencyMonths: Record<string, number> = {
   'Weekly': 0.25, 'Bi-weekly': 0.5, 'Monthly': 1,
   'Quarterly': 3, 'Bi-annual': 6, 'Annual': 12
 };
-
 const TABS = [
   { key: 'identity', label: 'Identity' },
   { key: 'finance', label: 'Finance' },
@@ -126,7 +118,6 @@ const TABS = [
   { key: 'rules', label: 'Rules & Privacy' },
   { key: 'invite', label: 'Invite' },
 ];
-
 const inp: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
   border: `1.5px solid #D9C0CC`, borderRadius: '12px',
@@ -134,7 +125,6 @@ const inp: React.CSSProperties = {
   boxSizing: 'border-box', outline: 'none',
   transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
 };
-
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
     <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#4A1F38', marginBottom: '8px', letterSpacing: '0.1px' }}>
@@ -142,7 +132,6 @@ function FieldLabel({ label, required }: { label: string; required?: boolean }) 
     </label>
   );
 }
-
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ background: '#FDFAF8', border: `1px solid ${C.roseClair}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
@@ -151,7 +140,6 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
     </div>
   );
 }
-
 function SearchableSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -161,7 +149,7 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
       <button type="button" onClick={() => setOpen(o => !o)} className="UNIMUNITY-field"
         style={{ ...inp, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
         <span>{value}</span>
-        <span style={{ color: C.texteGris, fontSize: '11px' }}>{'\u25be'}</span>
+        <span style={{ color: C.texteGris, fontSize: '11px' }}>▾</span>
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, background: 'white', border: `1.5px solid ${C.roseMoyen}`, borderRadius: '12px', boxShadow: '0 8px 24px rgba(107,45,78,0.18)', zIndex: 30, maxHeight: '240px', display: 'flex', flexDirection: 'column' }}>
@@ -183,7 +171,6 @@ function SearchableSelect({ value, onChange, options }: { value: string; onChang
     </div>
   );
 }
-
 export default function CreateTontinePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('identity');
@@ -192,9 +179,7 @@ export default function CreateTontinePage() {
   const [error, setError] = useState('');
   const [showReview, setShowReview] = useState(false);
   const [copied, setCopied] = useState(false);
-
   const [commissionTiers, setCommissionTiers] = useState<CommissionTier[]>(DEFAULT_COMMISSION_TIERS);
-
   const [region, setRegion] = useState('');
   const [customName, setCustomName] = useState('');
   const [language, setLanguage] = useState('English');
@@ -213,12 +198,10 @@ export default function CreateTontinePage() {
   const [adminVisibility, setAdminVisibility] = useState('Show Organizer');
   const [emailInput, setEmailInput] = useState('');
   const [emailList, setEmailList] = useState<string[]>([]);
-
   const [depositMode, setDepositMode] = useState('No Deposit');
-  const [depositMultiplier, setDepositMultiplier] = useState('1\u00d7 Contribution');
+  const [depositMultiplier, setDepositMultiplier] = useState('1× Contribution');
   const [depositCustomAmount, setDepositCustomAmount] = useState('');
   const [refundPolicy, setRefundPolicy] = useState(REFUND_POLICIES[0]);
-
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) return;
@@ -234,20 +217,16 @@ export default function CreateTontinePage() {
     });
     return () => unsub();
   }, []);
-
   const selectedRegion = REGIONS.find(r => r.region === region);
   const numM = parseInt(numMembers) || 0;
   const contrib = parseFloat(contribution) || 0;
   const totalPool = numM * contrib;
-
   const commissionRatePercent = getCommissionRatePercent(totalPool, commissionTiers);
   const commission = `${commissionRatePercent}%`;
   const commissionRate = commissionRatePercent / 100;
   const organizerRevenue = totalPool * commissionRate;
-
   const cycleDuration = numM * (frequencyMonths[frequency] || 1);
   const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate);
-
   const tabCompletion: Record<string, boolean> = {
     identity: !!region && customName.trim().length >= 2,
     finance: !!numMembers && parseInt(numMembers) >= 2 && !!contribution && parseFloat(contribution) > 0 && !!startDate,
@@ -257,28 +236,24 @@ export default function CreateTontinePage() {
   };
   const currentStepIndex = TABS.findIndex(t => t.key === activeTab);
   const progressPercent = Math.round(((currentStepIndex + 1) / TABS.length) * 100);
-
   const depositAmount = depositMode === 'No Deposit'
     ? 0
-    : depositMultiplier === '1\u00d7 Contribution' ? contrib
-    : depositMultiplier === '2\u00d7 Contribution' ? contrib * 2
+    : depositMultiplier === '1× Contribution' ? contrib
+    : depositMultiplier === '2× Contribution' ? contrib * 2
     : parseFloat(depositCustomAmount) || 0;
-
   const estimatedEndDate = (startDate && cycleDuration > 0)
     ? (() => {
         const d = new Date(startDate);
         d.setMonth(d.getMonth() + Math.round(cycleDuration));
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       })()
-    : '\u2014';
-
+    : '—';
   const generateCode = (prefix: string) => {
     const countryCode = region ? region.substring(0, 2).toUpperCase() : 'XX';
     const year = new Date().getFullYear();
     const seq = Date.now().toString().slice(-6);
     return `${prefix}-${countryCode}-${year}-${seq}`;
   };
-
   const addEmail = () => {
     const email = emailInput.trim();
     if (email && !emailList.includes(email)) {
@@ -286,15 +261,12 @@ export default function CreateTontinePage() {
       setEmailInput('');
     }
   };
-
   const removeEmail = (email: string) => setEmailList(prev => prev.filter(e => e !== email));
-
   const copyLink = (link: string) => {
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
   const handleReview = () => {
     setError('');
     if (!region) return setError('Please select a region.');
@@ -306,22 +278,19 @@ export default function CreateTontinePage() {
     if (new Date(startDate) <= new Date()) return setError('Start date must be in the future.');
     setShowReview(true);
   };
-
   const handleSubmit = async () => {
     setShowReview(false);
     setSaving(true);
     try {
       const user = auth.currentUser;
       if (!user) { router.push('/login'); return; }
-
       const tontineCode = generateCode('TTN');
       const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
       const inviteLink = `https://unimunity.com/join/${inviteCode}`;
-
       const docRef = await addDoc(collection(db, 'groups'), {
         organizerId: user.uid,
         tontineCode, region,
-        regionFlag: selectedRegion?.flag || '\ud83c\udf0d',
+        regionFlag: selectedRegion?.flag || '🌍',
         regionalName: selectedRegion?.name || 'Rotating Savings',
         name: customName || selectedRegion?.name || 'Tontine',
         module: 'Tontine',
@@ -344,7 +313,6 @@ export default function CreateTontinePage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-
       try {
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: user.uid, category: 'Group',
@@ -353,7 +321,6 @@ export default function CreateTontinePage() {
           createdAt: serverTimestamp(),
         });
       } catch (auditErr) { /* silent - audit logging must never block group creation */ }
-
       if (emailList.length > 0) {
         const memberInvites: { email: string; inviteCode: string }[] = [];
         for (let i = 0; i < emailList.length; i++) {
@@ -381,7 +348,6 @@ export default function CreateTontinePage() {
             console.error('Could not create pending member for', email, memberErr);
           }
         }
-
         await Promise.allSettled(memberInvites.map(m =>
           fetch('/api/send-invite', {
             method: 'POST',
@@ -395,7 +361,6 @@ export default function CreateTontinePage() {
           })
         ));
       }
-
       setSavedGroup({
         name: customName || selectedRegion?.name || 'Tontine',
         tontineCode, inviteCode, inviteLink,
@@ -411,7 +376,6 @@ export default function CreateTontinePage() {
       setSaving(false);
     }
   };
-
   const sharedStyles = (
     <style jsx global>{`
       .UNIMUNITY-field:focus {
@@ -448,7 +412,6 @@ export default function CreateTontinePage() {
       }
     `}</style>
   );
-
   if (savedGroup) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
@@ -497,7 +460,6 @@ export default function CreateTontinePage() {
       </div>
     </div>
   );
-
   if (showReview) return (
     <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       {sharedStyles}
@@ -541,24 +503,22 @@ export default function CreateTontinePage() {
       </div>
     </div>
   );
-
   return (
     <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' }}>
       {sharedStyles}
       <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
-
         <div>
           <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
-
             <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A5E 100%)`, padding: '20px 28px' }}>
               <button className="UNIMUNITY-btn" onClick={() => router.push('/dashboard')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ArrowLeft size={14} /> Back to Dashboard
               </button>
+              <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '34px', width: 'auto', marginBottom: '12px', display: 'block' }}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/unimunity-logo-white.png'; }} />
               <h1 style={{ color: C.creme, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
               <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
             </div>
-
             <div className="UNIMUNITY-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
               {TABS.map(t => (
                 <button key={t.key} className="UNIMUNITY-tab" onClick={() => setActiveTab(t.key)}
@@ -574,17 +534,15 @@ export default function CreateTontinePage() {
                 </button>
               ))}
             </div>
-
             <div style={{ padding: '20px 28px' }}>
-
               {activeTab === 'identity' && (
                 <Card title="Region & Identity">
                   <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                     <div>
                       <FieldLabel label="Region / Country" required />
                       <select className="UNIMUNITY-field" value={region} onChange={e => setRegion(e.target.value)} style={inp}>
-                        <option value="">{'\u2014' + ' Select a country or region ' + '\u2014'}</option>
-                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} {'\u2014'} {r.name}</option>)}
+                        <option value="">{'— Select a country or region —'}</option>
+                        {REGIONS.map(r => <option key={r.region} value={r.region}>{r.flag} {r.region} — {r.name}</option>)}
                       </select>
                       {selectedRegion && (
                         <p style={{ marginTop: '6px', fontSize: '12px', color: C.bordeaux, background: C.roseClair, padding: '4px 10px', borderRadius: '8px', display: 'inline-block' }}>
@@ -603,7 +561,6 @@ export default function CreateTontinePage() {
                   </div>
                 </Card>
               )}
-
               {activeTab === 'finance' && (
                 <>
                   <Card title="Financial Settings">
@@ -637,7 +594,6 @@ export default function CreateTontinePage() {
                       </div>
                     </div>
                   </Card>
-
                   <Card title="Initial Deposit">
                     <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 4px' }}>
                       Optional or required depending on admin settings and local practice.
@@ -674,7 +630,7 @@ export default function CreateTontinePage() {
                         <div>
                           <FieldLabel label="Computed Deposit" />
                           <div style={{ ...inp, background: C.creme, display: 'flex', alignItems: 'center', fontWeight: 700, color: C.bordeaux }}>
-                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '\u2014'}
+                            {depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—'}
                           </div>
                           {depositAmount === 0 && (
                             <p style={{ fontSize: '11px', color: '#DC2626', margin: '6px 0 0' }}>
@@ -685,7 +641,6 @@ export default function CreateTontinePage() {
                       </div>
                     )}
                   </Card>
-
                   <Card title="Organizer Commission">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
                       <p style={{ fontSize: '12px', color: C.texteGris, margin: 0 }}>
@@ -703,7 +658,7 @@ export default function CreateTontinePage() {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <p style={{ fontSize: '11px', color: C.texteGris, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Based on Total Pool</p>
-                        <p style={{ fontSize: '15px', fontWeight: '700', color: C.texteFonce, margin: 0 }}>{totalPool > 0 ? `${totalPool} ${currency}` : '\u2014'}</p>
+                        <p style={{ fontSize: '15px', fontWeight: '700', color: C.texteFonce, margin: 0 }}>{totalPool > 0 ? `${totalPool} ${currency}` : '—'}</p>
                       </div>
                     </div>
                     <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -711,7 +666,7 @@ export default function CreateTontinePage() {
                         const isActive = totalPool >= t.min && (t.max === null || totalPool < t.max);
                         return (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', padding: '4px 6px', borderRadius: '6px', background: isActive ? C.roseClair : 'transparent', color: isActive ? C.bordeaux : C.texteGris, fontWeight: isActive ? 700 : 400 }}>
-                            <span>{t.max === null ? `${t.min}+ ${currency}` : `${t.min} \u2013 ${t.max} ${currency}`}</span>
+                            <span>{t.max === null ? `${t.min}+ ${currency}` : `${t.min} – ${t.max} ${currency}`}</span>
                             <span>{t.rate}%</span>
                           </div>
                         );
@@ -720,7 +675,6 @@ export default function CreateTontinePage() {
                   </Card>
                 </>
               )}
-
               {activeTab === 'rotation' && (
                 <>
                   <Card title="Rotation & Payment Settings">
@@ -745,11 +699,10 @@ export default function CreateTontinePage() {
                       </div>
                     </div>
                   </Card>
-
                   <Card title="Position Preview">
                     {numM > 0 && startDate ? (
                       <div>
-                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview \u2014 {numMembers} members \u2014 {frequency}</p>
+                        <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 12px' }}>Rotation preview — {numMembers} members — {frequency}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                           {Array.from({ length: Math.min(numM, 6) }, (_, i) => {
                             const payoutDate = new Date(startDate);
@@ -771,7 +724,6 @@ export default function CreateTontinePage() {
                   </Card>
                 </>
               )}
-
               {activeTab === 'rules' && (
                 <>
                   <Card title="Rules">
@@ -786,7 +738,6 @@ export default function CreateTontinePage() {
                     <textarea className="UNIMUNITY-field" value={rules} onChange={e => setRules(e.target.value)} rows={3}
                       placeholder="Group rules..." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} />
                   </Card>
-
                   <Card title="Privacy Mode">
                     <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
                       {PRIVACY_MODES.map(p => {
@@ -810,13 +761,12 @@ export default function CreateTontinePage() {
                       </div>
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '600', color: C.texteFonce }}>Confidential Mode (additional toggle)</div>
-                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names \u2014 applies on top of the privacy mode above</div>
+                        <div style={{ fontSize: '10px', color: C.texteGris, marginTop: '1px' }}>Members only see their TYN-ID, not each other's names — applies on top of the privacy mode above</div>
                       </div>
                     </button>
                   </Card>
                 </>
               )}
-
               {activeTab === 'invite' && (
                 <Card title="Invite Members">
                   <FieldLabel label="Invite by Email" />
@@ -847,13 +797,11 @@ export default function CreateTontinePage() {
                   <p style={{ fontSize: '11px', color: C.texteGris, margin: '8px 0 0' }}>Press Enter or click Add</p>
                 </Card>
               )}
-
               {error && (
                 <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '12px 16px', color: '#DC2626', fontSize: '14px', marginTop: '16px' }}>
                   {error}
                 </div>
               )}
-
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', gap: '12px' }}>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {TABS.map((t, i) => (
@@ -871,11 +819,9 @@ export default function CreateTontinePage() {
             </div>
           </div>
         </div>
-
         <div className="UNIMUNITY-live-summary">
           <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
             <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 10px', letterSpacing: '-0.1px' }}>Live Summary</h3>
-
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '6px' }}>
                 <span>Step {currentStepIndex + 1} of {TABS.length}</span>
@@ -885,17 +831,16 @@ export default function CreateTontinePage() {
                 <div style={{ height: '100%', width: `${progressPercent}%`, background: C.dore, borderRadius: '4px', transition: 'width 0.3s ease' }} />
               </div>
             </div>
-
             {[
-              { label: 'Group Name', value: customName || selectedRegion?.name || '\u2014' },
-              { label: 'Members', value: numMembers || '\u2014' },
-              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '\u2014', gold: true },
+              { label: 'Group Name', value: customName || selectedRegion?.name || '—' },
+              { label: 'Members', value: numMembers || '—' },
+              { label: 'Contribution', value: contribution ? `${contribution} ${currency}` : '—', gold: true },
               { label: 'Frequency', value: frequency },
-              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '\u2014' }] : []),
-              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '\u2014', gold: true },
-              { label: 'Commission Rate', value: totalPool > 0 ? commission : '\u2014' },
-              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '\u2014', gold: true },
-              { label: 'Start Date', value: startDate || '\u2014' },
+              ...(depositMode !== 'No Deposit' ? [{ label: 'Initial Deposit', value: depositAmount > 0 ? `${depositAmount.toFixed(2)} ${currency}` : '—' }] : []),
+              { label: 'Total Pool', value: totalPool > 0 ? `${totalPool} ${currency}` : '—', gold: true },
+              { label: 'Commission Rate', value: totalPool > 0 ? commission : '—' },
+              { label: 'Organizer Revenue', value: organizerRevenue > 0 ? `${organizerRevenue.toFixed(2)} ${currency}` : '—', gold: true },
+              { label: 'Start Date', value: startDate || '—' },
               { label: 'Estimated End Date', value: estimatedEndDate },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
@@ -925,7 +870,6 @@ export default function CreateTontinePage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
