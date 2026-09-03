@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -33,16 +33,22 @@ export default function SwitchWorkspacePage() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
-        const [byOrganizer, byAdmin, churchesSnap] = await Promise.all([
+        const [byOrganizer, byAdmin, churchesSnap, churchesByEmail] = await Promise.all([
           getDocs(query(collection(db, 'groups'), where('organizerId', '==', u.uid))),
           getDocs(query(collection(db, 'groups'), where('adminId', '==', u.uid))),
           getDocs(query(collection(db, 'churches'), where('organizerId', '==', u.uid))),
+          // Fallback: some churches may have been created under a different
+          // uid but with this same admin email - catch those too, the same
+          // way Tontine checks both organizerId and adminId.
+          u.email
+            ? getDocs(query(collection(db, 'churches'), where('adminEmail', '==', u.email)))
+            : Promise.resolve({ empty: true, size: 0, docs: [] } as any),
         ]);
         const hasTontine = !byOrganizer.empty || !byAdmin.empty;
-        const hasChurch = !churchesSnap.empty;
+        const hasChurch = !churchesSnap.empty || !churchesByEmail.empty;
 
         // Debug temporaire — à retirer une fois le bug confirmé résolu.
-        console.log('[UNIMUNITY debug] uid =', u.uid, '| hasTontine =', hasTontine, '| hasChurch =', hasChurch, '| churches trouvées =', churchesSnap.size);
+        console.log('[UNIMUNITY debug] uid =', u.uid, 'email =', u.email, '| hasTontine =', hasTontine, '| hasChurch =', hasChurch, '| churches (organizerId) =', churchesSnap.size, '| churches (adminEmail) =', churchesByEmail.size);
 
         const found: ActiveWorkspace[] = [];
         if (hasTontine) {
@@ -158,6 +164,10 @@ export default function SwitchWorkspacePage() {
           style={{ background: 'none', border: `1.5px dashed ${C.border}`, borderRadius: '14px', padding: '14px 20px', color: C.bordeaux, fontSize: '13px', fontWeight: 700, cursor: 'pointer', width: '100%' }}>
           + Activate another module
         </button>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: '#888' }}>
+          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
       </div>
 
       <style>{`
