@@ -297,6 +297,7 @@ function AddMemberContent() {
             style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
             Back to Dashboard
           </button>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block' }} />
           <DateTimeWeather textColor={C.muted} />
         </div>
 
@@ -353,7 +354,7 @@ function AddMemberContent() {
               <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
                 Personal Information
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div>
                   <label style={labelStyle}>First Name *</label>
                   <input style={inputStyle} placeholder="First name" value={form.firstName} onChange={e => set('firstName', e.target.value)} />
@@ -366,13 +367,13 @@ function AddMemberContent() {
                   <label style={labelStyle}>Phone *</label>
                   <input style={inputStyle} placeholder="+1 234 567 8900" value={form.phone} onChange={e => set('phone', e.target.value)} />
                 </div>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={labelStyle}>Address</label>
-                  <input style={inputStyle} placeholder="Street, city" value={form.address} onChange={e => set('address', e.target.value)} />
-                </div>
                 <div>
                   <label style={labelStyle}>Email *</label>
                   <input style={inputStyle} type="email" placeholder="email@example.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={labelStyle}>Address</label>
+                  <input style={inputStyle} placeholder="Street, city" value={form.address} onChange={e => set('address', e.target.value)} />
                 </div>
                 <div>
                   <label style={labelStyle}>Country *</label>
