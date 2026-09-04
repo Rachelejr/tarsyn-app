@@ -469,18 +469,18 @@ function SubscriptionContent() {
         }
       `}</style>
 
-      <nav style={{ background: '#6B2D4E', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav style={{ background: '#FBEEDD', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #6B2D4E' }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <DateTimeWeather textColor="#FBEEDD" />
+          <DateTimeWeather textColor="#6B2D4E" />
           <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
-            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.4)', background: 'rgba(251,238,221,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(107,45,78,0.3)', background: 'rgba(107,45,78,0.06)', color: '#6B2D4E', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
             {LANGUAGES.map((l) => (<option key={l.code} value={l.code} style={{ color: '#4A1F38' }}>{l.label}</option>))}
           </select>
           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-            style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            style={{ background: 'transparent', border: '1px solid rgba(107,45,78,0.5)', color: '#6B2D4E', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
             Sign Out
           </button>
         </div>
@@ -536,9 +536,9 @@ function SubscriptionContent() {
             {st(lang, 'subtitle')}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#6B2D4E', fontWeight: 600 }}>
-            <span>\u2714 {st(lang, 'trial')}</span>
-            <span>\u2714 {st(lang, 'cancel')}</span>
-            <span>\u2714 {st(lang, 'secure')}</span>
+            <span>{'\u2714'} {st(lang, 'trial')}</span>
+            <span>{'\u2714'} {st(lang, 'cancel')}</span>
+            <span>{'\u2714'} {st(lang, 'secure')}</span>
           </div>
         </div>
 
@@ -660,14 +660,14 @@ function SubscriptionContent() {
 
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 6px', color: '#4A1F38', fontSize: '12px', flexGrow: 1 }}>
                   <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{plan.reports}
+                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>{'\u2714'}</span>{plan.reports}
                   </li>
                   <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{plan.support}
+                    <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>{'\u2714'}</span>{plan.support}
                   </li>
                   {plan.additional.map((f) => (
                     <li key={f} style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                      <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{f}
+                      <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>{'\u2714'}</span>{f}
                     </li>
                   ))}
                 </ul>
@@ -835,7 +835,7 @@ function SubscriptionContent() {
                         const val = row.get(p);
                         return (
                           <td key={p.id} style={{ textAlign: 'center', padding: '12px 10px', fontSize: '12px', color: '#6B2D4E' }}>
-                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>\u2713</span> : <span style={{ color: '#D9C0CC' }}>-</span>) : val}
+                            {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>{'\u2713'}</span> : <span style={{ color: '#D9C0CC' }}>-</span>) : val}
                           </td>
                         );
                       })}
@@ -870,7 +870,7 @@ function SubscriptionContent() {
           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
           <div style={{ maxWidth: '520px', margin: '0 auto', background: 'white', borderRadius: '14px', padding: '28px', textAlign: 'center', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
-            <div style={{ fontSize: '30px', marginBottom: '10px' }}>\ud83d\udcac</div>
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}>{'\ud83d\udcac'}</div>
             <p style={{ color: '#4A1F38', fontSize: '13.5px', margin: '0 0 18px', lineHeight: 1.6 }}>{st(lang, 'reviewCta')}</p>
             <a href="/leave-review" style={{ display: 'inline-block', padding: '12px 28px', background: '#6B2D4E', color: '#E9C77B', borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, textDecoration: 'none' }}>
               {st(lang, 'leaveReview')}
