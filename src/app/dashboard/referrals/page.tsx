@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -118,9 +118,28 @@ export default function ReferralsPage() {
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
 
-      <div style={{ background: C.blanc, borderBottom: '2px solid ' + C.orLight, padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '58px', width: 'auto', display: 'block' }} />
-        <DateTimeWeather textColor={C.muted} />
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap' as const,
+        rowGap: '10px',
+      }}>
+        <div>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '52px', width: 'auto', display: 'block' }} />
+          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+        </div>
+        <div style={{ textAlign: 'right' as const }}>
+          <p style={{ color: '#F0DCE8', fontSize: '13px', fontWeight: 700, letterSpacing: '1.5px', margin: 0 }}>
+            PEOPLE&nbsp;&nbsp;|&nbsp;&nbsp;ORGANIZE&nbsp;&nbsp;|&nbsp;&nbsp;BUILD&nbsp;&nbsp;|&nbsp;&nbsp;TOGETHER
+          </p>
+          <div style={{ marginTop: '6px' }}>
+            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+          </div>
+        </div>
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px' }}>
