@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -289,16 +289,25 @@ export default function DocumentsPage() {
       `}} />
 
       {/* TOP BAR - group info */}
-      <div className="UNIMUNITY-docs-topbar" style={{ flexShrink: 0, background: C.bleu, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="UNIMUNITY-docs-topbar" style={{
+        flexShrink: 0,
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.bleu, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block' }} />
           <div>
-            <h1 style={{ color: 'white', fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
+            <h1 style={{ color: C.bleu, fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
+            <p style={{ color: 'rgba(58,47,31,0.6)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
             style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
             Sign Out

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -114,13 +114,21 @@ export default function SecurityCenterPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>&lt;-</button>
-          <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Security Center</h1>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.bordeaux, cursor: 'pointer', fontSize: '20px' }}>&lt;-</button>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block' }} />
+          <h1 style={{ color: C.bordeaux, fontSize: '18px', fontWeight: 700, margin: 0 }}>Security Center</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
             style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
             Sign Out

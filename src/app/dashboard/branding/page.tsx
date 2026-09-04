@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -263,21 +263,30 @@ export default function BrandingPage() {
         }
       `}} />
 
-      <div style={{ flexShrink: 0, background: C.bordeauxDark, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{
+        flexShrink: 0,
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.bordeaux, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block' }} />
           <div>
-            <h1 style={{ color: C.orLight, fontSize: '17px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
+            <h1 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
             {groups.length > 1 && (
               <select value={selectedGroupId} onChange={e => handleGroupChange(e.target.value)}
-                style={{ marginTop: '4px', background: 'rgba(255,255,255,0.08)', color: C.orLight, border: '1px solid rgba(233,199,123,0.3)', borderRadius: '6px', fontSize: '11px', padding: '2px 8px' }}>
+                style={{ marginTop: '4px', background: 'rgba(107,45,78,0.08)', color: C.bordeaux, border: '1px solid rgba(107,45,78,0.3)', borderRadius: '6px', fontSize: '11px', padding: '2px 8px' }}>
                 {groups.map(g => <option key={g.id} value={g.id} style={{ color: '#000' }}>{g.name}</option>)}
               </select>
             )}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
           {viewMode === 'edit' ? (
             <button onClick={handleSave} disabled={saving}
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', padding: '9px 22px', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
