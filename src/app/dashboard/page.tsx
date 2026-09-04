@@ -340,6 +340,8 @@ function OverviewContent() {
           .UNIMUNITY-ov-nav { grid-template-columns: 1fr auto !important; padding: 10px 14px !important; }
           .UNIMUNITY-ov-nav-title { display: none !important; }
           .UNIMUNITY-ov-container { padding: 14px 14px !important; }
+          .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
+          .UNIMUNITY-ov-sidebar { position: static !important; }
         }
       `}</style>
 
@@ -556,7 +558,7 @@ function OverviewContent() {
       )}
 
       <nav className="UNIMUNITY-ov-nav" style={{
-        background: 'linear-gradient(135deg, #6B2D4E 0%, #4A1F38 100%)',
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         padding: '12px 28px',
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
@@ -566,8 +568,8 @@ function OverviewContent() {
       }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
           <div>
-            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
-            <div style={{ color: 'rgba(251,238,221,0.6)', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY. YOUR POWER.</div>
+            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+            <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>
 
@@ -576,10 +578,12 @@ function OverviewContent() {
           <p style={{ color: 'rgba(251,238,221,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
         </div>
 
-        <div style={{ justifySelf: 'end' }}><DateTimeWeather /></div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </nav>
 
-      <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px' }}>
+      <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1320px', margin: '0 auto', padding: '20px 24px' }}>
+        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
+        <div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
           <StatCard label="Total Members" value={members.length} icon={'\ud83d\udc65'} gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
@@ -770,51 +774,66 @@ function OverviewContent() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', paddingBottom: '24px' }}>
-          {[
-            { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
-            { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
-            { title: 'Referrals', icon: '\ud83e\udd1d', path: '/dashboard/referrals' },
-            { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
-            { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
-            { title: 'Connect Payments', icon: '\ud83c\udfe6', path: '/dashboard/payments-setup' },
-            { title: 'Reports', icon: '\ud83d\udcca', path: '/dashboard/reports' },
-            { title: 'Audit Log', icon: '\ud83d\udcdc', path: '/dashboard/audit-log' },
-            { title: 'Documents', icon: '\ud83d\udcc1', path: '/dashboard/documents' },
-            { title: 'Security', icon: '\ud83d\udd12', path: '/dashboard/security' },
-            { title: 'White Label', icon: '\ud83c\udfa8', path: '/dashboard/branding' },
-            { title: 'Leave a Review', icon: '\u2b50', path: '/leave-review' },
-            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '\ud83d\udee0\ufe0f', path: '/admin/repair-members' }] : []),
-          ].map((a, i) => (
-            <div key={i} className="action-card" onClick={() => router.push(a.path)}
-              style={{
-                background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)',
-                border: '1px solid #E8D5C0',
-                borderRadius: '16px',
-                padding: '18px',
-                cursor: 'pointer',
-                boxShadow: '0 3px 14px rgba(233,199,123,0.18)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg,#E9C77B,#C9974D)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                boxShadow: '0 4px 12px rgba(233,199,123,0.4)',
-                flexShrink: 0,
-              }}>
-                {a.icon}
+        </div>
+
+        <div className="UNIMUNITY-ov-sidebar" style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          padding: '22px',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          position: 'sticky',
+          top: '24px',
+        }}>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#E9C77B', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 16px', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>Quick Actions</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+            {[
+              { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
+              { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
+              { title: 'Referrals', icon: '\ud83e\udd1d', path: '/dashboard/referrals' },
+              { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
+              { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
+              { title: 'Connect Payments', icon: '\ud83c\udfe6', path: '/dashboard/payments-setup' },
+              { title: 'Reports', icon: '\ud83d\udcca', path: '/dashboard/reports' },
+              { title: 'Audit Log', icon: '\ud83d\udcdc', path: '/dashboard/audit-log' },
+              { title: 'Documents', icon: '\ud83d\udcc1', path: '/dashboard/documents' },
+              { title: 'Security', icon: '\ud83d\udd12', path: '/dashboard/security' },
+              { title: 'White Label', icon: '\ud83c\udfa8', path: '/dashboard/branding' },
+              { title: 'Leave a Review', icon: '\u2b50', path: '/leave-review' },
+              ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '\ud83d\udee0\ufe0f', path: '/admin/repair-members' }] : []),
+            ].map((a, i) => (
+              <div key={i} className="action-card" onClick={() => router.push(a.path)}
+                style={{
+                  background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)',
+                  border: '1px solid #E8D5C0',
+                  borderRadius: '11px',
+                  padding: '9px 10px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(233,199,123,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '9px',
+                  background: 'linear-gradient(135deg,#E9C77B,#C9974D)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  boxShadow: '0 3px 8px rgba(233,199,123,0.4)',
+                  flexShrink: 0,
+                }}>
+                  {a.icon}
+                </div>
+                <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12.5px', margin: 0 }}>{a.title}</p>
               </div>
-              <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: 0 }}>{a.title}</p>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
         </div>
       </div>
     </div>
