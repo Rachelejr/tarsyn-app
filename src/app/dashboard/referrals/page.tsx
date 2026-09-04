@@ -129,7 +129,7 @@ export default function ReferralsPage() {
         rowGap: '10px',
       }}>
         <div>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '52px', width: 'auto', display: 'block' }} />
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block' }} />
           <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
         </div>
         <div style={{ textAlign: 'right' as const }}>

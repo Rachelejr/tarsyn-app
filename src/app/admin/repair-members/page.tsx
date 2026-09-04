@@ -116,7 +116,7 @@ export default function RepairMembersPage() {
         justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block', cursor: 'pointer' }} />
         </div>
         <div style={{ textAlign: 'center', flex: 1 }}>
           <h1 style={{ color: C.creme, fontSize: '18px', fontWeight: 700, margin: 0 }}>Repair Member Records</h1>

@@ -418,7 +418,7 @@ function RegisterContent() {
           boxShadow: '0 2px 14px rgba(0,0,0,0.15)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block', cursor: 'pointer' }} />
           </div>
           <div style={{ textAlign: 'center', flex: 1 }}>
             <p style={{ color: '#FBEEDD', fontWeight: 800, fontSize: '18px', margin: 0 }}>Digital Tontine Register</p>

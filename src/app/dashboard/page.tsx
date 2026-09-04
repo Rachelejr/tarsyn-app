@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -568,7 +568,7 @@ function OverviewContent() {
       }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
           <div>
-            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block' }} /></a>
             <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY. YOUR POWER.</div>
           </div>
         </div>

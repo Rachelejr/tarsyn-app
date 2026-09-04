@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -175,7 +175,7 @@ function Nav() {
   return (
     <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',gap:'12px'}}>
       <div>
-        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{height:'24px'}}/></a>
+        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{height:'40px'}}/></a>
         <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px',fontStyle:'italic'}}>YOUR COMMUNITY. YOUR POWER.</div>
       </div>
     </nav>

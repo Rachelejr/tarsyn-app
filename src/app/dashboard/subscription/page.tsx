@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -471,7 +471,7 @@ function SubscriptionContent() {
 
       <nav style={{ background: '#FBEEDD', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #6B2D4E' }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '58px', width: 'auto', display: 'block' }} />
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <DateTimeWeather textColor="#6B2D4E" />
