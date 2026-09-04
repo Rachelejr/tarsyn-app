@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -94,22 +94,36 @@ function PaymentsSetupContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap' as const,
+        rowGap: '10px',
+      }}>
+        <div>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '52px', width: 'auto', display: 'block' }} />
+          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+        </div>
+        <div style={{ textAlign: 'right' as const }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+        </div>
+      </div>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 24px' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ marginBottom: 20 }}>
           <button onClick={() => router.push('/dashboard')}
             style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
             Back to Dashboard
           </button>
-          <DateTimeWeather textColor={C.muted} />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 13, background: C.blanc, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20, color: C.or }}>$</div>
-          <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Payments Setup</h1>
-            <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Connect your bank account so members can pay you directly through UNIMUNITY.</p>
-          </div>
+        <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', textAlign: 'center' as const }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Payments Setup</h1>
+          <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Connect your bank account so members can pay you directly through UNIMUNITY.</p>
         </div>
 
         {cameFromStripe && loading && (
