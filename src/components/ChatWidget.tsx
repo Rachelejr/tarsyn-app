@@ -371,7 +371,7 @@ export default function ChatWidget() {
             {activeChatId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
-                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><path d='M15 18l-6-6 6-6' /></svg></button>
                 <div onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
