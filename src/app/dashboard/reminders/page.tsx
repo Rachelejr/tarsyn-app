@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -245,12 +245,9 @@ function RemindersContent() {
           <DateTimeWeather textColor={C.muted} />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 13, background: C.blanc, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20, color: C.or }}>!</div>
-          <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Send Reminders</h1>
-            <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Members shown below have missed at least one payment on the current grid.</p>
-          </div>
+        <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', textAlign: 'center' as const }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Send Reminders</h1>
+          <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Members shown below have missed at least one payment on the current grid.</p>
         </div>
 
         <div style={{ background: C.blanc, borderRadius: 16, padding: '20px 24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 18 }}>
