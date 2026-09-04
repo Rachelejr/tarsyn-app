@@ -360,14 +360,14 @@ export default function ChatWidget() {
             boxShadow: '0 6px 18px rgba(74,31,56,0.32)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={C.dore} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={C.bordeaux} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
           </svg>
         </button>
       )}
       {open && (
         <div style={{ width: '340px', height: '480px', background: C.white, borderRadius: '16px', boxShadow: '0 12px 36px rgba(74,31,56,0.28)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', border: `1px solid ${C.border}` }}>
-          <div style={{ background: `linear-gradient(120deg, ${C.bordeaux}, ${C.bordeauxDark})`, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: C.white, borderBottom: `2px solid ${C.dore}` }}>
+          <div style={{ background: C.creme, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: C.bordeaux, borderBottom: `2px solid ${C.bordeaux}` }}>
             {activeChatId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
