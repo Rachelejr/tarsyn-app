@@ -471,7 +471,7 @@ function SubscriptionContent() {
 
       <nav style={{ background: '#FBEEDD', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #6B2D4E' }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '58px', width: 'auto', display: 'block' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <DateTimeWeather textColor="#6B2D4E" />
@@ -589,7 +589,7 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        <div className="UNIMUNITY-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '18px', alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '18px', alignItems: 'stretch' }}>
           {PLANS.map((plan) => {
             const isCurrent = activePlanId === plan.id;
             const price = billingPeriod === 'monthly' ? plan.priceMonthly : plan.priceAnnual;
