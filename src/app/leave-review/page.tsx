@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +23,7 @@ export default function LeaveReviewPage() {
   const [uid, setUid] = useState('');
   // Tracks which of the two separate Firebase apps actually authenticated
   // this person, so the write below goes through the matching Firestore
-  // instance — writing through the wrong one carries no valid auth token
+  // instance ΓÇö writing through the wrong one carries no valid auth token
   // for that instance and Firestore silently rejects it as unauthenticated.
   const [activeDb, setActiveDb] = useState(db);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ export default function LeaveReviewPage() {
     // This page is reached from both the organizer dashboard and the member
     // portal, which run on two fully separate Firebase Auth instances. It
     // must accept whichever one is actually signed in, and wait for BOTH to
-    // report their state before deciding no one is signed in — checking
+    // report their state before deciding no one is signed in ΓÇö checking
     // only one (as before) meant a signed-in member was never recognized
     // here and got bounced straight back to /login, then back to /member.
     let orgUser: any = null;
@@ -100,9 +100,21 @@ export default function LeaveReviewPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <button onClick={() => router.back()} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>&larr;</button>
-        <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Share Your Experience</h1>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+        </div>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h1 style={{ color: C.creme, fontSize: '18px', fontWeight: 700, margin: 0 }}>Share Your Experience</h1>
+        </div>
+        <div style={{ flex: 1 }} />
       </div>
 
       <div style={{ maxWidth: '520px', margin: '0 auto', padding: '40px 24px' }}>

@@ -1,6 +1,7 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -12,6 +13,7 @@ const C = {
 };
 
 export default function RepairMembersPage() {
+  const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -104,29 +106,31 @@ export default function RepairMembersPage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${C.creme} 0%, ${C.ivoire} 100%)`, fontFamily: 'Inter, sans-serif', padding: '48px 24px' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${C.creme} 0%, ${C.ivoire} 100%)`, fontFamily: 'Inter, sans-serif' }}>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+        </div>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h1 style={{ color: C.creme, fontSize: '18px', fontWeight: 700, margin: 0 }}>Repair Member Records</h1>
+        </div>
+        <div style={{ flex: 1 }} />
+      </div>
+
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '48px 24px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '8px' }}>
-          <div style={{
-            width: '44px', height: '44px', borderRadius: '12px',
-            background: `linear-gradient(135deg, ${C.bordeaux}, ${C.bordeauxDark})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(107,45,78,0.25)', flexShrink: 0,
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={C.or} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-            </svg>
-          </div>
-          <div>
-            <h1 style={{ color: C.bordeauxDark, fontSize: '24px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>
-              Repair Member Records
-            </h1>
-            <p style={{ color: C.texteGris, fontSize: '13px', margin: '2px 0 0' }}>
-              Relinks missing organizerId and upgrades legacy IDs to the TYN-ID format.
-            </p>
-          </div>
+        <div style={{ marginBottom: '8px', textAlign: 'center' as const }}>
+          <p style={{ color: C.texteGris, fontSize: '13px', margin: 0 }}>
+            Relinks missing organizerId and upgrades legacy IDs to the TYN-ID format.
+          </p>
         </div>
 
         <div style={{ height: '1px', background: `linear-gradient(90deg, ${C.or}, transparent)`, margin: '20px 0 28px' }} />
@@ -153,7 +157,7 @@ export default function RepairMembersPage() {
           </div>
 
           {!scanning && broken.length === 0 && (
-            <p style={{ color: '#2E7D32', fontSize: '13px', margin: 0 }}>✓ All member records look healthy.</p>
+            <p style={{ color: '#2E7D32', fontSize: '13px', margin: 0 }}>Γ£ô All member records look healthy.</p>
           )}
 
           {!scanning && broken.length > 0 && (
@@ -190,7 +194,7 @@ export default function RepairMembersPage() {
                           color: C.texteGris, fontFamily: 'monospace', fontSize: '10px',
                           textDecoration: 'line-through', opacity: 0.7,
                         }}>{m.currentTynId || '(none)'}</span>
-                        <span style={{ color: C.texteGris, fontSize: '11px' }}>→</span>
+                        <span style={{ color: C.texteGris, fontSize: '11px' }}>ΓåÆ</span>
                         <span style={{
                           color: C.bordeauxDark, fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
                           background: C.orLight, padding: '3px 9px', borderRadius: '6px',
@@ -248,16 +252,16 @@ export default function RepairMembersPage() {
             <p style={{ color: C.or, fontWeight: 700, margin: '0 0 8px' }}>Fixed: {result.fixedCount}</p>
             {result.fixed?.map((f: any, i: number) => (
               <div key={i} style={{ opacity: 0.9 }}>
-                ✓ {f.fullName}
-                {f.organizerId ? ` → organizerId ${f.organizerId}` : ''}
-                {f.tynId ? ` → tynId ${f.tynId}` : ''}
+                Γ£ô {f.fullName}
+                {f.organizerId ? ` ΓåÆ organizerId ${f.organizerId}` : ''}
+                {f.tynId ? ` ΓåÆ tynId ${f.tynId}` : ''}
               </div>
             ))}
             {result.stillBrokenCount > 0 && (
               <>
                 <p style={{ color: '#E8A0A0', fontWeight: 700, margin: '14px 0 8px' }}>Still broken: {result.stillBrokenCount}</p>
                 {result.stillBroken.map((f: any, i: number) => (
-                  <div key={i} style={{ opacity: 0.9 }}>✗ {f.fullName}: {f.reason}</div>
+                  <div key={i} style={{ opacity: 0.9 }}>Γ£ù {f.fullName}: {f.reason}</div>
                 ))}
               </>
             )}
