@@ -302,8 +302,8 @@ export default function DocumentsPage() {
           <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
         </div>
         <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ color: C.bleu, fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
-          <p style={{ color: 'rgba(58,47,31,0.6)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
+          <h1 style={{ color: C.creme, fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
+          <p style={{ color: 'rgba(251,238,221,0.75)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
           <DateTimeWeather textColor="rgba(251,238,221,0.85)" />

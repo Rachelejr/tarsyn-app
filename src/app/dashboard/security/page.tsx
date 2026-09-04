@@ -122,12 +122,13 @@ export default function SecurityCenterPage() {
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.bordeaux, cursor: 'pointer', fontSize: '20px' }}>&lt;-</button>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block' }} />
-          <h1 style={{ color: C.bordeaux, fontSize: '18px', fontWeight: 700, margin: 0 }}>Security Center</h1>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h1 style={{ color: C.creme, fontSize: '18px', fontWeight: 700, margin: 0 }}>Security Center</h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
           <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
             style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
