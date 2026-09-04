@@ -117,14 +117,19 @@ export default function ReferralsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
+
+      <div style={{ background: C.blanc, borderBottom: '2px solid ' + C.orLight, padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '58px', width: 'auto', display: 'block' }} />
+        <DateTimeWeather textColor={C.muted} />
+      </div>
+
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ marginBottom: 20 }}>
           <button onClick={() => router.push('/dashboard')}
             style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
             Back to Dashboard
           </button>
-          <DateTimeWeather textColor={C.muted} />
         </div>
 
         <div style={{ marginBottom: 22 }}>
