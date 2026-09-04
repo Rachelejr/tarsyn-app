@@ -290,26 +290,30 @@ function AddMemberContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ background: C.blanc, borderBottom: '2px solid ' + C.orLight, padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '58px', width: 'auto', display: 'block' }} />
+        <DateTimeWeather textColor={C.muted} />
+      </div>
+
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 24px' }}>
+
+        <div style={{ marginBottom: 20 }}>
           <button onClick={() => router.push('/dashboard')}
             style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
             Back to Dashboard
           </button>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block' }} />
-          <DateTimeWeather textColor={C.muted} />
         </div>
 
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', textAlign: 'center' as const }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
             <div style={{ width: 48, height: 48, borderRadius: 13, background: C.blanc, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20, color: C.or }}>+</div>
-            <div>
+            <div style={{ textAlign: 'left' as const }}>
               <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Add Member</h1>
               <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Add a new member to your organization. They will be integrated into the active cycle.</p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'center' as const }}>
             <div style={{ background: C.blanc, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>TYN-ID</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{tynId}</span>
@@ -321,7 +325,7 @@ function AddMemberContent() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 18 }}>
 
             <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
@@ -350,6 +354,7 @@ function AddMemberContent() {
               )}
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
             <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
                 Personal Information
@@ -439,7 +444,7 @@ function AddMemberContent() {
               <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
                 Contribution & Rotation
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div>
                   <label style={labelStyle}>Position *</label>
                   <input style={inputStyle} type="number" min="1" value={form.position} onChange={e => set('position', e.target.value)} />
@@ -529,6 +534,7 @@ function AddMemberContent() {
                   </p>
                 </div>
               )}
+            </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
