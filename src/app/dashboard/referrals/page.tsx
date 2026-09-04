@@ -232,7 +232,7 @@ export default function ReferralsPage() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 40, letterSpacing: 0.3 }}>
-          Powered by UNIMUNITYTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
+          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
         </p>
       </div>
     </div>

@@ -1157,8 +1157,7 @@ export default function PaymentGridPage() {
             color: C.texteGris,
           }}
         >
-          Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
-          Rights Reserved · v1.0.0
+          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
         </div>
       </div>
     </div>

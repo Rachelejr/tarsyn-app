@@ -658,7 +658,7 @@ function RegisterContent() {
 
           <div className="no-print" style={{ textAlign: 'center', padding: '20px 0 0' }}>
             <p style={{ color: C.gray, fontSize: '10.5px', margin: 0 }}>
-              Powered by UNIMUNITYTM - A product of Ma Production Luxenn Zara LLC - (c) 2026 All Rights Reserved - v1.0.0
+              UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
             </p>
           </div>
         </div>
