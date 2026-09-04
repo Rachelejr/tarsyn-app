@@ -355,7 +355,7 @@ export default function ChatWidget() {
         <button onClick={() => setOpen(true)} className="cw-launcher-btn"
           style={{
             width: '60px', height: '60px', borderRadius: '50%',
-            background: `linear-gradient(145deg, ${C.bordeaux}, ${C.bordeauxDark})`,
+            background: C.creme,
             border: `2px solid ${C.dore}`, cursor: 'pointer',
             boxShadow: '0 6px 18px rgba(74,31,56,0.32)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
