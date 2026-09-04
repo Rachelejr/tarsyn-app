@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -381,19 +381,11 @@ function RegisterContent() {
       `}</style>
 
       <div className="no-print" style={{ width: '210px', background: C.burgundyDark, flexShrink: 0, padding: '20px 14px', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: '28px', paddingLeft: '6px' }}>
-          <div style={{
-            width: '38px', height: '38px', borderRadius: '10px', background: group?.logoUrl ? 'transparent' : C.gold,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: C.burgundyDark, fontSize: '15px', overflow: 'hidden', flexShrink: 0,
-          }}>
-            {group?.logoUrl ? <img src={group.logoUrl} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (group?.officialName || group?.name || 'T').charAt(0).toUpperCase()}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ color: C.goldLight, fontWeight: 800, fontSize: '13.5px', margin: 0, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {group?.officialName || group?.name || 'Your Org'}
-            </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '9px', margin: 0 }}>Powered by UNIMUNITYTM</p>
-          </div>
+        <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' as const, cursor: 'pointer', marginBottom: '28px' }}>
+          <p style={{ color: C.goldLight, fontWeight: 800, fontSize: '13.5px', margin: 0, lineHeight: 1.1 }}>
+            {group?.officialName || group?.name || 'Your Org'}
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '9px', margin: '2px 0 0' }}>Powered by UNIMUNITYTM</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -417,14 +409,23 @@ function RegisterContent() {
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="no-print" style={{ background: C.burgundy, padding: '16px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 14px rgba(0,0,0,0.15)' }}>
-          <div>
-            <p style={{ color: C.goldLight, fontWeight: 800, fontSize: '18px', margin: 0 }}>Digital Tontine Register</p>
-            <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11.5px', margin: '2px 0 0', fontWeight: 600 }}>Admin Only</p>
+        <div className="no-print" style={{
+          background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+          padding: '16px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 2px 14px rgba(0,0,0,0.15)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <DateTimeWeather />
-            <span style={{ fontSize: '16px', cursor: 'pointer' }}></span>
+          <div style={{ textAlign: 'center', flex: 1 }}>
+            <p style={{ color: '#FBEEDD', fontWeight: 800, fontSize: '18px', margin: 0 }}>Digital Tontine Register</p>
+            <p style={{ color: 'rgba(251,238,221,0.7)', fontSize: '11.5px', margin: '2px 0 0', fontWeight: 600 }}>Admin Only</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end' }}>
+            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
           </div>
         </div>
 
