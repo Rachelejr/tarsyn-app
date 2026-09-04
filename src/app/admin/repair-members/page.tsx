@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38', or: '#E9C77B', orLight: '#F0DCA8',
@@ -270,6 +271,8 @@ export default function RepairMembersPage() {
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
+
+      <Footer />
     </div>
   );
 }

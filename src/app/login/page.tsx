@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { auth, db, memberAuth } from '@/lib/firebase';
@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, s
 import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Footer from '@/components/Footer';
 
 function LoginPageInner() {
   const searchParams = useSearchParams();
@@ -346,6 +347,8 @@ function LoginPageInner() {
           </a>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

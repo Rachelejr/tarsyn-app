@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { auth, memberAuth, db, memberDb } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -163,6 +164,8 @@ export default function LeaveReviewPage() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }
