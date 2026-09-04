@@ -33,7 +33,7 @@ export default function RegisterPage() {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(result.user, { displayName: name.trim() });
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+      trialEndsAt.setDate(trialEndsAt.getDate() + 10);
       await setDoc(doc(db, 'users', result.user.uid), {
         name: name.trim(),
         email,
@@ -59,7 +59,7 @@ export default function RegisterPage() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+      trialEndsAt.setDate(trialEndsAt.getDate() + 10);
       await setDoc(doc(db, 'users', result.user.uid), {
         name: result.user.displayName || '',
         email: result.user.email || '',
