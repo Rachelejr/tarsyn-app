@@ -51,7 +51,8 @@ function AddMemberContent() {
   const [selectedGroupId, setSelectedGroupId] = useState(urlGroupId);
 
   const [form, setForm] = useState({
-    fullName: '', phone: '', email: '', country: '', memberType: 'Regular',
+    firstName: '', lastName: '', address: '', phone: '', email: '', country: '', nationality: '', memberType: 'Regular',
+    gender: '', colorTag: '',
     role: 'member', position: '', payoutDate: '', expectedAmount: '0',
     currency: 'USD', status: 'pending', notes: '', shares: '1',
   });
@@ -67,6 +68,7 @@ function AddMemberContent() {
   const [nextPosition, setNextPosition] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [groupMemberCount, setGroupMemberCount] = useState(0);
+  const [groupMembersList, setGroupMembersList] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -109,21 +111,23 @@ function AddMemberContent() {
   }, [urlGroupId]);
 
   useEffect(() => {
-    if (!selectedGroupId) return;
+    if (!selectedGroupId) { setGroupMembersList([]); return; }
     const fetchCount = async () => {
       const q = query(collection(db, 'members'), where('groupId', '==', selectedGroupId));
       const snap = await getDocs(q);
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setGroupMembersList(list);
       // Base the next position on the highest position currently in use, not
       // just the member count - counting alone produces duplicate position
       // numbers whenever a member has been deleted (leaving a gap) or when
       // two members get added in close succession.
-      const highestPosition = snap.docs.reduce((max, d) => {
-        const pos = Number(d.data().position) || 0;
+      const highestPosition = list.reduce((max, m: any) => {
+        const pos = Number(m.position) || 0;
         return pos > max ? pos : max;
       }, 0);
       const computedNext = highestPosition + 1;
       setNextPosition(computedNext);
-      setGroupMemberCount(snap.size);
+      setGroupMemberCount(list.length);
       setForm(f => ({ ...f, position: String(computedNext) }));
     };
     fetchCount();
@@ -145,21 +149,23 @@ function AddMemberContent() {
 
   // TYN-ID = [Initiale prenom][Initiale nom]-[numero sequentiel 3 chiffres], ex: JD-001
   useEffect(() => {
-    const parts = form.fullName.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) { setTynId(''); return; }
-    const firstInitial = parts[0][0]?.toUpperCase() || '';
-    const lastInitial = parts.length > 1 ? parts[parts.length - 1][0]?.toUpperCase() || '' : firstInitial;
+    const first = form.firstName.trim();
+    const last = form.lastName.trim();
+    if (!first && !last) { setTynId(''); return; }
+    const firstInitial = first[0]?.toUpperCase() || '';
+    const lastInitial = last[0]?.toUpperCase() || firstInitial;
     const seq = String(nextPosition).padStart(3, '0');
     setTynId(firstInitial + lastInitial + '-' + seq);
-  }, [form.fullName, nextPosition]);
+  }, [form.firstName, form.lastName, nextPosition]);
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = async () => {
-    if (!form.fullName || !form.country) return alert('Full name and country are required.');
+    if (!form.firstName || !form.lastName || !form.country || !form.email || !form.phone) return alert('First name, last name, country, email and phone number are required.');
     if (!selectedGroupId) return alert('Please select a group before adding a member.');
     const user = auth.currentUser;
     if (!user) return;
+    const fullName = (form.firstName + ' ' + form.lastName).trim();
     setLoading(true);
     try {
       const existing = await getDocs(query(collection(db, 'members'), where('groupId', '==', selectedGroupId)));
@@ -170,20 +176,27 @@ function AddMemberContent() {
       }
       const memberInviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
       await addDoc(collection(db, 'members'), {
-        ...form, tynId, groupId: selectedGroupId, organizerId: user.uid,
+        // fullName kept for backward compatibility with every other page that
+        // already reads member.fullName (payment grid, reports, receipts...).
+        // referredBy/referredByName are set separately from the Referrals
+        // page, not here - who referred a member is tracked independently
+        // of the basic member info form.
+        ...form, fullName, tynId, groupId: selectedGroupId, organizerId: user.uid,
         position: parseInt(form.position) || nextPosition,
         expectedAmount: parseFloat(form.expectedAmount) || 0,
         shares: Math.max(1, parseInt(form.shares) || 1),
         payoutDate: payoutDates[0] || '',
         payoutDates: payoutDates,
         inviteCode: memberInviteCode,
+        referredBy: '',
+        referredByName: '',
         createdAt: serverTimestamp(),
       });
       try {
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: user.uid, category: 'Member',
           action: 'Added member',
-          user: user.email || '', details: form.fullName + ' - ' + tynId,
+          user: user.email || '', details: fullName + ' - ' + tynId,
           createdAt: serverTimestamp(),
         });
       } catch (auditErr) { /* silent - audit logging must never block member creation */ }
@@ -254,7 +267,7 @@ function AddMemberContent() {
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
-            <button onClick={() => { setSuccess(false); setInviteStatus(null); setExpectedAmountTouched(false); setForm({ fullName: '', phone: '', email: '', country: '', memberType: 'Regular', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
+            <button onClick={() => { setSuccess(false); setInviteStatus(null); setExpectedAmountTouched(false); setForm({ firstName: '', lastName: '', address: '', phone: '', email: '', country: '', nationality: '', memberType: 'Regular', gender: '', colorTag: '', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
               style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Add Another
             </button>
@@ -341,16 +354,24 @@ function AddMemberContent() {
                 Personal Information
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={labelStyle}>Full Name *</label>
-                  <input style={inputStyle} placeholder="Member full name" value={form.fullName} onChange={e => set('fullName', e.target.value)} />
+                <div>
+                  <label style={labelStyle}>First Name *</label>
+                  <input style={inputStyle} placeholder="First name" value={form.firstName} onChange={e => set('firstName', e.target.value)} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Phone</label>
+                  <label style={labelStyle}>Last Name *</label>
+                  <input style={inputStyle} placeholder="Last name" value={form.lastName} onChange={e => set('lastName', e.target.value)} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Phone *</label>
                   <input style={inputStyle} placeholder="+1 234 567 8900" value={form.phone} onChange={e => set('phone', e.target.value)} />
                 </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={labelStyle}>Address</label>
+                  <input style={inputStyle} placeholder="Street, city" value={form.address} onChange={e => set('address', e.target.value)} />
+                </div>
                 <div>
-                  <label style={labelStyle}>Email</label>
+                  <label style={labelStyle}>Email *</label>
                   <input style={inputStyle} type="email" placeholder="email@example.com" value={form.email} onChange={e => set('email', e.target.value)} />
                 </div>
                 <div>
@@ -364,9 +385,34 @@ function AddMemberContent() {
                   </select>
                 </div>
                 <div>
+                  <label style={labelStyle}>Nationality</label>
+                  <input style={inputStyle} placeholder="e.g. Haitian" value={form.nationality} onChange={e => set('nationality', e.target.value)} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Gender</label>
+                  <select style={inputStyle} value={form.gender} onChange={e => set('gender', e.target.value)}>
+                    <option value="">Not specified</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
                   <label style={labelStyle}>Member Type</label>
                   <select style={inputStyle} value={form.memberType} onChange={e => set('memberType', e.target.value)}>
-                    <option>Regular</option><option>Premium</option><option>Observer</option>
+                    <option>Regular</option><option>Premium</option><option>VIP</option><option>Observer</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Color Tag</label>
+                  <select style={inputStyle} value={form.colorTag} onChange={e => set('colorTag', e.target.value)}>
+                    <option value="">None</option>
+                    <option value="Red">Red</option>
+                    <option value="Orange">Orange</option>
+                    <option value="Yellow">Yellow</option>
+                    <option value="Green">Green</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Purple">Purple</option>
                   </select>
                 </div>
                 <div>
@@ -379,6 +425,13 @@ function AddMemberContent() {
                   </select>
                 </div>
               </div>
+              <p style={{ fontSize: 11, color: C.muted, margin: '14px 0 0', lineHeight: 1.6 }}>
+                Referrals are tracked separately - once this member is added, go to{' '}
+                <span onClick={() => router.push('/dashboard/referrals')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>
+                  Referrals
+                </span>{' '}
+                to record who referred them, if anyone.
+              </p>
             </div>
 
             <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
@@ -389,6 +442,16 @@ function AddMemberContent() {
                 <div>
                   <label style={labelStyle}>Position *</label>
                   <input style={inputStyle} type="number" min="1" value={form.position} onChange={e => set('position', e.target.value)} />
+                  {(() => {
+                    const takenBy = groupMembersList.find(m => String(m.position) === String(form.position) && form.position !== '');
+                    if (!takenBy) return null;
+                    const takenByName = takenBy.fullName || ((takenBy.firstName || '') + ' ' + (takenBy.lastName || '')).trim();
+                    return (
+                      <p style={{ fontSize: 11, color: '#C62828', margin: '6px 0 0' }}>
+                        Position {form.position} is already occupied by {takenByName || 'another member'}.
+                      </p>
+                    );
+                  })()}
                 </div>
                 {parseInt(form.shares) <= 1 ? (
                   <div>
@@ -486,8 +549,13 @@ function AddMemberContent() {
             </h3>
             {[
               { label: 'Group', value: groups.find(g => g.id === selectedGroupId)?.name || '-' },
-              { label: 'Name', value: form.fullName || '-' },
+              { label: 'Name', value: (form.firstName + ' ' + form.lastName).trim() || '-' },
+              { label: 'Address', value: form.address || '-' },
               { label: 'Country', value: form.country || '-' },
+              { label: 'Nationality', value: form.nationality || '-' },
+              { label: 'Gender', value: form.gender || '-' },
+              { label: 'Member Type', value: form.memberType },
+              { label: 'Color Tag', value: form.colorTag || 'None' },
               { label: 'Currency', value: form.currency },
               { label: 'Amount / Part', value: form.currency + ' ' + (parseFloat(form.expectedAmount) || 0).toFixed(2) },
               { label: 'Parts', value: form.shares || '1' },

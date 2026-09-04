@@ -774,6 +774,7 @@ function OverviewContent() {
           {[
             { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
             { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
+            { title: 'Referrals', icon: '\ud83e\udd1d', path: '/dashboard/referrals' },
             { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
             { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
             { title: 'Connect Payments', icon: '\ud83c\udfe6', path: '/dashboard/payments-setup' },
