@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, addDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
@@ -660,7 +660,7 @@ export default function PaymentGridPage() {
           outline-offset: 1px;
         }
         .UNIMUNITY-group-name-admin{
-          background: linear-gradient(90deg, ${C.bordeaux} 0%, #A85578 20%, ${C.bordeaux} 40%, ${C.bordeaux} 100%);
+          background: linear-gradient(90deg, #FBEEDD 0%, #F0DCA8 20%, #FBEEDD 40%, #FBEEDD 100%);
           background-size: 200% auto;
           -webkit-background-clip: text;
           background-clip: text;
@@ -681,64 +681,53 @@ export default function PaymentGridPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 1360, margin: '0 auto', background: C.ivoire, borderRadius: 20, border: '1px solid ' + C.border, boxShadow: '0 4px 24px rgba(107,45,78,0.06)', padding: '28px 28px 20px' }}>
+      <div style={{ maxWidth: 1360, margin: '0 auto', background: C.ivoire, borderRadius: 20, border: '1px solid ' + C.border, boxShadow: '0 4px 24px rgba(107,45,78,0.06)', padding: '0 28px 20px', overflow: 'hidden' }}>
         {/* Header */}
         <div
+          className="UNIMUNITY-no-print"
           style={{
+            background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+            boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+            padding: '16px 28px',
             display: 'flex',
+            alignItems: 'center',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
-            gap: 14,
-            marginBottom: 16,
+            margin: '0 -28px 20px',
           }}
         >
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 46,
-                height: 46,
-                borderRadius: 12,
-                background: C.or,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 21,
-                flexShrink: 0,
-              }}
-            >
-              {'\u{1F4B3}'}
-            </div>
-            <div>
-              <h1 style={{ color: C.bordeaux, fontSize: 23, fontWeight: 700, margin: 0 }}>
-                Payment Grid -{' '}<span className="UNIMUNITY-group-name-admin" style={{ marginLeft: 6 }}>{groupName}</span>
-              </h1>
-              <p style={{ color: C.texteGris, margin: '3px 0 0', fontSize: 13 }}>
-                Track every member&apos;s weekly contributions.
-              </p>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '36px', width: 'auto', display: 'block', cursor: 'pointer' }} />
           </div>
+          <div style={{ textAlign: 'center', flex: 1 }}>
+            <h1 style={{ color: '#FBEEDD', fontSize: 20, fontWeight: 800, margin: 0 }}>
+              Payment Grid -{' '}<span className="UNIMUNITY-group-name-admin" style={{ marginLeft: 6 }}>{groupName}</span>
+            </h1>
+            <p style={{ color: 'rgba(251,238,221,0.75)', margin: '3px 0 0', fontSize: 12 }}>
+              Track every member&apos;s weekly contributions.
+            </p>
+          </div>
+          <div style={{ flex: 1 }} />
+        </div>
 
-          {/* Primary action bar */}
-          <div className="UNIMUNITY-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => router.push('/dashboard/overview?groupId=' + groupId)} style={btnStyle('secondary')}>
-              ← Overview
-            </button>
-            <button
-              onClick={handleSaveAll}
-              disabled={!hasChanges || savingAll}
-              style={btnStyle('primary', !hasChanges || savingAll)}
-            >
-              💾 {savingAll ? 'Saving...' : 'Save Payments'}
-            </button>
-            <button onClick={handleExportAll} style={btnStyle('secondary')}>
-              📄 Export
-            </button>
-            <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>➕ Add / Edit Members</button>
-            <button onClick={handlePrint} style={btnStyle('secondary')}>
-              🖨 Print
-            </button>
-          </div>
+        {/* Primary action bar */}
+        <div className="UNIMUNITY-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button onClick={() => router.push('/dashboard')} style={btnStyle('secondary')}>
+            ← Dashboard
+          </button>
+          <button
+            onClick={handleSaveAll}
+            disabled={!hasChanges || savingAll}
+            style={btnStyle('primary', !hasChanges || savingAll)}
+          >
+            💾 {savingAll ? 'Saving...' : 'Save Payments'}
+          </button>
+          <button onClick={handleExportAll} style={btnStyle('secondary')}>
+            📄 Export
+          </button>
+          <button onClick={() => router.push('/dashboard/add-member?groupId=' + groupId)} style={btnStyle('secondary')}>➕ Add / Edit Members</button>
+          <button onClick={handlePrint} style={btnStyle('secondary')}>
+            🖨 Print
+          </button>
         </div>
 
         {/* Unsaved changes banner */}
