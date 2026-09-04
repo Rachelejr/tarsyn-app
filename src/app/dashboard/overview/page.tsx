@@ -344,15 +344,15 @@ function OverviewContent() {
       <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 24px 20px', background: '#FFFDF7', borderRadius: '20px', border: '1px solid #EAD9BE', boxShadow: '0 4px 24px rgba(107,45,78,0.06)' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
-          <StatCard label="Total Members" value={members.length} icon="≡ƒæÑ" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
-          <StatCard label="Active Members" value={activeMembers} icon="Γ£à" gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
-          <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon="≡ƒÆ░" gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
-          <StatCard label="Confirmed Payments" value={confirmedPayments} icon="≡ƒÆ│" gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
-          <StatCard label="Pending Payments" value={pendingPayments} icon="ΓÅ│" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
+          <StatCard label="Total Members" value={members.length} icon="👥" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
+          <StatCard label="Active Members" value={activeMembers} icon="✅" gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
+          <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon="💰" gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
+          <StatCard label="Confirmed Payments" value={confirmedPayments} icon="💳" gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
+          <StatCard label="Pending Payments" value={pendingPayments} icon="⏳" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>≡ƒÅÿ∩╕Å My Groups</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>🏘️ My Groups</h3>
           {groups.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
           ) : (
@@ -366,11 +366,11 @@ function OverviewContent() {
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
                       style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                      ≡ƒÆ│ Payment Grid
+                      💳 Payment Grid
                     </button>
                     <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
                       style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                      Γ£Å∩╕Å Edit
+                      ✏️ Edit
                     </button>
                   </div>
                 </div>
@@ -380,7 +380,7 @@ function OverviewContent() {
         </div>
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>≡ƒæñ Member Management</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>👤 Member Management</h3>
           {members.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No members yet.</p>
           ) : (
@@ -413,23 +413,23 @@ function OverviewContent() {
                           <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                             <button onClick={() => { setEditingMember(m); setMemberEditName(m.name || ''); setMemberEditPayoutDate(m.payoutDate || ''); }} className="btn-action pill"
                               style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
-                              Γ£Å∩╕Å Edit
+                              ✏️ Edit
                             </button>
                             {m.status !== 'active' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id} className="btn-action pill"
                                 style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
-                                Γû╢∩╕Å Activate
+                                ▶️ Activate
                               </button>
                             )}
                             {m.status !== 'paused' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'paused')} disabled={updatingMember === m.id} className="btn-action pill"
                                 style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
-                                ΓÅ╕∩╕Å Pause
+                                ⏸️ Pause
                               </button>
                             )}
                             <button onClick={() => handleDeleteMember(m.id, m.name)} disabled={deletingMember === m.id} className="btn-action pill"
                               style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
-                              {deletingMember === m.id ? '...' : '≡ƒùæ∩╕Å Delete'}
+                              {deletingMember === m.id ? '...' : '🗑️ Delete'}
                             </button>
                           </div>
                         )}
@@ -444,7 +444,7 @@ function OverviewContent() {
 
         {pendingProofs.length > 0 && (
           <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>≡ƒº╛ Payment Proofs</h3>
+            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>🧾 Payment Proofs</h3>
             <p style={{ color: '#C4748E', fontSize: '12px', margin: '0 0 12px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {pendingProofs.map((p, i) => (
@@ -456,15 +456,15 @@ function OverviewContent() {
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="btn-action pill"
                       style={{ background: '#E3F2FD', color: '#1565C0', textDecoration: 'none' }}>
-                      ≡ƒæü∩╕Å View
+                      👁️ View
                     </a>
                     <button onClick={() => handleValidateProof(p.id, 'verified')} disabled={validatingProof === p.id} className="btn-action pill"
                       style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
-                      Γ£à Validate
+                      ✅ Validate
                     </button>
                     <button onClick={() => handleValidateProof(p.id, 'rejected')} disabled={validatingProof === p.id} className="btn-action pill"
                       style={{ background: '#FFEBEE', color: '#C62828', border: 'none', cursor: 'pointer' }}>
-                      Γ¥î Reject
+                      ❌ Reject
                     </button>
                   </div>
                 </div>
@@ -474,7 +474,7 @@ function OverviewContent() {
         )}
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>≡ƒÆ╡ Recent Contributions</h3>
+          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>💵 Recent Contributions</h3>
           {payments.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No payments recorded yet.</p>
           ) : (
@@ -515,17 +515,17 @@ function OverviewContent() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', paddingBottom: '24px' }}>
           {[
-            { title: 'Record Payment', icon: '≡ƒÆ╡', path: '/dashboard/record-contribution' },
-            { title: 'Add Member', icon: 'Γ₧ò', path: '/dashboard/add-member' },
-            { title: 'Digital Register', icon: '≡ƒôû', path: '/dashboard/contribution-log' },
-            { title: 'Send Reminder', icon: '≡ƒöö', path: '/dashboard/reminders' },
-            { title: 'Reports', icon: '≡ƒôè', path: '/dashboard/reports' },
-            { title: 'Audit Log', icon: '≡ƒôï', path: '/dashboard/audit-log' },
-            { title: 'Documents', icon: '≡ƒôü', path: '/dashboard/documents' },
-            { title: 'Security', icon: '≡ƒöÆ', path: '/dashboard/security' },
-            { title: 'White Label', icon: '≡ƒÄ¿', path: '/dashboard/branding' },
-            { title: 'Leave a Review', icon: 'Γ¡É', path: '/leave-review' },
-            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '≡ƒöº', path: '/admin/repair-members' }] : []),
+            { title: 'Record Payment', icon: '💵', path: '/dashboard/record-contribution' },
+            { title: 'Add Member', icon: '➕', path: '/dashboard/add-member' },
+            { title: 'Digital Register', icon: '📖', path: '/dashboard/contribution-log' },
+            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
+            { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
+            { title: 'Audit Log', icon: '📋', path: '/dashboard/audit-log' },
+            { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
+            { title: 'Security', icon: '🔒', path: '/dashboard/security' },
+            { title: 'White Label', icon: '🎨', path: '/dashboard/branding' },
+            { title: 'Leave a Review', icon: '⭐', path: '/leave-review' },
+            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '🔧', path: '/admin/repair-members' }] : []),
           ].map((a, i) => (
             <div key={i} className="action-card" onClick={() => router.push(a.path)}
               style={{

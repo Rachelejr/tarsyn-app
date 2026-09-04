@@ -23,7 +23,7 @@ export default function LeaveReviewPage() {
   const [uid, setUid] = useState('');
   // Tracks which of the two separate Firebase apps actually authenticated
   // this person, so the write below goes through the matching Firestore
-  // instance ΓÇö writing through the wrong one carries no valid auth token
+  // instance — writing through the wrong one carries no valid auth token
   // for that instance and Firestore silently rejects it as unauthenticated.
   const [activeDb, setActiveDb] = useState(db);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ export default function LeaveReviewPage() {
     // This page is reached from both the organizer dashboard and the member
     // portal, which run on two fully separate Firebase Auth instances. It
     // must accept whichever one is actually signed in, and wait for BOTH to
-    // report their state before deciding no one is signed in ΓÇö checking
+    // report their state before deciding no one is signed in — checking
     // only one (as before) meant a signed-in member was never recognized
     // here and got bounced straight back to /login, then back to /member.
     let orgUser: any = null;

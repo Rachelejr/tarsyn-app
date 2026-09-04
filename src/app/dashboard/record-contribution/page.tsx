@@ -136,8 +136,8 @@ export default function RecordContribution() {
             <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:'800',margin:'0 0 12px'}}>Confirm Payment</h3>
             <div style={{background:'#FBEEDD',borderRadius:'10px',padding:'12px',marginBottom:'18px'}}>
               <p style={{margin:'0 0 6px',color:'#4A1F38',fontWeight:'600'}}>{selectedMemberData?.name}</p>
-              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} ΓÇö {effectivePaymentMethod}</p>
-              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{cycle} ΓÇö {contributionType}</p>
+              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} — {effectivePaymentMethod}</p>
+              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{cycle} — {contributionType}</p>
               <p style={{margin:'0',color:'#6B2D4E',fontSize:'13px'}}>{paymentDate}</p>
             </div>
             <div style={{display:'flex',gap:'10px'}}>
@@ -157,7 +157,7 @@ export default function RecordContribution() {
       <div style={{maxWidth:'880px',margin:'0 auto'}}>
         <div onClick={() => router.push('/dashboard')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#6B2D4E', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}>
-          ΓåÉ Back to Dashboard
+          ← Back to Dashboard
         </div>
 
         <div style={{background:'white',borderRadius:'18px',padding:'24px 28px',boxShadow:'0 8px 32px rgba(107,45,78,0.12)'}}>
@@ -172,14 +172,14 @@ export default function RecordContribution() {
             </div>
           )}
 
-          <p style={sectionTitle}>≡ƒæñ Member & Amount</p>
+          <p style={sectionTitle}>👤 Member & Amount</p>
           <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
               <label style={labelStyle}>Select Member *</label>
               <select value={selectedMember} onChange={e => setSelectedMember(e.target.value)} style={inputStyle}>
                 <option value="">Select a member...</option>
                 {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name || m.fullName} ΓÇö {m.tynId}</option>
+                  <option key={m.id} value={m.id}>{m.name || m.fullName} — {m.tynId}</option>
                 ))}
               </select>
             </div>
@@ -200,7 +200,7 @@ export default function RecordContribution() {
 
           <div style={{ height: '1px', background: '#F4E8D8', margin: '14px 0' }} />
 
-          <p style={sectionTitle}>≡ƒÆ│ Payment Details</p>
+          <p style={sectionTitle}>💳 Payment Details</p>
           <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
               <label style={labelStyle}>Payment Date *</label>
@@ -248,7 +248,7 @@ export default function RecordContribution() {
 
           <div style={{ height: '1px', background: '#F4E8D8', margin: '14px 0' }} />
 
-          <p style={sectionTitle}>≡ƒöä Cycle & Notes</p>
+          <p style={sectionTitle}>🔄 Cycle & Notes</p>
           <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
               <label style={labelStyle}>Cycle</label>

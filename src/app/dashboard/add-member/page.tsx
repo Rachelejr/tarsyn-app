@@ -135,7 +135,7 @@ function AddMemberContent() {
 
   // Auto-fill Expected Amount from the selected group's normal contribution
   // amount, so admins aren't left to type it in freehand every time (that
-  // free-text field was the source of the corrupted expectedAmount bug ΓÇö
+  // free-text field was the source of the corrupted expectedAmount bug —
   // typos/blank defaults with no reference value to check against).
   // Only auto-fills if the admin hasn't already typed their own value.
   useEffect(() => {

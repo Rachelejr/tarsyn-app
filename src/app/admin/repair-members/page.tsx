@@ -157,7 +157,7 @@ export default function RepairMembersPage() {
           </div>
 
           {!scanning && broken.length === 0 && (
-            <p style={{ color: '#2E7D32', fontSize: '13px', margin: 0 }}>Γ£ô All member records look healthy.</p>
+            <p style={{ color: '#2E7D32', fontSize: '13px', margin: 0 }}>✓ All member records look healthy.</p>
           )}
 
           {!scanning && broken.length > 0 && (
@@ -194,7 +194,7 @@ export default function RepairMembersPage() {
                           color: C.texteGris, fontFamily: 'monospace', fontSize: '10px',
                           textDecoration: 'line-through', opacity: 0.7,
                         }}>{m.currentTynId || '(none)'}</span>
-                        <span style={{ color: C.texteGris, fontSize: '11px' }}>ΓåÆ</span>
+                        <span style={{ color: C.texteGris, fontSize: '11px' }}>→</span>
                         <span style={{
                           color: C.bordeauxDark, fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
                           background: C.orLight, padding: '3px 9px', borderRadius: '6px',
@@ -252,16 +252,16 @@ export default function RepairMembersPage() {
             <p style={{ color: C.or, fontWeight: 700, margin: '0 0 8px' }}>Fixed: {result.fixedCount}</p>
             {result.fixed?.map((f: any, i: number) => (
               <div key={i} style={{ opacity: 0.9 }}>
-                Γ£ô {f.fullName}
-                {f.organizerId ? ` ΓåÆ organizerId ${f.organizerId}` : ''}
-                {f.tynId ? ` ΓåÆ tynId ${f.tynId}` : ''}
+                ✓ {f.fullName}
+                {f.organizerId ? ` → organizerId ${f.organizerId}` : ''}
+                {f.tynId ? ` → tynId ${f.tynId}` : ''}
               </div>
             ))}
             {result.stillBrokenCount > 0 && (
               <>
                 <p style={{ color: '#E8A0A0', fontWeight: 700, margin: '14px 0 8px' }}>Still broken: {result.stillBrokenCount}</p>
                 {result.stillBroken.map((f: any, i: number) => (
-                  <div key={i} style={{ opacity: 0.9 }}>Γ£ù {f.fullName}: {f.reason}</div>
+                  <div key={i} style={{ opacity: 0.9 }}>✗ {f.fullName}: {f.reason}</div>
                 ))}
               </>
             )}
