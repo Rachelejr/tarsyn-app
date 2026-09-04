@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
@@ -560,6 +561,8 @@ function OverviewContent() {
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

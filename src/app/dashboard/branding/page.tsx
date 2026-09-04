@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -526,6 +527,8 @@ export default function BrandingPage() {
         )}
 
       </div>
+
+      <Footer />
     </div>
   );
 }

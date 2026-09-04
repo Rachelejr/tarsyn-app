@@ -11,6 +11,7 @@ import {
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import DocumentComments from '@/components/DocumentComments';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bleu: '#6B2D4E',
@@ -491,6 +492,8 @@ export default function DocumentsPage() {
           )}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

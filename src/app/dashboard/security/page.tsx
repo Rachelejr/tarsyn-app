@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -181,6 +182,8 @@ export default function SecurityCenterPage() {
         </div>
 
       </div>
+
+      <Footer />
     </div>
   );
 }
