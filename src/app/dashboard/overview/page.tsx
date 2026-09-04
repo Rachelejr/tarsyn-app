@@ -517,8 +517,10 @@ function OverviewContent() {
           {[
             { title: 'Record Payment', icon: '💵', path: '/dashboard/record-contribution' },
             { title: 'Add Member', icon: '➕', path: '/dashboard/add-member' },
+            { title: 'Referrals', icon: '🤝', path: '/dashboard/referrals' },
             { title: 'Digital Register', icon: '📖', path: '/dashboard/contribution-log' },
             { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
+            { title: 'Connect Payments', icon: '🏦', path: '/dashboard/payments-setup' },
             { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
             { title: 'Audit Log', icon: '📋', path: '/dashboard/audit-log' },
             { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
