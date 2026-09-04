@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const inputStyle = { width: '100%', padding: '8px 11px', border: '1.5px solid #EAD9BE', borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' as const, background: 'white' };
 const labelStyle = { display: 'block', color: '#6B2D4E', fontSize: '12px', fontWeight: 600, marginBottom: '3px' };
@@ -104,6 +105,25 @@ export default function RecordContribution() {
 
   return (
     <div style={{minHeight:'100vh',background:'#FBEEDD',padding:'20px',fontFamily:'Inter, sans-serif'}}>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '16px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap' as const,
+        rowGap: '10px',
+        margin: '-20px -20px 20px -20px',
+      }}>
+        <div>
+          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '52px', width: 'auto', display: 'block' }} />
+          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+        </div>
+        <div style={{ textAlign: 'right' as const }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+        </div>
+      </div>
       <style>{`
         .tn-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         @media (max-width: 900px) { .tn-grid3 { grid-template-columns: repeat(2, 1fr); } }
@@ -116,8 +136,8 @@ export default function RecordContribution() {
             <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:'800',margin:'0 0 12px'}}>Confirm Payment</h3>
             <div style={{background:'#FBEEDD',borderRadius:'10px',padding:'12px',marginBottom:'18px'}}>
               <p style={{margin:'0 0 6px',color:'#4A1F38',fontWeight:'600'}}>{selectedMemberData?.name}</p>
-              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} — {effectivePaymentMethod}</p>
-              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{cycle} — {contributionType}</p>
+              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} ΓÇö {effectivePaymentMethod}</p>
+              <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{cycle} ΓÇö {contributionType}</p>
               <p style={{margin:'0',color:'#6B2D4E',fontSize:'13px'}}>{paymentDate}</p>
             </div>
             <div style={{display:'flex',gap:'10px'}}>
@@ -137,7 +157,7 @@ export default function RecordContribution() {
       <div style={{maxWidth:'880px',margin:'0 auto'}}>
         <div onClick={() => router.push('/dashboard')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#6B2D4E', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}>
-          ← Back to Dashboard
+          ΓåÉ Back to Dashboard
         </div>
 
         <div style={{background:'white',borderRadius:'18px',padding:'24px 28px',boxShadow:'0 8px 32px rgba(107,45,78,0.12)'}}>
@@ -152,14 +172,14 @@ export default function RecordContribution() {
             </div>
           )}
 
-          <p style={sectionTitle}>👤 Member & Amount</p>
+          <p style={sectionTitle}>≡ƒæñ Member & Amount</p>
           <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
               <label style={labelStyle}>Select Member *</label>
               <select value={selectedMember} onChange={e => setSelectedMember(e.target.value)} style={inputStyle}>
                 <option value="">Select a member...</option>
                 {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name || m.fullName} — {m.tynId}</option>
+                  <option key={m.id} value={m.id}>{m.name || m.fullName} ΓÇö {m.tynId}</option>
                 ))}
               </select>
             </div>
@@ -180,7 +200,7 @@ export default function RecordContribution() {
 
           <div style={{ height: '1px', background: '#F4E8D8', margin: '14px 0' }} />
 
-          <p style={sectionTitle}>💳 Payment Details</p>
+          <p style={sectionTitle}>≡ƒÆ│ Payment Details</p>
           <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
               <label style={labelStyle}>Payment Date *</label>
@@ -228,7 +248,7 @@ export default function RecordContribution() {
 
           <div style={{ height: '1px', background: '#F4E8D8', margin: '14px 0' }} />
 
-          <p style={sectionTitle}>🔄 Cycle & Notes</p>
+          <p style={sectionTitle}>≡ƒöä Cycle & Notes</p>
           <div className="tn-grid3" style={{ marginBottom: '14px' }}>
             <div>
               <label style={labelStyle}>Cycle</label>
