@@ -371,7 +371,7 @@ export default function ChatWidget() {
             {activeChatId ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
-                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer', padding: 0 }}>←</button>
                 <div onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
@@ -381,12 +381,12 @@ export default function ChatWidget() {
                 }}>
                   {activeChatName?.[0]?.toUpperCase() || '?'}
                 </div>
-                <span style={{ fontWeight: 700, fontSize: '14px', color: C.white }}>{activeChatName}</span>
+                <span style={{ fontWeight: 700, fontSize: '14px', color: C.bordeaux }}>{activeChatName}</span>
                 </div>
               </div>
             ) : (
-              <span style={{ fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', color: C.white, letterSpacing: '0.3px' }}>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.dore} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <span style={{ fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', color: C.bordeaux, letterSpacing: '0.3px' }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.bordeaux} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                 </svg>
                 Messages
@@ -395,14 +395,14 @@ export default function ChatWidget() {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
               {!activeChatId && (
                 <button onClick={() => setShowSearch(!showSearch)}
-                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', fontWeight: 700, cursor: 'pointer', lineHeight: 1 }}>+</button>
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', fontWeight: 700, cursor: 'pointer', lineHeight: 1 }}>+</button>
               )}
               {activeChatId && (
                 <button onClick={() => setShowMenu(!showMenu)}
-                  style={{ background: 'none', border: 'none', color: C.dore, fontSize: '18px', cursor: 'pointer' }}>⋮</button>
+                  style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '18px', cursor: 'pointer' }}>⋮</button>
               )}
               <button onClick={() => setOpen(false)}
-                style={{ background: 'none', border: 'none', color: C.dore, fontSize: '16px', cursor: 'pointer' }}>✕</button>
+                style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '16px', cursor: 'pointer' }}>✕</button>
               {showMenu && activeChatId && (
                 <div style={{ position: 'absolute', right: 0, top: '28px', background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', minWidth: '170px', zIndex: 30, overflow: 'hidden', border: `1px solid ${C.border}` }}>
                   <button onClick={handleClearChat} disabled={clearing}
