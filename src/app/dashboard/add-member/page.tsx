@@ -291,9 +291,9 @@ function AddMemberContent() {
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
 
-      <div style={{ background: C.blanc, borderBottom: '2px solid ' + C.orLight, padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '58px', width: 'auto', display: 'block' }} />
-        <DateTimeWeather textColor={C.muted} />
+        <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
       </div>
 
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 24px' }}>
@@ -354,8 +354,8 @@ function AddMemberContent() {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'stretch' }}>
+            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
                 Personal Information
               </h2>
@@ -440,7 +440,7 @@ function AddMemberContent() {
               </p>
             </div>
 
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
                 Contribution & Rotation
               </h2>
