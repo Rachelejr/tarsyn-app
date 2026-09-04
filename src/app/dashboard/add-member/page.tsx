@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -135,7 +135,7 @@ function AddMemberContent() {
 
   // Auto-fill Expected Amount from the selected group's normal contribution
   // amount, so admins aren't left to type it in freehand every time (that
-  // free-text field was the source of the corrupted expectedAmount bug —
+  // free-text field was the source of the corrupted expectedAmount bug ΓÇö
   // typos/blank defaults with no reference value to check against).
   // Only auto-fills if the admin hasn't already typed their own value.
   useEffect(() => {
@@ -306,12 +306,9 @@ function AddMemberContent() {
         </div>
 
         <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', textAlign: 'center' as const }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 13, background: C.blanc, border: '1.5px solid ' + C.orLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20, color: C.or }}>+</div>
-            <div style={{ textAlign: 'left' as const }}>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Add Member</h1>
-              <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Add a new member to your organization. They will be integrated into the active cycle.</p>
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Add Member</h1>
+            <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Add a new member to your organization. They will be integrated into the active cycle.</p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'center' as const }}>
             <div style={{ background: C.blanc, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -325,7 +322,7 @@ function AddMemberContent() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 18 }}>
 
             <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
