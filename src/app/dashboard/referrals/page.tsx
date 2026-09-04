@@ -133,12 +133,7 @@ export default function ReferralsPage() {
           <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
         </div>
         <div style={{ textAlign: 'right' as const }}>
-          <p style={{ color: '#F0DCE8', fontSize: '13px', fontWeight: 700, letterSpacing: '1.5px', margin: 0 }}>
-            PEOPLE&nbsp;&nbsp;|&nbsp;&nbsp;ORGANIZE&nbsp;&nbsp;|&nbsp;&nbsp;BUILD&nbsp;&nbsp;|&nbsp;&nbsp;TOGETHER
-          </p>
-          <div style={{ marginTop: '6px' }}>
-            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-          </div>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
         </div>
       </div>
 
