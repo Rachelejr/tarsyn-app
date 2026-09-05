@@ -697,7 +697,7 @@ export default function PaymentGridPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
           </div>
           <div style={{ textAlign: 'center', flex: 1 }}>
             <h1 style={{ color: '#FBEEDD', fontSize: 20, fontWeight: 800, margin: 0 }}>

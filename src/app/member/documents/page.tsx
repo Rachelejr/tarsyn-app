@@ -116,7 +116,7 @@ function MemberDocumentsContent() {
           ← Back to My Portal
         </div>
         <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
-          <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block' }} />
+          <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
         </a>
       </nav>
 

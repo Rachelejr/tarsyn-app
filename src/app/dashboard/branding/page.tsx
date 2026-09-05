@@ -274,7 +274,7 @@ export default function BrandingPage() {
         justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '40px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
         </div>
         <div style={{ textAlign: 'center', flex: 1 }}>
           <h1 style={{ color: C.creme, fontSize: '17px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
