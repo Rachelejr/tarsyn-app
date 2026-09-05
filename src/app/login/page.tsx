@@ -84,18 +84,19 @@ function LoginPageInner() {
 
   const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-  const sendOTP = async (uid: string, uEmail: string) => {
+  const sendOTP = async (uid: string, uEmail: string): Promise<boolean> => {
     const otp = generateOTP();
     const expires = Date.now() + 10 * 60 * 1000;
     await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
     try {
-      await fetch('/api/auth/send-2fa', {
+      const res = await fetch('/api/auth/send-2fa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: uEmail, otp }),
       });
+      return res.ok;
     } catch {
-      // OTP stored in Firestore even if email fails
+      return false;
     }
   };
 
@@ -110,8 +111,11 @@ function LoginPageInner() {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       setUserId(result.user.uid);
       setUserEmail(result.user.email!);
-      await sendOTP(result.user.uid, result.user.email!);
+      const sent = await sendOTP(result.user.uid, result.user.email!);
       setStep('2fa');
+      if (!sent) {
+        setError('Code generated, but the email failed to send. Try "Resend code" in a moment.');
+      }
     } catch (err: any) {
       const msg: Record<string, string> = {
         'auth/user-not-found': 'No account found.',
@@ -153,9 +157,13 @@ function LoginPageInner() {
   const handleResend = async () => {
     setError('');
     setCode(['', '', '', '', '', '']);
-    await sendOTP(userId, userEmail);
-    setResendMsg('New code sent!');
-    setTimeout(() => setResendMsg(''), 4000);
+    const sent = await sendOTP(userId, userEmail);
+    if (sent) {
+      setResendMsg('New code sent!');
+      setTimeout(() => setResendMsg(''), 4000);
+    } else {
+      setError('Failed to send the email. Please try again in a moment.');
+    }
   };
 
   const handleGoogle = async () => {
@@ -170,8 +178,11 @@ function LoginPageInner() {
       setGoogleCredential(credential);
       setUserId(result.user.uid);
       setUserEmail(result.user.email!);
-      await sendOTP(result.user.uid, result.user.email!);
+      const sent = await sendOTP(result.user.uid, result.user.email!);
       setStep('2fa');
+      if (!sent) {
+        setError('Code generated, but the email failed to send. Try "Resend code" in a moment.');
+      }
     } catch (err: any) {
       setError(`Google sign-in error: ${err.code}`);
     } finally {
