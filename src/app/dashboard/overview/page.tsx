@@ -201,7 +201,8 @@ function OverviewContent() {
   const pendingProofs = payments.filter(p => p.proofUrl && p.proofStatus === 'pending');
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       <style>{`
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(10px); }
@@ -562,6 +563,7 @@ function OverviewContent() {
         </div>
       </div>
 
+      </div>
       <Footer />
     </div>
   );

@@ -107,7 +107,8 @@ export default function RepairMembersPage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${C.creme} 0%, ${C.ivoire} 100%)`, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${C.creme} 0%, ${C.ivoire} 100%)`, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       <div style={{
         background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
@@ -272,6 +273,7 @@ export default function RepairMembersPage() {
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
 
+      </div>
       <Footer />
     </div>
   );

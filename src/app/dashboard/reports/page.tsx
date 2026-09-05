@@ -133,7 +133,8 @@ function ReportsContent() {
   const selectStyle = { padding: '8px 12px', borderRadius: 9, border: '1.5px solid ' + C.border, fontSize: 13, color: C.text, background: C.blanc, cursor: 'pointer', outline: 'none' };
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       <div style={{
         background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
@@ -248,6 +249,7 @@ function ReportsContent() {
 
       </div>
 
+      </div>
       <Footer />
     </div>
   );

@@ -64,7 +64,8 @@ export default function ChooseModulePage() {
     router.push(`/dashboard/create-workspace?module=${slug}`);
   };
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '0 0 64px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       <style>{`
         .module-card { transition: all 0.2s ease; }
         .module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(107,45,78,0.15); }
@@ -129,6 +130,7 @@ export default function ChooseModulePage() {
             </button>
           </div>
         ))}
+      </div>
       </div>
       <Footer />
     </div>

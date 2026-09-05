@@ -653,7 +653,7 @@ export default function PaymentGridPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 20px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 20px', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .UNIMUNITY-cell { transition: all 0.15s ease; }
         .UNIMUNITY-cell:hover .UNIMUNITY-box {
@@ -682,7 +682,7 @@ export default function PaymentGridPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 1360, margin: '0 auto', background: C.ivoire, borderRadius: 20, border: '1px solid ' + C.border, boxShadow: '0 4px 24px rgba(107,45,78,0.06)', padding: '0 28px 20px', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 1360, width: '100%', margin: '0 auto', background: C.ivoire, borderRadius: 20, border: '1px solid ' + C.border, boxShadow: '0 4px 24px rgba(107,45,78,0.06)', padding: '0 28px 20px', overflow: 'hidden', flex: 1 }}>
         {/* Header */}
         <div
           className="UNIMUNITY-no-print"
@@ -1146,9 +1146,9 @@ export default function PaymentGridPage() {
           </p>
         )}
 
-        {/* Footer */}
-        <Footer />
       </div>
+
+      <Footer />
     </div>
   );
 }

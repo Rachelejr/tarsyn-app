@@ -367,7 +367,7 @@ function RegisterContent() {
   const topMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
 
   return (
-    <div style={{ minHeight: '100vh', background: C.cream, fontFamily: 'Inter, sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100vh', background: C.cream, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .fade-up { opacity: 0; animation: fadeUp 0.4s ease forwards; }
@@ -381,7 +381,8 @@ function RegisterContent() {
         @media print { .no-print { display: none !important; } }
       `}</style>
 
-      <div className="no-print" style={{ width: '210px', background: C.burgundyDark, flexShrink: 0, padding: '20px 14px', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div className="no-print" style={{ width: '210px', background: C.burgundyDark, flexShrink: 0, padding: '20px 14px', display: 'flex', flexDirection: 'column' }}>
         <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' as const, cursor: 'pointer', marginBottom: '28px' }}>
           <p style={{ color: C.goldLight, fontWeight: 800, fontSize: '13.5px', margin: 0, lineHeight: 1.1 }}>
             {group?.officialName || group?.name || 'Your Org'}
@@ -660,6 +661,7 @@ function RegisterContent() {
         </div>
       </div>
 
+      </div>
       <Footer />
 
       {statusMenu && (

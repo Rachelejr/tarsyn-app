@@ -505,7 +505,8 @@ export default function CreateTontinePage() {
     </div>
   );
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' , display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       {sharedStyles}
       <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
         <div>
@@ -883,6 +884,7 @@ export default function CreateTontinePage() {
         </div>
       </div>
 
+      </div>
       <Footer />
     </div>
   );

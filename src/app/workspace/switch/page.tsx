@@ -105,7 +105,8 @@ export default function SwitchWorkspacePage() {
     : 'You have more than one module active. Pick where you want to go.';
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '0 0 64px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, padding: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       <div style={{
         background: `radial-gradient(circle at 30% -20%, ${C.dore}22, transparent 55%), linear-gradient(160deg, ${C.bordeaux} 0%, ${C.bordeauxDark} 100%)`,
         padding: '32px 32px 44px',
@@ -200,6 +201,7 @@ export default function SwitchWorkspacePage() {
         </button>
       </div>
 
+      </div>
       <Footer />
 
       <style>{`
