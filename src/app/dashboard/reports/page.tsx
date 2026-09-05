@@ -5,6 +5,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
@@ -245,10 +246,9 @@ function ReportsContent() {
           </>
         )}
 
-        <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 32, letterSpacing: 0.3 }}>
-          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
-        </p>
       </div>
+
+      <Footer />
     </div>
   );
 }

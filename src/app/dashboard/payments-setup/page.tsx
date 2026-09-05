@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -177,10 +178,9 @@ function PaymentsSetupContent() {
           )}
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 40, letterSpacing: 0.3 }}>
-          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
-        </p>
       </div>
+
+      <Footer />
     </div>
   );
 }

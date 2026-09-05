@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 import * as XLSX from 'xlsx';
 
 const C = {
@@ -656,13 +657,10 @@ function RegisterContent() {
             </div>
           </div>
 
-          <div className="no-print" style={{ textAlign: 'center', padding: '20px 0 0' }}>
-            <p style={{ color: C.gray, fontSize: '10.5px', margin: 0 }}>
-              UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
-            </p>
-          </div>
         </div>
       </div>
+
+      <Footer />
 
       {statusMenu && (
         <div onClick={() => setStatusMenu(null)} style={{ position: 'fixed', inset: 0, zIndex: 999 }}>

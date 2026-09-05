@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -358,10 +359,9 @@ function RemindersContent() {
           <div style={{ padding: '40px 20px', textAlign: 'center', color: C.muted, fontSize: 14 }}>Checking payment grid...</div>
         )}
 
-        <p style={{ textAlign: 'center', fontSize: 11, color: C.muted, marginTop: 40, letterSpacing: 0.3 }}>
-          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
-        </p>
       </div>
+
+      <Footer />
     </div>
   );
 }

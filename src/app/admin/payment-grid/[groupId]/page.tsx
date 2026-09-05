@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc, addDoc, serverTimestamp, collection, query, where,
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -1146,19 +1147,7 @@ export default function PaymentGridPage() {
         )}
 
         {/* Footer */}
-        <div
-          className="UNIMUNITY-no-print"
-          style={{
-            marginTop: 28,
-            paddingTop: 18,
-            borderTop: '1px solid ' + C.border,
-            textAlign: 'center',
-            fontSize: 12.5,
-            color: C.texteGris,
-          }}
-        >
-          UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
-        </div>
+        <Footer />
       </div>
     </div>
   );
