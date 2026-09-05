@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -9,6 +9,7 @@ import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X, Settings,
 } from 'lucide-react';
 import { DEFAULT_COMMISSION_TIERS, CommissionTier } from '../commission-settings/page';
+import Footer from '@/components/Footer';
 const C = {
   bordeaux:   '#6B2D4E',
   dore:       '#E9C77B',
@@ -881,6 +882,8 @@ export default function CreateTontinePage() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

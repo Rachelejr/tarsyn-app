@@ -192,7 +192,8 @@ function LoginPageInner() {
 
   if (step === '2fa') {
     return (
-      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{'\ud83d\udd10'}</div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.5rem' }}>2FA Verification</h2>
@@ -252,12 +253,16 @@ function LoginPageInner() {
             Back to login
           </button>
         </div>
+        </div>
+
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
 
         <div style={{ marginBottom: '2rem' }}>
@@ -346,6 +351,7 @@ function LoginPageInner() {
             Create an account
           </a>
         </div>
+      </div>
       </div>
 
       <Footer />

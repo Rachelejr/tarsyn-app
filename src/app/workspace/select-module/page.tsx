@@ -1,5 +1,6 @@
-'use client';
+﻿'use client';
 import { useRouter } from 'next/navigation';
+import Footer from '@/components/Footer';
 const C = {
   bordeaux: '#6B2D4E',
   creme:    '#FBEEDD',
@@ -98,6 +99,9 @@ export default function ChooseModulePage() {
             YOUR COMMUNITY. YOUR POWER.
           </span>
         </div>
+        <button onClick={() => router.push('/dashboard')} style={{ position: 'absolute', top: '24px', right: '32px', background: 'none', border: 'none', color: C.bordeaux, fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+          ← Back to Dashboard
+        </button>
         <h1 className="module-title-slide" style={{ color: C.bordeaux, fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
         <p style={{ color: C.texteGris, fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
       </div>
@@ -126,9 +130,7 @@ export default function ChooseModulePage() {
           </div>
         ))}
       </div>
-      <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.85rem', color: '#888' }}>
-        UNIMUNITY™ A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · Version 1.0.0
-      </div>
+      <Footer />
     </div>
   );
 }
