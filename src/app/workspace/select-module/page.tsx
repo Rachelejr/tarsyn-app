@@ -1,6 +1,7 @@
 ﻿'use client';
 import { useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
+import DateTimeWeather from '@/components/DateTimeWeather';
 const C = {
   bordeaux: '#6B2D4E',
   creme:    '#FBEEDD',
@@ -81,30 +82,23 @@ export default function ChooseModulePage() {
       `}</style>
       {/* Header */}
       <div style={{
-        position: 'relative',
-        background: `linear-gradient(160deg, #FFFFFF 0%, ${C.creme} 100%)`,
-        padding: '48px 32px 40px',
-        textAlign: 'center',
-        borderBottom: `1px solid ${C.border}`,
-        overflow: 'hidden',
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
-        {/* Original logo, top left */}
-        <div style={{ position: 'absolute', top: '20px', left: '32px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <img
-            src="/unimunity-logo-color.png"
-            alt="UNIMUNITY"
-            style={{ height: '76px', width: 'auto' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-          />
-          <span style={{ fontSize: '10px', letterSpacing: '1.5px', color: C.bordeaux, fontWeight: 700, marginTop: '4px' }}>
-            YOUR COMMUNITY. YOUR POWER.
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
         </div>
-        <button onClick={() => router.push('/dashboard')} style={{ position: 'absolute', top: '24px', right: '32px', background: 'none', border: 'none', color: C.bordeaux, fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-          ← Back to Dashboard
-        </button>
-        <h1 className="module-title-slide" style={{ color: C.bordeaux, fontSize: '34px', fontWeight: 800, margin: '0 0 8px' }}>Choose Your Module</h1>
-        <p style={{ color: C.texteGris, fontSize: '15px', margin: 0 }}>Start with one module and expand later.</p>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h1 style={{ color: C.creme, fontSize: '20px', fontWeight: 800, margin: 0 }}>Choose Your Module</h1>
+          <p style={{ color: 'rgba(251,238,221,0.75)', fontSize: '12px', margin: '2px 0 0' }}>Start with one module and expand later.</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+        </div>
       </div>
       {/* Module grid — only visible:true modules are rendered */}
       <div style={{ maxWidth: '660px', margin: '40px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
