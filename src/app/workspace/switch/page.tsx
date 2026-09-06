@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Footer from '@/components/Footer';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -108,49 +109,22 @@ export default function SwitchWorkspacePage() {
     <div style={{ minHeight: '100vh', background: C.creme, padding: 0, display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1 }}>
       <div style={{
-        background: `radial-gradient(circle at 30% -20%, ${C.dore}22, transparent 55%), linear-gradient(160deg, ${C.bordeaux} 0%, ${C.bordeauxDark} 100%)`,
-        padding: '32px 32px 44px',
-        borderBottom: `3px solid ${C.dore}`,
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
-        <div
-          aria-label="Unimunity"
-          role="img"
-          style={{
-            height: '52px',
-            width: '220px',
-            display: 'block',
-            marginBottom: '28px',
-            background: C.creme,
-            WebkitMaskImage: 'url(/unimunity-logo-white.png)',
-            maskImage: 'url(/unimunity-logo-white.png)',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskPosition: 'left center',
-            maskPosition: 'left center',
-          }}
-        />
-        <div style={{ textAlign: 'center' }}>
-          <h1
-            className="ws-title"
-            style={{
-              fontSize: '30px',
-              fontWeight: 800,
-              margin: '0 0 8px',
-              letterSpacing: '-0.3px',
-              display: 'inline-block',
-              backgroundImage: `linear-gradient(90deg, white 0%, ${C.dore} 45%, white 90%)`,
-              backgroundSize: '200% auto',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Choose Your Workspace
-          </h1>
-          <p style={{ color: 'rgba(251,238,221,0.85)', fontSize: '14px', margin: 0 }}>{subtitle}</p>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+        </div>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h1 style={{ color: C.creme, fontSize: '20px', fontWeight: 800, margin: 0 }}>Choose Your Workspace</h1>
+          <p style={{ color: 'rgba(251,238,221,0.75)', fontSize: '12px', margin: '2px 0 0' }}>{subtitle}</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
         </div>
       </div>
 
