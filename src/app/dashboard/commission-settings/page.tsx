@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { ArrowLeft, Plus, Trash2, Check } from 'lucide-react';
+import { Plus, Trash2, Check } from 'lucide-react';
+import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -137,22 +139,52 @@ export default function CommissionSettingsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A5E 100%)`, padding: '20px 28px' }}>
-        <button onClick={() => router.push('/dashboard')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.or, fontSize: '13px', fontWeight: 600, marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ArrowLeft size={14} /> Back to Dashboard
-        </button>
-        <h1 style={{ color: C.creme, fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Commission Settings</h1>
-        <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>
-          Define your own commission tiers, automatically applied when creating a tontine.
-        </p>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <style jsx global>{`
+        @keyframes UNIMUNITY-title-shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .UNIMUNITY-title-shimmer {
+          display: inline-block;
+          background-image: linear-gradient(90deg, ${C.bordeaux} 0%, rgba(107,45,78,0.4) 45%, ${C.bordeaux} 90%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          animation: UNIMUNITY-title-shimmer 3.5s linear infinite;
+        }
+      `}</style>
+      <div style={{ flex: 1 }}>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+        </div>
+        <div style={{ textAlign: 'center', flex: 1 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+        </div>
       </div>
 
       <div style={{ maxWidth: '700px', margin: '24px auto', padding: '0 16px' }}>
-        <div style={{ background: 'white', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', padding: '24px' }}>
+        <div style={{ background: 'white', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
+          <div style={{ background: C.creme, padding: '20px 28px', borderBottom: `1px solid ${C.roseMoyen}`, textAlign: 'center' }}>
+            <h1 className="UNIMUNITY-title-shimmer" style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.3px' }}>Commission Settings</h1>
+            <p style={{ color: C.texteGris, fontSize: '14px', fontWeight: 700, margin: 0, opacity: 0.9 }}>
+              Define your own commission tiers, automatically applied when creating a tontine.
+            </p>
+          </div>
+          <div style={{ padding: '24px' }}>
 
-          <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 18px' }}>
+          <p style={{ fontSize: '12px', color: C.texteGris, margin: '0 0 18px', textAlign: 'center', fontWeight: 700 }}>
             Each tier applies a commission rate based on the total pool amount (Number of Members {'\u00d7'} Contribution Amount).
             Tiers must be contiguous, starting at 0 with no upper limit on the last tier.
           </p>
@@ -163,6 +195,11 @@ export default function CommissionSettingsPage() {
                 <label style={{ fontSize: '11px', color: C.texteGris, display: 'block', marginBottom: '4px' }}>Min amount</label>
                 <input type="number" value={tier.min} disabled={i > 0} style={{ ...inp, background: i > 0 ? C.creme : inp.background }}
                   onChange={e => updateTier(i, 'min', e.target.value)} />
+                {i > 0 && (
+                  <p style={{ fontSize: '10px', color: C.texteGris, margin: '4px 0 0', fontStyle: 'italic' }}>
+                    Auto-set from the previous tier's max
+                  </p>
+                )}
               </div>
               <div>
                 <label style={{ fontSize: '11px', color: C.texteGris, display: 'block', marginBottom: '4px' }}>Max amount</label>
@@ -203,8 +240,11 @@ export default function CommissionSettingsPage() {
               {saving ? 'Saving...' : saved ? <><Check size={15} /> Saved!</> : 'Save tiers'}
             </button>
           </div>
+          </div>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }
