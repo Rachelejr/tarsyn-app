@@ -380,6 +380,14 @@ export default function CreateTontinePage() {
   };
   const sharedStyles = (
     <style jsx global>{`
+      @keyframes UNIMUNITY-title-sway {
+        0%, 100% { transform: translateX(-10px); }
+        50% { transform: translateX(10px); }
+      }
+      .UNIMUNITY-title-sway {
+        display: inline-block;
+        animation: UNIMUNITY-title-sway 4s ease-in-out infinite;
+      }
       .UNIMUNITY-field:focus {
         border-color: ${C.dore} !important;
         box-shadow: 0 0 0 3px rgba(233,199,123,0.20);
@@ -520,9 +528,7 @@ export default function CreateTontinePage() {
         <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
           <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
         </div>
-        <div style={{ textAlign: 'center', flex: 1 }}>
-          <h2 style={{ color: C.creme, fontSize: '17px', fontWeight: 800, margin: 0 }}>Create a Tontine</h2>
-        </div>
+        <div style={{ textAlign: 'center', flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
           <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
         </div>
@@ -533,8 +539,8 @@ export default function CreateTontinePage() {
           <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
             <div style={{ background: C.creme, padding: '20px 28px', borderBottom: `1px solid ${C.roseMoyen}` }}>
               <div style={{ textAlign: 'center' }}>
-                <h1 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
-                <p style={{ color: C.texteGris, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
+                <h1 className="UNIMUNITY-title-sway" style={{ color: C.bordeaux, fontSize: '32px', fontWeight: '800', margin: '0 0 8px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+                <p style={{ color: C.texteGris, fontSize: '16px', fontWeight: 700, margin: 0, opacity: 0.9 }}>Launch your community savings group in minutes</p>
               </div>
             </div>
             <div className="UNIMUNITY-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
