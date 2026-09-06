@@ -676,7 +676,7 @@ function MemberContent() {
           {effectiveBranding?.logo ? (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
           ) : (
-            <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '28px' }} />
+            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '32px', width: 'auto' }} />
           )}
         </div>
         <div style={{ flex: 1, textAlign: 'center', padding: '0 12px' }}>
