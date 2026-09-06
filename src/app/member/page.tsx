@@ -727,7 +727,14 @@ function MemberContent() {
         {/* LEFT - Group Info */}
         <div className="UNIMUNITY-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
           <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
-            <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word' }}>{groupName || 'Your Group'}</h1>
+            <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+              {effectiveBranding?.logo ? (
+                <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '26px', maxWidth: '120px', margin: '0 auto 8px', display: 'block' }} />
+              ) : (
+                <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '24px', margin: '0 auto 8px', display: 'block' }} />
+              )}
+              <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: 0, wordBreak: 'break-word' }}>MEMBRE</h1>
+            </div>
             {activeMember && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
@@ -851,7 +858,7 @@ function MemberContent() {
             <div style={{ marginBottom: '28px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>My Payment Grid</h2>
-                <span style={{ fontSize: '12px', color: C.texteGris, fontWeight: 600 }}>
+                <span style={{ fontSize: '16px', color: C.bordeaux, fontWeight: 800 }}>
                   {myPayments.paid}/{myPayments.total} weeks paid
                 </span>
               </div>
