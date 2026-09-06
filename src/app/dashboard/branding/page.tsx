@@ -233,8 +233,7 @@ export default function BrandingPage() {
 
   if (groups.length === 0) {
     return (
-      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1 }}>
+      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
         <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
           <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
@@ -529,7 +528,6 @@ export default function BrandingPage() {
 
       </div>
 
-      </div>
       <Footer />
     </div>
   );
