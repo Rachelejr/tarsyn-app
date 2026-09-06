@@ -671,7 +671,7 @@ function MemberContent() {
         }
       `}} />
 
-      <nav className="UNIMUNITY-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', position: 'relative', zIndex: 3 }}>
+      <nav className="UNIMUNITY-mem-nav" style={{ flexShrink: 0, background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', position: 'relative', zIndex: 3 }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: '0 0 auto' }}>
           {effectiveBranding?.logo ? (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
@@ -727,7 +727,9 @@ function MemberContent() {
         {/* LEFT - Group Info */}
         <div className="UNIMUNITY-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
           <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
-            <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word', textAlign: 'center' }}>MEMBRE</h1>
+            <div style={{ textAlign: 'center', margin: '0 0 14px' }}>
+              <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: 0, wordBreak: 'break-word' }}>MEMBRE</h1>
+            </div>
             {activeMember && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
