@@ -229,7 +229,8 @@ function JoinContent() {
               <input type="checkbox" checked={commissionAgreed} onChange={e => setCommissionAgreed(e.target.checked)}
                 style={{ marginTop: 3, width: 16, height: 16, accentColor: C.bordeaux, cursor: 'pointer', flexShrink: 0 }} />
               <span style={{ fontSize: 12.5, color: C.text, lineHeight: 1.5 }}>
-                I have read and agree to the organizer commission tiers above.
+                I have read and agree to the organizer commission tiers above. I understand the organizer's
+                commission is deducted automatically before each payout is sent to the member receiving that cycle.
               </span>
             </label>
             {commissionAgreed && (
