@@ -46,6 +46,25 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    // One-time LIFETIME member access fee ($15) - a member who has already
+    // paid it once, on any other group they belong to, must never be asked
+    // to pay a second time. Only a member with no prior paid record ever
+    // owes it, so every NEW member going forward gets flagged as required,
+    // and immediately marked paid if a sibling membership already covers it.
+    try {
+      const priorPaidSnap = await adminDb.collection('members')
+        .where('userId', '==', userId)
+        .where('accessFeePaid', '==', true)
+        .limit(1)
+        .get();
+      updateData.accessFeeRequired = true;
+      updateData.accessFeePaid = !priorPaidSnap.empty;
+    } catch (feeCheckErr) {
+      console.error('join-confirm: access fee pre-check failed (defaulting to required, unpaid):', feeCheckErr);
+      updateData.accessFeeRequired = true;
+      updateData.accessFeePaid = false;
+    }
+
     // Upgrade the placeholder TYN-ID ("XX-00X") to real initials now that
     // the member has provided their name, keeping the same sequence number
     // they were originally assigned so it stays unique within the group.

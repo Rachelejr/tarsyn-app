@@ -40,6 +40,8 @@ export default function RegisterPage() {
         role: 'admin',
         createdAt: new Date().toISOString(),
         trialEndsAt: trialEndsAt.toISOString(),
+        orgAccessFeeRequired: true,
+        orgAccessFeePaid: false,
       });
       setSuccess(true);
       setTimeout(() => { window.location.href = '/workspace/select-module'; }, 1800);
@@ -60,12 +62,18 @@ export default function RegisterPage() {
       const result = await signInWithPopup(auth, provider);
       const trialEndsAt = new Date();
       trialEndsAt.setDate(trialEndsAt.getDate() + 10);
+      // Only a brand new Google sign-up owes the access fee - an existing
+      // admin who happens to sign in via Google should never be retroactively
+      // gated (creationTime === lastSignInTime is Firebase's own signal for
+      // "this account was just created").
+      const isNewGoogleAccount = result.user.metadata.creationTime === result.user.metadata.lastSignInTime;
       await setDoc(doc(db, 'users', result.user.uid), {
         name: result.user.displayName || '',
         email: result.user.email || '',
         role: 'admin',
         createdAt: new Date().toISOString(),
         trialEndsAt: trialEndsAt.toISOString(),
+        ...(isNewGoogleAccount ? { orgAccessFeeRequired: true, orgAccessFeePaid: false } : {}),
       }, { merge: true });
       window.location.href = '/workspace/select-module';
     } catch {

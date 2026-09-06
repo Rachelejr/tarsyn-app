@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
@@ -145,6 +145,38 @@ export async function POST(req: NextRequest) {
         case 'payment_intent.succeeded': {
           const pi = event.data.object as Stripe.PaymentIntent;
           const meta = pi.metadata || {};
+
+          // One-time LIFETIME platform access fee (organizer $25 / member
+          // $15) - a completely separate flow from the contribution payment
+          // handling below, so it is resolved and closed out on its own.
+          if (meta.type === 'orgAccessFee' || meta.type === 'memberAccessFee') {
+            try {
+              if (meta.type === 'orgAccessFee' && meta.userId) {
+                await userRef.update({ orgAccessFeePaid: true, orgAccessFeePaidAt: new Date() });
+              } else if (meta.type === 'memberAccessFee' && meta.memberId) {
+                await adminDb.collection('members').doc(meta.memberId).update({
+                  accessFeePaid: true,
+                  accessFeePaidAt: new Date(),
+                });
+                // Lifetime fee - propagate to every other group this same
+                // person belongs to as well, so they are never charged again.
+                if (meta.userId) {
+                  const siblingsSnap = await adminDb.collection('members').where('userId', '==', meta.userId).get();
+                  const batch = adminDb.batch();
+                  siblingsSnap.docs.forEach((d) => {
+                    if (d.id !== meta.memberId) {
+                      batch.update(d.ref, { accessFeePaid: true, accessFeePaidAt: new Date() });
+                    }
+                  });
+                  await batch.commit();
+                }
+              }
+            } catch (feeErr) {
+              console.error('[webhook] access fee update failed:', feeErr);
+            }
+            break;
+          }
+
           const memberId = meta.memberId;
           const groupId = meta.groupId;
           const weekIndexesStr = meta.weekIndexes;

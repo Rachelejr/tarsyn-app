@@ -54,6 +54,8 @@ function MemberContent() {
   const [commissionSignatureName, setCommissionSignatureName] = useState('');
   const [signingCommission, setSigningCommission] = useState(false);
   const [commissionSignError, setCommissionSignError] = useState('');
+  const [accessFeeLoading, setAccessFeeLoading] = useState(false);
+  const [accessFeeError, setAccessFeeError] = useState('');
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -366,6 +368,29 @@ function MemberContent() {
     setSigningCommission(false);
   };
 
+  const handlePayAccessFee = async () => {
+    if (!activeMember?.id || !uid) return;
+    setAccessFeeLoading(true);
+    setAccessFeeError('');
+    try {
+      const res = await fetch('/api/create-access-fee-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'member', uid, memberId: activeMember.id, email: activeMember.email || '' }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setAccessFeeError('Could not start checkout. Please try again.');
+        setAccessFeeLoading(false);
+      }
+    } catch (e) {
+      setAccessFeeError('Could not start checkout. Please try again.');
+      setAccessFeeLoading(false);
+    }
+  };
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
@@ -403,6 +428,28 @@ function MemberContent() {
     });
     return () => unsub();
   }, [router, targetGroupId]);
+
+  // If we just came back from a successful access-fee checkout, poll briefly
+  // for the webhook to mark this member as paid, then do a clean reload -
+  // Stripe's webhook usually lands within a second or two of the redirect.
+  useEffect(() => {
+    const successFlag = searchParams.get('accessFeeSuccess');
+    if (!successFlag || !activeMember?.id) return;
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const snap = await getDoc(doc(db, 'members', activeMember.id));
+        if (snap.exists() && (snap.data() as any).accessFeePaid) {
+          clearInterval(interval);
+          window.location.href = '/member';
+        }
+      } catch (e) { /* ignore, will retry */ }
+      if (attempts >= 8) clearInterval(interval);
+    }, 2000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMember?.id, searchParams]);
 
   const getFileIcon = (type: string) => {
     if (type?.includes('pdf')) return { label: 'PDF', color: '#C62828' };
@@ -584,6 +631,7 @@ function MemberContent() {
   const weekKeysSorted = myPayments ? Object.keys(myPayments.weeks).sort((a, b) => Number(a) - Number(b)) : [];
 
   const needsCommissionSignature = !!(activeMember && groupCommissionTiers.length > 0 && !activeMember?.commissionAgreement?.member?.signedAt);
+  const needsAccessFeePayment = !!(activeMember && activeMember.accessFeeRequired && !activeMember.accessFeePaid);
 
   if (needsCommissionSignature) {
     return (
@@ -621,6 +669,29 @@ function MemberContent() {
           <button onClick={handleSignCommission} disabled={signingCommission}
             style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: signingCommission ? 'not-allowed' : 'pointer', opacity: signingCommission ? 0.7 : 1 }}>
             {signingCommission ? 'Saving...' : 'I Agree & Continue'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsAccessFeePayment) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(107,45,78,0.10)', textAlign: 'center' }}>
+          <h1 style={{ color: C.bordeaux, fontSize: 21, fontWeight: 800, margin: '0 0 8px' }}>One more step to activate your account</h1>
+          <p style={{ color: C.texteGris, fontSize: 13, lineHeight: 1.6, margin: '0 0 6px' }}>
+            UNIMUNITY charges a one-time <strong style={{ color: C.texteFonce }}>$15</strong> lifetime access fee for new members joining {groupName || 'a group'}.
+          </p>
+          <p style={{ color: C.texteGris, fontSize: 12, lineHeight: 1.6, margin: '0 0 22px' }}>
+            This is charged only once, ever - not for each group you join.
+          </p>
+          {accessFeeError && (
+            <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{accessFeeError}</div>
+          )}
+          <button onClick={handlePayAccessFee} disabled={accessFeeLoading}
+            style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeLoading ? 'not-allowed' : 'pointer', opacity: accessFeeLoading ? 0.7 : 1 }}>
+            {accessFeeLoading ? 'Redirecting to secure payment...' : 'Pay $15 and activate my account'}
           </button>
         </div>
       </div>
