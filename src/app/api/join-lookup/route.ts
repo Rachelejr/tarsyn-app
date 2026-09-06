@@ -28,10 +28,21 @@ export async function GET(req: NextRequest) {
     const data = memberDoc.data();
 
     let groupName = '';
+    let commissionTiers: any[] = [];
+    let currency = '';
     if (data.groupId) {
       const groupSnap = await adminDb.collection('groups').doc(data.groupId).get();
-      if (groupSnap.exists) groupName = groupSnap.data()?.name || '';
+      if (groupSnap.exists) {
+        const groupData = groupSnap.data() as any;
+        groupName = groupData?.name || '';
+        currency = groupData?.currency || '';
+        commissionTiers = Array.isArray(groupData?.commissionAgreement?.tiers) ? groupData.commissionAgreement.tiers : [];
+      }
     }
+
+    // Members already sign the commission agreement once, at join-confirm -
+    // if this member already has one on file, do not ask them to sign again.
+    const alreadySignedCommission = !!data.commissionAgreement?.member?.signedAt;
 
     return NextResponse.json({
       found: true,
@@ -47,6 +58,9 @@ export async function GET(req: NextRequest) {
       country: data.country || '',
       memberType: data.memberType || '',
       alreadyRegistered: !!data.userId,
+      commissionTiers,
+      currency,
+      alreadySignedCommission,
     });
   } catch (err: any) {
     console.error('join-lookup error:', err);

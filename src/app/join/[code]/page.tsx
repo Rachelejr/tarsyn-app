@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -34,6 +34,9 @@ type LookupResult = {
   groupName?: string;
   tynId?: string;
   alreadyRegistered?: boolean;
+  commissionTiers?: { min: number; max: number | null; rate: number }[];
+  currency?: string;
+  alreadySignedCommission?: boolean;
 };
 
 function JoinContent() {
@@ -54,6 +57,9 @@ function JoinContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [commissionAgreed, setCommissionAgreed] = useState(false);
+  const [commissionSignatureName, setCommissionSignatureName] = useState('');
+  const needsCommissionSignature = !!(lookup?.commissionTiers && lookup.commissionTiers.length > 0 && !lookup.alreadySignedCommission);
 
   useEffect(() => {
     if (!code) { setLoading(false); return; }
@@ -81,6 +87,10 @@ function JoinContent() {
       if (!lookup.fullName && !fullName.trim()) { setError('Please enter your full name.'); return; }
     }
     if (!email) { setError('Email is required.'); return; }
+    if (needsCommissionSignature) {
+      if (!commissionAgreed) { setError('Please review and accept the commission terms to continue.'); return; }
+      if (!commissionSignatureName.trim() || commissionSignatureName.trim().length < 2) { setError('Please type your full name to sign the commission agreement.'); return; }
+    }
 
     setSubmitting(true);
     try {
@@ -98,7 +108,10 @@ function JoinContent() {
       const confirmRes = await fetch('/api/join-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId: lookup.memberId, userId, name: lookup.fullName || fullName.trim(), email }),
+        body: JSON.stringify({
+          memberId: lookup.memberId, userId, name: lookup.fullName || fullName.trim(), email,
+          commissionSignatureName: needsCommissionSignature ? commissionSignatureName.trim() : undefined,
+        }),
       });
       if (!confirmRes.ok) {
         const data = await confirmRes.json().catch(() => ({}));
@@ -200,6 +213,34 @@ function JoinContent() {
           <p style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: 0 }}>{lookup.fullName || 'Member'}</p>
           {lookup.tynId && <p style={{ fontSize: 12, color: C.muted, margin: '4px 0 0' }}>TYN-ID: {lookup.tynId}</p>}
         </div>
+
+        {needsCommissionSignature && (
+          <div style={{ background: C.blanc, border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '14px 16px', marginBottom: 22 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: C.bordeaux, margin: '0 0 10px' }}>Organizer Commission</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+              {lookup.commissionTiers!.map((t, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: C.text }}>
+                  <span>{t.max === null ? `${t.min}+ ${lookup.currency || ''}` : `${t.min} – ${t.max} ${lookup.currency || ''}`}</span>
+                  <span style={{ fontWeight: 700 }}>{t.rate}%</span>
+                </div>
+              ))}
+            </div>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginBottom: commissionAgreed ? 10 : 0 }}>
+              <input type="checkbox" checked={commissionAgreed} onChange={e => setCommissionAgreed(e.target.checked)}
+                style={{ marginTop: 3, width: 16, height: 16, accentColor: C.bordeaux, cursor: 'pointer', flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, color: C.text, lineHeight: 1.5 }}>
+                I have read and agree to the organizer commission tiers above.
+              </span>
+            </label>
+            {commissionAgreed && (
+              <div style={{ marginTop: 4 }}>
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: C.text, marginBottom: 6 }}>Type your full name as your signature</label>
+                <input type="text" value={commissionSignatureName} onChange={e => setCommissionSignatureName(e.target.value)}
+                  placeholder="Your full name" style={inputStyle} />
+              </div>
+            )}
+          </div>
+        )}
 
         {error && (
           <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 18, lineHeight: 1.5 }}>{error}</div>

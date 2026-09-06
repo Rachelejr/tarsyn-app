@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 
@@ -18,7 +18,7 @@ function computeTynId(fullName: string, sequence: number): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { memberId, userId, name, email } = await req.json();
+    const { memberId, userId, name, email, commissionSignatureName } = await req.json();
 
     if (!memberId || !userId) {
       return NextResponse.json({ error: 'Missing memberId or userId' }, { status: 400 });
@@ -39,6 +39,11 @@ export async function POST(req: NextRequest) {
     };
     if (name) updateData.name = name;
     if (email) updateData.email = email;
+    if (commissionSignatureName && commissionSignatureName.trim()) {
+      updateData.commissionAgreement = {
+        member: { name: commissionSignatureName.trim(), signedAt: new Date() },
+      };
+    }
 
     // Upgrade the placeholder TYN-ID ("XX-00X") to real initials now that
     // the member has provided their name, keeping the same sequence number
