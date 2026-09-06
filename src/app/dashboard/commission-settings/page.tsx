@@ -26,10 +26,11 @@ export interface CommissionTier {
 }
 
 export const DEFAULT_COMMISSION_TIERS: CommissionTier[] = [
-  { min: 0, max: 500, rate: 0.5 },
-  { min: 500, max: 2000, rate: 1 },
-  { min: 2000, max: 5000, rate: 1.5 },
-  { min: 5000, max: null, rate: 3.5 },
+  { min: 0, max: 3000, rate: 5 },
+  { min: 3000, max: 6000, rate: 4.5 },
+  { min: 6000, max: 10000, rate: 4 },
+  { min: 10000, max: 20000, rate: 3.5 },
+  { min: 20000, max: null, rate: 3 },
 ];
 
 const inp: React.CSSProperties = {
