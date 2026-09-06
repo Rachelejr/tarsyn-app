@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -46,6 +46,12 @@ function MemberContent() {
   const [activeMember, setActiveMember] = useState<any>(null);
   const [groupName, setGroupName] = useState('');
   const [groupMemberCount, setGroupMemberCount] = useState(0);
+  const [groupCommissionTiers, setGroupCommissionTiers] = useState<any[]>([]);
+  const [groupCurrency, setGroupCurrency] = useState('');
+  const [commissionAgreed, setCommissionAgreed] = useState(false);
+  const [commissionSignatureName, setCommissionSignatureName] = useState('');
+  const [signingCommission, setSigningCommission] = useState(false);
+  const [commissionSignError, setCommissionSignError] = useState('');
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -276,25 +282,38 @@ function MemberContent() {
 
   const selectMembership = async (membership: any, currentUid: string) => {
     setActiveMember(membership);
+    setCommissionAgreed(false);
+    setCommissionSignatureName('');
+    setCommissionSignError('');
     try {
       if (membership.groupId) {
         const groupDoc = await getDoc(doc(db, 'groups', membership.groupId));
         if (groupDoc.exists()) {
-          setGroupName(groupDoc.data().name || membership.groupName || 'Your Group');
-          setBranding(groupDoc.data().groupBrand || null);
+          const gData = groupDoc.data() as any;
+          setGroupName(gData.name || membership.groupName || 'Your Group');
+          setBranding(gData.groupBrand || null);
+          setGroupCommissionTiers(Array.isArray(gData?.commissionAgreement?.tiers) ? gData.commissionAgreement.tiers : []);
+          setGroupCurrency(gData.currency || '');
         } else {
           setGroupName(membership.groupName || 'Your Group');
           setBranding(null);
+          setGroupCommissionTiers([]);
+          setGroupCurrency('');
         }
       } else {
         const gq = query(collection(db, 'groups'), where('organizerId', '==', membership.organizerId));
         const gsnap = await getDocs(gq);
         if (!gsnap.empty) {
-          setGroupName(gsnap.docs[0].data().name);
-          setBranding(gsnap.docs[0].data().groupBrand || null);
+          const gData = gsnap.docs[0].data() as any;
+          setGroupName(gData.name);
+          setBranding(gData.groupBrand || null);
+          setGroupCommissionTiers(Array.isArray(gData?.commissionAgreement?.tiers) ? gData.commissionAgreement.tiers : []);
+          setGroupCurrency(gData.currency || '');
         } else {
           setGroupName(membership.groupName || 'Your Group');
           setBranding(null);
+          setGroupCommissionTiers([]);
+          setGroupCurrency('');
         }
       }
     } catch (e) { setBranding(null); }
@@ -302,6 +321,31 @@ function MemberContent() {
     await fetchActivity(membership.organizerId);
     await fetchGroupMemberCount(membership);
     await fetchMyPayments(membership, currentUid);
+  };
+
+  const handleSignCommission = async () => {
+    if (!commissionAgreed) { setCommissionSignError('Please review and accept the commission terms to continue.'); return; }
+    if (!commissionSignatureName.trim() || commissionSignatureName.trim().length < 2) { setCommissionSignError('Please type your full name to sign the commission agreement.'); return; }
+    if (!activeMember?.id || !uid) return;
+    setSigningCommission(true);
+    setCommissionSignError('');
+    try {
+      const res = await fetch('/api/sign-commission-agreement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: activeMember.id, userId: uid, name: commissionSignatureName.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Could not save your signature. Please try again.');
+      }
+      const signedAt = new Date();
+      setActiveMember((prev: any) => prev ? { ...prev, commissionAgreement: { member: { name: commissionSignatureName.trim(), signedAt } } } : prev);
+      setAllMemberships((prev: any[]) => prev.map((m: any) => m.id === activeMember.id ? { ...m, commissionAgreement: { member: { name: commissionSignatureName.trim(), signedAt } } } : m));
+    } catch (e: any) {
+      setCommissionSignError(e?.message || 'Could not save your signature. Please try again.');
+    }
+    setSigningCommission(false);
   };
 
   useEffect(() => {
@@ -521,6 +565,50 @@ function MemberContent() {
   const paymentPct = myPayments && myPayments.total > 0 ? Math.round((myPayments.paid / myPayments.total) * 100) : null;
   const weekKeysSorted = myPayments ? Object.keys(myPayments.weeks).sort((a, b) => Number(a) - Number(b)) : [];
   const weeksToShow = showAllWeeks ? weekKeysSorted : weekKeysSorted.slice(0, 8);
+
+  const needsCommissionSignature = !!(activeMember && groupCommissionTiers.length > 0 && !activeMember?.commissionAgreement?.member?.signedAt);
+
+  if (needsCommissionSignature) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', maxWidth: 460, width: '100%', boxShadow: '0 8px 40px rgba(107,45,78,0.10)' }}>
+          <h1 style={{ color: C.bordeaux, fontSize: 21, fontWeight: 800, margin: '0 0 8px', textAlign: 'center' }}>Organizer Commission Agreement</h1>
+          <p style={{ color: C.texteGris, fontSize: 13, textAlign: 'center', margin: '0 0 20px' }}>
+            Before you can access {groupName || 'your group'}, please review and accept the commission structure below.
+          </p>
+          <div style={{ background: C.creme, borderRadius: 12, padding: '14px 16px', marginBottom: 18, display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {groupCommissionTiers.map((t: any, i: number) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: C.texteFonce }}>
+                <span>{t.max === null ? `${t.min}+ ${groupCurrency}` : `${t.min} – ${t.max} ${groupCurrency}`}</span>
+                <span style={{ fontWeight: 700 }}>{t.rate}%</span>
+              </div>
+            ))}
+          </div>
+          {commissionSignError && (
+            <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{commissionSignError}</div>
+          )}
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginBottom: commissionAgreed ? 14 : 0 }}>
+            <input type="checkbox" checked={commissionAgreed} onChange={e => setCommissionAgreed(e.target.checked)}
+              style={{ marginTop: 3, width: 16, height: 16, accentColor: C.bordeaux, cursor: 'pointer', flexShrink: 0 }} />
+            <span style={{ fontSize: 12.5, color: C.texteFonce, lineHeight: 1.5 }}>
+              I have read and agree to the organizer commission tiers above. I understand this commission is deducted automatically before each payout is sent to the member receiving that cycle.
+            </span>
+          </label>
+          {commissionAgreed && (
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: C.texteFonce, marginBottom: 6 }}>Type your full name as your signature</label>
+              <input type="text" value={commissionSignatureName} onChange={e => setCommissionSignatureName(e.target.value)}
+                placeholder="Your full name" style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 14, color: C.texteFonce, background: C.creme, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+          )}
+          <button onClick={handleSignCommission} disabled={signingCommission}
+            style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: signingCommission ? 'not-allowed' : 'pointer', opacity: signingCommission ? 0.7 : 1 }}>
+            {signingCommission ? 'Saving...' : 'I Agree & Continue'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="UNIMUNITY-mem-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
