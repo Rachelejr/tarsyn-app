@@ -204,6 +204,8 @@ export default function CreateTontinePage() {
   const [depositMultiplier, setDepositMultiplier] = useState('1× Contribution');
   const [depositCustomAmount, setDepositCustomAmount] = useState('');
   const [refundPolicy, setRefundPolicy] = useState(REFUND_POLICIES[0]);
+  const [adminAgreedCommission, setAdminAgreedCommission] = useState(false);
+  const [adminSignatureName, setAdminSignatureName] = useState('');
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) return;
@@ -228,10 +230,10 @@ export default function CreateTontinePage() {
   const commissionRate = commissionRatePercent / 100;
   const organizerRevenue = totalPool * commissionRate;
   const cycleDuration = numM * (frequencyMonths[frequency] || 1);
-  const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate);
+  const isFormValid = !!(region && customName.trim().length >= 2 && numMembers && parseInt(numMembers) >= 2 && contribution && parseFloat(contribution) > 0 && startDate && adminAgreedCommission && adminSignatureName.trim().length >= 2);
   const tabCompletion: Record<string, boolean> = {
     identity: !!region && customName.trim().length >= 2,
-    finance: !!numMembers && parseInt(numMembers) >= 2 && !!contribution && parseFloat(contribution) > 0 && !!startDate,
+    finance: !!numMembers && parseInt(numMembers) >= 2 && !!contribution && parseFloat(contribution) > 0 && !!startDate && adminAgreedCommission && adminSignatureName.trim().length >= 2,
     rotation: true,
     rules: !!rules.trim(),
     invite: emailList.length > 0,
@@ -278,6 +280,8 @@ export default function CreateTontinePage() {
     if (!contribution || parseFloat(contribution) <= 0) return setError('Contribution amount must be greater than 0.');
     if (!startDate) return setError('Please choose a start date.');
     if (new Date(startDate) <= new Date()) return setError('Start date must be in the future.');
+    if (!adminAgreedCommission) return setError('Please review and accept the commission tiers before continuing.');
+    if (!adminSignatureName.trim() || adminSignatureName.trim().length < 2) return setError('Please type your full name as your signature to accept the commission tiers.');
     setShowReview(true);
   };
   const handleSubmit = async () => {
@@ -311,6 +315,10 @@ export default function CreateTontinePage() {
         estimatedPool: totalPool,
         estimatedDuration: cycleDuration,
         organizerRevenue,
+        commissionAgreement: {
+          admin: { name: adminSignatureName.trim(), signedAt: serverTimestamp() },
+          tiers: commissionTiers,
+        },
         status: 'active',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -701,6 +709,22 @@ export default function CreateTontinePage() {
                           </div>
                         );
                       })}
+                    </div>
+                    <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: `1px solid ${C.roseClair}` }}>
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', marginBottom: adminAgreedCommission ? '10px' : 0 }}>
+                        <input type="checkbox" checked={adminAgreedCommission} onChange={e => setAdminAgreedCommission(e.target.checked)}
+                          style={{ marginTop: '3px', width: '16px', height: '16px', accentColor: C.bordeaux, cursor: 'pointer', flexShrink: 0 }} />
+                        <span style={{ fontSize: '12.5px', color: C.texteFonce, lineHeight: 1.5 }}>
+                          I have read and agree to the commission tiers above. The commission is deducted automatically before each payout is sent to the member receiving that cycle. Every member of this group will be shown these same tiers and asked to accept them before joining.
+                        </span>
+                      </label>
+                      {adminAgreedCommission && (
+                        <div>
+                          <FieldLabel label="Type your full name as your signature" />
+                          <input className="UNIMUNITY-field" type="text" value={adminSignatureName} onChange={e => setAdminSignatureName(e.target.value)}
+                            placeholder="Your full legal name" style={inp} />
+                        </div>
+                      )}
                     </div>
                   </Card>
                 </>
