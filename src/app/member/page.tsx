@@ -80,8 +80,6 @@ function MemberContent() {
     memberName: string;
   } | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
-  const [showAllWeeks, setShowAllWeeks] = useState(false);
-
   // --- Pay Now (embedded Stripe Elements) state ---
   const [showPayModal, setShowPayModal] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
@@ -584,7 +582,6 @@ function MemberContent() {
 
   const paymentPct = myPayments && myPayments.total > 0 ? Math.round((myPayments.paid / myPayments.total) * 100) : null;
   const weekKeysSorted = myPayments ? Object.keys(myPayments.weeks).sort((a, b) => Number(a) - Number(b)) : [];
-  const weeksToShow = showAllWeeks ? weekKeysSorted : weekKeysSorted.slice(0, 8);
 
   const needsCommissionSignature = !!(activeMember && groupCommissionTiers.length > 0 && !activeMember?.commissionAgreement?.member?.signedAt);
 
@@ -676,7 +673,7 @@ function MemberContent() {
           {effectiveBranding?.logo ? (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
           ) : (
-            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '32px', width: 'auto' }} />
+            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto' }} />
           )}
         </div>
         <div style={{ flex: 1, textAlign: 'center', padding: '0 12px' }}>
@@ -802,32 +799,6 @@ function MemberContent() {
                   Card payments include a small processing fee, paid by you - your organizer always receives the full contribution amount.
                 </p>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                  {weeksToShow.map((wIdx) => {
-                    const isPaid = myPayments.slots.some((s) => myPayments.payments[s]?.[wIdx]);
-                    const weekDate = new Date(myPayments.weeks[wIdx]);
-                    const isFuture = weekDate > new Date();
-                    const weekColor = paidWeekColor(wIdx);
-                    return (
-                      <div key={wIdx} className="pay-cell" title={myPayments.weeks[wIdx]}
-                        style={{
-                          width: '30px', height: '30px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '10px', fontWeight: 700,
-                          background: isFuture ? C.creme : isPaid ? weekColor : C.dangerBg,
-                          color: isFuture ? C.muted : isPaid ? 'white' : C.danger,
-                          border: '1px solid ' + (isPaid ? weekColor : C.border),
-                        }}>
-                        W{wIdx}
-                      </div>
-                    );
-                  })}
-                </div>
-                {weekKeysSorted.length > 8 && (
-                  <button onClick={() => setShowAllWeeks(!showAllWeeks)}
-                    style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: '11px', fontWeight: 700, cursor: 'pointer', marginTop: '8px', padding: 0 }}>
-                    {showAllWeeks ? 'Show less' : 'Show all weeks'}
-                  </button>
-                )}
               </>
             )}
           </div>
