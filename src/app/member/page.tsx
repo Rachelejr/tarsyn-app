@@ -56,6 +56,12 @@ function MemberContent() {
   const [commissionSignError, setCommissionSignError] = useState('');
   const [accessFeeLoading, setAccessFeeLoading] = useState(false);
   const [accessFeeError, setAccessFeeError] = useState('');
+  const [accessFeeConfirming, setAccessFeeConfirming] = useState(false);
+  const [accessFeeSuccess, setAccessFeeSuccess] = useState(false);
+  const [accessFeeClientSecret, setAccessFeeClientSecret] = useState('');
+  const accessFeeStripeRef = useRef<any>(null);
+  const accessFeeElementsRef = useRef<any>(null);
+  const accessFeePaymentElementRef = useRef<HTMLDivElement>(null);
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -368,26 +374,77 @@ function MemberContent() {
     setSigningCommission(false);
   };
 
-  const handlePayAccessFee = async () => {
+  const handleStartAccessFeePayment = async () => {
     if (!activeMember?.id || !uid) return;
     setAccessFeeLoading(true);
     setAccessFeeError('');
     try {
-      const res = await fetch('/api/create-access-fee-checkout', {
+      const res = await fetch('/api/create-access-fee-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'member', uid, memberId: activeMember.id, email: activeMember.email || '' }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.clientSecret) {
+        setAccessFeeClientSecret(data.clientSecret);
       } else {
-        setAccessFeeError('Could not start checkout. Please try again.');
-        setAccessFeeLoading(false);
+        setAccessFeeError(data.error || 'Could not start payment. Please try again.');
       }
     } catch (e) {
-      setAccessFeeError('Could not start checkout. Please try again.');
-      setAccessFeeLoading(false);
+      setAccessFeeError('Could not start payment. Please try again.');
+    }
+    setAccessFeeLoading(false);
+  };
+
+  // Mounts the embedded Stripe Payment Element for the access fee once we
+  // have a clientSecret and the gate screen's container div exists - the
+  // whole payment stays on this page, no redirect to Stripe.
+  useEffect(() => {
+    if (!accessFeeClientSecret || !accessFeePaymentElementRef.current) return;
+    let cancelled = false;
+    (async () => {
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+      if (!stripe || cancelled) return;
+      const elements = stripe.elements({ clientSecret: accessFeeClientSecret });
+      const paymentElement = elements.create('payment');
+      if (accessFeePaymentElementRef.current) paymentElement.mount(accessFeePaymentElementRef.current);
+      accessFeeStripeRef.current = stripe;
+      accessFeeElementsRef.current = elements;
+    })();
+    return () => { cancelled = true; };
+  }, [accessFeeClientSecret]);
+
+  const handleConfirmAccessFeePayment = async () => {
+    if (!accessFeeStripeRef.current || !accessFeeElementsRef.current || !activeMember?.id) return;
+    setAccessFeeConfirming(true);
+    setAccessFeeError('');
+    try {
+      const { error: confirmError } = await accessFeeStripeRef.current.confirmPayment({
+        elements: accessFeeElementsRef.current,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      });
+      if (confirmError) {
+        setAccessFeeError(confirmError.message || 'Payment failed. Please check your card details and try again.');
+        setAccessFeeConfirming(false);
+        return;
+      }
+      setAccessFeeSuccess(true);
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts += 1;
+        try {
+          const snap = await getDoc(doc(db, 'members', activeMember.id));
+          if (snap.exists() && (snap.data() as any).accessFeePaid) {
+            clearInterval(interval);
+            window.location.href = '/member';
+          }
+        } catch (e) { /* ignore, will retry */ }
+        if (attempts >= 8) clearInterval(interval);
+      }, 1500);
+    } catch (e: any) {
+      setAccessFeeError(e?.message || 'Payment failed. Please try again.');
+      setAccessFeeConfirming(false);
     }
   };
 
@@ -428,28 +485,6 @@ function MemberContent() {
     });
     return () => unsub();
   }, [router, targetGroupId]);
-
-  // If we just came back from a successful access-fee checkout, poll briefly
-  // for the webhook to mark this member as paid, then do a clean reload -
-  // Stripe's webhook usually lands within a second or two of the redirect.
-  useEffect(() => {
-    const successFlag = searchParams.get('accessFeeSuccess');
-    if (!successFlag || !activeMember?.id) return;
-    let attempts = 0;
-    const interval = setInterval(async () => {
-      attempts += 1;
-      try {
-        const snap = await getDoc(doc(db, 'members', activeMember.id));
-        if (snap.exists() && (snap.data() as any).accessFeePaid) {
-          clearInterval(interval);
-          window.location.href = '/member';
-        }
-      } catch (e) { /* ignore, will retry */ }
-      if (attempts >= 8) clearInterval(interval);
-    }, 2000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMember?.id, searchParams]);
 
   const getFileIcon = (type: string) => {
     if (type?.includes('pdf')) return { label: 'PDF', color: '#C62828' };
@@ -687,12 +722,26 @@ function MemberContent() {
             This is charged only once, ever - not for each group you join.
           </p>
           {accessFeeError && (
-            <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{accessFeeError}</div>
+            <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16, textAlign: 'left' }}>{accessFeeError}</div>
           )}
-          <button onClick={handlePayAccessFee} disabled={accessFeeLoading}
-            style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeLoading ? 'not-allowed' : 'pointer', opacity: accessFeeLoading ? 0.7 : 1 }}>
-            {accessFeeLoading ? 'Redirecting to secure payment...' : 'Pay $15 and activate my account'}
-          </button>
+          {accessFeeSuccess ? (
+            <div style={{ background: C.successBg, color: C.success, borderRadius: 10, padding: 14, fontSize: 13.5, fontWeight: 700 }}>
+              Payment received! Activating your account...
+            </div>
+          ) : accessFeeClientSecret ? (
+            <div style={{ textAlign: 'left' }}>
+              <div ref={accessFeePaymentElementRef} style={{ marginBottom: 18 }} />
+              <button onClick={handleConfirmAccessFeePayment} disabled={accessFeeConfirming}
+                style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeConfirming ? 'not-allowed' : 'pointer', opacity: accessFeeConfirming ? 0.7 : 1 }}>
+                {accessFeeConfirming ? 'Processing...' : 'Pay $15 and activate my account'}
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleStartAccessFeePayment} disabled={accessFeeLoading}
+              style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeLoading ? 'not-allowed' : 'pointer', opacity: accessFeeLoading ? 0.7 : 1 }}>
+              {accessFeeLoading ? 'Loading secure payment form...' : 'Continue to payment'}
+            </button>
+          )}
         </div>
       </div>
     );

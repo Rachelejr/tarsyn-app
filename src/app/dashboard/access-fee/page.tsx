@@ -1,15 +1,23 @@
 ﻿'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { loadStripe } from '@stripe/stripe-js';
 
 const C = { bordeaux: '#6B2D4E', creme: '#FBEEDD', dore: '#E9C77B', text: '#4A1F38', muted: '#8A7B6C' };
 
 export default function AccessFeePage() {
   const [uid, setUid] = useState('');
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const stripeRef = useRef<any>(null);
+  const elementsRef = useRef<any>(null);
+  const paymentElementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -18,25 +26,77 @@ export default function AccessFeePage() {
     return () => unsub();
   }, []);
 
-  const handlePay = async () => {
+  const handleStart = async () => {
     setError('');
-    setLoading(true);
+    setStarting(true);
     try {
-      const res = await fetch('/api/create-access-fee-checkout', {
+      const res = await fetch('/api/create-access-fee-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'organizer', uid, email }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
       } else {
-        setError('Could not start checkout. Please try again.');
-        setLoading(false);
+        setError(data.error || 'Could not start payment. Please try again.');
       }
     } catch (e) {
-      setError('Could not start checkout. Please try again.');
-      setLoading(false);
+      setError('Could not start payment. Please try again.');
+    }
+    setStarting(false);
+  };
+
+  // Mounts the embedded Stripe Payment Element once we have a clientSecret -
+  // the whole payment stays on this page, no redirect to Stripe.
+  useEffect(() => {
+    if (!clientSecret || !paymentElementRef.current) return;
+    let cancelled = false;
+    (async () => {
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+      if (!stripe || cancelled) return;
+      const elements = stripe.elements({ clientSecret });
+      const paymentElement = elements.create('payment');
+      if (paymentElementRef.current) paymentElement.mount(paymentElementRef.current);
+      stripeRef.current = stripe;
+      elementsRef.current = elements;
+    })();
+    return () => { cancelled = true; };
+  }, [clientSecret]);
+
+  const handleConfirm = async () => {
+    if (!stripeRef.current || !elementsRef.current) return;
+    setConfirming(true);
+    setError('');
+    try {
+      const { error: confirmError } = await stripeRef.current.confirmPayment({
+        elements: elementsRef.current,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      });
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed. Please check your card details and try again.');
+        setConfirming(false);
+        return;
+      }
+      setSuccess(true);
+      // Poll briefly for the webhook to mark this account as paid, then do
+      // a clean reload straight into the real dashboard.
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts += 1;
+        try {
+          const snap = await getDoc(doc(db, 'users', uid));
+          if (snap.exists() && (snap.data() as any).orgAccessFeePaid) {
+            clearInterval(interval);
+            window.location.href = '/dashboard';
+          }
+        } catch (e) { /* ignore, will retry */ }
+        if (attempts >= 8) clearInterval(interval);
+      }, 1500);
+    } catch (e: any) {
+      setError(e?.message || 'Payment failed. Please try again.');
+      setConfirming(false);
     }
   };
 
@@ -52,14 +112,28 @@ export default function AccessFeePage() {
           This is separate from your subscription plan and is charged only once, ever.
         </p>
         {error && (
-          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '10px 14px', color: '#DC2626', fontSize: '13px', marginBottom: '16px' }}>
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '10px 14px', color: '#DC2626', fontSize: '13px', marginBottom: '16px', textAlign: 'left' }}>
             {error}
           </div>
         )}
-        <button onClick={handlePay} disabled={loading || !uid}
-          style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-          {loading ? 'Redirecting to secure payment...' : 'Pay $25 and activate my account'}
-        </button>
+        {success ? (
+          <div style={{ background: '#EFF9F0', border: '1px solid #BEE3C1', borderRadius: '10px', padding: '14px', color: '#1E7A34', fontSize: '13.5px', fontWeight: 700 }}>
+            Payment received! Activating your account...
+          </div>
+        ) : clientSecret ? (
+          <div style={{ textAlign: 'left' }}>
+            <div ref={paymentElementRef} style={{ marginBottom: '18px' }} />
+            <button onClick={handleConfirm} disabled={confirming}
+              style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: confirming ? 'not-allowed' : 'pointer', opacity: confirming ? 0.7 : 1 }}>
+              {confirming ? 'Processing...' : 'Pay $25 and activate my account'}
+            </button>
+          </div>
+        ) : (
+          <button onClick={handleStart} disabled={starting || !uid}
+            style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', opacity: starting ? 0.7 : 1 }}>
+            {starting ? 'Loading secure payment form...' : 'Continue to payment'}
+          </button>
+        )}
       </div>
     </div>
   );
