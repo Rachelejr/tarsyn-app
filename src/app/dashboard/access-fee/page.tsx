@@ -15,6 +15,7 @@ export default function AccessFeePage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [clientSecret, setClientSecret] = useState('');
+  const [formReady, setFormReady] = useState(false);
   const stripeRef = useRef<any>(null);
   const elementsRef = useRef<any>(null);
   const paymentElementRef = useRef<HTMLDivElement>(null);
@@ -48,16 +49,23 @@ export default function AccessFeePage() {
   };
 
   // Mounts the embedded Stripe Payment Element once we have a clientSecret -
-  // the whole payment stays on this page, no redirect to Stripe.
+  // the whole payment stays on this page, no redirect to Stripe. The
+  // container div is always in the DOM (see JSX below) so the ref is
+  // guaranteed to be attached before this effect runs, and we wait for
+  // Stripe's own "ready" event before letting the user submit - clicking
+  // Pay while the card fields are still loading is what was causing the
+  // "no mounted Payment Element" error.
   useEffect(() => {
     if (!clientSecret || !paymentElementRef.current) return;
     let cancelled = false;
+    setFormReady(false);
     (async () => {
       const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-      if (!stripe || cancelled) return;
+      if (!stripe || cancelled || !paymentElementRef.current) return;
       const elements = stripe.elements({ clientSecret });
       const paymentElement = elements.create('payment');
-      if (paymentElementRef.current) paymentElement.mount(paymentElementRef.current);
+      paymentElement.on('ready', () => { if (!cancelled) setFormReady(true); });
+      paymentElement.mount(paymentElementRef.current);
       stripeRef.current = stripe;
       elementsRef.current = elements;
     })();
@@ -65,7 +73,7 @@ export default function AccessFeePage() {
   }, [clientSecret]);
 
   const handleConfirm = async () => {
-    if (!stripeRef.current || !elementsRef.current) return;
+    if (!stripeRef.current || !elementsRef.current || !formReady) return;
     setConfirming(true);
     setError('');
     try {
@@ -120,19 +128,25 @@ export default function AccessFeePage() {
           <div style={{ background: '#EFF9F0', border: '1px solid #BEE3C1', borderRadius: '10px', padding: '14px', color: '#1E7A34', fontSize: '13.5px', fontWeight: 700 }}>
             Payment received! Activating your account...
           </div>
-        ) : clientSecret ? (
-          <div style={{ textAlign: 'left' }}>
-            <div ref={paymentElementRef} style={{ marginBottom: '18px' }} />
-            <button onClick={handleConfirm} disabled={confirming}
-              style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: confirming ? 'not-allowed' : 'pointer', opacity: confirming ? 0.7 : 1 }}>
-              {confirming ? 'Processing...' : 'Pay $25 and activate my account'}
-            </button>
-          </div>
         ) : (
-          <button onClick={handleStart} disabled={starting || !uid}
-            style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', opacity: starting ? 0.7 : 1 }}>
-            {starting ? 'Loading secure payment form...' : 'Continue to payment'}
-          </button>
+          <div style={{ textAlign: 'left' }}>
+            {!clientSecret && (
+              <button onClick={handleStart} disabled={starting || !uid}
+                style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: starting ? 'not-allowed' : 'pointer', opacity: starting ? 0.7 : 1 }}>
+                {starting ? 'Loading secure payment form...' : 'Continue to payment'}
+              </button>
+            )}
+            <div ref={paymentElementRef} style={{ marginBottom: clientSecret ? 18 : 0 }} />
+            {clientSecret && !formReady && (
+              <p style={{ color: C.muted, fontSize: '12.5px', textAlign: 'center', margin: '0 0 18px' }}>Loading secure payment form...</p>
+            )}
+            {clientSecret && (
+              <button onClick={handleConfirm} disabled={confirming || !formReady}
+                style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: (confirming || !formReady) ? 'not-allowed' : 'pointer', opacity: (confirming || !formReady) ? 0.7 : 1 }}>
+                {confirming ? 'Processing...' : 'Pay $25 and activate my account'}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

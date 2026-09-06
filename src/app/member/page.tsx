@@ -59,6 +59,7 @@ function MemberContent() {
   const [accessFeeConfirming, setAccessFeeConfirming] = useState(false);
   const [accessFeeSuccess, setAccessFeeSuccess] = useState(false);
   const [accessFeeClientSecret, setAccessFeeClientSecret] = useState('');
+  const [accessFeeFormReady, setAccessFeeFormReady] = useState(false);
   const accessFeeStripeRef = useRef<any>(null);
   const accessFeeElementsRef = useRef<any>(null);
   const accessFeePaymentElementRef = useRef<HTMLDivElement>(null);
@@ -397,17 +398,22 @@ function MemberContent() {
   };
 
   // Mounts the embedded Stripe Payment Element for the access fee once we
-  // have a clientSecret and the gate screen's container div exists - the
-  // whole payment stays on this page, no redirect to Stripe.
+  // have a clientSecret - the container div is always in the DOM (see JSX
+  // below) so the ref is guaranteed to be attached before this effect runs.
+  // We also wait for Stripe's own "ready" event before letting the user
+  // submit - clicking Pay while the card fields are still loading is what
+  // was causing the "no mounted Payment Element" error.
   useEffect(() => {
     if (!accessFeeClientSecret || !accessFeePaymentElementRef.current) return;
     let cancelled = false;
+    setAccessFeeFormReady(false);
     (async () => {
       const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-      if (!stripe || cancelled) return;
+      if (!stripe || cancelled || !accessFeePaymentElementRef.current) return;
       const elements = stripe.elements({ clientSecret: accessFeeClientSecret });
       const paymentElement = elements.create('payment');
-      if (accessFeePaymentElementRef.current) paymentElement.mount(accessFeePaymentElementRef.current);
+      paymentElement.on('ready', () => { if (!cancelled) setAccessFeeFormReady(true); });
+      paymentElement.mount(accessFeePaymentElementRef.current);
       accessFeeStripeRef.current = stripe;
       accessFeeElementsRef.current = elements;
     })();
@@ -415,7 +421,7 @@ function MemberContent() {
   }, [accessFeeClientSecret]);
 
   const handleConfirmAccessFeePayment = async () => {
-    if (!accessFeeStripeRef.current || !accessFeeElementsRef.current || !activeMember?.id) return;
+    if (!accessFeeStripeRef.current || !accessFeeElementsRef.current || !activeMember?.id || !accessFeeFormReady) return;
     setAccessFeeConfirming(true);
     setAccessFeeError('');
     try {
@@ -728,19 +734,25 @@ function MemberContent() {
             <div style={{ background: C.successBg, color: C.success, borderRadius: 10, padding: 14, fontSize: 13.5, fontWeight: 700 }}>
               Payment received! Activating your account...
             </div>
-          ) : accessFeeClientSecret ? (
-            <div style={{ textAlign: 'left' }}>
-              <div ref={accessFeePaymentElementRef} style={{ marginBottom: 18 }} />
-              <button onClick={handleConfirmAccessFeePayment} disabled={accessFeeConfirming}
-                style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeConfirming ? 'not-allowed' : 'pointer', opacity: accessFeeConfirming ? 0.7 : 1 }}>
-                {accessFeeConfirming ? 'Processing...' : 'Pay $15 and activate my account'}
-              </button>
-            </div>
           ) : (
-            <button onClick={handleStartAccessFeePayment} disabled={accessFeeLoading}
-              style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeLoading ? 'not-allowed' : 'pointer', opacity: accessFeeLoading ? 0.7 : 1 }}>
-              {accessFeeLoading ? 'Loading secure payment form...' : 'Continue to payment'}
-            </button>
+            <div style={{ textAlign: 'left' }}>
+              {!accessFeeClientSecret && (
+                <button onClick={handleStartAccessFeePayment} disabled={accessFeeLoading}
+                  style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: accessFeeLoading ? 'not-allowed' : 'pointer', opacity: accessFeeLoading ? 0.7 : 1 }}>
+                  {accessFeeLoading ? 'Loading secure payment form...' : 'Continue to payment'}
+                </button>
+              )}
+              <div ref={accessFeePaymentElementRef} style={{ marginBottom: accessFeeClientSecret ? 18 : 0 }} />
+              {accessFeeClientSecret && !accessFeeFormReady && (
+                <p style={{ color: C.texteGris, fontSize: 12, textAlign: 'center', margin: '0 0 18px' }}>Loading secure payment form...</p>
+              )}
+              {accessFeeClientSecret && (
+                <button onClick={handleConfirmAccessFeePayment} disabled={accessFeeConfirming || !accessFeeFormReady}
+                  style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: (accessFeeConfirming || !accessFeeFormReady) ? 'not-allowed' : 'pointer', opacity: (accessFeeConfirming || !accessFeeFormReady) ? 0.7 : 1 }}>
+                  {accessFeeConfirming ? 'Processing...' : 'Pay $15 and activate my account'}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
