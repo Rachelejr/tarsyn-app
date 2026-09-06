@@ -9,6 +9,7 @@ import {
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X, Settings,
 } from 'lucide-react';
 import { DEFAULT_COMMISSION_TIERS, CommissionTier } from '../commission-settings/page';
+import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 const C = {
   bordeaux:   '#6B2D4E',
@@ -507,25 +508,30 @@ export default function CreateTontinePage() {
   return (
     <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' , display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1 }}>
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '18px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+        </div>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h2 style={{ color: C.creme, fontSize: '17px', fontWeight: 800, margin: 0 }}>Create a Tontine</h2>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+        </div>
+      </div>
       {sharedStyles}
       <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
         <div>
           <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
             <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A5E 100%)`, padding: '20px 28px' }}>
-              <button className="UNIMUNITY-btn" onClick={() => router.push('/dashboard')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.dore, fontSize: '13px', fontWeight: '600', marginBottom: '10px', padding: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ArrowLeft size={14} /> Back to Dashboard
-              </button>
-              <div role="img" aria-label="UNIMUNITY"
-                style={{
-                  height: '34px', width: '160px', marginBottom: '12px',
-                  backgroundColor: C.creme,
-                  WebkitMaskImage: 'url(/unimunity-logo-white.png)',
-                  maskImage: 'url(/unimunity-logo-white.png)',
-                  WebkitMaskSize: 'contain', maskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'left center', maskPosition: 'left center',
-                }} />
               <div style={{ textAlign: 'center' }}>
                 <h1 style={{ color: C.creme, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
                 <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
