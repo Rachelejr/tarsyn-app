@@ -380,13 +380,19 @@ export default function CreateTontinePage() {
   };
   const sharedStyles = (
     <style jsx global>{`
-      @keyframes UNIMUNITY-title-sway {
-        0%, 100% { transform: translateX(-10px); }
-        50% { transform: translateX(10px); }
+      @keyframes UNIMUNITY-title-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
       }
-      .UNIMUNITY-title-sway {
+      .UNIMUNITY-title-shimmer {
         display: inline-block;
-        animation: UNIMUNITY-title-sway 4s ease-in-out infinite;
+        background-image: linear-gradient(90deg, ${C.bordeaux} 0%, rgba(107,45,78,0.4) 45%, ${C.bordeaux} 90%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        animation: UNIMUNITY-title-shimmer 3.5s linear infinite;
       }
       .UNIMUNITY-field:focus {
         border-color: ${C.dore} !important;
@@ -539,7 +545,7 @@ export default function CreateTontinePage() {
           <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
             <div style={{ background: C.creme, padding: '20px 28px', borderBottom: `1px solid ${C.roseMoyen}` }}>
               <div style={{ textAlign: 'center' }}>
-                <h1 className="UNIMUNITY-title-sway" style={{ color: C.bordeaux, fontSize: '32px', fontWeight: '800', margin: '0 0 8px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+                <h1 className="UNIMUNITY-title-shimmer" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 8px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
                 <p style={{ color: C.texteGris, fontSize: '16px', fontWeight: 700, margin: 0, opacity: 0.9 }}>Launch your community savings group in minutes</p>
               </div>
             </div>
@@ -548,7 +554,7 @@ export default function CreateTontinePage() {
                 <button key={t.key} className="UNIMUNITY-tab" onClick={() => setActiveTab(t.key)}
                   style={{
                     padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer',
-                    fontSize: '13px', fontWeight: activeTab === t.key ? '700' : '500',
+                    fontSize: '13px', fontWeight: activeTab === t.key ? '800' : '700',
                     color: activeTab === t.key ? C.bordeaux : C.texteGris,
                     borderBottom: activeTab === t.key ? `2px solid ${C.bordeaux}` : '2px solid transparent',
                     whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px',
@@ -628,7 +634,7 @@ export default function CreateTontinePage() {
                     <div style={{ display: 'flex', gap: '8px', marginBottom: depositMode !== 'No Deposit' ? '16px' : 0, flexWrap: 'wrap' }}>
                       {DEPOSIT_MODES.map(d => (
                         <button key={d} className="UNIMUNITY-pill" onClick={() => setDepositMode(d)}
-                          style={{ padding: '8px 16px', borderRadius: '20px', border: `2px solid ${depositMode === d ? C.bordeaux : C.roseMoyen}`, background: depositMode === d ? C.bordeaux : 'white', color: depositMode === d ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px' }}>
+                          style={{ padding: '8px 16px', borderRadius: '20px', border: `2px solid ${depositMode === d ? C.bordeaux : C.roseMoyen}`, background: depositMode === d ? C.bordeaux : 'white', color: depositMode === d ? 'white' : C.texteGris, cursor: 'pointer', fontSize: '13px', fontWeight: '700' }}>
                           {d}
                         </button>
                       ))}
