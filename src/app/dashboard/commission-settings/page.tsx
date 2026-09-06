@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -29,7 +29,7 @@ export const DEFAULT_COMMISSION_TIERS: CommissionTier[] = [
   { min: 0, max: 500, rate: 0.5 },
   { min: 500, max: 2000, rate: 1 },
   { min: 2000, max: 5000, rate: 1.5 },
-  { min: 5000, max: null, rate: 2 },
+  { min: 5000, max: null, rate: 3.5 },
 ];
 
 const inp: React.CSSProperties = {
