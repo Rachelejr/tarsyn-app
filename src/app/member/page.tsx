@@ -11,6 +11,7 @@ import { Suspense } from 'react';
 import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -40,6 +41,7 @@ function MemberContent() {
   const searchParams = useSearchParams();
   const targetGroupId = searchParams.get('groupId');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentsSectionRef = useRef<HTMLDivElement>(null);
 
   const [uid, setUid] = useState('');
   const [allMemberships, setAllMemberships] = useState<any[]>([]);
@@ -280,6 +282,22 @@ function MemberContent() {
     return () => { cancelled = true; };
   }, [payClientSecret]);
 
+  // Groups created before commission tiers existed have none saved on the
+  // group itself. This asks the server (which can safely read the
+  // organizer's account) for the tiers that should apply - the group's own
+  // tiers if it has them, otherwise the organizer's current default tiers,
+  // so every member (old groups included) sees real tiers and signs them.
+  const fetchCommissionTiers = async (groupId: string): Promise<{ tiers: any[]; currency: string }> => {
+    try {
+      const res = await fetch('/api/group-commission-tiers?groupId=' + encodeURIComponent(groupId));
+      if (!res.ok) return { tiers: [], currency: '' };
+      const data = await res.json();
+      return { tiers: Array.isArray(data.tiers) ? data.tiers : [], currency: data.currency || '' };
+    } catch (e) {
+      return { tiers: [], currency: '' };
+    }
+  };
+
   const selectMembership = async (membership: any, currentUid: string) => {
     setActiveMember(membership);
     setCommissionAgreed(false);
@@ -292,8 +310,9 @@ function MemberContent() {
           const gData = groupDoc.data() as any;
           setGroupName(gData.name || membership.groupName || 'Your Group');
           setBranding(gData.groupBrand || null);
-          setGroupCommissionTiers(Array.isArray(gData?.commissionAgreement?.tiers) ? gData.commissionAgreement.tiers : []);
-          setGroupCurrency(gData.currency || '');
+          const { tiers, currency } = await fetchCommissionTiers(membership.groupId);
+          setGroupCommissionTiers(tiers);
+          setGroupCurrency(currency || gData.currency || '');
         } else {
           setGroupName(membership.groupName || 'Your Group');
           setBranding(null);
@@ -307,8 +326,9 @@ function MemberContent() {
           const gData = gsnap.docs[0].data() as any;
           setGroupName(gData.name);
           setBranding(gData.groupBrand || null);
-          setGroupCommissionTiers(Array.isArray(gData?.commissionAgreement?.tiers) ? gData.commissionAgreement.tiers : []);
-          setGroupCurrency(gData.currency || '');
+          const { tiers, currency } = await fetchCommissionTiers(gsnap.docs[0].id);
+          setGroupCommissionTiers(tiers);
+          setGroupCurrency(currency || gData.currency || '');
         } else {
           setGroupName(membership.groupName || 'Your Group');
           setBranding(null);
@@ -611,7 +631,7 @@ function MemberContent() {
   }
 
   return (
-    <div className="UNIMUNITY-mem-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
+    <div className="UNIMUNITY-mem-root" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif' }}>
       <style dangerouslySetInnerHTML={{__html: `
         .cat-pill{transition:all 0.15s ease;cursor:pointer;}
         .doc-row{transition:all 0.15s ease;}
@@ -628,15 +648,11 @@ function MemberContent() {
           background-clip: text;
           -webkit-text-fill-color: transparent;
           display: inline-block;
-          animation: UNIMUNITY-shimmer 4s linear infinite, UNIMUNITY-slide 3s ease-in-out infinite;
+          animation: UNIMUNITY-shimmer 4s linear infinite;
         }
         @keyframes UNIMUNITY-shimmer {
           0% { background-position: 0% center; }
           100% { background-position: -200% center; }
-        }
-        @keyframes UNIMUNITY-slide {
-          0%, 100% { transform: translateX(-6px); }
-          50% { transform: translateX(6px); }
         }
         .UNIMUNITY-pay-now-btn{ animation: UNIMUNITY-pulse 2.2s ease-in-out infinite; }
         @keyframes UNIMUNITY-pulse {
@@ -657,8 +673,10 @@ function MemberContent() {
 
       <nav className="UNIMUNITY-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', position: 'relative', zIndex: 3 }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-          {effectiveBranding?.logo && (
+          {effectiveBranding?.logo ? (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
+          ) : (
+            <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '28px' }} />
           )}
           <div>
             <div className="UNIMUNITY-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'UNIMUNITY'}</div>
@@ -693,11 +711,7 @@ function MemberContent() {
 
       {/* Quick Actions Bar */}
       <div style={{ flexShrink: 0, background: 'white', padding: '10px 28px', display: 'flex', gap: '10px', borderBottom: `1px solid ${C.border}` }}>
-        <button className="qa-btn" onClick={() => fileInputRef.current?.click()}
-          style={{ background: C.bordeaux, color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-          + Upload Document
-        </button>
-        <button className="qa-btn" onClick={() => { setFilterCat('Receipts'); }}
+        <button className="qa-btn" onClick={() => { setFilterCat('Receipts'); setSearch(''); documentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
           style={{ background: C.creme, color: C.bordeaux, border: `1.5px solid ${C.border}`, padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
           View Receipts ({receiptDocs.length})
         </button>
@@ -708,7 +722,7 @@ function MemberContent() {
       </div>
 
       {/* 3-column grid */}
-      <div className="UNIMUNITY-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px', minHeight: 0 }}>
+      <div className="UNIMUNITY-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px' }}>
 
         {/* LEFT - Group Info */}
         <div className="UNIMUNITY-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
@@ -819,7 +833,7 @@ function MemberContent() {
           <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>Filter documents</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             {CATEGORIES.map(c => (
-              <span key={c} className="cat-pill" onClick={() => setFilterCat(c)}
+              <span key={c} className="cat-pill" onClick={() => { setFilterCat(c); setSearch(''); documentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
                 style={{ padding: '7px 12px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700,
                   background: filterCat === c ? C.bordeaux : 'transparent', color: filterCat === c ? 'white' : C.texteGris,
                   border: '1.5px solid ' + (filterCat === c ? C.bordeaux : 'transparent') }}>
@@ -841,47 +855,37 @@ function MemberContent() {
                   {myPayments.paid}/{myPayments.total} weeks paid
                 </span>
               </div>
-              <div style={{ background: C.ivoire, borderRadius: '14px', border: '1px solid ' + C.border, overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ position: 'sticky', left: 0, background: C.bordeaux, color: C.ivoire, padding: '12px 16px', textAlign: 'left', zIndex: 2, minWidth: 180 }}>
-                        Member
-                      </th>
-                      {weekKeysSorted.map((wIdx) => (
-                        <th key={wIdx} style={{ background: C.bordeaux, color: C.dore, padding: '10px 10px', fontSize: 11, minWidth: 64, textAlign: 'center' }}>
-                          W{wIdx}
-                          <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 9.5 }}>{myPayments.weeks[wIdx]}</div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myPayments.slots.map((slotNum, i) => (
-                      <tr key={slotNum} style={{ borderBottom: '1px solid ' + C.border }}>
-                        <td style={{ position: 'sticky', left: 0, background: C.ivoire, padding: '10px 16px', fontWeight: 600, color: C.texteFonce, fontSize: 13 }}>
-                          {myPayments.memberName}{myPayments.slots.length > 1 ? ' (part ' + (i + 1) + ')' : ''}
-                        </td>
-                        {weekKeysSorted.map((wIdx) => {
-                          const isPaid = myPayments.payments[slotNum]?.[wIdx] || false;
-                          const isFuture = new Date(myPayments.weeks[wIdx]) > new Date();
-                          const weekColor = paidWeekColor(wIdx);
-                          return (
-                            <td key={wIdx} style={{ textAlign: 'center', padding: 6 }}>
-                              <div style={{
-                                width: 26, height: 26, margin: '0 auto', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: isPaid ? weekColor : isFuture ? C.creme : C.dangerBg,
-                                border: '1.5px solid ' + (isPaid ? weekColor : C.border),
-                              }}>
-                                {isPaid && <span style={{ color: C.dore, fontSize: 13, fontWeight: 700 }}>{'\u2713'}</span>}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ background: C.ivoire, borderRadius: '14px', border: '1px solid ' + C.border, padding: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                {myPayments.slots.map((slotNum, i) => (
+                  <div key={slotNum} style={{ marginBottom: i < myPayments.slots.length - 1 ? '16px' : 0 }}>
+                    {myPayments.slots.length > 1 && (
+                      <p style={{ color: C.texteFonce, fontWeight: 700, fontSize: '12.5px', margin: '0 0 8px' }}>
+                        {myPayments.memberName} (part {i + 1})
+                      </p>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: '8px' }}>
+                      {weekKeysSorted.map((wIdx) => {
+                        const isPaid = myPayments.payments[slotNum]?.[wIdx] || false;
+                        const isFuture = new Date(myPayments.weeks[wIdx]) > new Date();
+                        const weekColor = paidWeekColor(wIdx);
+                        return (
+                          <div key={wIdx} style={{
+                            borderRadius: 9, padding: '7px 8px', textAlign: 'center',
+                            background: isPaid ? weekColor : isFuture ? C.creme : C.dangerBg,
+                            border: '1.5px solid ' + (isPaid ? weekColor : C.border),
+                          }}>
+                            <div style={{ color: isPaid ? C.dore : isFuture ? C.muted : C.danger, fontWeight: 800, fontSize: 11.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                              W{wIdx}{isPaid && <span>{'\u2713'}</span>}
+                            </div>
+                            <div style={{ color: isPaid ? 'rgba(255,255,255,0.85)' : C.muted, fontSize: 9, marginTop: 2 }}>
+                              {myPayments.weeks[wIdx]}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
               <p style={{ fontSize: '10.5px', color: C.muted, margin: '8px 0 0' }}>
                 View only - your organizer marks payments as received.
@@ -889,33 +893,34 @@ function MemberContent() {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>Documents</h2>
-            <span style={{ fontSize: '12px', color: C.texteGris, fontWeight: 600 }}>{filteredDocs.length} file{filteredDocs.length !== 1 ? 's' : ''}</span>
+          <div ref={documentsSectionRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <h2 style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 800, margin: 0 }}>Documents</h2>
+            <span style={{ fontSize: '11px', color: C.texteGris, fontWeight: 600 }}>{filteredDocs.length} file{filteredDocs.length !== 1 ? 's' : ''}</span>
           </div>
 
           {error && (
-            <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>
+            <div style={{ background: '#FFEBEE', color: '#C62828', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', marginBottom: '10px' }}>{error}</div>
           )}
 
           <div className="upload-zone" onClick={() => fileInputRef.current?.click()}
             onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            style={{ border: '2px dashed ' + (isDragging ? C.bordeaux : C.border), background: isDragging ? '#F3E9D6' : C.creme, borderRadius: '14px', padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '6px' }}>+</div>
-            <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '13px', margin: '0 0 3px' }}>Click to upload or drag and drop</p>
-            <p style={{ color: C.texteGris, fontSize: '11.5px', margin: 0 }}>PDF, Word, Excel, Images</p>
+            style={{ border: '2px dashed ' + (isDragging ? C.bordeaux : C.border), background: isDragging ? '#F3E9D6' : C.creme, borderRadius: '12px', padding: '12px', textAlign: 'center', cursor: 'pointer', marginBottom: '10px' }}>
+            <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '12px', margin: 0 }}>+ Click to upload or drag and drop</p>
+            <p style={{ color: C.texteGris, fontSize: '10.5px', margin: '2px 0 0' }}>PDF, Word, Excel, Images</p>
             <input ref={fileInputRef} type="file" multiple onChange={handleFileSelected} style={{ display: 'none' }} />
           </div>
 
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by file name..."
-            style={{ width: '100%', padding: '9px 14px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '13px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }} />
+            style={{ width: '100%', padding: '8px 12px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }} />
 
           {filteredDocs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '36px 0' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>{'\ud83d\udcc1'}</div>
-              <p style={{ color: C.texteGris, fontSize: '14px' }}>No documents match your search.</p>
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ fontSize: '24px', marginBottom: '6px' }}>{'\ud83d\udcc1'}</div>
+              <p style={{ color: C.texteGris, fontSize: '13px' }}>
+                {filterCat !== 'All' ? `No documents in "${filterCat}" yet.` : search ? 'No documents match your search.' : 'No documents yet.'}
+              </p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -923,9 +928,9 @@ function MemberContent() {
                 const icon = getFileIcon(d.type);
                 return (
                   <div key={d.id}>
-                    <div className="doc-row" style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '200px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: icon.color, border: '1px solid ' + C.border, flexShrink: 0 }}>
+                    <div className="doc-row" style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: '12px', padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '200px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: icon.color, border: '1px solid ' + C.border, flexShrink: 0 }}>
                           {icon.label}
                         </div>
                         <div>
@@ -970,13 +975,6 @@ function MemberContent() {
             </div>
           )}
 
-          {(!effectiveBranding?.logo || effectiveBranding?.showUNIMUNITYBadge !== false) && (
-            <div style={{ textAlign: 'center', padding: '18px 0 4px' }}>
-              <span style={{ color: C.texteGris, fontSize: '11px', opacity: 0.7 }}>
-                Powered by UNIMUNITY{'\u2122'} {'\u00b7'} A product of Ma Production Luxenn Zara LLC {'\u00b7'} {'\u00a9'} 2026 All Rights Reserved {'\u00b7'} Version 1.0.0
-              </span>
-            </div>
-          )}
         </div>
 
         {/* RIGHT - Activity / Insights */}
@@ -1010,6 +1008,8 @@ function MemberContent() {
           )}
         </div>
       </div>
+
+      {(!effectiveBranding?.logo || effectiveBranding?.showUNIMUNITYBadge !== false) && <Footer />}
 
       {showUploadModal && pendingFiles.length > 0 && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>

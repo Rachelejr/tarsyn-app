@@ -37,6 +37,19 @@ export async function GET(req: NextRequest) {
         groupName = groupData?.name || '';
         currency = groupData?.currency || '';
         commissionTiers = Array.isArray(groupData?.commissionAgreement?.tiers) ? groupData.commissionAgreement.tiers : [];
+        // Groups created before commission tiers existed have none saved on
+        // the group itself - fall back to the organizer's current default
+        // tiers so every new member still sees real tiers to sign.
+        if (commissionTiers.length === 0) {
+          const organizerId = groupData?.organizerId || groupData?.adminId;
+          if (organizerId) {
+            try {
+              const orgSnap = await adminDb.collection('users').doc(organizerId).get();
+              const orgTiers = orgSnap.exists ? (orgSnap.data() as any)?.commissionTiers : null;
+              if (Array.isArray(orgTiers) && orgTiers.length > 0) commissionTiers = orgTiers;
+            } catch (e) { /* keep commissionTiers empty on failure */ }
+          }
+        }
       }
     }
 
