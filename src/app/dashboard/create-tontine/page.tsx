@@ -531,10 +531,10 @@ export default function CreateTontinePage() {
       <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
         <div>
           <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
-            <div style={{ background: `linear-gradient(135deg, ${C.bordeaux} 0%, #8B3A5E 100%)`, padding: '20px 28px' }}>
+            <div style={{ background: C.creme, padding: '20px 28px', borderBottom: `1px solid ${C.roseMoyen}` }}>
               <div style={{ textAlign: 'center' }}>
-                <h1 style={{ color: C.creme, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
-                <p style={{ color: C.roseClair, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
+                <h1 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+                <p style={{ color: C.texteGris, fontSize: '13px', margin: 0, opacity: 0.85 }}>Launch your community savings group in minutes</p>
               </div>
             </div>
             <div className="UNIMUNITY-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
