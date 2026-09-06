@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
+import { buildCommissionAgreementDoc } from '@/lib/commission-agreement-doc';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -63,12 +64,58 @@ export async function POST(req: NextRequest) {
 
     // Look up the group name for a more useful notification (non-blocking on failure).
     let groupName = '';
+    let groupDataForDoc: any = null;
     try {
       if (memberData.groupId) {
         const groupSnap = await adminDb.collection('groups').doc(memberData.groupId).get();
-        if (groupSnap.exists) groupName = (groupSnap.data() as any)?.name || '';
+        if (groupSnap.exists) {
+          groupDataForDoc = groupSnap.data() as any;
+          groupName = groupDataForDoc?.name || '';
+        }
       }
     } catch (groupErr) { /* non-blocking */ }
+
+    // If the member just signed the commission agreement above, archive a
+    // Word-openable copy showing both signatures in their Documents -
+    // non-blocking, since a failure here should never affect account setup.
+    if (commissionSignatureName && commissionSignatureName.trim() && groupDataForDoc) {
+      try {
+        const docOrganizerId = organizerId || groupDataForDoc?.organizerId || groupDataForDoc?.adminId;
+        let tiers = Array.isArray(groupDataForDoc?.commissionAgreement?.tiers) ? groupDataForDoc.commissionAgreement.tiers : [];
+        if (tiers.length === 0 && docOrganizerId) {
+          const orgSnap = await adminDb.collection('users').doc(docOrganizerId).get();
+          const orgTiers = orgSnap.exists ? (orgSnap.data() as any)?.commissionTiers : null;
+          tiers = Array.isArray(orgTiers) ? orgTiers : [];
+        }
+        const adminSigned = groupDataForDoc?.commissionAgreement?.admin;
+        let organizerName = adminSigned?.name || '';
+        const organizerSignedAt: Date | null = adminSigned?.signedAt?.toDate ? adminSigned.signedAt.toDate() : (adminSigned?.signedAt ? new Date(adminSigned.signedAt) : null);
+        if (!organizerName && docOrganizerId) {
+          try {
+            const organizerUser = await adminAuth.getUser(docOrganizerId);
+            organizerName = organizerUser.displayName || organizerUser.email || 'Organizer';
+          } catch (e) { organizerName = 'Organizer'; }
+        }
+        const agreementDoc = buildCommissionAgreementDoc({
+          groupName: groupDataForDoc?.name || groupName || 'Your Group',
+          memberName: commissionSignatureName.trim(),
+          memberSignedAt: new Date(),
+          organizerName: organizerName || 'Organizer',
+          organizerSignedAt,
+          tiers,
+          currency: groupDataForDoc?.currency || '',
+        });
+        await adminDb.collection('documents').add({
+          name: agreementDoc.name, type: agreementDoc.type, size: agreementDoc.size, url: agreementDoc.url,
+          storagePath: '', category: 'Contracts',
+          organizerId: docOrganizerId || '',
+          uploadedBy: 'system', source: 'admin', visibleTo: [userId],
+          createdAt: new Date(),
+        });
+      } catch (docErr) {
+        console.error('join-confirm: archive doc generation failed (non-blocking):', docErr);
+      }
+    }
 
     // Audit log entry, visible to the organizer in their Audit Log page.
     try {

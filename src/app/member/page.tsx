@@ -672,20 +672,20 @@ function MemberContent() {
       `}} />
 
       <nav className="UNIMUNITY-mem-nav" style={{ flexShrink: 0, background: effectiveBranding?.primaryColor || C.bordeaux, padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', position: 'relative', zIndex: 3 }}>
-        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+        <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: '0 0 auto' }}>
           {effectiveBranding?.logo ? (
             <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
           ) : (
             <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '28px' }} />
           )}
-          <div>
-            <div className="UNIMUNITY-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>{groupName || 'UNIMUNITY'}</div>
-            {effectiveBranding?.slogan && (
-              <div style={{ color: 'rgba(233,199,123,0.7)', fontSize: '10px', letterSpacing: '0.05em', marginTop: '2px' }}>{effectiveBranding.slogan}</div>
-            )}
-          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ flex: 1, textAlign: 'center', padding: '0 12px' }}>
+          <div className="UNIMUNITY-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1, display: 'inline-block' }}>{groupName || 'UNIMUNITY'}</div>
+          {effectiveBranding?.slogan && (
+            <div style={{ color: 'rgba(233,199,123,0.7)', fontSize: '10px', letterSpacing: '0.05em', marginTop: '2px' }}>{effectiveBranding.slogan}</div>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '0 0 auto' }}>
           <DateTimeWeather textColor="rgba(255,255,255,0.85)" />
           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
             style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.dore, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
@@ -727,14 +727,7 @@ function MemberContent() {
         {/* LEFT - Group Info */}
         <div className="UNIMUNITY-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
           <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
-            <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-              {effectiveBranding?.logo ? (
-                <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '26px', maxWidth: '120px', margin: '0 auto 8px', display: 'block' }} />
-              ) : (
-                <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '24px', margin: '0 auto 8px', display: 'block' }} />
-              )}
-              <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: 0, wordBreak: 'break-word' }}>MEMBRE</h1>
-            </div>
+            <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 14px', wordBreak: 'break-word', textAlign: 'center' }}>MEMBRE</h1>
             {activeMember && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
