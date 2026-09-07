@@ -105,7 +105,7 @@ export default function ChatWidget() {
   const [activeCategory, setActiveCategory] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<{userId:string;name:string;email:string}[]>([]);
+  const [searchResults, setSearchResults] = useState<{userId:string;name:string;email:string;memberId:string}[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const [clearing, setClearing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -172,22 +172,22 @@ export default function ChatWidget() {
     if (term.trim().length < 2 || !user) { setSearchResults([]); return; }
     const membersQ = query(collection(firestoreDb, 'members'), where('organizerId', '==', user.uid));
     const membersSnap = await getDocs(membersQ);
-    const results: {userId:string;name:string;email:string}[] = [];
+    const results: {userId:string;name:string;email:string;memberId:string}[] = [];
     const seen = new Set<string>();
     membersSnap.docs.forEach((d) => {
       const data = d.data();
       if (data.userId && data.userId !== user.uid && !seen.has(data.userId) &&
         (data.name?.toLowerCase().includes(term.toLowerCase()) || data.email?.toLowerCase().includes(term.toLowerCase()))) {
         seen.add(data.userId);
-        results.push({ userId: data.userId, name: data.name || 'Unknown', email: data.email || '' });
+        results.push({ userId: data.userId, name: data.name || 'Unknown', email: data.email || '', memberId: d.id });
       }
     });
     setSearchResults(results.slice(0, 8));
   };
-  const startChat = async (member: {userId:string;name:string}) => {
+  const startChat = async (member: {userId:string;name:string;memberId?:string}) => {
     if (!user) return;
     try {
-      const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name, firestoreDb);
+      const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name, member.memberId || null, firestoreDb);
       setActiveChatId(chatId);
       setActiveChatName(member.name);
       setShowSearch(false);

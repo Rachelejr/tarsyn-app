@@ -35,6 +35,7 @@ export interface ChatSummary {
   id: string;
   type: 'group' | 'private';
   groupId: string | null;
+  memberId?: string | null;
   name: string;
   participantIds: string[];
   lastMessage: { text: string; senderId: string; createdAt: any } | null;
@@ -90,26 +91,59 @@ export async function getOrCreateGroupChat(groupId: string, groupName: string, f
   return newChat.id;
 }
 
+// `memberId` (the member's Firestore *document* ID, not their Auth uid) is
+// the stable identity for a private chat. A member's `userId` (their
+// Firebase Auth uid) can change later - e.g. they redo account setup and
+// /api/join-confirm stamps a new uid onto their member record - and if a
+// chat's `participantIds` still has the OLD uid, Firestore's security
+// rules silently deny that member's read/write forever and their chat
+// list stays stuck on "No conversations yet.", even though the admin can
+// still see the conversation fine. Matching by `memberId` lets us notice
+// that drift and self-heal the chat's participantIds automatically.
 export async function getOrCreatePrivateChat(
   userId: string,
   otherUserId: string,
   otherUserName: string,
+  memberId: string | null = null,
   firestoreDb: Firestore = db
 ): Promise<string> {
   const chatsRef = collection(firestoreDb, 'chats');
   const q = query(chatsRef, where('type', '==', 'private'), where('participantIds', 'array-contains', userId));
   const snap = await getDocs(q);
 
+  if (memberId) {
+    const byMemberId = snap.docs.find((d) => d.data().memberId === memberId);
+    if (byMemberId) {
+      const ids: string[] = byMemberId.data().participantIds || [];
+      if (!ids.includes(otherUserId) || ids.length !== 2) {
+        // The member's uid changed since this chat was created - heal it.
+        await updateDoc(doc(firestoreDb, 'chats', byMemberId.id), {
+          participantIds: [userId, otherUserId],
+          name: otherUserName,
+        });
+      }
+      return byMemberId.id;
+    }
+  }
+
   const existing = snap.docs.find((d) => {
     const ids: string[] = d.data().participantIds || [];
     return ids.includes(otherUserId) && ids.length === 2;
   });
 
-  if (existing) return existing.id;
+  if (existing) {
+    // Legacy chat created before memberId tracking existed - stamp it on
+    // now so future uid changes for this member self-heal too.
+    if (memberId && !existing.data().memberId) {
+      await updateDoc(doc(firestoreDb, 'chats', existing.id), { memberId });
+    }
+    return existing.id;
+  }
 
   const newChat = await addDoc(chatsRef, {
     type: 'private',
     groupId: null,
+    memberId: memberId || null,
     name: otherUserName,
     participantIds: [userId, otherUserId],
     lastMessage: null,
@@ -117,6 +151,37 @@ export async function getOrCreatePrivateChat(
     updatedAt: serverTimestamp(),
   });
   return newChat.id;
+}
+
+// Re-checks a private chat's participantIds against its member record's
+// CURRENT uid right before a message is sent, and repairs it if it drifted
+// (see getOrCreatePrivateChat above for why this can happen). This covers
+// the case where the organizer opens an already-broken chat straight from
+// their chat list (instead of re-searching for the member), which
+// otherwise never goes through the healing check above. Non-blocking: if
+// anything here fails, the message still gets sent normally.
+async function healPrivateChatIfNeeded(chatId: string, firestoreDb: Firestore): Promise<void> {
+  try {
+    const chatRef = doc(firestoreDb, 'chats', chatId);
+    const chatSnap = await getDoc(chatRef);
+    if (!chatSnap.exists()) return;
+    const data = chatSnap.data() as any;
+    if (data.type !== 'private' || !data.memberId) return;
+
+    const memberSnap = await getDoc(doc(firestoreDb, 'members', data.memberId));
+    if (!memberSnap.exists()) return;
+    const memberData = memberSnap.data() as any;
+    const currentUserId = memberData?.userId;
+    const organizerId = memberData?.organizerId;
+    if (!currentUserId || !organizerId) return;
+
+    const ids: string[] = data.participantIds || [];
+    if (!ids.includes(currentUserId) || !ids.includes(organizerId)) {
+      await updateDoc(chatRef, { participantIds: [organizerId, currentUserId] });
+    }
+  } catch (err) {
+    console.error('[chat] healPrivateChatIfNeeded failed (non-blocking):', err);
+  }
 }
 
 export function listenToUserChats(
@@ -162,6 +227,8 @@ export async function sendMessage(
   const trimmed = text.trim();
   if (!trimmed) return;
 
+  await healPrivateChatIfNeeded(chatId, firestoreDb);
+
   const payload: any = {
     senderId,
     senderName,
@@ -191,6 +258,8 @@ export async function sendMediaMessage(
   firestoreDb: Firestore = db,
   storageInstance: FirebaseStorage = storage
 ): Promise<void> {
+  await healPrivateChatIfNeeded(chatId, firestoreDb);
+
   const path = 'chats/' + chatId + '/media/' + Date.now() + '_' + senderId + '.webm';
   const storageRef = ref(storageInstance, path);
   await uploadBytes(storageRef, blob);
