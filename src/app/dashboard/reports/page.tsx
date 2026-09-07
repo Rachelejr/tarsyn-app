@@ -214,8 +214,18 @@ function ReportsContent() {
         <div style={{ marginBottom: 24, textAlign: 'center' as const }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Reports Center</h1>
           <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Financial reports and exports</p>
-          <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: C.bordeaux, background: C.creme, border: '1px solid ' + C.orLight, borderRadius: 20, padding: '4px 12px' }}>
+          <span
+            onClick={planTier !== 'enterprise' ? () => router.push('/dashboard/subscription') : undefined}
+            title={planTier !== 'enterprise' ? 'See plans and upgrade' : undefined}
+            style={{
+              display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: C.bordeaux,
+              background: C.creme, border: '1px solid ' + C.orLight, borderRadius: 20, padding: '4px 12px',
+              cursor: planTier !== 'enterprise' ? 'pointer' : 'default',
+            }}>
             {reportLevelLabel}
+            {planTier !== 'enterprise' && (
+              <span style={{ marginLeft: 6, fontWeight: 800, textDecoration: 'underline' }}>Upgrade &rarr;</span>
+            )}
           </span>
         </div>
 
