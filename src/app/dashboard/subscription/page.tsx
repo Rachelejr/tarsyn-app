@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import { PRICE_ID_TO_PLAN as PLAN_LIMITS_PRICE_MAP } from '@/lib/planLimits';
 
 type BillingPeriod = 'monthly' | 'annual';
 
@@ -157,24 +158,9 @@ interface PlanDef {
 
 const SALES_EMAIL = 'sales@unimunity.com';
 
-const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
-  'price_1TipthJk3DYYTrgp7LEDrLgE': 'starter',
-  'price_1Tiq1IJk3DYYTrgp2VmhXb6J': 'growth',
-  'price_1Tiq3AJk3DYYTrgpuElHGRxd': 'pro',
-  'price_1TjVjQJk3DYYTrgpEDu8Ofyl': 'starter',
-  'price_1TjVjQJk3DYYTrgpEDu8OfyI': 'starter',
-  'price_1TjVjQJk3DYYTrgpOaG0DWjU': 'starter',
-  'price_1TjX5gJk3DYYTrgpw5ngPx4P': 'growth',
-  'price_1TjX5gJk3DYYTrgp6xy976sv': 'growth',
-  'price_1TjXA0Jk3DYYTrgpL0cf12Mw': 'pro',
-  'price_1TjXA0Jk3DYYTrgp6shxK6SC': 'pro',
-  'price_1TkzC7JBtj4UALaPm0ZOEB1T': 'starter',
-  'price_1TkzC7JBtj4UALaPhySF1Nb1': 'starter',
-  'price_1TkzC9JBtj4UALaPZZIBDCV3': 'growth',
-  'price_1TkzC8JBtj4UALaPtELbrfO9': 'growth',
-  'price_1TkzC3JBtj4UALaPFseCERie': 'pro',
-  'price_1TkzC2JBtj4UALaPBvORrRyy': 'pro',
-};
+// Kept in sync via src/lib/planLimits.ts (single source of truth for
+// price-id -> plan tier, shared with the member/group limit enforcement).
+const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = PLAN_LIMITS_PRICE_MAP as Record<string, PlanDef['id']>;
 
 const PLANS: PlanDef[] = [
   {
@@ -192,7 +178,7 @@ const PLANS: PlanDef[] = [
     groups: '2 groups',
     reports: 'Basic reports',
     support: 'Email support',
-    additional: ['Member invitations', 'Reminders', 'Document Center', 'White label (Basic)'],
+    additional: ['Member invitations', 'Reminders', 'Document Center'],
     ctaAction: 'checkout',
     ctaLabel: 'Get Starter',
     scaling: { membersIncrement: 100, priceIncrement: 5 },
@@ -808,7 +794,7 @@ function SubscriptionContent() {
                   ];
                   const WHITE_LABEL_TIER: Record<string, string> = {
                     free: '-',
-                    starter: 'Basic',
+                    starter: '-',
                     growth: 'Advanced',
                     pro: 'Professional',
                     enterprise: 'Full Customization',

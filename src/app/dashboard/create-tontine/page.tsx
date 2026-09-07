@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getOrganizerPlanTier, getPlanLimits, countOrganizerGroups, countOrganizerMembers, planLimitMessage } from '@/lib/planLimits';
 import {
   MapPin, Wallet, Repeat, FileText, UserPlus,
   ArrowRight, ArrowLeft, Check, CheckCircle2, Circle, Copy as CopyIcon, X, Settings,
@@ -271,7 +272,7 @@ export default function CreateTontinePage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  const handleReview = () => {
+  const handleReview = async () => {
     setError('');
     if (!region) return setError('Please select a region.');
     if (!customName.trim() || customName.trim().length < 2) return setError('Tontine name is required.');
@@ -282,6 +283,23 @@ export default function CreateTontinePage() {
     if (new Date(startDate) <= new Date()) return setError('Start date must be in the future.');
     if (!adminAgreedCommission) return setError('Please review and accept the commission tiers before continuing.');
     if (!adminSignatureName.trim() || adminSignatureName.trim().length < 2) return setError('Please type your full name as your signature to accept the commission tiers.');
+    const user = auth.currentUser;
+    if (user) {
+      const tier = await getOrganizerPlanTier(db, user.uid);
+      const limits = getPlanLimits(tier);
+      if (limits.maxGroups !== null) {
+        const existingGroups = await countOrganizerGroups(db, user.uid);
+        if (existingGroups >= limits.maxGroups) {
+          return setError(planLimitMessage('groups', tier, limits.maxGroups));
+        }
+      }
+      if (limits.maxMembers !== null && emailList.length > 0) {
+        const existingMembers = await countOrganizerMembers(db, user.uid);
+        if (existingMembers + emailList.length > limits.maxMembers) {
+          return setError(planLimitMessage('members', tier, limits.maxMembers));
+        }
+      }
+    }
     setShowReview(true);
   };
   const handleSubmit = async () => {

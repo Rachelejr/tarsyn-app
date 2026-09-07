@@ -8,6 +8,7 @@ import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'fireb
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -88,12 +89,18 @@ export default function BrandingPage() {
 
   const [groupStats, setGroupStats] = useState<GroupStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [hasWhiteLabel, setHasWhiteLabel] = useState(true);
+  const [planDisplayName, setPlanDisplayName] = useState('');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       setUid(u.uid);
       try {
+        const tier = await getOrganizerPlanTier(db, u.uid);
+        const limits = getPlanLimits(tier);
+        setHasWhiteLabel(limits.whiteLabel);
+        setPlanDisplayName(limits.displayName);
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
         const list: Group[] = gsnap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
@@ -230,6 +237,27 @@ export default function BrandingPage() {
       <div style={{ width: '30px', height: '30px', borderRadius: '50%', border: '3px solid #EAD9BE', borderTopColor: C.bordeaux, animation: 'UNIMUNITY-spin 0.8s linear infinite' }} />
     </div>
   );
+
+  if (!hasWhiteLabel) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
+          <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
+        </div>
+        <div style={{ maxWidth: '480px', margin: '60px auto', textAlign: 'center', background: C.blanc, borderRadius: '16px', padding: '36px 28px', border: `1.5px solid ${C.border}` }}>
+          <div style={{ fontSize: '40px', marginBottom: '10px' }}>{'\u{1F512}'}</div>
+          <h2 style={{ color: C.bordeauxDark, fontSize: '18px', fontWeight: 800, margin: '0 0 10px' }}>White Label isn&apos;t included in your {planDisplayName || 'current'} plan</h2>
+          <p style={{ color: C.muted, fontSize: '13.5px', lineHeight: 1.6, margin: '0 0 20px' }}>
+            Custom logos, colors, and slogans for your groups are available starting with the Pro plan. Upgrade to unlock Branding Studio.
+          </p>
+          <button onClick={() => router.push('/dashboard/subscription')} style={{ background: C.bordeaux, color: C.orLight, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer' }}>
+            View Plans
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (groups.length === 0) {
     return (

@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { getOrganizerPlanTier, getPlanLimits, countOrganizerMembers, planLimitMessage } from '@/lib/planLimits';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -169,6 +170,16 @@ function AddMemberContent() {
     const fullName = (form.firstName + ' ' + form.lastName).trim();
     setLoading(true);
     try {
+      const tier = await getOrganizerPlanTier(db, user.uid);
+      const limits = getPlanLimits(tier);
+      if (limits.maxMembers !== null) {
+        const totalMembers = await countOrganizerMembers(db, user.uid);
+        if (totalMembers >= limits.maxMembers) {
+          alert(planLimitMessage('members', tier, limits.maxMembers));
+          setLoading(false);
+          return;
+        }
+      }
       const existing = await getDocs(query(collection(db, 'members'), where('groupId', '==', selectedGroupId)));
       const members = existing.docs.map(d => d.data());
       if (form.email && members.some((m: any) => m.email === form.email && m.groupId === selectedGroupId)) {
