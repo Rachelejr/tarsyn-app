@@ -60,7 +60,9 @@ export default function AccessFeePage() {
     let cancelled = false;
     setFormReady(false);
     (async () => {
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+      const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+      console.log('[Stripe pubkey active]', pk.slice(0, 20));
+      const stripe = await loadStripe(pk);
       if (!stripe || cancelled || !paymentElementRef.current) return;
       const elements = stripe.elements({ clientSecret });
       const paymentElement = elements.create('payment');
