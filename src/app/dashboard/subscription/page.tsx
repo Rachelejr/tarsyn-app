@@ -512,19 +512,19 @@ function SubscriptionContent() {
         {showSuccess && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Subscription activated successfully. Welcome to UNIMUNITY.</span>
-            <button onClick={() => setShowSuccess(false)} style={{ background: 'transparent', border: 'none', color: '#2E7D32', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
+            <button onClick={() => setShowSuccess(false)} style={{ background: 'transparent', border: 'none', color: '#2E7D32', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>×</button>
           </div>
         )}
         {showCanceled && (
           <div style={{ background: '#FFF3E0', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#E65100', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Checkout canceled. You can try again anytime.</span>
-            <button onClick={() => setShowCanceled(false)} style={{ background: 'transparent', border: 'none', color: '#E65100', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
+            <button onClick={() => setShowCanceled(false)} style={{ background: 'transparent', border: 'none', color: '#E65100', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>×</button>
           </div>
         )}
         {checkoutError && (
           <div style={{ background: '#FDECEA', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#C62828', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>{checkoutError}</span>
-            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>\u00d7</button>
+            <button onClick={() => setCheckoutError(null)} style={{ background: 'transparent', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1 }}>×</button>
           </div>
         )}
 
