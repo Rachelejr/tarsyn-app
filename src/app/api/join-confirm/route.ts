@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 import { buildCommissionAgreementDoc } from '@/lib/commission-agreement-doc';
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    // One-time LIFETIME member access fee ($15) - a member who has already
+    // One-time LIFETIME member access fee ($9.99) - a member who has already
     // paid it once, on any other group they belong to, must never be asked
     // to pay a second time. Only a member with no prior paid record ever
     // owes it, so every NEW member going forward gets flagged as required,

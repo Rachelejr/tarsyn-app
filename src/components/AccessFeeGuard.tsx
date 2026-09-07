@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -6,7 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-// Gates the dashboard behind the one-time $25 lifetime organizer access
+// Gates the dashboard behind the one-time $24.99 lifetime organizer access
 // fee. Only ever blocks accounts that have `orgAccessFeeRequired` set on
 // their users/{uid} doc - that field is only written at signup going
 // forward (see /register), so every existing admin account has no such

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -116,7 +116,7 @@ export default function AccessFeePage() {
         <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', marginBottom: '20px' }} />
         <h1 style={{ color: C.bordeaux, fontSize: '22px', fontWeight: 800, margin: '0 0 12px' }}>One more step to activate your account</h1>
         <p style={{ color: C.muted, fontSize: '14px', lineHeight: 1.6, margin: '0 0 8px' }}>
-          UNIMUNITY charges a one-time <strong style={{ color: C.text }}>$25</strong> lifetime access fee for new organizer accounts.
+          UNIMUNITY charges a one-time <strong style={{ color: C.text }}>$24.99</strong> lifetime access fee for new organizer accounts.
         </p>
         <p style={{ color: C.muted, fontSize: '12.5px', lineHeight: 1.6, margin: '0 0 26px' }}>
           This is separate from your subscription plan and is charged only once, ever.
@@ -145,7 +145,7 @@ export default function AccessFeePage() {
             {clientSecret && (
               <button onClick={handleConfirm} disabled={confirming || !formReady}
                 style={{ width: '100%', padding: '14px', background: C.bordeaux, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: (confirming || !formReady) ? 'not-allowed' : 'pointer', opacity: (confirming || !formReady) ? 0.7 : 1 }}>
-                {confirming ? 'Processing...' : 'Pay $25 and activate my account'}
+                {confirming ? 'Processing...' : 'Pay $24.99 and activate my account'}
               </button>
             )}
           </div>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -722,7 +722,7 @@ function MemberContent() {
         <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(107,45,78,0.10)', textAlign: 'center' }}>
           <h1 style={{ color: C.bordeaux, fontSize: 21, fontWeight: 800, margin: '0 0 8px' }}>One more step to activate your account</h1>
           <p style={{ color: C.texteGris, fontSize: 13, lineHeight: 1.6, margin: '0 0 6px' }}>
-            UNIMUNITY charges a one-time <strong style={{ color: C.texteFonce }}>$15</strong> lifetime access fee for new members joining {groupName || 'a group'}.
+            UNIMUNITY charges a one-time <strong style={{ color: C.texteFonce }}>$9.99</strong> lifetime access fee for new members joining {groupName || 'a group'}.
           </p>
           <p style={{ color: C.texteGris, fontSize: 12, lineHeight: 1.6, margin: '0 0 22px' }}>
             This is charged only once, ever - not for each group you join.
@@ -749,7 +749,7 @@ function MemberContent() {
               {accessFeeClientSecret && (
                 <button onClick={handleConfirmAccessFeePayment} disabled={accessFeeConfirming || !accessFeeFormReady}
                   style={{ width: '100%', padding: 13, background: C.bordeaux, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: (accessFeeConfirming || !accessFeeFormReady) ? 'not-allowed' : 'pointer', opacity: (accessFeeConfirming || !accessFeeFormReady) ? 0.7 : 1 }}>
-                  {accessFeeConfirming ? 'Processing...' : 'Pay $15 and activate my account'}
+                  {accessFeeConfirming ? 'Processing...' : 'Pay $9.99 and activate my account'}
                 </button>
               )}
             </div>

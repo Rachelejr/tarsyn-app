@@ -1,13 +1,13 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // One-time LIFETIME platform access fee - separate from the recurring
 // organizer subscription plans on /dashboard/subscription, and separate
-// from members' weekly contribution payments. Charged once ever: $25 for
-// a brand new organizer account, $15 for a member the first time they
-// ever join a group.
+// from members' weekly contribution payments. Charged once ever: $24.99
+// for a brand new organizer account, $9.99 for a member the first time
+// they ever join a group.
 //
 // This creates a plain PaymentIntent (no transfer_data), so the money
 // stays entirely on the main UNIMUNITY Stripe account (Ma Production
@@ -16,8 +16,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 // our own pages (never a redirect to a Stripe-hosted checkout page), so
 // no Stripe branding or stripe.com URL is ever shown to the user.
 const AMOUNTS_CENTS: Record<'organizer' | 'member', number> = {
-  organizer: 2500,
-  member: 1500,
+  organizer: 2499,
+  member: 999,
 };
 
 export async function POST(req: NextRequest) {

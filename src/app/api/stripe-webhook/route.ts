@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
@@ -146,8 +146,8 @@ export async function POST(req: NextRequest) {
           const pi = event.data.object as Stripe.PaymentIntent;
           const meta = pi.metadata || {};
 
-          // One-time LIFETIME platform access fee (organizer $25 / member
-          // $15) - a completely separate flow from the contribution payment
+          // One-time LIFETIME platform access fee (organizer $24.99 / member
+          // $9.99) - a completely separate flow from the contribution payment
           // handling below, so it is resolved and closed out on its own.
           if (meta.type === 'orgAccessFee' || meta.type === 'memberAccessFee') {
             try {
