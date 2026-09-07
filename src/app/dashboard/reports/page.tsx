@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { getOrganizerPlanTier, getPlanLimits, PlanTier } from '@/lib/planLimits';
 
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
@@ -15,7 +16,7 @@ const C = {
 };
 
 interface Contribution { id: string; memberName: string; amount: number; method?: string; date?: string; status: string; receiptNumber?: string; memberId?: string; }
-interface Member { id: string; fullName: string; status: string; }
+interface Member { id: string; fullName: string; status: string; groupId?: string; }
 interface Group { id: string; name: string; amountPerMember?: number; contribution?: number; weeklyAmount?: number; contributionSettings?: { amount?: number }; }
 
 // Same fallback chain used elsewhere in the app (e.g. add-member) so the
@@ -32,6 +33,11 @@ function getGroupContributionAmount(group: any): number {
   return typeof amount === 'number' ? amount : (parseFloat(amount) || 0);
 }
 
+// Sentinel groupId value selecting the combined "All Groups" view, only
+// offered to organizers on the Business/Enterprise ("Advanced administration")
+// tier - see hasAdvancedAdmin below.
+const ALL_GROUPS = '__all__';
+
 function ReportsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,6 +53,7 @@ function ReportsContent() {
   const [mounted, setMounted] = useState(false);
   const [period, setPeriod] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [planTier, setPlanTier] = useState<PlanTier>('free');
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -54,6 +61,8 @@ function ReportsContent() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { setGroupsLoading(false); return; }
       try {
+        const tier = await getOrganizerPlanTier(db, u.uid);
+        setPlanTier(tier);
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
         const groupList = gsnap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
@@ -66,13 +75,26 @@ function ReportsContent() {
     });
     return () => unsub();
   }, [urlGroupId]);
+
+  // "Advanced reports" (per-member breakdown, CSV export) unlocks from the
+  // Pro plan up; "Advanced administration" (combined all-groups view,
+  // per-method breakdown) is reserved for Business/Enterprise, matching the
+  // Compare Plans table's Reports row.
+  const hasAdvancedReports = planTier === 'growth' || planTier === 'pro' || planTier === 'enterprise';
+  const hasAdvancedAdmin = planTier === 'pro' || planTier === 'enterprise';
+  const canExport = getPlanLimits(planTier).exportTools;
+  const reportLevelLabel = hasAdvancedAdmin ? 'Advanced administration' : hasAdvancedReports ? 'Advanced reports' : 'Basic reports';
+
   useEffect(() => {
     if (!groupId) return;
     const fetchData = async () => {
       const user = auth.currentUser; if (!user) return;
       setLoading(true);
       try {
-        const mSnap = await getDocs(query(collection(db, 'members'), where('groupId', '==', groupId)));
+        const mq = groupId === ALL_GROUPS
+          ? query(collection(db, 'members'), where('organizerId', '==', user.uid))
+          : query(collection(db, 'members'), where('groupId', '==', groupId));
+        const mSnap = await getDocs(mq);
         const memberList = mSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
         setMembers(memberList);
         const memberIds = new Set(memberList.map(m => m.id));
@@ -118,9 +140,35 @@ function ReportsContent() {
   const confirmedCount = filtered.filter(c => c.status === 'confirmed').length;
   const pendingCount = filtered.filter(c => c.status === 'pending').length;
   const currentGroup = groups.find(g => g.id === groupId);
-  const expectedTotal = members.length * getGroupContributionAmount(currentGroup);
+  const expectedTotal = groupId === ALL_GROUPS
+    ? groups.reduce((sum, g) => sum + members.filter(m => m.groupId === g.id).length * getGroupContributionAmount(g), 0)
+    : members.length * getGroupContributionAmount(currentGroup);
+
+  // "By Member" breakdown - part of Advanced reports (Pro plan and up).
+  const byMember = Object.values(
+    filtered.reduce((acc: Record<string, { memberId: string; name: string; collected: number; count: number }>, c) => {
+      const key = c.memberId || c.memberName;
+      if (!acc[key]) acc[key] = { memberId: key, name: c.memberName || 'Unknown', collected: 0, count: 0 };
+      if (c.status === 'confirmed') { acc[key].collected += c.amount || 0; acc[key].count += 1; }
+      return acc;
+    }, {})
+  ).sort((a, b) => b.collected - a.collected);
+
+  // "By Payment Method" breakdown - part of Advanced administration (Business/Enterprise).
+  const byMethod = Object.values(
+    filtered.filter(c => c.status === 'confirmed').reduce((acc: Record<string, { method: string; total: number; count: number }>, c) => {
+      const key = c.method || 'Unspecified';
+      if (!acc[key]) acc[key] = { method: key, total: 0, count: 0 };
+      acc[key].total += c.amount || 0; acc[key].count += 1;
+      return acc;
+    }, {})
+  ).sort((a, b) => b.total - a.total);
 
   const exportCSV = () => {
+    if (!canExport) {
+      alert('Export tools (CSV) are available starting with the Pro plan. Upgrade your plan to unlock exports.');
+      return;
+    }
     const rows = [['Receipt', 'Member', 'Amount', 'Method', 'Date', 'Status']];
     filtered.forEach(c => rows.push([c.receiptNumber || '', c.memberName, String(c.amount), c.method || '', c.date || '', c.status]));
     const csv = rows.map(r => r.join(',')).join('\n');
@@ -166,6 +214,9 @@ function ReportsContent() {
         <div style={{ marginBottom: 24, textAlign: 'center' as const }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Reports Center</h1>
           <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Financial reports and exports</p>
+          <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: C.bordeaux, background: C.creme, border: '1px solid ' + C.orLight, borderRadius: 20, padding: '4px 12px' }}>
+            {reportLevelLabel}
+          </span>
         </div>
 
         {groups.length === 0 ? (
@@ -182,6 +233,9 @@ function ReportsContent() {
             <p style={labelStyle}>Group</p>
             <select style={selectStyle} value={groupId} onChange={e => setGroupId(e.target.value)}>
               <option value="">Choose a group...</option>
+              {hasAdvancedAdmin && groups.length > 1 && (
+                <option value={ALL_GROUPS}>All Groups (Combined)</option>
+              )}
               {groups.map(g => (
                 <option key={g.id} value={g.id}>{g.name}</option>
               ))}
@@ -222,7 +276,7 @@ function ReportsContent() {
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
                 <button onClick={exportCSV}
                   style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  Export CSV
+                  {canExport ? '' : '\u{1F512} '}Export CSV
                 </button>
                 <button onClick={() => window.print()}
                   style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
@@ -244,6 +298,53 @@ function ReportsContent() {
                 </div>
               ))}
             </div>
+
+            {hasAdvancedReports && (
+              <div style={{ background: C.blanc, borderRadius: 16, padding: '18px 22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 24 }}>
+                <h2 style={{ fontSize: 14, fontWeight: 700, color: C.text, margin: '0 0 14px' }}>Breakdown by Member</h2>
+                {byMember.length === 0 ? (
+                  <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>No contributions in this period.</p>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f9fafb' }}>
+                        {['Member', 'Confirmed Payments', 'Total Collected'].map(h => (
+                          <th key={h} style={{ padding: '10px 14px', textAlign: h === 'Member' ? 'left' as const : 'right' as const, fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {byMember.map((m, i) => (
+                        <tr key={m.memberId} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? C.blanc : '#fdfcfb' }}>
+                          <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 600, color: C.text }}>{m.name}</td>
+                          <td style={{ padding: '10px 14px', fontSize: 13, color: C.muted, textAlign: 'right' as const }}>{m.count}</td>
+                          <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.bordeaux, textAlign: 'right' as const }}>${m.collected.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {hasAdvancedAdmin && (
+              <div style={{ background: C.blanc, borderRadius: 16, padding: '18px 22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 24 }}>
+                <h2 style={{ fontSize: 14, fontWeight: 700, color: C.text, margin: '0 0 14px' }}>Breakdown by Payment Method</h2>
+                {byMethod.length === 0 ? (
+                  <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>No confirmed payments in this period.</p>
+                ) : (
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
+                    {byMethod.map(m => (
+                      <div key={m.method} style={{ background: C.creme, borderRadius: 12, padding: '12px 16px', minWidth: 140 }}>
+                        <p style={{ fontSize: 11, color: C.muted, textTransform: 'capitalize' as const, margin: '0 0 4px' }}>{m.method}</p>
+                        <p style={{ fontSize: 16, fontWeight: 800, color: C.bordeauxDark, margin: 0 }}>${m.total.toFixed(2)}</p>
+                        <p style={{ fontSize: 10.5, color: C.muted, margin: '2px 0 0' }}>{m.count} payment{m.count === 1 ? '' : 's'}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
 

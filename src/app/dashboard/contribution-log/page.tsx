@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,6 +8,7 @@ import { collection, query, where, getDocs, addDoc, doc, updateDoc, serverTimest
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import * as XLSX from 'xlsx';
+import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
 
 const C = {
   cream: '#F8F4EC',
@@ -115,12 +116,17 @@ function RegisterContent() {
   const [importMsg, setImportMsg] = useState('');
   const [statusError, setStatusError] = useState('');
   const [statusMenu, setStatusMenu] = useState<{ memberId: string; cycle: number; x: number; y: number } | null>(null);
+  const [canExport, setCanExport] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       setOrganizerId(u.uid);
       setUserEmail(u.email || '');
+      try {
+        const tier = await getOrganizerPlanTier(db, u.uid);
+        setCanExport(getPlanLimits(tier).exportTools);
+      } catch (e) { console.error(e); }
       try {
         // Resolve which group this register is for. If a groupId is given in
         // the URL, use that group specifically - otherwise fall back to the
@@ -229,6 +235,10 @@ function RegisterContent() {
   };
 
   const handleExportExcel = () => {
+    if (!canExport) {
+      alert('Export tools (Excel/CSV) are available starting with the Pro plan. Upgrade your plan to unlock exports.');
+      return;
+    }
     const rows = members.sort((a, b) => a.position - b.position).map(m => {
       const row: any = { '#': m.position, 'TYN-ID': m.tynId, 'Name': (m.fullName || m.name || ''), 'Status': m.status || 'pending', 'Balance': getBalance(m.id), 'Last Payment': getLastPayment(m.id) };
       cycles.forEach(c => { const p = getPaymentFor(m.id, c); row[`Cycle ${c}`] = p ? (p.status === 'confirmed' ? 'Paid' : p.status) : ''; });
@@ -241,6 +251,10 @@ function RegisterContent() {
   };
 
   const handleExportCSV = () => {
+    if (!canExport) {
+      alert('Export tools (Excel/CSV) are available starting with the Pro plan. Upgrade your plan to unlock exports.');
+      return;
+    }
     const rows = members.sort((a, b) => a.position - b.position).map(m => ({ '#': m.position, 'TYN-ID': m.tynId, 'Name': (m.fullName || m.name || ''), 'Status': m.status || 'pending', 'Balance': getBalance(m.id) }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const csv = XLSX.utils.sheet_to_csv(ws);
@@ -508,11 +522,11 @@ function RegisterContent() {
           <div className="fade-up no-print" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <button className="btn-action" onClick={handleExportExcel}
               style={{ background: C.gold, color: C.white, border: 'none', borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-               Export Excel
+              {canExport ? '' : '\u{1F512} '}Export Excel
             </button>
             <button className="btn-action" onClick={handleExportCSV}
               style={{ background: C.burgundy, color: C.white, border: 'none', borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-               Export CSV
+              {canExport ? '' : '\u{1F512} '}Export CSV
             </button>
             <button className="btn-action" onClick={handlePrint}
               style={{ background: C.white, color: C.burgundyDark, border: `1px solid ${C.lightGray}`, borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>

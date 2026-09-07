@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, orderBy, addDoc, serverTimestamp } f
 import { onAuthStateChanged } from 'firebase/auth';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
 
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
@@ -47,12 +48,17 @@ function AuditLogContent() {
   const [mounted, setMounted] = useState(false);
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const [canExport, setCanExport] = useState(true);
 
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { router.push('/login'); return; }
+      try {
+        const tier = await getOrganizerPlanTier(db, user.uid);
+        setCanExport(getPlanLimits(tier).exportTools);
+      } catch (e) { console.error(e); }
       try {
         const q = query(
           collection(db, 'audit_logs'),
@@ -85,6 +91,10 @@ function AuditLogContent() {
   });
 
   const exportCSV = () => {
+    if (!canExport) {
+      alert('Export tools (CSV) are available starting with the Pro plan. Upgrade your plan to unlock exports.');
+      return;
+    }
     const rows = [['Date', 'Category', 'Action', 'User', 'Details']];
     filtered.forEach(e => rows.push([
       e.createdAt ? new Date(e.createdAt.seconds * 1000).toLocaleString() : '',
@@ -158,7 +168,7 @@ function AuditLogContent() {
           </div>
           <button onClick={exportCSV}
             style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 9, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-            Export CSV
+            {canExport ? '' : '\u{1F512} '}Export CSV
           </button>
         </div>
 
