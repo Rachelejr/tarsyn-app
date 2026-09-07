@@ -77,6 +77,7 @@ export default function AccessFeePage() {
         const elements = stripe.elements({ clientSecret });
         const paymentElement = elements.create('payment');
         paymentElement.on('ready', () => { if (!cancelled) setFormReady(true); });
+        paymentElement.on('loaderror', (event: any) => { if (!cancelled) setError((event?.error?.message || 'The payment form failed to load.') + ' Please contact support - error code: LOAD_ERROR.'); });
         paymentElement.mount(paymentElementRef.current);
         stripeRef.current = stripe;
         elementsRef.current = elements;

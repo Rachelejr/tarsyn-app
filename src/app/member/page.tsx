@@ -290,6 +290,7 @@ function MemberContent() {
         }
         const elements = stripe.elements({ clientSecret: payClientSecret });
         const paymentElement = elements.create('payment');
+        paymentElement.on('loaderror', (event: any) => { if (!cancelled) setPayError((event?.error?.message || 'The payment form failed to load.') + ' Please contact support - error code: LOAD_ERROR.'); });
         if (paymentElementRef.current) {
           paymentElement.mount(paymentElementRef.current);
         }
@@ -437,6 +438,7 @@ function MemberContent() {
         const elements = stripe.elements({ clientSecret: accessFeeClientSecret });
         const paymentElement = elements.create('payment');
         paymentElement.on('ready', () => { if (!cancelled) setAccessFeeFormReady(true); });
+        paymentElement.on('loaderror', (event: any) => { if (!cancelled) setAccessFeeError((event?.error?.message || 'The payment form failed to load.') + ' Please contact support - error code: LOAD_ERROR.'); });
         paymentElement.mount(accessFeePaymentElementRef.current);
         accessFeeStripeRef.current = stripe;
         accessFeeElementsRef.current = elements;
