@@ -45,7 +45,11 @@ function emailBranding(tier: PlanTier, groupName: string, groupBrand: any) {
   const brandEnabled = groupBrand?.enabled !== false;
   const whiteLabeled = PLAN_LIMITS[tier].whiteLabel && brandEnabled;
   const canHideBadge = tier === 'pro' || tier === 'enterprise';
-  const senderName = whiteLabeled ? sanitizeSenderName(groupName) : 'UNIMUNITY';
+  // The sender name is always the group's own name, on every plan
+  // (Starter included) - members should recognize which tontine sent
+  // them a reminder. Only the "Powered by UNIMUNITY" footer stays tied
+  // to the White Label / Business+ badge-hide setting.
+  const senderName = sanitizeSenderName(groupName);
   const showBadge = !(whiteLabeled && canHideBadge && groupBrand?.showUNIMUNITYBadge === false);
   return { senderName, showBadge };
 }
