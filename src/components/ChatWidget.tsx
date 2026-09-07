@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { auth, memberAuth, db } from '@/lib/firebase';
+import { auth, memberAuth, db, memberDb, storage, memberStorage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
 import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
@@ -8,6 +8,7 @@ const C = {
   bordeaux: '#6B2D4E',
   bordeauxDark: '#4A1F38',
   bg: '#FBEEDD',
+  creme: '#FBEEDD',
   white: '#FFFFFF',
   border: '#EAD9BE',
   textGris: '#6B2D4E',
@@ -86,6 +87,15 @@ export default function ChatWidget() {
   const [adminUser, setAdminUser] = useState<any>(null);
   const [memberUser, setMemberUser] = useState<any>(null);
   const user = adminUser || memberUser;
+  // Member sessions live on a SEPARATE Firebase App ("memberApp", see
+  // lib/firebase.ts) so they don't clobber an admin's session in the same
+  // browser tab. Every Firestore/Storage call below must go through the
+  // instance that matches whichever app the user is actually signed into -
+  // otherwise the request carries no matching auth token and Firestore's
+  // security rules silently deny it (this was why the member side stayed
+  // stuck on "No conversations yet." forever).
+  const firestoreDb = adminUser ? db : memberDb;
+  const storageInstance = adminUser ? storage : memberStorage;
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatName, setActiveChatName] = useState('');
@@ -131,21 +141,21 @@ export default function ChatWidget() {
   }, []);
   useEffect(() => {
     if (!user) return;
-    const unsub = listenToUserChats(user.uid, (data) => setChats(data));
+    const unsub = listenToUserChats(user.uid, (data) => setChats(data), firestoreDb);
     return () => unsub();
-  }, [user]);
+  }, [user, firestoreDb]);
   useEffect(() => {
     if (!activeChatId || !user) return;
     (async () => {
-      const snap = await getDoc(doc(db, 'chats', activeChatId));
+      const snap = await getDoc(doc(firestoreDb, 'chats', activeChatId));
       if (snap.exists()) setActiveChatName(snap.data().name || 'Chat');
     })();
     const unsub = listenToMessages(activeChatId, (msgs) => {
       setMessages(msgs);
-      markChatAsRead(activeChatId, user.uid);
-    });
+      markChatAsRead(activeChatId, user.uid, firestoreDb);
+    }, firestoreDb);
     return () => unsub();
-  }, [activeChatId, user]);
+  }, [activeChatId, user, firestoreDb]);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -160,7 +170,7 @@ export default function ChatWidget() {
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
     if (term.trim().length < 2 || !user) { setSearchResults([]); return; }
-    const membersQ = query(collection(db, 'members'), where('organizerId', '==', user.uid));
+    const membersQ = query(collection(firestoreDb, 'members'), where('organizerId', '==', user.uid));
     const membersSnap = await getDocs(membersQ);
     const results: {userId:string;name:string;email:string}[] = [];
     const seen = new Set<string>();
@@ -177,7 +187,7 @@ export default function ChatWidget() {
   const startChat = async (member: {userId:string;name:string}) => {
     if (!user) return;
     try {
-      const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name);
+      const chatId = await getOrCreatePrivateChat(user.uid, member.userId, member.name, firestoreDb);
       setActiveChatId(chatId);
       setActiveChatName(member.name);
       setShowSearch(false);
@@ -195,12 +205,12 @@ export default function ChatWidget() {
     setText('');
     setShowEmoji(false);
     setReplyingTo(null);
-    await sendMessage(activeChatId, user.uid, senderName, toSend, { replyTo: reply });
+    await sendMessage(activeChatId, user.uid, senderName, toSend, { replyTo: reply }, firestoreDb);
   };
   const handleForwardTo = async (targetChatId: string) => {
     if (!forwardingMsg || !user) return;
     const senderName = user.displayName || user.email?.split('@')[0] || 'Member';
-    await sendMessage(targetChatId, user.uid, senderName, forwardingMsg.text, { forwarded: true });
+    await sendMessage(targetChatId, user.uid, senderName, forwardingMsg.text, { forwarded: true }, firestoreDb);
     setForwardingMsg(null);
   };
   const addEmoji = (emoji: string) => setText((t) => t + emoji);
@@ -210,7 +220,7 @@ export default function ChatWidget() {
     setClearing(true);
     setShowMenu(false);
     try {
-      await clearChat(activeChatId);
+      await clearChat(activeChatId, firestoreDb);
     } catch (e) {
       console.error(e);
     }
@@ -222,7 +232,7 @@ export default function ChatWidget() {
     if (!activeChatId || !user) return;
     setOpenMsgMenu(null);
     try {
-      await deleteMessageForMe(activeChatId, messageId, user.uid);
+      await deleteMessageForMe(activeChatId, messageId, user.uid, firestoreDb);
     } catch (e) { console.error(e); }
   };
   const handleDeleteForEveryone = async (messageId: string) => {
@@ -230,7 +240,7 @@ export default function ChatWidget() {
     if (!confirm('Delete this message for everyone?')) return;
     setOpenMsgMenu(null);
     try {
-      await deleteMessageForEveryone(activeChatId, messageId);
+      await deleteMessageForEveryone(activeChatId, messageId, firestoreDb);
     } catch (e) { console.error(e); }
   };
 
@@ -323,7 +333,7 @@ export default function ChatWidget() {
     setMediaError('');
     const senderName = user.displayName || user.email?.split('@')[0] || 'Member';
     try {
-      await sendMediaMessage(activeChatId, user.uid, senderName, previewBlob, recordingMode, recordSeconds);
+      await sendMediaMessage(activeChatId, user.uid, senderName, previewBlob, recordingMode, recordSeconds, firestoreDb, storageInstance);
       setUploadingMedia(false);
       cancelRecording();
     } catch (e) {
