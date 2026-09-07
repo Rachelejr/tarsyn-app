@@ -1,9 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
+import { PLAN_LIMITS, getPlanTierFromPriceId, PlanTier } from '@/lib/planLimits';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const DEFAULT_LOGO = 'https://unimunity.com/unimunity-logo.png';
+
+// Admin-SDK equivalent of planLimits.ts's getOrganizerPlanTier (that one
+// uses the client Firestore SDK, which isn't available in this server
+// cron route). Cached per organizer for the duration of a single run,
+// since one organizer can have several groups.
+const organizerTierCache: Record<string, PlanTier> = {};
+async function getOrganizerPlanTierAdmin(organizerId: string): Promise<PlanTier> {
+  if (organizerTierCache[organizerId]) return organizerTierCache[organizerId];
+  let tier: PlanTier = 'free';
+  try {
+    const snap = await adminDb.collection('users').doc(organizerId).get();
+    const subscription = snap.exists ? (snap.data() as any)?.subscription : null;
+    if (subscription?.status === 'active' || subscription?.status === 'trialing') {
+      tier = getPlanTierFromPriceId(subscription?.plan);
+    }
+  } catch (e) {
+    console.error('getOrganizerPlanTierAdmin failed for', organizerId, e);
+  }
+  organizerTierCache[organizerId] = tier;
+  return tier;
+}
+
+// Member-facing emails (reminders, payout notices) should read as coming
+// from the organizer's own group when White Label is active for their
+// plan, instead of always showing "UNIMUNITY" - otherwise white-labeling
+// only applies to the in-app pages, not the automated emails members
+// actually receive. The "Powered by UNIMUNITY" footer follows the same
+// Business+/Branding Studio toggle used on the in-app preview.
+// A group name is free text an organizer typed in - strip characters that
+// would break the "Name <email>" header syntax (quotes, angle brackets,
+// commas, line breaks) before ever using it as an email sender name.
+function sanitizeSenderName(name: string): string {
+  const cleaned = name.replace(/["<>,\r\n]/g, '').trim();
+  return cleaned || 'UNIMUNITY';
+}
+
+function emailBranding(tier: PlanTier, groupName: string, groupBrand: any) {
+  const brandEnabled = groupBrand?.enabled !== false;
+  const whiteLabeled = PLAN_LIMITS[tier].whiteLabel && brandEnabled;
+  const canHideBadge = tier === 'pro' || tier === 'enterprise';
+  const senderName = whiteLabeled ? sanitizeSenderName(groupName) : 'UNIMUNITY';
+  const showBadge = !(whiteLabeled && canHideBadge && groupBrand?.showUNIMUNITYBadge === false);
+  return { senderName, showBadge };
+}
 
 function logoBlock(logoUrl?: string) {
   const src = logoUrl || DEFAULT_LOGO;
@@ -54,9 +99,9 @@ function computeOverdue(grid: any, members: Record<string, any>) {
   return results;
 }
 
-async function sendReminderEmail(memberEmail: string, memberName: string, groupName: string, amount: number, adminName: string, logoUrl?: string) {
+async function sendReminderEmail(memberEmail: string, memberName: string, groupName: string, amount: number, adminName: string, logoUrl?: string, senderName: string = 'UNIMUNITY', showBadge: boolean = true) {
   await resend.emails.send({
-    from: 'UNIMUNITY <noreply@unimunity.com>',
+    from: senderName + ' <noreply@unimunity.com>',
     to: memberEmail,
     subject: 'Reminder: Contribution due - ' + groupName,
     html:
@@ -69,7 +114,7 @@ async function sendReminderEmail(memberEmail: string, memberName: string, groupN
       '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">$' + amount.toFixed(2) + '</p>' +
       '</div>' +
       '<p style="color: #7A5068; font-size: 12.5px; margin: 0;">Please log in to UNIMUNITY to view your payment grid and pay online if available.</p>' +
-      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
+      (showBadge ? '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' : '') +
       '</div>',
   });
 }
@@ -101,9 +146,9 @@ async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]
   });
 }
 
-async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string, groupName: string, payoutDate: string, organizerEmail?: string, logoUrl?: string) {
+async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string, groupName: string, payoutDate: string, organizerEmail?: string, logoUrl?: string, senderName: string = 'UNIMUNITY', showBadge: boolean = true) {
   await resend.emails.send({
-    from: 'UNIMUNITY <noreply@unimunity.com>',
+    from: senderName + ' <noreply@unimunity.com>',
     to: memberEmail,
     cc: organizerEmail ? [organizerEmail] : undefined,
     subject: 'Your payout is coming up - ' + groupName,
@@ -116,7 +161,7 @@ async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string,
       '<p style="color: #7A5068; font-size: 12px; margin: 0 0 6px; text-transform: uppercase;">Payout Date</p>' +
       '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">' + payoutDate + '</p>' +
       '</div>' +
-      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
+      (showBadge ? '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' : '') +
       '</div>',
   });
 }
@@ -154,6 +199,8 @@ export async function GET(req: NextRequest) {
         const groupData = groupSnap.exists ? groupSnap.data() as any : null;
         const groupName = groupData?.name || 'Your Group';
         const logoUrl = groupData?.groupBrand?.logo || undefined;
+        const organizerTier = await getOrganizerPlanTierAdmin(grid.organizerId);
+        const { senderName, showBadge } = emailBranding(organizerTier, groupName, groupData?.groupBrand);
 
         const membersSnap = await adminDb.collection('members').where('groupId', '==', groupId).get();
         const membersById: Record<string, any> = {};
@@ -166,7 +213,7 @@ export async function GET(req: NextRequest) {
           totalOwed += item.amountOwed;
           if (item.member.email) {
             try {
-              await sendReminderEmail(item.member.email, item.member.fullName || item.member.name || 'Member', groupName, item.amountOwed, 'your organizer', logoUrl);
+              await sendReminderEmail(item.member.email, item.member.fullName || item.member.name || 'Member', groupName, item.amountOwed, 'your organizer', logoUrl, senderName, showBadge);
               results.remindersSent++;
             } catch (e: any) {
               results.errors.push('reminder failed for ' + item.memberId + ': ' + e.message);
@@ -207,7 +254,9 @@ export async function GET(req: NextRequest) {
                 groupName,
                 datesToCheck.find((d) => { const dt = new Date(d); return dt >= now && dt <= in7Days; }) || '',
                 organizerData?.email,
-                logoUrl
+                logoUrl,
+                senderName,
+                showBadge
               );
               await adminDb.collection('members').doc(member.id).update({ payoutReminderSent: true });
               results.payoutNoticesSent++;

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -91,6 +91,7 @@ export default function BrandingPage() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [hasWhiteLabel, setHasWhiteLabel] = useState(true);
   const [planDisplayName, setPlanDisplayName] = useState('');
+  const [canHideBadge, setCanHideBadge] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -101,6 +102,11 @@ export default function BrandingPage() {
         const limits = getPlanLimits(tier);
         setHasWhiteLabel(limits.whiteLabel);
         setPlanDisplayName(limits.displayName);
+        // Hiding the "Powered by UNIMUNITY" badge (the "Professional" /
+        // "Full Customization" white label level) is reserved for
+        // Business and Enterprise - Pro keeps full logo/color/font
+        // customization but the badge stays on.
+        setCanHideBadge(tier === 'pro' || tier === 'enterprise');
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);
         const list: Group[] = gsnap.docs.map(d => ({ id: d.id, ...d.data() } as Group));
@@ -201,7 +207,7 @@ export default function BrandingPage() {
     try {
       const groupBrand: GroupBrand = {
         logo: logoUrl, slogan: slogan.trim(), sloganColor, sloganFontSize, primaryColor, secondaryColor,
-        fontFamily, showUNIMUNITYBadge, enabled,
+        fontFamily, showUNIMUNITYBadge: canHideBadge ? showUNIMUNITYBadge : true, enabled,
       };
       await updateDoc(doc(db, 'groups', selectedGroupId), { groupBrand });
       setGroups(prev => prev.map(g => g.id === selectedGroupId ? { ...g, groupBrand } : g));
@@ -396,11 +402,15 @@ export default function BrandingPage() {
             </div>
 
             <div className="bs-section">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={showUNIMUNITYBadge} onChange={e => setShowUNIMUNITYBadge(e.target.checked)}
-                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: C.bordeaux }} />
-                <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px' }}>Show &quot;Powered by UNIMUNITY&quot;</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: canHideBadge ? 'pointer' : 'not-allowed' }}>
+                <input type="checkbox" checked={canHideBadge ? showUNIMUNITYBadge : true} disabled={!canHideBadge}
+                  onChange={e => setShowUNIMUNITYBadge(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: canHideBadge ? 'pointer' : 'not-allowed', accentColor: C.bordeaux, opacity: canHideBadge ? 1 : 0.6 }} />
+                <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px', opacity: canHideBadge ? 1 : 0.6 }}>Show &quot;Powered by UNIMUNITY&quot;</span>
               </label>
+              {!canHideBadge && (
+                <p className="bs-help" style={{ margin: '4px 0 0' }}>Hiding this badge is available from the Business plan.</p>
+              )}
             </div>
           </div>
         )}
