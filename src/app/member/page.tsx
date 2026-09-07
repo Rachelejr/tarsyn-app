@@ -276,15 +276,28 @@ function MemberContent() {
     if (!payClientSecret || !paymentElementRef.current) return;
     let cancelled = false;
     (async () => {
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-      if (!stripe || cancelled) return;
-      const elements = stripe.elements({ clientSecret: payClientSecret });
-      const paymentElement = elements.create('payment');
-      if (paymentElementRef.current) {
-        paymentElement.mount(paymentElementRef.current);
+      try {
+        const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+        if (!pk) {
+          if (!cancelled) setPayError('The payment form could not load (missing payment configuration). Please contact support - error code: PK_MISSING.');
+          return;
+        }
+        const stripe = await loadStripe(pk);
+        if (cancelled) return;
+        if (!stripe) {
+          setPayError('The payment form could not load (invalid payment configuration). Please contact support - error code: PK_INVALID.');
+          return;
+        }
+        const elements = stripe.elements({ clientSecret: payClientSecret });
+        const paymentElement = elements.create('payment');
+        if (paymentElementRef.current) {
+          paymentElement.mount(paymentElementRef.current);
+        }
+        stripeInstanceRef.current = stripe;
+        stripeElementsRef.current = elements;
+      } catch (e: any) {
+        if (!cancelled) setPayError('The payment form failed to load: ' + (e?.message || 'unknown error') + '. Please refresh and try again.');
       }
-      stripeInstanceRef.current = stripe;
-      stripeElementsRef.current = elements;
     })();
     return () => { cancelled = true; };
   }, [payClientSecret]);
@@ -408,14 +421,28 @@ function MemberContent() {
     let cancelled = false;
     setAccessFeeFormReady(false);
     (async () => {
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-      if (!stripe || cancelled || !accessFeePaymentElementRef.current) return;
-      const elements = stripe.elements({ clientSecret: accessFeeClientSecret });
-      const paymentElement = elements.create('payment');
-      paymentElement.on('ready', () => { if (!cancelled) setAccessFeeFormReady(true); });
-      paymentElement.mount(accessFeePaymentElementRef.current);
-      accessFeeStripeRef.current = stripe;
-      accessFeeElementsRef.current = elements;
+      try {
+        const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+        if (!pk) {
+          if (!cancelled) setAccessFeeError('The payment form could not load (missing payment configuration). Please contact support - error code: PK_MISSING.');
+          return;
+        }
+        const stripe = await loadStripe(pk);
+        if (cancelled) return;
+        if (!stripe) {
+          setAccessFeeError('The payment form could not load (invalid payment configuration). Please contact support - error code: PK_INVALID.');
+          return;
+        }
+        if (!accessFeePaymentElementRef.current) return;
+        const elements = stripe.elements({ clientSecret: accessFeeClientSecret });
+        const paymentElement = elements.create('payment');
+        paymentElement.on('ready', () => { if (!cancelled) setAccessFeeFormReady(true); });
+        paymentElement.mount(accessFeePaymentElementRef.current);
+        accessFeeStripeRef.current = stripe;
+        accessFeeElementsRef.current = elements;
+      } catch (e: any) {
+        if (!cancelled) setAccessFeeError('The payment form failed to load: ' + (e?.message || 'unknown error') + '. Please refresh and try again.');
+      }
     })();
     return () => { cancelled = true; };
   }, [accessFeeClientSecret]);
