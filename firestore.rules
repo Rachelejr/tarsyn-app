@@ -181,5 +181,18 @@ service cloud.firestore {
         allow delete: if false;
       }
     }
+
+    // UNIMUNITY AI Assistant - conversation history (Phase 1).
+    // Every path starts with the requester's own uid, so this single rule
+    // guarantees no user - regardless of role (Super Admin, Admin, or a
+    // future Member mode) - can ever read or write another user's AI
+    // conversations. Completely separate from /chats (human messages)
+    // above: different collection, different rule, never shared.
+    match /aiConversations/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
   }
 }

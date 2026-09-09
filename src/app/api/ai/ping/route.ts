@@ -9,8 +9,7 @@ import { buildContext } from '@/lib/ai/contextManager';
 import { canUseAI } from '@/lib/ai/permissions';
 import { callAI } from '@/lib/ai/aiService';
 import { logAIEvent } from '@/lib/ai/auditLog';
-
-const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
+import { SUPER_ADMIN_EMAIL } from '@/lib/ai/constants';
 
 export async function POST(req: NextRequest) {
   try {

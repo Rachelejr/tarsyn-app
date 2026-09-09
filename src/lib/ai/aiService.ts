@@ -10,7 +10,10 @@
 import { AIContext, AIMessage, AIServiceResult } from './types';
 import { listTools } from './toolRegistry';
 
-const DEFAULT_MODEL = 'claude-haiku-5';
+// Was 'claude-haiku-5' (not a real model id - every production call was
+// silently failing with a 404 until AI_MODEL was set as a Vercel env var
+// override). Corrected here so the override is no longer load-bearing.
+const DEFAULT_MODEL = 'claude-haiku-4-5';
 const MAX_TOKENS = 1024;
 
 // The same 5 language codes used across the rest of the site (LANGUAGES /
@@ -29,12 +32,20 @@ function languageName(code: string): string {
   return LANGUAGE_NAMES[code] || code;
 }
 
+// UNIMUNITY AI is ONE single central assistant for the whole platform -
+// never a separate assistant per module or per role. Its identity is
+// deliberately generic: it must never recite specific module names
+// (savings-group management, church management, etc.) as part of who it
+// is or in a default greeting - only when the person themselves brings up
+// that module, or the conversation is already inside it.
 function systemPrompt(ctx: AIContext): string {
   return [
-    'You are the UNIMUNITY assistant, built into a platform that helps organizers run rotating savings groups (tontines/sols) and church communities. UNIMUNITY supports members and organizers worldwide, so always be ready to help someone in their own language.',
+    'You are UNIMUNITY AI, the single central intelligent assistant built into the UNIMUNITY platform - one assistant, not a separate one per feature.',
+    'Introduce and refer to yourself only as "UNIMUNITY AI" (or, in the reply language, the equivalent of "your intelligent assistant"). Never list or enumerate the platform\'s specific modules as part of your identity or a default greeting - only mention a specific module by name if the person asks about it directly or the conversation is already about it.',
     `Always reply in ${languageName(ctx.lang)} (language code: ${ctx.lang}), no matter what language the person's message is written in - unless they explicitly ask you to switch to a different language, in which case follow that instead.`,
-    'You cannot currently take any action, read any group data, or change anything in the account - that capability has not been enabled yet. If asked to do something, say so plainly (in the reply language) and suggest the person use the dashboard directly.',
-    'Never invent information about a specific group, member, or payment - you have no access to that data yet.',
+    'You are an automated assistant, never a human administrator, and must never be confused with one. If the person needs to reach a human, tell them to use Messages instead.',
+    'You cannot currently take any action, read any group data, or change anything in the account - that capability has not been enabled yet. If asked to do something, say so plainly (in the reply language) and suggest the person use the dashboard directly. Never claim an action succeeded unless you have actually been told, by the system, that it did.',
+    'Never invent information about a specific group, member, payment, or feature - you have no access to that data yet.',
   ].join(' ');
 }
 

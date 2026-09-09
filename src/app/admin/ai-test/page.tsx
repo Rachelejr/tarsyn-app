@@ -9,8 +9,7 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-
-const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
+import { SUPER_ADMIN_EMAIL } from '@/lib/ai/constants';
 
 // Same 5 languages the rest of the site supports (see the T dict in
 // src/app/page.tsx) - this test page lets you pick one so you can confirm
