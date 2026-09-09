@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
@@ -89,7 +89,7 @@ const EXPERT_FEATURES = [
 ];
 
 const FAQ = [
-  {q:'Is UNIMUNITY free?', a:'Yes! UNIMUNITY is free to use. A small 0.5% platform fee applies per distribution - only when money is distributed.'},
+  {q:'Is UNIMUNITY free?', a:'No - UNIMUNITY is a paid platform. There is a 7-day free trial, then organizers pay a one-time $24.99 lifetime access fee plus a subscription starting at $9.99/month. Some groups also charge a one-time $9.99 member access fee. There is no free-forever plan.'},
   {q:'How many members can a group have?', a:'Unlimited. UNIMUNITY supports groups of 2 to 10,000+ members with no restrictions.'},
   {q:'Is my data secure?', a:'Absolutely. Each group has a completely isolated, encrypted space. No group can ever see another group\'s data.'},
   {q:'Can I use UNIMUNITY in my language?', a:'Yes! UNIMUNITY supports 25 languages with auto-detection. More languages are added regularly.'},
@@ -108,11 +108,19 @@ export default function HomePage() {
   const [showLangModal, setShowLangModal] = useState(false);
   const [email, setEmail]           = useState('');
   const [emailSent, setEmailSent]   = useState(false);
+  const [testimonials, setTestimonials] = useState<{id:string; authorName:string; authorRole:string; rating:number; text:string}[]>([]);
 
   useEffect(()=>{
     setMounted(true);
     const ii = setInterval(()=>setActiveImg(p=>(p+1)%COMMUNITY_IMGS.length),4000);
     return()=>{clearInterval(ii);};
+  },[]);
+
+  useEffect(()=>{
+    fetch('/api/public-testimonials')
+      .then(r=>r.json())
+      .then(data=>{ if (Array.isArray(data?.testimonials)) setTestimonials(data.testimonials); })
+      .catch(()=>{ /* keep the fallback "leave a review" card - never break the home page */ });
   },[]);
 
   const handleLangChange = (val: string) => {
@@ -236,7 +244,7 @@ export default function HomePage() {
             </a>
           </div>
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginTop:'52px',flexWrap:'wrap',gap:'4px'}}>
-            <span style={{color:'rgba(251,238,221,0.75)',fontSize:'13px',fontWeight:'500'}}>{'\ud83c\udf81'} 30-day free trial {'\u00b7'} No credit card required</span>
+            <span style={{color:'rgba(251,238,221,0.75)',fontSize:'13px',fontWeight:'500'}}>{'\ud83c\udf81'} 7-day free trial {'\u00b7'} No credit card required</span>
           </div>
         </div>
       </div>
@@ -319,7 +327,7 @@ export default function HomePage() {
 
       <div style={{background:'#EAD9BE',padding:'44px 32px'}}>
         <div style={{display:'flex',justifyContent:'center',gap:'64px',flexWrap:'wrap'}}>
-          {[['30-Day','Free Trial'],['25','Languages Supported'],['100%','Automatic & Secure'],['5','Plans - Free to Enterprise']].map(([v,l])=>(
+          {[['7-Day','Free Trial'],['25','Languages Supported'],['100%','Automatic & Secure'],['2','Plans - No Free Tier']].map(([v,l])=>(
             <div key={l} style={{textAlign:'center'}}>
               <div style={{fontSize:'38px',fontWeight:'800',color:'#6B2D4E'}}>{v}</div>
               <div style={{fontSize:'13px',color:'#6B2D4E',marginTop:'6px',fontWeight:'500'}}>{l}</div>
@@ -334,7 +342,7 @@ export default function HomePage() {
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'24px',maxWidth:'800px',margin:'0 auto'}}>
           {[
             {step:'1',icon:'\ud83d\udcdd',title:'Create your group',desc:'Sign up, choose your mode and invite your members in minutes.'},
-            {step:'2',icon:'\ud83d\udcb0',title:'Record contributions',desc:'Each payment is confirmed instantly with a receipt and QR code.'},
+            {step:'2',icon:'\ud83d\udcb0',title:'Record contributions',desc:'Each payment is confirmed instantly and a receipt is generated automatically.'},
             {step:'3',icon:'\ud83d\udd04',title:'UNIMUNITY handles the rest',desc:'Rotation, reminders, reports - all automatic. You focus on your community.'},
           ].map(s=>(
             <div key={s.step} style={{background:'white',border:'1px solid #EAD9BE',borderRadius:'16px',padding:'28px 20px',textAlign:'center'}}>
@@ -350,13 +358,32 @@ export default function HomePage() {
       <div style={{background:'linear-gradient(160deg,#4A1F38 0%,#8B3A5E 50%,#3A1830 100%)',padding:'64px 32px',textAlign:'center'}}>
         <h3 style={{color:'#FBEEDD',fontSize:'30px',fontWeight:'800',marginBottom:'8px'}}>What our communities say</h3>
         <p style={{color:'rgba(251,238,221,0.6)',marginBottom:'32px',fontSize:'14px'}}>Real reviews from real UNIMUNITY organizers and members</p>
-        <div style={{maxWidth:'480px',margin:'0 auto',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'18px',padding:'36px'}}>
-          <div style={{fontSize:'30px',marginBottom:'10px'}}>{'\ud83d\udcac'}</div>
-          <p style={{color:'#FBEEDD',fontSize:'14px',marginBottom:'20px',lineHeight:'1.6'}}>Are you already using UNIMUNITY? Share your experience with future organizers.</p>
-          <a href="/leave-review" style={{display:'inline-block',padding:'12px 28px',background:'#E9C77B',color:'#6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'800',textDecoration:'none'}}>
-            Leave a Testimonial
-          </a>
-        </div>
+
+        {testimonials.length > 0 ? (
+          <>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:'20px',maxWidth:'980px',margin:'0 auto 28px'}}>
+              {testimonials.slice(0,6).map(rev=>(
+                <div key={rev.id} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'16px',padding:'24px',textAlign:'left'}}>
+                  <div style={{color:'#E9C77B',fontSize:'14px',marginBottom:'10px'}}>{'\u2605'.repeat(Math.max(1,Math.min(5,rev.rating)))}{'\u2606'.repeat(5-Math.max(1,Math.min(5,rev.rating)))}</div>
+                  <p style={{color:'#FBEEDD',fontSize:'13.5px',lineHeight:'1.7',marginBottom:'16px'}}>{'\u201c'}{rev.text}{'\u201d'}</p>
+                  <div style={{color:'#E9C77B',fontSize:'13px',fontWeight:'700'}}>{rev.authorName}</div>
+                  <div style={{color:'rgba(251,238,221,0.5)',fontSize:'11px',textTransform:'capitalize'}}>{rev.authorRole}</div>
+                </div>
+              ))}
+            </div>
+            <a href="/leave-review" style={{display:'inline-block',padding:'12px 28px',background:'#E9C77B',color:'#6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'800',textDecoration:'none'}}>
+              Leave a Testimonial
+            </a>
+          </>
+        ) : (
+          <div style={{maxWidth:'480px',margin:'0 auto',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,199,123,0.3)',borderRadius:'18px',padding:'36px'}}>
+            <div style={{fontSize:'30px',marginBottom:'10px'}}>{'\ud83d\udcac'}</div>
+            <p style={{color:'#FBEEDD',fontSize:'14px',marginBottom:'20px',lineHeight:'1.6'}}>Are you already using UNIMUNITY? Share your experience with future organizers.</p>
+            <a href="/leave-review" style={{display:'inline-block',padding:'12px 28px',background:'#E9C77B',color:'#6B2D4E',borderRadius:'10px',fontSize:'14px',fontWeight:'800',textDecoration:'none'}}>
+              Leave a Testimonial
+            </a>
+          </div>
+        )}
       </div>
 
       <div style={{background:'#FBEEDD',padding:'64px 32px'}}>

@@ -50,7 +50,7 @@ export default function Footer({
           <a href="/privacy" className="UNIMUNITY-footer-link">Privacy</a>
           <a href="/terms" className="UNIMUNITY-footer-link">Terms</a>
           <button onClick={onLanguageClick} className="UNIMUNITY-footer-link" style={{ background: 'none', border: 'none', padding: 0, font: 'inherit' }}>
-            Language
+            Suggest a Language
           </button>
         </div>
       </div>
