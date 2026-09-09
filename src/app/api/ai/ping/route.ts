@@ -14,12 +14,18 @@ const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
 
 export async function POST(req: NextRequest) {
   try {
-    const { idToken, message } = await req.json();
+    const { idToken, message, lang } = await req.json();
     if (!idToken || !message) {
       return NextResponse.json({ error: 'Missing idToken or message' }, { status: 400 });
     }
 
-    const ctx = await buildContext(idToken, 'en');
+    // Whichever language the caller says the user is using (the same 5
+    // language codes the rest of the site uses: en/fr/ht/es/pt) - the AI
+    // replies in that language, regardless of what language the message
+    // itself was typed in. Defaults to English if not provided.
+    const requestedLang = typeof lang === 'string' && lang.trim() ? lang.trim() : 'en';
+
+    const ctx = await buildContext(idToken, requestedLang);
     if (ctx.email !== SUPER_ADMIN_EMAIL) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }

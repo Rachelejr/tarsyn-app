@@ -13,11 +13,27 @@ import { listTools } from './toolRegistry';
 const DEFAULT_MODEL = 'claude-haiku-5';
 const MAX_TOKENS = 1024;
 
+// The same 5 language codes used across the rest of the site (LANGUAGES /
+// the T dict in src/app/page.tsx). Any other code is passed through as-is
+// so the model can still try, but these are named explicitly so the model
+// never has to guess what a bare 2-3 letter code means.
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: 'English',
+  fr: 'French',
+  ht: 'Haitian Creole',
+  es: 'Spanish',
+  pt: 'Portuguese',
+};
+
+function languageName(code: string): string {
+  return LANGUAGE_NAMES[code] || code;
+}
+
 function systemPrompt(ctx: AIContext): string {
   return [
-    'You are the UNIMUNITY assistant, built into a platform that helps organizers run rotating savings groups (tontines/sols) and church communities.',
-    `Reply in this language: ${ctx.lang}.`,
-    'You cannot currently take any action, read any group data, or change anything in the account - that capability has not been enabled yet. If asked to do something, say so plainly and suggest the person use the dashboard directly.',
+    'You are the UNIMUNITY assistant, built into a platform that helps organizers run rotating savings groups (tontines/sols) and church communities. UNIMUNITY supports members and organizers worldwide, so always be ready to help someone in their own language.',
+    `Always reply in ${languageName(ctx.lang)} (language code: ${ctx.lang}), no matter what language the person's message is written in - unless they explicitly ask you to switch to a different language, in which case follow that instead.`,
+    'You cannot currently take any action, read any group data, or change anything in the account - that capability has not been enabled yet. If asked to do something, say so plainly (in the reply language) and suggest the person use the dashboard directly.',
     'Never invent information about a specific group, member, or payment - you have no access to that data yet.',
   ].join(' ');
 }

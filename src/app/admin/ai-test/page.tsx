@@ -12,6 +12,17 @@ import { auth } from '@/lib/firebase';
 
 const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
 
+// Same 5 languages the rest of the site supports (see the T dict in
+// src/app/page.tsx) - this test page lets you pick one so you can confirm
+// the AI actually replies in that language, not just English.
+const TEST_LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Francais' },
+  { code: 'ht', label: 'Kreyol ayisyen' },
+  { code: 'es', label: 'Espanol' },
+  { code: 'pt', label: 'Portugues' },
+];
+
 const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38', or: '#E9C77B',
   creme: '#FBEEDD', border: '#EAD9BE', muted: '#6b7280',
@@ -21,6 +32,7 @@ export default function AiTestPage() {
   const [authorized, setAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
   const [message, setMessage] = useState('Hello! Can you introduce yourself?');
+  const [lang, setLang] = useState('en');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ text: string; configured: boolean; error: string | null } | null>(null);
 
@@ -41,7 +53,7 @@ export default function AiTestPage() {
       const res = await fetch('/api/ai/ping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, message }),
+        body: JSON.stringify({ idToken, message, lang }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -72,6 +84,22 @@ export default function AiTestPage() {
           Internal only. Sends a message through the AI foundation (context {'->'} permissions {'->'} aiService {'->'} audit log)
           and shows exactly what comes back, including whether the AI is configured yet.
         </p>
+
+        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.bordeaux, marginBottom: 6 }}>
+          Reply in:
+        </label>
+        <select
+          value={lang}
+          onChange={(e) => setLang(e.target.value)}
+          style={{
+            padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${C.border}`,
+            fontSize: 13, marginBottom: 16, background: 'white', color: C.bordeauxDark,
+          }}
+        >
+          {TEST_LANGUAGES.map(l => (
+            <option key={l.code} value={l.code}>{l.label}</option>
+          ))}
+        </select>
 
         <textarea
           value={message}
