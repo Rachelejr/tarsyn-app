@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 // Shared navigation for every page inside a specific church workspace.
@@ -49,9 +50,40 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'settings', label: 'Paramètres Church', icon: '⚙️', enabled: false },
 ];
 
+// Below this width the sidebar is no longer a permanent 236px column - it
+// becomes a closeable drawer behind a small menu button. Matches the
+// tablet/mobile cutover used elsewhere in the app.
+const MOBILE_BREAKPOINT = 768;
+
+const MenuIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+    <line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" />
+  </svg>
+);
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 export default function ChurchSidebar({ churchId, churchName }: { churchId: string; churchName?: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobile, setIsMobile] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // A route change means the person already picked where to go - close the
+  // drawer so it never sits open over the new page.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   const go = (item: NavItem) => {
     if (item.key === 'dashboard') {
@@ -68,8 +100,8 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
     return pathname === `/dashboard/church/${churchId}/${item.key}`;
   };
 
-  return (
-    <div style={{ width: '236px', minWidth: '236px', background: C.navy, minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '20px 0' }}>
+  const navContent = (
+    <>
       <div style={{ padding: '0 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '10px' }}>
         <div style={{ color: C.textActive, fontSize: '15px', fontWeight: 800 }}>UNIMUNITY</div>
         <div style={{ color: C.gold, fontSize: '10px', fontWeight: 700, letterSpacing: '1px' }}>MODULE CHURCH</div>
@@ -111,6 +143,66 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
           </button>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  // Desktop: unchanged from before - a permanent 236px column, part of the
+  // normal flex row layout every Church page already wraps it in.
+  if (!isMobile) {
+    return (
+      <div style={{ width: '236px', minWidth: '236px', background: C.navy, minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '20px 0' }}>
+        {navContent}
+      </div>
+    );
+  }
+
+  // Tablet/mobile: the sidebar no longer reserves any space in the page's
+  // flex row (so the content column can use the full screen width) - it
+  // becomes a small toggle button plus a closeable drawer, both taken out
+  // of normal flow with position: fixed.
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Ouvrir le menu Church"
+        style={{
+          position: 'fixed', top: 14, left: 14, zIndex: 1100,
+          width: 42, height: 42, borderRadius: 10, background: C.navy,
+          border: 'none', color: C.textActive, display: 'flex',
+          alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.28)',
+        }}
+      >
+        <MenuIcon />
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 1150 }}
+        />
+      )}
+
+      <div
+        style={{
+          position: 'fixed', top: 0, left: 0, height: '100dvh', maxHeight: '100vh',
+          width: 'min(236px, 82vw)', background: C.navy,
+          display: 'flex', flexDirection: 'column', padding: '20px 0',
+          zIndex: 1200, boxShadow: '4px 0 24px rgba(0,0,0,0.32)',
+          transform: open ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.22s ease',
+        }}
+      >
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Fermer le menu Church"
+          style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', color: C.textActive, cursor: 'pointer', display: 'flex', padding: 4 }}
+        >
+          <CloseIcon />
+        </button>
+        {navContent}
+      </div>
+    </>
   );
 }

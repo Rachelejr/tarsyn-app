@@ -302,6 +302,13 @@ function AddMemberContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @media (max-width: 900px) {
+          .UNIMUNITY-addmember-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
       <div style={{ flex: 1 }}>
 
       <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -335,7 +342,7 @@ function AddMemberContent() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-addmember-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'stretch' }}>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 18 }}>
 
             <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>

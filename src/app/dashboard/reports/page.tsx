@@ -315,6 +315,7 @@ function ReportsContent() {
                 {byMember.length === 0 ? (
                   <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>No contributions in this period.</p>
                 ) : (
+                  <div className="rtable-wrap">
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: '#f9fafb' }}>
@@ -333,6 +334,7 @@ function ReportsContent() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 )}
               </div>
             )}

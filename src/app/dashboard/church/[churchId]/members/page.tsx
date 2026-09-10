@@ -101,7 +101,7 @@ export default function ChurchMembersPage() {
             </p>
           </div>
         ) : (
-          <div style={{ background: 'white', border: `1px solid ${C.border}`, borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ background: 'white', border: `1px solid ${C.border}`, borderRadius: '16px', overflow: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' as const, fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: C.lightBlue }}>

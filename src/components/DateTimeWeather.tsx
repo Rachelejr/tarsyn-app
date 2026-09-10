@@ -15,11 +15,25 @@ export default function DateTimeWeather({ textColor = 'rgba(255,255,255,0.7)', f
   const [temp, setTemp] = useState<number | null>(null);
   const [tempUnit, setTempUnit] = useState<'F' | 'C'>('F');
   const [locationLabel, setLocationLabel] = useState<string>('');
+  // This renders inside a non-shrinking header slot on most dashboard
+  // pages. The full "date | time | weather" string never wraps (it reads
+  // as one glanceable line by design) - so on a narrow phone it must
+  // shorten itself instead, or it becomes one of the widest things in the
+  // header and forces the whole page wider. Nothing changes on desktop
+  // or tablet.
+  const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const check = () => setIsNarrow(window.innerWidth < 480);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
   useEffect(() => {
@@ -110,6 +124,17 @@ export default function DateTimeWeather({ textColor = 'rgba(255,255,255,0.7)', f
   }
 
   const dateStrNormal = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+  // Narrow phones (< 480px): just the time. Still a single short,
+  // non-wrapping span, but now genuinely short instead of the widest
+  // thing in the header.
+  if (isNarrow) {
+    return (
+      <span style={{ color: textColor, fontSize, whiteSpace: 'nowrap' }}>
+        <span style={{ fontWeight: bold ? 800 : 400 }}>{timeStr}</span>
+      </span>
+    );
+  }
 
   return (
     <span style={{ color: textColor, fontSize, display: 'inline-flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>

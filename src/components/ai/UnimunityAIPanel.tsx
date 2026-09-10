@@ -52,6 +52,22 @@ const DEFAULT_SUGGESTIONS = [
 
 type PanelState = 'closed' | 'open' | 'minimized';
 type ChatEntry = { role: 'user' | 'assistant'; content: string };
+type DeviceTier = 'mobile' | 'tablet' | 'desktop';
+
+// Three real tiers, not one "desktop shrunk down to fit" breakpoint:
+// phones get an actual full-screen mobile interface, tablets get a
+// smaller anchored panel sized for their width, and desktop keeps the
+// large professional floating panel (with expand/collapse). Matches the
+// breakpoints already used elsewhere in the app (700/768-ish for
+// mobile-vs-rest, ~1024 for tablet-vs-desktop).
+const TABLET_BREAKPOINT = 1024;
+const MOBILE_BREAKPOINT = 640;
+
+function deviceTierFor(width: number): DeviceTier {
+  if (width < MOBILE_BREAKPOINT) return 'mobile';
+  if (width < TABLET_BREAKPOINT) return 'tablet';
+  return 'desktop';
+}
 
 const SparkleIcon = ({ size = 13 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={C.or}><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2z" /></svg>
@@ -83,7 +99,7 @@ export default function UnimunityAIPanel() {
   const [authorized, setAuthorized] = useState(false);
   const [panelState, setPanelState] = useState<PanelState>('closed');
   const [expanded, setExpanded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [tier, setTier] = useState<DeviceTier>('desktop');
   const [lang, setLang] = useState('en');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [entries, setEntries] = useState<ChatEntry[]>([]);
@@ -98,7 +114,7 @@ export default function UnimunityAIPanel() {
   }, []);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
+    const check = () => setTier(deviceTierFor(window.innerWidth));
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
@@ -165,7 +181,7 @@ export default function UnimunityAIPanel() {
       <div
         style={{
           position: 'fixed', left: 20, bottom: 20, zIndex: 1000,
-          width: 270, height: 56, background: C.white, borderRadius: 16,
+          width: 'min(270px, calc(100vw - 40px))', height: 56, background: C.white, borderRadius: 16,
           border: `1px solid ${C.border}`, boxShadow: '0 10px 28px rgba(74,31,56,0.28)',
           display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', boxSizing: 'border-box',
           fontFamily: 'inherit',
@@ -184,20 +200,28 @@ export default function UnimunityAIPanel() {
     );
   }
 
-  // --- Open (default large panel, or expanded, or full-screen on mobile) ---
-  const panelStyle: CSSProperties = isMobile
+  // --- Open: full-screen on phones, a smaller anchored panel on tablets,
+  // the large professional floating panel (default or expanded) on desktop.
+  const panelStyle: CSSProperties = tier === 'mobile'
     ? { position: 'fixed', inset: 0, borderRadius: 0, width: '100%', height: '100%' }
-    : expanded
+    : tier === 'tablet'
       ? {
-          position: 'fixed', left: 20, bottom: 20,
-          width: 'min(920px, 94vw)', height: 'min(860px, calc(100vh - 40px))',
-          borderRadius: 20,
+          position: 'fixed', left: 16, bottom: 16,
+          width: 'min(400px, calc(100vw - 32px))', height: 'min(640px, calc(100vh - 32px))',
+          borderRadius: 18,
         }
-      : {
-          position: 'fixed', left: 20, bottom: 20,
-          width: 'min(480px, 92vw)', height: 'min(720px, calc(100vh - 40px))',
-          borderRadius: 20,
-        };
+      : expanded
+        ? {
+            position: 'fixed', left: 20, bottom: 20,
+            width: 'min(920px, 94vw)', height: 'min(860px, calc(100vh - 40px))',
+            borderRadius: 20,
+          }
+        : {
+            position: 'fixed', left: 20, bottom: 20,
+            width: 'min(480px, 92vw)', height: 'min(720px, calc(100vh - 40px))',
+            borderRadius: 20,
+          };
+  const isMobile = tier === 'mobile';
 
   return (
     <div
@@ -209,7 +233,9 @@ export default function UnimunityAIPanel() {
       }}
     >
       <div style={{
-        background: C.creme, padding: '14px 16px', display: 'flex', alignItems: 'center',
+        background: C.creme,
+        padding: isMobile ? 'calc(14px + env(safe-area-inset-top)) 16px 14px' : '14px 16px',
+        display: 'flex', alignItems: 'center',
         justifyContent: 'space-between', borderBottom: `2px solid ${C.bordeaux}`, flexShrink: 0, gap: 8,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -233,7 +259,7 @@ export default function UnimunityAIPanel() {
           >
             {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
           </select>
-          {!isMobile && (
+          {tier === 'desktop' && (
             <button onClick={() => setExpanded(v => !v)} title={expanded ? 'Collapse' : 'Expand'} style={{ background: 'none', border: 'none', color: C.bordeaux, cursor: 'pointer', display: 'flex', padding: 4 }}>
               <ExpandIcon expanded={expanded} />
             </button>
@@ -321,7 +347,10 @@ export default function UnimunityAIPanel() {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ padding: '12px 14px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
+      <div style={{
+        padding: isMobile ? '12px 14px calc(12px + env(safe-area-inset-bottom))' : '12px 14px',
+        borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, boxSizing: 'border-box',
+      }}>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

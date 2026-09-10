@@ -868,7 +868,7 @@ function MemberContent() {
       )}
 
       {/* Quick Actions Bar */}
-      <div style={{ flexShrink: 0, background: 'white', padding: '10px 28px', display: 'flex', gap: '10px', borderBottom: `1px solid ${C.border}` }}>
+      <div style={{ flexShrink: 0, background: 'white', padding: '10px 28px', display: 'flex', gap: '10px', flexWrap: 'wrap', borderBottom: `1px solid ${C.border}` }}>
         <button className="qa-btn" onClick={() => { setFilterCat('Receipts'); setSearch(''); documentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
           style={{ background: C.creme, color: C.bordeaux, border: `1.5px solid ${C.border}`, padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
           View Receipts ({receiptDocs.length})

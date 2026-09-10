@@ -155,6 +155,16 @@ export default function CommissionSettingsPage() {
           -webkit-text-fill-color: transparent;
           animation: UNIMUNITY-title-shimmer 3.5s linear infinite;
         }
+        @media (max-width: 480px) {
+          .UNIMUNITY-tier-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 360px) {
+          .UNIMUNITY-tier-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
       <div style={{ flex: 1 }}>
       <div style={{
@@ -190,7 +200,7 @@ export default function CommissionSettingsPage() {
           </p>
 
           {tiers.map((tier, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '12px', paddingBottom: '12px', borderBottom: i < tiers.length - 1 ? `1px solid ${C.roseClair}` : 'none' }}>
+            <div key={i} className="UNIMUNITY-tier-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '12px', paddingBottom: '12px', borderBottom: i < tiers.length - 1 ? `1px solid ${C.roseClair}` : 'none' }}>
               <div>
                 <label style={{ fontSize: '11px', color: C.texteGris, display: 'block', marginBottom: '4px' }}>Min amount</label>
                 <input type="number" value={tier.min} disabled={i > 0} style={{ ...inp, background: i > 0 ? C.creme : inp.background }}

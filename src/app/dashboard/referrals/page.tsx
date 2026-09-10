@@ -197,7 +197,7 @@ export default function ReferralsPage() {
           )}
         </div>
 
-        <div style={{ background: C.blanc, borderRadius: 16, border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+        <div style={{ background: C.blanc, borderRadius: 16, border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'auto' }}>
           {rows.length === 0 ? (
             <p style={{ padding: 24, fontSize: 13, color: C.muted, margin: 0 }}>
               No referrals recorded yet.

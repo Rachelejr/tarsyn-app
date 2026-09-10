@@ -7,3 +7,41 @@
 body {
   font-family: 'Segoe UI', sans-serif;
 }
+
+/* ---------------------------------------------------------------------
+   Base responsive globale (audit responsive, etape 1)
+   -----------------------------------------------------------------------
+   Ces regles NE cachent aucun debordement - il n'y a volontairement
+   aucun `overflow-x: hidden` ici. Elles etablissent juste une base saine :
+   un element individuel (image, tableau, champ de formulaire) ne peut
+   jamais, par defaut, forcer une largeur superieure a son conteneur. Les
+   vraies causes de debordement (sidebar fixe, tableaux sans conteneur
+   scrollable, rangees de boutons sans retour a la ligne) sont corrigees a
+   la source, dans leurs propres composants/pages - pas masquees ici.
+   ----------------------------------------------------------------------- */
+html, body {
+  max-width: 100%;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  max-width: 100%;
+}
+
+input, textarea, select, button {
+  max-width: 100%;
+}
+
+/* Utilitaire reutilisable (etape 3) : enveloppe un <table> pour qu'il
+   defile horizontalement DANS son propre cadre plutot que d'elargir toute
+   la page. La page reste a la largeur de l'ecran ; seul ce cadre scrolle. */
+.rtable-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

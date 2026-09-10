@@ -118,7 +118,7 @@ export default function MigrateTynIdPage() {
             <p style={{ color: '#2E7D32', fontSize: '13px' }}>All TYN-IDs are already in the new format.</p>
           )}
           {!scanning && preview.length > 0 && (
-            <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+            <div style={{ maxHeight: '320px', overflowY: 'auto', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${C.border}` }}>

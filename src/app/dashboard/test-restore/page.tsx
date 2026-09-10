@@ -139,6 +139,7 @@ export default function Dashboard() {
               {members.length === 0 ? (
                 <p style={{color:'#6B2D4E',fontSize:'14px'}}>No members yet. Add your first member!</p>
               ) : (
+                <div className="rtable-wrap">
                 <table style={{width:'100%',borderCollapse:'collapse'}}>
                   <thead>
                     <tr style={{borderBottom:'2px solid #FBEEDD'}}>
@@ -162,6 +163,7 @@ export default function Dashboard() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </>

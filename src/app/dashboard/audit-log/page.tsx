@@ -183,6 +183,7 @@ function AuditLogContent() {
               <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>Actions like payments, member changes, and logins will appear here automatically.</p>
             </div>
           ) : (
+            <div className="rtable-wrap">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f9fafb' }}>
@@ -210,6 +211,7 @@ function AuditLogContent() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 
