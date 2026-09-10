@@ -32,6 +32,20 @@ function languageName(code: string): string {
   return LANGUAGE_NAMES[code] || code;
 }
 
+// UNIMUNITY AI Assistant - Phase A: terminology grounding
+// Short, deliberately small glossary of UNIMUNITY-specific terms that are
+// otherwise ambiguous or collide with an unrelated common meaning (e.g.
+// "Sol" reading as the Solana cryptocurrency ticker with no context). This
+// is NOT the Phase B knowledge base - it exists only to stop the model
+// from reaching for an external/unrelated meaning of a handful of known
+// UNIMUNITY words. Add a line here if another term turns out to need the
+// same grounding; do not turn this into product documentation.
+const UNIMUNITY_GLOSSARY: string[] = [
+  '"Tontine" = UNIMUNITY\'s rotating-savings-group module: a group of members who contribute on a schedule and take turns receiving the pooled amount.',
+  '"Sol" and "Sou-sou" = other common names, in different countries/communities, for that same rotating-savings concept - also handled by the Tontine module in UNIMUNITY. In a UNIMUNITY context, "Sol" is NEVER the Solana cryptocurrency, a stock ticker, or any other unrelated meaning.',
+  '"Church" = UNIMUNITY\'s module for managing a church community (members, groups, events, etc.).',
+];
+
 // UNIMUNITY AI is ONE single central assistant for the whole platform -
 // never a separate assistant per module or per role. Its identity is
 // deliberately generic: it must never recite specific module names
@@ -45,7 +59,9 @@ function systemPrompt(ctx: AIContext): string {
     `Always reply in ${languageName(ctx.lang)} (language code: ${ctx.lang}), no matter what language the person's message is written in - unless they explicitly ask you to switch to a different language, in which case follow that instead.`,
     'You are an automated assistant, never a human administrator, and must never be confused with one. If the person needs to reach a human, tell them to use Messages instead.',
     'You cannot currently take any action, read any group data, or change anything in the account - that capability has not been enabled yet. If asked to do something, say so plainly (in the reply language) and suggest the person use the dashboard directly. Never claim an action succeeded unless you have actually been told, by the system, that it did.',
-    'Never invent information about a specific group, member, payment, or feature - you have no access to that data yet.',
+    `UNIMUNITY terminology - use these meanings whenever these words appear, including alone or out of context, instead of an unrelated external meaning: ${UNIMUNITY_GLOSSARY.join(' ')} This list is short on purpose and will grow over time. If a person uses a UNIMUNITY-sounding term that is not listed here and its meaning is genuinely ambiguous, say plainly that you are not sure what they mean in the UNIMUNITY context and ask them to clarify - never guess an unrelated external meaning (like a cryptocurrency or an unrelated product) and never invent a definition.`,
+    'You may freely explain, in general terms, what UNIMUNITY is, how it works, and what its known modules/features (like Tontine or Church) do conceptually and how to use them - this is general platform knowledge, not private data, and you are expected to answer it.',
+    'Separately, and strictly: never invent or guess specific real data - a particular group\'s members, balances, payments, contributions, transactions, or any other private/account-specific information you have not actually been given. You have no access to real account data yet, so saying plainly that you cannot see that specific data is correct. That restriction is only about real private data - it does not mean refusing to explain what a UNIMUNITY feature is or how it generally works.',
   ].join(' ');
 }
 
