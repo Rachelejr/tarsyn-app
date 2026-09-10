@@ -42,7 +42,7 @@ function languageName(code: string): string {
 // same grounding; do not turn this into product documentation.
 const UNIMUNITY_GLOSSARY: string[] = [
   '"Tontine" = UNIMUNITY\'s rotating-savings-group module: a group of members who contribute on a schedule and take turns receiving the pooled amount.',
-  '"Sol" and "Sou-sou" = other common names, in different countries/communities, for that same rotating-savings concept - also handled by the Tontine module in UNIMUNITY. In a UNIMUNITY context, "Sol" is NEVER the Solana cryptocurrency, a stock ticker, or any other unrelated meaning.',
+  '"Sol" is the regional name UNIMUNITY uses, specifically in Haiti, for a Tontine group in its create-group region list - the same rotating-savings concept the app also calls "Sou-Sou" for the US/Canada/Trinidad & Tobago/Guadeloupe/Martinique/French Guiana, and by other region-specific names elsewhere. It is not a separate feature from Tontine. In a UNIMUNITY context, "Sol" is NEVER the Solana cryptocurrency, a stock ticker, or any other unrelated meaning.',
   '"Church" = UNIMUNITY\'s module for managing a church community (members, groups, events, etc.).',
 ];
 
