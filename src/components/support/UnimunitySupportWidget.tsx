@@ -85,11 +85,15 @@ export default function UnimunitySupportWidget() {
   // at render time rather than synced back into state in an effect.
   const effectiveTab: Tab = !isSuperAdmin && activeTab === 'ai' ? 'home' : activeTab;
 
+  // Panel heights were bumped up a bit (~80px) from the first pass -
+  // Rachele felt the window was too short - while still respecting the
+  // spec's "never a large Dashboard-covering window" rule via the
+  // viewport-relative caps (vh / calc(100vh - ...)).
   const panelStyle: CSSProperties = isMobile
-    ? { right: 12, bottom: 12, width: 'calc(100vw - 24px)', height: 'min(70vh, 460px)', borderRadius: 18 }
+    ? { right: 12, bottom: 12, width: 'calc(100vw - 24px)', height: 'min(78vh, 540px)', borderRadius: 18 }
     : tier === 'tablet'
-      ? { right: 16, bottom: 16, width: 'min(320px, calc(100vw - 32px))', height: 'min(480px, calc(100vh - 32px))', borderRadius: 18 }
-      : { right: 20, bottom: 20, width: 'min(320px, 92vw)', height: 'min(460px, calc(100vh - 40px))', borderRadius: 20 };
+      ? { right: 16, bottom: 16, width: 'min(320px, calc(100vw - 32px))', height: 'min(560px, calc(100vh - 32px))', borderRadius: 18 }
+      : { right: 20, bottom: 20, width: 'min(320px, 92vw)', height: 'min(540px, calc(100vh - 40px))', borderRadius: 20 };
 
   return (
     <>

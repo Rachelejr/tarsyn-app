@@ -46,19 +46,19 @@ export default function HomeContent({ lang, unreadCount, showAI, onGoToMessages,
       <button
         onClick={onGoToMessages}
         style={{
-          display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px',
+          display: 'flex', alignItems: 'center', gap: 14, padding: '16px 16px',
           borderRadius: 14, border: `1px solid ${C.border}`, background: C.white,
           cursor: 'pointer', textAlign: 'left', width: '100%', boxSizing: 'border-box',
         }}
       >
         <div style={{
-          width: 38, height: 38, borderRadius: '50%', background: C.creme,
+          width: 40, height: 40, borderRadius: '50%', background: C.creme,
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <ChatBubbleIcon />
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark, display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.3 }}>
             {t(lang, 'homeMessages')}
             {unreadCount > 0 && (
               <span style={{
@@ -69,7 +69,7 @@ export default function HomeContent({ lang, unreadCount, showAI, onGoToMessages,
               </span>
             )}
           </div>
-          <div style={{ fontSize: 11.5, color: C.muted }}>
+          <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.4 }}>
             {unreadCount > 0 ? `${unreadCount} ${t(lang, 'homeMessagesUnread')}` : t(lang, 'homeMessagesEmpty')}
           </div>
         </div>
@@ -80,17 +80,17 @@ export default function HomeContent({ lang, unreadCount, showAI, onGoToMessages,
         <button
           onClick={onGoToAI}
           style={{
-            display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px',
+            display: 'flex', alignItems: 'center', gap: 14, padding: '16px 16px',
             borderRadius: 14, border: `1px solid ${C.border}`, background: C.white,
             cursor: 'pointer', textAlign: 'left', width: '100%', boxSizing: 'border-box',
           }}
         >
           <div style={{ flexShrink: 0, display: 'flex' }}>
-            <RobotAvatar state="welcome" variant="head" size={38} />
+            <RobotAvatar state="welcome" variant="head" size={40} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark }}>{t(lang, 'homeAskAI')}</div>
-            <div style={{ fontSize: 11.5, color: C.muted }}>{t(lang, 'homeAskAISubtitle')}</div>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark, lineHeight: 1.3 }}>{t(lang, 'homeAskAI')}</div>
+            <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.4 }}>{t(lang, 'homeAskAISubtitle')}</div>
           </div>
           <ChevronIcon />
         </button>

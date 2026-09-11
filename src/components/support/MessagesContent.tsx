@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { collection, getDocs, doc, getDoc, query, where, Firestore } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import type { User } from 'firebase/auth';
-import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
+import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, sendFileMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
 import { C } from './theme';
 
 const bg = C.creme;
@@ -63,6 +63,27 @@ const CheckIcon = ({ size = 13, double = false, color = '#9CA3AF' }: { size?: nu
     {double && <path d="M6 6l4 4L18 1" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />}
   </svg>
 );
+const PaperclipIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+  </svg>
+);
+const FileIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+  </svg>
+);
+function formatFileSize(bytes?: number): string {
+  if (!bytes && bytes !== 0) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+// Max size for a plain file attachment (paperclip). Kept modest since this
+// goes through the same Firebase Storage upload path as voice/video notes,
+// with no server-side resumable upload here.
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
 
 const EMOJI_CATEGORIES: { label: string; icon: string; emojis: string[] }[] = [
   { label: 'Smileys', icon: '😀', emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤑','😠','😈','👿','💀','☠️','👻','👽','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
@@ -121,6 +142,8 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
   const [previewUrl, setPreviewUrl] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaError, setMediaError] = useState('');
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -346,6 +369,25 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
     setRecordSeconds(0);
     setMediaError('');
   }
+  const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !user || !activeChatId) return;
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      setMediaError('That file is too large (max 20 MB).');
+      return;
+    }
+    setMediaError('');
+    setUploadingFile(true);
+    const senderName = user.displayName || user.email?.split('@')[0] || 'Member';
+    try {
+      await sendFileMessage(activeChatId, user.uid, senderName, file, firestoreDb, storageInstance);
+    } catch (err) {
+      console.error(err);
+      setMediaError('Failed to send file. Please check your connection and try again.');
+    }
+    setUploadingFile(false);
+  };
   async function sendRecordedMedia() {
     if (!previewBlob || !recordingMode || !user || !activeChatId) return;
     setUploadingMedia(true);
@@ -539,6 +581,19 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
                           <video controls src={m.mediaUrl} style={{ width: '200px', borderRadius: '8px', display: 'block' }} />
                           <p style={{ margin: '3px 2px 0', fontSize: '10px', color: textGris, display: 'flex', alignItems: 'center', gap: '4px' }}><VideoIcon size={11} /> Video message</p>
                         </div>
+                      ) : m.type === 'file' && m.mediaUrl ? (
+                        <a href={m.mediaUrl} target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: textDark, minWidth: '160px' }}>
+                          <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.bordeaux, flexShrink: 0 }}>
+                            <FileIcon size={17} />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 600, color: textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>
+                              {m.fileName || 'File'}
+                            </p>
+                            <p style={{ margin: 0, fontSize: '10.5px', color: textGris }}>{formatFileSize(m.fileSize)}</p>
+                          </div>
+                        </a>
                       ) : (
                         <p style={{ margin: 0, fontSize: '13px', color: textDark, wordBreak: 'break-word' }}>{m.text}</p>
                       )}
@@ -655,6 +710,11 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
                 </div>
               )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '10px', background: C.white, borderTop: `1px solid ${C.border}` }}>
+              <input ref={fileInputRef} type="file" onChange={handleAttachFile} style={{ display: 'none' }} />
+              <button onClick={() => fileInputRef.current?.click()} title="Attach a file" disabled={uploadingFile}
+                style={{ background: 'none', border: 'none', color: C.bordeaux, cursor: uploadingFile ? 'default' : 'pointer', padding: '4px', flexShrink: 0, display: 'flex', opacity: uploadingFile ? 0.5 : 1 }}>
+                <PaperclipIcon size={18} />
+              </button>
               <button onClick={() => setShowEmoji(!showEmoji)}
                 style={{ background: 'none', border: 'none', fontSize: '19px', cursor: 'pointer', padding: '0 2px', flexShrink: 0 }}>😊</button>
               <button onClick={() => startRecording('audio')} title="Voice message"

@@ -47,9 +47,11 @@ export interface ChatMessage {
   senderId: string;
   senderName: string;
   text: string;
-  type?: 'text' | 'audio' | 'video';
+  type?: 'text' | 'audio' | 'video' | 'file';
   mediaUrl?: string;
   mediaDuration?: number;
+  fileName?: string;
+  fileSize?: number;
   createdAt: any;
   readBy: string[];
   deletedFor?: string[];
@@ -280,6 +282,46 @@ export async function sendMediaMessage(
 
   await updateDoc(doc(firestoreDb, 'chats', chatId), {
     lastMessage: { text: label, senderId, createdAt: serverTimestamp() },
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// NEW: attach an arbitrary file (PDF, doc, image, etc. - anything the
+// browser's file picker allows) to a chat, mirroring sendMediaMessage's
+// upload-then-message pattern but for generic files instead of recorded
+// audio/video. Storage/Firestore rules already allow this (storage.rules
+// permits any authenticated write; the messages rule only checks
+// senderId), so no rules changes were needed.
+export async function sendFileMessage(
+  chatId: string,
+  senderId: string,
+  senderName: string,
+  file: File,
+  firestoreDb: Firestore = db,
+  storageInstance: FirebaseStorage = storage
+): Promise<void> {
+  await healPrivateChatIfNeeded(chatId, firestoreDb);
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = 'chats/' + chatId + '/files/' + Date.now() + '_' + senderId + '_' + safeName;
+  const storageRef = ref(storageInstance, path);
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+
+  await addDoc(collection(firestoreDb, 'chats', chatId, 'messages'), {
+    senderId,
+    senderName,
+    text: file.name,
+    type: 'file',
+    mediaUrl: url,
+    fileName: file.name,
+    fileSize: file.size,
+    createdAt: serverTimestamp(),
+    readBy: [senderId],
+  });
+
+  await updateDoc(doc(firestoreDb, 'chats', chatId), {
+    lastMessage: { text: '📎 ' + file.name, senderId, createdAt: serverTimestamp() },
     updatedAt: serverTimestamp(),
   });
 }
