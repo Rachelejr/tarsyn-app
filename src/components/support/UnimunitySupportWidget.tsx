@@ -16,7 +16,6 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, memberAuth, db, memberDb, storage, memberStorage } from '@/lib/firebase';
-import { SUPER_ADMIN_EMAIL } from '@/lib/ai/constants';
 import { C, deviceTierFor, DeviceTier } from './theme';
 import { t, SUPPORT_LANGUAGES, SupportLang } from './i18n';
 import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
@@ -53,7 +52,6 @@ export default function UnimunitySupportWidget() {
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [memberUser, setMemberUser] = useState<User | null>(null);
   const user = adminUser || memberUser;
-  const isSuperAdmin = !!adminUser && adminUser.email === SUPER_ADMIN_EMAIL;
   // The photo shown is a UI presentation choice only - both are the same
   // central UNIMUNITY AI (see RobotAvatar.tsx). Admin/organizer accounts
   // see the male portrait, member accounts see the female portrait.
@@ -85,10 +83,14 @@ export default function UnimunitySupportWidget() {
   if (!user) return null;
   const isMobile = tier === 'mobile';
 
-  // The AI tab can never be shown for a non-Super-Admin account, even
-  // transiently (e.g. Super Admin status changing mid-session) - derived
-  // at render time rather than synced back into state in an effect.
-  const effectiveTab: Tab = !isSuperAdmin && activeTab === 'ai' ? 'home' : activeTab;
+  // UNIMUNITY AI is available to every signed-in account (organizer/admin
+  // or member) - the isSuperAdmin-only gate that shipped with Phase 1 of
+  // the AI backend has been lifted per Rachele's explicit confirmation
+  // that members need it too, to understand the different features. The
+  // backend gate (canUseAIChat in lib/ai/permissions.ts) was opened the
+  // same way. effectiveTab is still derived rather than trusting activeTab
+  // directly, in case a future role needs to be excluded again.
+  const effectiveTab: Tab = !user ? 'home' : activeTab;
 
   // Panel heights were bumped up a bit (~80px) from the first pass -
   // Rachele felt the window was too short - while still respecting the
@@ -224,7 +226,7 @@ export default function UnimunitySupportWidget() {
             <HomeContent
               lang={lang}
               unreadCount={unreadCount}
-              showAI={isSuperAdmin}
+              showAI={!!user}
               persona={persona}
               onGoToMessages={() => setActiveTab('messages')}
               onGoToAI={() => setActiveTab('ai')}
@@ -238,7 +240,7 @@ export default function UnimunitySupportWidget() {
               onUnreadCountChange={setUnreadCount}
             />
           </div>
-          {isSuperAdmin && (
+          {!!user && (
             <div style={{ position: 'absolute', inset: 0, display: effectiveTab === 'ai' ? 'flex' : 'none', flexDirection: 'column' }}>
               <AIContent lang={lang} persona={persona} />
             </div>
@@ -279,7 +281,7 @@ export default function UnimunitySupportWidget() {
             </div>
             <span style={{ fontSize: 10.5, fontWeight: 700 }}>{t(lang, 'navMessages')}</span>
           </button>
-          {isSuperAdmin && (
+          {!!user && (
             <button
               onClick={() => setActiveTab('ai')}
               style={{

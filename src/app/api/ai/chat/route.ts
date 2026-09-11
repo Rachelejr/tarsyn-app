@@ -1,14 +1,14 @@
-// UNIMUNITY AI Assistant - Phase 1: Super Admin mode, production route
-// Real production endpoint behind UnimunityAIPanel. Unlike /api/ai/ping
-// (kept as a purely internal diagnostic tool, never linked from the UI),
-// this route persists conversation history and is what the actual
-// assistant panel talks to.
+// UNIMUNITY AI Assistant - production route
+// Real production endpoint behind the support widget's AI tab. Unlike
+// /api/ai/ping (kept as a purely internal diagnostic tool, never linked
+// from the UI), this route persists conversation history and is what the
+// actual assistant panel talks to.
 //
-// Phase 1 gate: only the Super Admin account may use this route (see
-// canUseAIChat in permissions.ts). Everything else here - context,
-// permissions, history - is written so Admin and Member modes reuse it
-// unchanged later; only that one gate (and each mode's own tool/context
-// scoping) changes.
+// Gate: any signed-in role (super_admin, admin, or member) may use this
+// route - see canUseAIChat in permissions.ts. Context/permissions/history
+// architecture is shared across all three roles unchanged; only each
+// role's own tool/context scoping (still unbuilt - Phase 1 registers no
+// tools, see toolRegistry.ts) will differ later.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { buildContext } from '@/lib/ai/contextManager';

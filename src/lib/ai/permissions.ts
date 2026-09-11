@@ -16,12 +16,16 @@ export function canUseAI(ctx: AIContext): boolean {
   return ctx.userRole === 'super_admin' || ctx.userRole === 'admin' || ctx.userRole === 'member';
 }
 
-// The actual Phase 1 gate for the production assistant (/api/ai/chat and
-// the UnimunityAIPanel UI): Super Admin mode only. Admin and Member modes
-// reuse the exact same context/permission/history architecture - turning
-// them on later is loosening this one function, not building a new engine.
+// The production gate for the assistant (/api/ai/chat and the widget's AI
+// tab). Opened from Super-Admin-only to every signed-in role per Rachele's
+// explicit confirmation that members need UNIMUNITY AI too, to understand
+// the app's different features - exactly the "loosening this one function"
+// this was designed for, not a new engine. Delegates to canUseAI so the
+// two stay in sync; kept as its own named export since the production
+// route and the internal /api/ai/ping diagnostic may need to diverge again
+// later (e.g. a role gaining tool access before it's ready for the other).
 export function canUseAIChat(ctx: AIContext): boolean {
-  return ctx.userRole === 'super_admin';
+  return canUseAI(ctx);
 }
 
 // Can this person run a specific tool? Phase 1 ships with zero registered
