@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ChatWidget from "@/components/ChatWidget";
-import UnimunityAIPanel from "@/components/ai/UnimunityAIPanel";
+import UnimunitySupportWidget from "@/components/support/UnimunitySupportWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,8 +31,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
-        <ChatWidget />
-        <UnimunityAIPanel />
+        <UnimunitySupportWidget />
       </body>
     </html>
   );
