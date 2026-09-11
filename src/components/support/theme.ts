@@ -7,6 +7,7 @@ export const C = {
   bordeaux: '#6B2D4E',
   bordeauxDark: '#4A1F38',
   creme: '#FBEEDD',
+  ivoire: '#FFFDF7',
   white: '#FFFFFF',
   border: '#EAD9BE',
   or: '#E9C77B',

@@ -10,7 +10,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '2. Pricing and Fees',
-    body: 'New organizer accounts include a 7-day free trial, no credit card required. After the trial, using UNIMUNITY as an organizer requires a one-time $24.99 lifetime access fee and an active subscription plan (currently $9.99/month or $89.99/year). Members who are required to pay an access fee to join a group pay a one-time $9.99 fee. There is no free-forever plan. Prices are shown in USD and may change; you will be notified of any pricing change before it applies to you.',
+    body: 'New organizer accounts include a 10-day free trial, no credit card required. After the trial, using UNIMUNITY as an organizer requires a one-time $24.99 lifetime access fee and an active subscription plan (currently $9.99/month or $89.99/year). Members who are required to pay an access fee to join a group pay a one-time $9.99 fee. There is no free-forever plan. Prices are shown in USD and may change; you will be notified of any pricing change before it applies to you.',
   },
   {
     title: '3. Organizer Commission on Payouts',

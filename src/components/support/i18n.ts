@@ -13,6 +13,14 @@
 // Messages' own existing UI strings ("No conversations yet.", "Type a
 // message", etc.) are intentionally left as they already were - that is
 // existing, preserved UI, not new text introduced by this task.
+//
+// aiSug1..aiSug4: the Member AI's suggested-question chips (per the
+// "MEMBER CHAT / AI ASSISTANT - FINAL UI/UX DESIGN SPECIFICATION" -
+// section 6). These are UI copy only, not new AI backend behavior: the
+// questions are sent through the same /api/ai/chat call as any typed
+// message, so today the AI answers them as generally as it can (it does
+// not yet have real per-member Payment Grid/receipt data wired in - that
+// would be an AI backend change and is out of scope here).
 export type SupportLang = 'en' | 'fr' | 'ht' | 'es' | 'pt';
 
 export const SUPPORT_LANGUAGES: { code: SupportLang; label: string }[] = [
@@ -27,7 +35,7 @@ type Dict = Record<string, string>;
 
 const STRINGS: Record<SupportLang, Dict> = {
   en: {
-    widgetTitle: 'UNIMUNITY Assistant',
+    widgetTitle: 'UNIMUNITY AI',
     navHome: 'Home',
     navMessages: 'Messages',
     navAI: 'AI',
@@ -38,13 +46,18 @@ const STRINGS: Record<SupportLang, Dict> = {
     homeMessagesEmpty: 'Chat with your team',
     homeAskAI: 'Ask UNIMUNITY AI',
     homeAskAISubtitle: 'Your intelligent assistant',
-    aiWelcome: "Hello! I'm UNIMUNITY AI, your intelligent assistant. How can I help you today?",
-    aiFooter: 'Automated assistant — not a human administrator. Use Messages to reach a person.',
+    aiWelcome: 'Hello! How can I help you? I can help you understand your UNIMUNITY account and your Tontine.',
+    aiFooter: 'UNIMUNITY AI — not a human. Use Messages to reach your organizer or team.',
     aiPlaceholder: 'Type a message',
     aiThinking: 'Thinking...',
+    aiSuggestionsLabel: 'Suggestions',
+    aiSug1: 'How does my Payment Grid work?',
+    aiSug2: 'Where can I find my receipts?',
+    aiSug3: 'What does my payment status mean?',
+    aiSug4: 'How do I upload a document?',
   },
   fr: {
-    widgetTitle: 'UNIMUNITY Assistant',
+    widgetTitle: 'UNIMUNITY AI',
     navHome: 'Accueil',
     navMessages: 'Messages',
     navAI: 'IA',
@@ -55,13 +68,18 @@ const STRINGS: Record<SupportLang, Dict> = {
     homeMessagesEmpty: 'Discutez avec votre équipe',
     homeAskAI: 'Demander à UNIMUNITY AI',
     homeAskAISubtitle: 'Votre assistant intelligent',
-    aiWelcome: 'Bonjour ! Je suis UNIMUNITY AI, votre assistant intelligent. Comment puis-je vous aider aujourd’hui ?',
-    aiFooter: 'Assistant automatisé — pas un administrateur humain. Utilisez Messages pour joindre une personne.',
+    aiWelcome: 'Bonjour ! Comment puis-je vous aider ? Je peux vous aider à comprendre votre compte UNIMUNITY et votre Tontine.',
+    aiFooter: 'UNIMUNITY AI — pas une personne humaine. Utilisez Messages pour joindre votre organisateur ou votre équipe.',
     aiPlaceholder: 'Écrivez un message',
     aiThinking: 'Réflexion...',
+    aiSuggestionsLabel: 'Suggestions',
+    aiSug1: 'Comment fonctionne ma grille de paiement ?',
+    aiSug2: 'Où puis-je trouver mes reçus ?',
+    aiSug3: 'Que signifie le statut de mon paiement ?',
+    aiSug4: 'Comment puis-je téléverser un document ?',
   },
   ht: {
-    widgetTitle: 'UNIMUNITY Assistant',
+    widgetTitle: 'UNIMUNITY AI',
     navHome: 'Akey',
     navMessages: 'Mesaj',
     navAI: 'AI',
@@ -72,13 +90,18 @@ const STRINGS: Record<SupportLang, Dict> = {
     homeMessagesEmpty: 'Pale ak ekip ou',
     homeAskAI: 'Mande UNIMUNITY AI',
     homeAskAISubtitle: 'Asistan entèlijan ou',
-    aiWelcome: 'Bonjou! Mwen se UNIMUNITY AI, asistan entèlijan ou. Kijan mwen ka ede w jodi a?',
-    aiFooter: 'Asistan otomatik — se pa yon administratè imen. Sèvi ak Mesaj pou kontakte yon moun.',
+    aiWelcome: 'Bonjou! Kijan mwen ka ede w? Mwen ka ede w konprann kont UNIMUNITY ou ak Tontine ou.',
+    aiFooter: 'UNIMUNITY AI — se pa yon moun. Sèvi ak Mesaj pou kontakte òganizatè w oswa ekip ou.',
     aiPlaceholder: 'Ekri yon mesaj',
     aiThinking: 'Ap reflechi...',
+    aiSuggestionsLabel: 'Sijesyon',
+    aiSug1: 'Kijan Payment Grid mwen an fonksyone?',
+    aiSug2: 'Kote mwen ka jwenn resi mwen yo?',
+    aiSug3: 'Kisa estati peman mwen an vle di?',
+    aiSug4: 'Kijan mwen ka telechaje yon dokiman?',
   },
   es: {
-    widgetTitle: 'UNIMUNITY Assistant',
+    widgetTitle: 'UNIMUNITY AI',
     navHome: 'Inicio',
     navMessages: 'Mensajes',
     navAI: 'IA',
@@ -89,13 +112,18 @@ const STRINGS: Record<SupportLang, Dict> = {
     homeMessagesEmpty: 'Chatea con tu equipo',
     homeAskAI: 'Preguntar a UNIMUNITY AI',
     homeAskAISubtitle: 'Tu asistente inteligente',
-    aiWelcome: '¡Hola! Soy UNIMUNITY AI, tu asistente inteligente. ¿Cómo puedo ayudarte hoy?',
-    aiFooter: 'Asistente automatizado — no es un administrador humano. Usa Mensajes para contactar a una persona.',
+    aiWelcome: '¡Hola! ¿Cómo puedo ayudarte? Puedo ayudarte a entender tu cuenta de UNIMUNITY y tu Tontine.',
+    aiFooter: 'UNIMUNITY AI — no es una persona humana. Usa Mensajes para contactar a tu organizador o equipo.',
     aiPlaceholder: 'Escribe un mensaje',
     aiThinking: 'Pensando...',
+    aiSuggestionsLabel: 'Sugerencias',
+    aiSug1: '¿Cómo funciona mi cuadrícula de pagos?',
+    aiSug2: '¿Dónde puedo encontrar mis recibos?',
+    aiSug3: '¿Qué significa el estado de mi pago?',
+    aiSug4: '¿Cómo subo un documento?',
   },
   pt: {
-    widgetTitle: 'UNIMUNITY Assistant',
+    widgetTitle: 'UNIMUNITY AI',
     navHome: 'Início',
     navMessages: 'Mensagens',
     navAI: 'IA',
@@ -106,10 +134,15 @@ const STRINGS: Record<SupportLang, Dict> = {
     homeMessagesEmpty: 'Converse com sua equipe',
     homeAskAI: 'Perguntar à UNIMUNITY AI',
     homeAskAISubtitle: 'Sua assistente inteligente',
-    aiWelcome: 'Olá! Sou a UNIMUNITY AI, sua assistente inteligente. Como posso ajudar você hoje?',
-    aiFooter: 'Assistente automatizado — não é um administrador humano. Use Mensagens para falar com uma pessoa.',
+    aiWelcome: 'Olá! Como posso ajudar você? Posso ajudar você a entender sua conta UNIMUNITY e sua Tontine.',
+    aiFooter: 'UNIMUNITY AI — não é uma pessoa humana. Use Mensagens para falar com seu organizador ou equipe.',
     aiPlaceholder: 'Digite uma mensagem',
     aiThinking: 'Pensando...',
+    aiSuggestionsLabel: 'Sugestões',
+    aiSug1: 'Como funciona minha grade de pagamentos?',
+    aiSug2: 'Onde posso encontrar meus recibos?',
+    aiSug3: 'O que significa o status do meu pagamento?',
+    aiSug4: 'Como faço para enviar um documento?',
   },
 };
 

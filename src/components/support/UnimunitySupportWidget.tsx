@@ -13,12 +13,13 @@
 // any AI or Messages business logic itself - that stays inside
 // AIContent.tsx / MessagesContent.tsx exactly as it worked before.
 import { useEffect, useState, type CSSProperties } from 'react';
+import Image from 'next/image';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, memberAuth, db, memberDb, storage, memberStorage } from '@/lib/firebase';
 import { SUPER_ADMIN_EMAIL } from '@/lib/ai/constants';
 import { C, deviceTierFor, DeviceTier } from './theme';
 import { t, SUPPORT_LANGUAGES, SupportLang } from './i18n';
-import RobotAvatar from '../ai/RobotAvatar';
+import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
 import HomeContent from './HomeContent';
 import MessagesContent from './MessagesContent';
 import AIContent from './AIContent';
@@ -53,6 +54,10 @@ export default function UnimunitySupportWidget() {
   const [memberUser, setMemberUser] = useState<User | null>(null);
   const user = adminUser || memberUser;
   const isSuperAdmin = !!adminUser && adminUser.email === SUPER_ADMIN_EMAIL;
+  // The photo shown is a UI presentation choice only - both are the same
+  // central UNIMUNITY AI (see RobotAvatar.tsx). Admin/organizer accounts
+  // see the male portrait, member accounts see the female portrait.
+  const persona: AIPersona = adminUser ? 'admin' : 'member';
   const firestoreDb = adminUser ? db : memberDb;
   const storageInstance = adminUser ? storage : memberStorage;
 
@@ -131,7 +136,7 @@ export default function UnimunitySupportWidget() {
           fontFamily: 'inherit',
         }}>
           <button onClick={() => setPanelState('open')} style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="Reopen UNIMUNITY Assistant">
-            <RobotAvatar state="welcome" variant="head" size={28} />
+            <RobotAvatar state="welcome" variant="head" size={28} persona={persona} />
           </button>
           <button onClick={() => setPanelState('open')} style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 13, color: C.bordeauxDark }}>
             UNIMUNITY
@@ -165,10 +170,35 @@ export default function UnimunitySupportWidget() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           borderBottom: `2px solid ${C.bordeaux}`, flexShrink: 0, gap: 8,
         }}>
-          <div style={{ fontWeight: 800, fontSize: 14, color: C.bordeauxDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {t(lang, 'widgetTitle')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            {/* Original UNIMUNITY logo, left - present in this header on every
+                page (the widget is mounted once, globally, in the root layout). */}
+            <Image
+              src="/unimunity-logo-color.png"
+              alt="UNIMUNITY"
+              width={90}
+              height={30}
+              unoptimized
+              style={{ height: isMobile ? 18 : 20, width: 'auto', flexShrink: 0 }}
+            />
+            <div style={{ fontWeight: 800, fontSize: 13, color: C.bordeauxDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+              {effectiveTab === 'messages' ? t(lang, 'navMessages') : t(lang, 'widgetTitle')}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            {/* The two UNIMUNITY AI portraits, right - both together here as
+                a brand/identity mark (per Rachele's instruction). The single,
+                role-specific portrait used *as* the AI's avatar elsewhere in
+                this widget (nav tab, chat bubbles, Home row) is handled by
+                RobotAvatar via `persona` above, not here. */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0 }}>
+                <Image src="/ai/ai-avatar-admin-male.png" alt="UNIMUNITY AI" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+              </div>
+              <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0, marginLeft: -8 }}>
+                <Image src="/ai/ai-avatar-member-female.png" alt="UNIMUNITY AI" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+              </div>
+            </div>
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value as SupportLang)}
@@ -195,6 +225,7 @@ export default function UnimunitySupportWidget() {
               lang={lang}
               unreadCount={unreadCount}
               showAI={isSuperAdmin}
+              persona={persona}
               onGoToMessages={() => setActiveTab('messages')}
               onGoToAI={() => setActiveTab('ai')}
             />
@@ -209,7 +240,7 @@ export default function UnimunitySupportWidget() {
           </div>
           {isSuperAdmin && (
             <div style={{ position: 'absolute', inset: 0, display: effectiveTab === 'ai' ? 'flex' : 'none', flexDirection: 'column' }}>
-              <AIContent lang={lang} />
+              <AIContent lang={lang} persona={persona} />
             </div>
           )}
         </div>
@@ -257,7 +288,7 @@ export default function UnimunitySupportWidget() {
                 color: effectiveTab === 'ai' ? C.bordeaux : C.muted,
               }}
             >
-              <RobotAvatar state={effectiveTab === 'ai' ? 'welcome' : 'idle'} variant="head" size={20} />
+              <RobotAvatar state={effectiveTab === 'ai' ? 'welcome' : 'idle'} variant="head" size={20} persona={persona} />
               <span style={{ fontSize: 10.5, fontWeight: 700 }}>{t(lang, 'navAI')}</span>
             </button>
           )}

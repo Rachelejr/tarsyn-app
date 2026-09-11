@@ -22,17 +22,9 @@ import { useEffect, useRef, useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { C } from './theme';
 import { t, SupportLang } from './i18n';
-import RobotAvatar from '../ai/RobotAvatar';
+import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
 
 type ChatEntry = { role: 'user' | 'assistant'; content: string };
-
-const DEFAULT_SUGGESTIONS = [
-  'Analyze the platform',
-  'Show me any issues',
-  'Help me manage UNIMUNITY',
-  'Check the configuration',
-  'I have a question',
-];
 
 const SendIcon = ({ size = 15 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={C.or} strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
@@ -42,9 +34,10 @@ const SendIcon = ({ size = 15 }: { size?: number }) => (
 
 interface AIContentProps {
   lang: SupportLang;
+  persona: AIPersona;
 }
 
-export default function AIContent({ lang }: AIContentProps) {
+export default function AIContent({ lang, persona }: AIContentProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState('');
@@ -85,33 +78,34 @@ export default function AIContent({ lang }: AIContentProps) {
     }
   };
 
+  const suggestions = [t(lang, 'aiSug1'), t(lang, 'aiSug2'), t(lang, 'aiSug3'), t(lang, 'aiSug4')];
+
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: 14, boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.ivoire }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
         {entries.length === 0 && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2px 0 4px' }}>
-              <RobotAvatar state="welcome" variant="bust" size={72} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-              <div style={{ flexShrink: 0, marginBottom: 2 }}>
-                <RobotAvatar state="welcome" variant="head" size={26} />
-              </div>
-              <div style={{ background: C.creme, color: C.bordeauxDark, padding: '11px 14px', borderRadius: '10px 10px 10px 2px', fontSize: 13.5, lineHeight: 1.5, maxWidth: 280 }}>
-                {t(lang, 'aiWelcome')}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '4px 0 6px' }}>
+              <RobotAvatar state="welcome" variant="bust" size={76} persona={persona} />
+              <div style={{ fontWeight: 800, fontSize: 13.5, color: C.bordeauxDark, letterSpacing: 0.2 }}>
+                {t(lang, 'widgetTitle')}
               </div>
             </div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 4 }}>
-              Suggestions
+            <div style={{ background: C.white, border: `1px solid ${C.border}`, color: C.bordeauxDark, padding: '13px 15px', borderRadius: 14, fontSize: 13.5, lineHeight: 1.55, boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+              {t(lang, 'aiWelcome')}
+            </div>
+            <div style={{ fontSize: 10.5, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 2 }}>
+              {t(lang, 'aiSuggestionsLabel')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {DEFAULT_SUGGESTIONS.map(s => (
+              {suggestions.map(s => (
                 <button
                   key={s}
                   onClick={() => send(s)}
                   style={{
-                    padding: '9px 14px', borderRadius: 20, border: `1.5px solid ${C.or}`, background: C.white,
+                    padding: '10px 14px', borderRadius: 12, border: `1px solid ${C.border}`, background: C.white,
                     color: C.bordeauxDark, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'left',
+                    boxShadow: '0 1px 4px rgba(74,31,56,0.05)',
                   }}
                 >
                   {s}
@@ -122,18 +116,21 @@ export default function AIContent({ lang }: AIContentProps) {
         )}
 
         {entries.map((e, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, justifyContent: e.role === 'user' ? 'flex-end' : 'flex-start' }}>
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: e.role === 'user' ? 'flex-end' : 'flex-start', gap: 4 }}>
             {e.role === 'assistant' && (
-              <div style={{ flexShrink: 0, marginBottom: 2 }}>
-                <RobotAvatar state="welcome" variant="head" size={26} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 2 }}>
+                <RobotAvatar state="welcome" variant="head" size={20} persona={persona} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.bordeauxDark }}>{t(lang, 'widgetTitle')}</span>
               </div>
             )}
             <div style={{
-              background: e.role === 'user' ? C.bordeaux : C.creme,
+              background: e.role === 'user' ? C.bordeaux : C.white,
               color: e.role === 'user' ? C.white : C.bordeauxDark,
+              border: e.role === 'user' ? 'none' : `1px solid ${C.border}`,
               padding: '11px 14px',
-              borderRadius: e.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
-              fontSize: 13.5, lineHeight: 1.5, maxWidth: '78%', whiteSpace: 'pre-wrap',
+              borderRadius: e.role === 'user' ? '14px 14px 3px 14px' : '3px 14px 14px 14px',
+              fontSize: 13.5, lineHeight: 1.55, maxWidth: '82%', whiteSpace: 'pre-wrap',
+              boxShadow: e.role === 'user' ? 'none' : '0 1px 6px rgba(74,31,56,0.05)',
             }}>
               {e.content}
             </div>
@@ -141,11 +138,12 @@ export default function AIContent({ lang }: AIContentProps) {
         ))}
 
         {sending && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-            <div style={{ flexShrink: 0, marginBottom: 2 }}>
-              <RobotAvatar state="thinking" variant="head" size={26} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 2 }}>
+              <RobotAvatar state="thinking" variant="head" size={20} persona={persona} />
+              <span style={{ fontSize: 11, fontWeight: 800, color: C.bordeauxDark }}>{t(lang, 'widgetTitle')}</span>
             </div>
-            <div style={{ background: C.creme, color: C.muted, padding: '11px 14px', borderRadius: '10px 10px 10px 2px', fontSize: 13 }}>
+            <div style={{ background: C.white, border: `1px solid ${C.border}`, color: C.muted, padding: '11px 14px', borderRadius: '3px 14px 14px 14px', fontSize: 13 }}>
               {t(lang, 'aiThinking')}
             </div>
           </div>
@@ -155,13 +153,13 @@ export default function AIContent({ lang }: AIContentProps) {
           <div style={{ color: '#b91c1c', fontSize: 12.5 }}>{error}</div>
         )}
 
-        <div style={{ marginTop: 'auto', fontSize: 10.5, color: C.muted, textAlign: 'center', fontStyle: 'italic', paddingTop: 8 }}>
+        <div style={{ marginTop: 'auto', fontSize: 10.5, color: C.muted, textAlign: 'center', paddingTop: 8 }}>
           {t(lang, 'aiFooter')}
         </div>
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ padding: '10px 12px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, boxSizing: 'border-box' }}>
+      <div style={{ padding: '10px 12px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, boxSizing: 'border-box', background: C.white }}>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -169,17 +167,19 @@ export default function AIContent({ lang }: AIContentProps) {
           placeholder={t(lang, 'aiPlaceholder')}
           disabled={sending}
           style={{
-            flex: 1, padding: '9px 14px', borderRadius: 20, border: `1px solid ${C.border}`,
+            flex: 1, padding: '10px 15px', borderRadius: 22, border: `1px solid ${C.border}`,
             background: C.creme, fontSize: 13, color: C.bordeauxDark, outline: 'none',
           }}
         />
         <button
           onClick={() => send()}
           disabled={sending || !input.trim()}
+          aria-label="Send"
           style={{
-            width: 34, height: 34, borderRadius: '50%', background: C.bordeaux, border: 'none',
+            width: 36, height: 36, borderRadius: '50%', background: C.bordeaux, border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             cursor: sending || !input.trim() ? 'default' : 'pointer', opacity: sending || !input.trim() ? 0.6 : 1,
+            boxShadow: '0 2px 8px rgba(107,45,78,0.3)',
           }}
         >
           <SendIcon />

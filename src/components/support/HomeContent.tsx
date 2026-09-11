@@ -10,12 +10,13 @@
 
 import { C } from './theme';
 import { t, SupportLang } from './i18n';
-import RobotAvatar from '../ai/RobotAvatar';
+import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
 
 interface HomeContentProps {
   lang: SupportLang;
   unreadCount: number;
   showAI: boolean;
+  persona: AIPersona;
   onGoToMessages: () => void;
   onGoToAI: () => void;
 }
@@ -35,7 +36,7 @@ function ChevronIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-export default function HomeContent({ lang, unreadCount, showAI, onGoToMessages, onGoToAI }: HomeContentProps) {
+export default function HomeContent({ lang, unreadCount, showAI, persona, onGoToMessages, onGoToAI }: HomeContentProps) {
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
       <div>
@@ -49,6 +50,7 @@ export default function HomeContent({ lang, unreadCount, showAI, onGoToMessages,
           display: 'flex', alignItems: 'center', gap: 14, padding: '16px 16px',
           borderRadius: 14, border: `1px solid ${C.border}`, background: C.white,
           cursor: 'pointer', textAlign: 'left', width: '100%', boxSizing: 'border-box',
+          boxShadow: '0 1px 6px rgba(74,31,56,0.05)',
         }}
       >
         <div style={{
@@ -83,10 +85,11 @@ export default function HomeContent({ lang, unreadCount, showAI, onGoToMessages,
             display: 'flex', alignItems: 'center', gap: 14, padding: '16px 16px',
             borderRadius: 14, border: `1px solid ${C.border}`, background: C.white,
             cursor: 'pointer', textAlign: 'left', width: '100%', boxSizing: 'border-box',
+            boxShadow: '0 1px 6px rgba(74,31,56,0.05)',
           }}
         >
           <div style={{ flexShrink: 0, display: 'flex' }}>
-            <RobotAvatar state="welcome" variant="head" size={40} />
+            <RobotAvatar state="welcome" variant="head" size={40} persona={persona} />
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark, lineHeight: 1.3 }}>{t(lang, 'homeAskAI')}</div>
