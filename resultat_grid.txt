@@ -1,0 +1,3 @@
+﻿441:           .UNIMUNITY-plans-grid {
+592:         <div className="UNIMUNITY-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '18px', alignItems: 'stretch' }}>
+853:           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>

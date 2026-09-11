@@ -1,0 +1,24 @@
+﻿146:   priceIdMonthly: string | null;
+147:   priceIdAnnual: string | null;
+160: const PRICE_ID_TO_PLAN: Record<string, PlanDef['id']> = {
+189:     priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY || 'price_STARTER_MONTHLY_REPLACE_ME',
+190:     priceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_ANNUAL || 'price_STARTER_ANNUAL_REPLACE_ME',
+209:     priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY || 'price_GROWTH_MONTHLY_REPLACE_ME',
+210:     priceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_ANNUAL || 'price_GROWTH_ANNUAL_REPLACE_ME',
+229:     priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY || 'price_PRO_MONTHLY_REPLACE_ME',
+230:     priceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_ANNUAL || 'price_PRO_ANNUAL_REPLACE_ME',
+247:     priceIdMonthly: null,
+248:     priceIdAnnual: null,
+327:   const activePlanId: string = PRICE_ID_TO_PLAN[rawPlan] || 'free';
+329:   const handleSubscribe = async (priceId: string | null, planName: string) => {
+330:     if (!priceId || !user) return;
+331:     if (priceId.includes('REPLACE_ME')) {
+333:       console.error('Blocked checkout: placeholder priceId not replaced by env var for', planName, priceId);
+343:           priceId,
+395:   const handleUpdateSubscription = async (newPriceId: string | null, planName: string) => {
+396:     if (!newPriceId || !user) return;
+397:     if (newPriceId.includes('REPLACE_ME')) {
+407:         body: JSON.stringify({ userId: user.uid, newPriceId }),
+596:             const priceId = billingPeriod === 'monthly' ? plan.priceIdMonthly : plan.priceIdAnnual;
+716:                           handleUpdateSubscription(priceId, plan.name);
+718:                           handleSubscribe(priceId, plan.name);

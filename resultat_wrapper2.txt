@@ -1,0 +1,12 @@
+﻿437:   return (
+438:     <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
+439:       <style>{`
+440:         @media (max-width: 860px) {
+441:           .UNIMUNITY-plans-grid {
+442:             grid-template-columns: 1fr !important;
+443:             gap: 18px !important;
+444:           }
+445:           .UNIMUNITY-page-container {
+446:             padding: 24px 16px !important;
+447:           }
+448:         }

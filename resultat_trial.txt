@@ -1,0 +1,24 @@
+﻿Chemin utilise: C:\Users\mglau\tarsyn-app\src\app\dashboard\subscription\page.tsx
+Fichier existe: True
+OK: en trial
+OK: en save
+OK: fr trial
+BLOC NON TROUVE: fr save
+BLOC NON TROUVE: ht trial
+OK: ht save
+BLOC NON TROUVE: es trial
+OK: es save
+BLOC NON TROUVE: pt trial
+OK: pt save
+OK: en FAQ trial
+OK: en FAQ discount
+OK: fr FAQ trial
+BLOC NON TROUVE: fr FAQ discount
+BLOC NON TROUVE: ht FAQ trial
+OK: ht FAQ discount
+BLOC NON TROUVE: es FAQ trial
+OK: es FAQ discount
+BLOC NON TROUVE: pt FAQ trial
+BLOC NON TROUVE: pt FAQ discount
+BLOC NON TROUVE: badge Pro
+TERMINE - fichier sauvegarde

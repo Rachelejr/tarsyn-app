@@ -1,0 +1,12 @@
+﻿Fichier existe: True
+OK: fr save
+OK: ht trial
+OK: es trial
+OK: pt trial
+OK: fr FAQ discount
+OK: ht FAQ trial
+OK: es FAQ trial
+OK: pt FAQ trial
+OK: pt FAQ discount
+BLOC NON TROUVE: badge Pro
+TERMINE - fichier sauvegarde

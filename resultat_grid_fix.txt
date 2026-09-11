@@ -1,0 +1,3 @@
+﻿OK: grille 4 colonnes au lieu de 5
+OK: agrandir le logo
+TERMINE - fichier sauvegarde

@@ -1,0 +1,8 @@
+﻿142:   badge?: string;
+185:     badge: 'MOST CHOSEN',
+205:     badge: 'MOST POPULAR - SAVE 10%',
+225:     badge: 'BEST VALUE',
+604:                 boxShadow: plan.badge ? '0 12px 40px rgba(107,45,78,0.16)' : '0 4px 20px rgba(0,0,0,0.05)',
+605:                 border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '2px solid #F0E4D0'),
+611:                 {plan.badge && !isCurrent && (
+617:                     {plan.badge}

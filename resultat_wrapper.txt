@@ -1,0 +1,15 @@
+﻿298:     return () => clearTimeout(t);
+299:   }, [showSuccess]);
+300: 
+301:   useEffect(() => {
+302:     if (!showCanceled) return;
+303:     const t = setTimeout(() => setShowCanceled(false), 5000);
+304:     return () => clearTimeout(t);
+305:   }, [showCanceled]);
+306: 
+307:   useEffect(() => {
+308:     if (!checkoutError) return;
+309:     const t = setTimeout(() => setCheckoutError(null), 5000);
+310:     return () => clearTimeout(t);
+311:   }, [checkoutError]);
+312: 

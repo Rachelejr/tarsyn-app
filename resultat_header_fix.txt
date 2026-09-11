@@ -1,0 +1,6 @@
+﻿OK: fond nav creme
+OK: logo couleur
+OK: couleur texte horloge
+OK: couleur selecteur langue
+OK: couleur bouton deconnexion
+TERMINE - fichier sauvegarde

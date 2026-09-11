@@ -1,0 +1,76 @@
+﻿===== dashboard\subscription\page.tsx (lignes 440-512) =====
+440:         @media (max-width: 860px) {
+441:           .UNIMUNITY-plans-grid {
+442:             grid-template-columns: 1fr !important;
+443:             gap: 18px !important;
+444:           }
+445:           .UNIMUNITY-page-container {
+446:             padding: 24px 16px !important;
+447:           }
+448:         }
+449:         .UNIMUNITY-cta-btn {
+450:           transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+451:         }
+452:         .UNIMUNITY-cta-btn:hover:not(:disabled) {
+453:           transform: translateY(-2px);
+454:           box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+455:         }
+456:         .UNIMUNITY-cta-btn:active:not(:disabled) {
+457:           transform: translateY(0);
+458:         }
+459:         .UNIMUNITY-plan-card {
+460:           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+461:         }
+462:         .UNIMUNITY-plan-card:hover {
+463:           transform: translateY(-4px);
+464:           box-shadow: 0 16px 40px rgba(107,45,78,0.18) !important;
+465:           border-color: #E9C77B !important;
+466:         }
+467:         .UNIMUNITY-price-value {
+468:           transition: opacity 0.2s ease;
+469:         }
+470:       `}</style>
+471: 
+472:       <nav style={{ background: '#6B2D4E', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+473:         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
+474:           <img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+475:         </div>
+476:         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+477:           <DateTimeWeather textColor="#FBEEDD" />
+478:           <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
+479:             style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.4)', background: 'rgba(251,238,221,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
+480:             {LANGUAGES.map((l) => (<option key={l.code} value={l.code} style={{ color: '#4A1F38' }}>{l.label}</option>))}
+481:           </select>
+482:           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+483:             style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+484:             Sign Out
+485:           </button>
+486:         </div>
+487:       </nav>
+488: 
+489:       {showLangModal && (
+490:         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+491:           <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+492:             <h3 style={{ color: '#6B2D4E', marginBottom: '8px', fontSize: '18px', fontWeight: 700 }}>{'\u2795'} Add Your Language</h3>
+493:             <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us - we&apos;ll add it!</p>
+494:             <input type="text" placeholder="Ex: Fon, Twi, Soninke, Zarma..." value={customLang} onChange={(e) => setCustomLang(e.target.value)}
+495:               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #D9C0CC', borderRadius: '8px', fontSize: '14px', outline: 'none', marginBottom: '16px', boxSizing: 'border-box' }} />
+496:             <div style={{ display: 'flex', gap: '10px' }}>
+497:               <button onClick={() => { if (customLang.trim()) { alert(`\u2705 Thank you! "${customLang}" has been submitted. We will add it soon!`); setShowLangModal(false); setCustomLang(''); } else { alert('Please enter a language name.'); } }}
+498:                 style={{ flex: 1, padding: '12px', background: '#6B2D4E', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+499:                 Submit Language
+500:               </button>
+501:               <button onClick={() => setShowLangModal(false)}
+502:                 style={{ padding: '12px 16px', background: '#EAD9BE', border: 'none', borderRadius: '8px', fontSize: '14px', color: '#6B2D4E', cursor: 'pointer', fontWeight: 600 }}>
+503:                 Cancel
+504:               </button>
+505:             </div>
+506:           </div>
+507:         </div>
+508:       )}
+509: 
+510: 
+511:       <div className="UNIMUNITY-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
+512:         {showSuccess && (
+
+===== dashboard\layout.tsx (existe: True) =====

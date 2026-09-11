@@ -1,0 +1,75 @@
+﻿18:   { code: 'other', label: '\u2795 Other / Autre' },
+184:     icon: '\ud83d\ude80',
+204:     icon: '\ud83d\udcc8',
+224:     icon: '\ud83d\udc51',
+479:             style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.4)', background: 'rgba(251,238,221,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
+491:           <div style={{ background: 'white', borderRadius: '16px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+492:             <h3 style={{ color: '#6B2D4E', marginBottom: '8px', fontSize: '18px', fontWeight: 700 }}>{'\u2795'} Add Your Language</h3>
+493:             <p style={{ color: '#6B2D4E', fontSize: '13px', marginBottom: '20px' }}>Your language isn&apos;t in the list? Tell us - we&apos;ll add it!</p>
+495:               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #D9C0CC', borderRadius: '8px', fontSize: '14px', outline: 'none', marginBottom: '16px', boxSizing: 'border-box' }} />
+497:               <button onClick={() => { if (customLang.trim()) { alert(`\u2705 Thank you! "${customLang}" has been submitted. We will add it soon!`); setShowLangModal(false); setCustomLang(''); } else { alert('Please enter a language name.'); } }}
+511:       <div className="UNIMUNITY-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
+513:           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+519:           <div style={{ background: '#FFF3E0', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#E65100', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+525:           <div style={{ background: '#FDECEA', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#C62828', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+531:         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+532:           <h1 style={{ color: '#4A1F38', fontSize: '32px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+535:           <p style={{ color: '#6B2D4E', fontSize: '15px', margin: '0 0 16px' }}>
+539:             <span>\u2714 {st(lang, 'trial')}</span>
+540:             <span>\u2714 {st(lang, 'cancel')}</span>
+541:             <span>\u2714 {st(lang, 'secure')}</span>
+546:           <div style={{ background: 'white', borderRadius: '10px', padding: '8px 14px', marginBottom: '10px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
+547:             <p style={{ color: '#2E7D32', fontSize: '13px', fontWeight: 700, margin: '0 0 2px' }}>
+550:             <p style={{ color: '#6B2D4E', fontSize: '11px', margin: 0 }}>
+558:         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+631:                 <div style={{ fontSize: '32px', textAlign: 'center', margin: '4px 0 10px' }}>{plan.icon}</div>
+633:                 <h3 style={{ color: plan.color, fontSize: '18px', fontWeight: 800, margin: '0 0 2px', textAlign: 'center' }}>{plan.name}</h3>
+634:                 <p style={{ color: '#8A7A6D', fontSize: '11px', margin: '0 0 16px', textAlign: 'center', minHeight: '28px' }}>{plan.description}</p>
+636:                 <div style={{ margin: '0 0 4px', textAlign: 'center' }}>
+646:                 <p style={{ color: '#8A7A6D', fontSize: '10px', margin: '0 0 16px', textAlign: 'center' }}>
+656:                 <div style={{ margin: '0 0 12px', textAlign: 'center' }}>
+657:                   <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, margin: '0 0 2px' }}>{plan.members}</p>
+658:                   <p style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 700, margin: 0 }}>{plan.groups}</p>
+661:                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 6px', color: '#4A1F38', fontSize: '12px', flexGrow: 1 }}>
+662:                   <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+663:                     <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{plan.reports}
+665:                   <li style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+666:                     <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{plan.support}
+669:                     <li key={f} style={{ marginBottom: '7px', display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+670:                       <span style={{ color: '#1D9E75', fontWeight: 800, flexShrink: 0 }}>\u2714</span>{f}
+676:                   <p style={{ color: '#8A7A6D', fontSize: '9px', margin: '0 0 8px', fontStyle: 'italic', textAlign: 'center' }}>
+683:                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: 'auto' }}>
+706:                         <p style={{ fontSize: '9px', color: '#C62828', textAlign: 'center', margin: 0 }}>
+727:                         marginTop: 'auto',
+741:                     style={{ width: '100%', height: '38px', background: '#FBEEDD', color: '#6B2D4E', borderRadius: '10px', border: '1px solid #6B2D4E', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginTop: 'auto' }}>
+754:                       marginTop: 'auto',
+764:         <div style={{ marginTop: '10px', background: 'white', borderRadius: '12px', padding: '10px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+765:           <h3 style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 800, margin: '0 0 2px' }}>Need Enterprise pricing?</h3>
+766:           <p style={{ color: '#6B2D4E', fontSize: '10px', margin: '0 0 6px' }}>Contact UNIMUNITY Sales Team</p>
+773:               marginBottom: '8px',
+784:         <div style={{ marginTop: '32px' }}>
+785:           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'compare')}</h2>
+786:           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'compareSub')}</p>
+838:                             {typeof val === 'boolean' ? (val ? <span style={{ color: '#3B8659', fontWeight: 800 }}>\u2713</span> : <span style={{ color: '#D9C0CC' }}>-</span>) : val}
+850:         <div style={{ marginTop: '32px' }}>
+851:           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'why')}</h2>
+852:           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'whySub')}</p>
+856:               { icon: '\ud83d\udd12', title: 'Bank-Level Security', desc: 'Your data is encrypted and protected, with secure, PCI-compliant payment processing.' },
+857:               { icon: '\ud83d\udcca', title: 'Complete Transparency', desc: 'Automatic reports, audit logs, and full visibility for every member.' },
+858:               { icon: '\ud83d\udcac', title: 'Real Human Support', desc: 'Talk to a real person, not a bot, whenever you need help.' },
+861:                 <div style={{ fontSize: '30px', marginBottom: '8px' }}>{f.icon}</div>
+862:                 <h3 style={{ color: '#6B2D4E', fontSize: '14px', fontWeight: 800, margin: '0 0 6px' }}>{f.title}</h3>
+863:                 <p style={{ color: '#8B5A73', fontSize: '12px', margin: 0, lineHeight: 1.5 }}>{f.desc}</p>
+869:         <div style={{ marginTop: '32px' }}>
+870:           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
+871:           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
+872:           <div style={{ maxWidth: '520px', margin: '0 auto', background: 'white', borderRadius: '14px', padding: '28px', textAlign: 'center', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
+873:             <div style={{ fontSize: '30px', marginBottom: '10px' }}>\ud83d\udcac</div>
+874:             <p style={{ color: '#4A1F38', fontSize: '13.5px', margin: '0 0 18px', lineHeight: 1.6 }}>{st(lang, 'reviewCta')}</p>
+881:         <div style={{ marginTop: '32px' }}>
+882:           <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'faqTitle')}</h2>
+883:           <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'faqSub')}</p>
+884:           <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+893:                   <p style={{ color: '#8B5A73', fontSize: '12.5px', lineHeight: 1.6, margin: 0, padding: '0 18px 16px' }}>{fq(lang, item.key, 'a')}</p>
+900:         <div style={{ marginTop: '28px', marginBottom: '8px', textAlign: 'center' }}>
+901:           <p style={{ color: '#8B5A73', fontSize: '11px', fontWeight: 600, margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{st(lang, 'payments')}</p>

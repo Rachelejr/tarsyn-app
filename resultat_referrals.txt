@@ -1,0 +1,4 @@
+﻿OK: add-member/page.tsx reecrit (Prenom/Nom, Adresse, Nationalite, Genre, VIP, Couleur, alerte position - SANS parrainage)
+OK: dashboard/referrals/page.tsx cree/mis a jour (formulaire de parrainage independant)
+INFO: carte Referrals deja presente sur le tableau de bord (rien a faire)
+TERMINE - fichiers sauvegardes
