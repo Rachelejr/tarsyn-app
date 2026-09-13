@@ -1,9 +1,0 @@
-﻿OK: checkmark trial
-OK: checkmark cancel
-OK: checkmark secure
-OK: checkmark reports
-OK: checkmark support
-OK: checkmark feature list
-OK: checkmark compare table
-OK: emoji testimonial
-TERMINE - fichier sauvegarde
