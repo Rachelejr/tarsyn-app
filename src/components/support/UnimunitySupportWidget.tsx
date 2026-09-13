@@ -242,7 +242,7 @@ export default function UnimunitySupportWidget() {
           </div>
           {!!user && (
             <div style={{ position: 'absolute', inset: 0, display: effectiveTab === 'ai' ? 'flex' : 'none', flexDirection: 'column' }}>
-              <AIContent lang={lang} persona={persona} />
+              <AIContent lang={lang} persona={persona} user={user} />
             </div>
           )}
         </div>
