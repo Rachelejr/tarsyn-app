@@ -238,6 +238,7 @@ export default function UnimunitySupportWidget() {
               firestoreDb={firestoreDb}
               storageInstance={storageInstance}
               onUnreadCountChange={setUnreadCount}
+              persona={persona}
             />
           </div>
           {!!user && (

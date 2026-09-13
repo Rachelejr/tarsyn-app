@@ -21,7 +21,9 @@ import { collection, getDocs, doc, getDoc, query, where, Firestore } from 'fireb
 import { FirebaseStorage } from 'firebase/storage';
 import type { User } from 'firebase/auth';
 import { listenToUserChats, listenToMessages, sendMessage, sendMediaMessage, sendFileMessage, markChatAsRead, getOrCreatePrivateChat, clearChat, deleteMessageForMe, deleteMessageForEveryone, ChatSummary, ChatMessage } from '@/lib/chat';
+import { getMyMemberDocId, getMemberPhotoUrl, getPublicProfile, uploadMemberPhoto, uploadOrganizerPhoto, MAX_PHOTO_BYTES } from '@/lib/profile';
 import { C } from './theme';
+import type { AIPersona } from '../ai/RobotAvatar';
 
 const bg = C.creme;
 const textGris = C.bordeaux;
@@ -114,14 +116,63 @@ function avatarGradient(name: string) {
   return AVATAR_GRADIENTS[idx];
 }
 
+// Shared avatar renderer for all 4 spots that used to always show a
+// gradient + first-letter circle (chat list, conversation header, the
+// forward-to picker, and the profile modal). Shows a real uploaded photo
+// when one has been resolved for this chat/person; falls back to the
+// exact same gradient+letter look as before when there isn't one, so
+// nothing regresses for a chat with no photo on either side.
+function ChatAvatar({ photoUrl, name, size, isGroup, ringColor }: { photoUrl?: string | null; name: string; size: number; isGroup?: boolean; ringColor?: string }) {
+  if (isGroup) {
+    return (
+      <div style={{
+        width: size, height: size, borderRadius: '50%', background: bg,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: textGris, fontWeight: 700, fontSize: Math.round(size * 0.42), flexShrink: 0,
+        border: `1px solid ${C.border}`,
+      }}>👥</div>
+    );
+  }
+  if (photoUrl) {
+    return (
+      <img src={photoUrl} alt="" style={{
+        width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+        border: ringColor ? `1.5px solid ${ringColor}` : 'none',
+      }} />
+    );
+  }
+  const grad = avatarGradient(name || '?');
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontWeight: 700, fontSize: Math.round(size * 0.37), color: 'white', flexShrink: 0,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+      border: ringColor ? `1.5px solid ${ringColor}` : 'none',
+    }}>
+      {name?.[0]?.toUpperCase() || '?'}
+    </div>
+  );
+}
+
+const CameraIcon = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+    <circle cx="12" cy="13" r="4" />
+  </svg>
+);
+
 interface MessagesContentProps {
   user: User;
   firestoreDb: Firestore;
   storageInstance: FirebaseStorage;
   onUnreadCountChange: (count: number) => void;
+  persona: AIPersona;
 }
 
-export default function MessagesContent({ user, firestoreDb, storageInstance, onUnreadCountChange }: MessagesContentProps) {
+export default function MessagesContent({ user, firestoreDb, storageInstance, onUnreadCountChange, persona }: MessagesContentProps) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatName, setActiveChatName] = useState('');
@@ -156,6 +207,117 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [forwardingMsg, setForwardingMsg] = useState<ChatMessage | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+
+  // --- Profile photo (new, minimal) ---
+  // My own photo: a member's lives on their own members/{id}.photoUrl
+  // (firestore.rules now lets them update ONLY that field on their own
+  // doc - see lib/profile.ts's file header for the full rationale); an
+  // organizer/admin's lives in the new publicProfiles/{uid} doc instead,
+  // since a member has no read access to another uid's private users/
+  // doc. Both are resolved once per signed-in user/persona.
+  const [myPhotoUrl, setMyPhotoUrl] = useState<string | null>(null);
+  const [myMemberId, setMyMemberId] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  // The other participant's photo, resolved per private chat (member ->
+  // members/{chat.memberId}.photoUrl when I'm the organizer viewing a
+  // member; publicProfiles/{otherUid} when I'm a member viewing the
+  // organizer). Cached by chat id so a busy chat list (re-snapshotting on
+  // every new message) doesn't re-fetch photos it already resolved.
+  const [otherPhotoByChatId, setOtherPhotoByChatId] = useState<Record<string, string>>({});
+  const resolvedPhotoChatIds = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (persona === 'member') {
+          const id = await getMyMemberDocId(user.uid, firestoreDb);
+          if (cancelled) return;
+          setMyMemberId(id);
+          if (id) {
+            const url = await getMemberPhotoUrl(id, firestoreDb);
+            if (!cancelled) setMyPhotoUrl(url);
+          }
+        } else {
+          const profile = await getPublicProfile(user.uid, firestoreDb);
+          if (!cancelled) setMyPhotoUrl(profile?.photoUrl || null);
+        }
+      } catch (e) {
+        console.error('[profile] failed to load own photo:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user.uid, persona, firestoreDb]);
+
+  useEffect(() => {
+    const toResolve = chats.filter((c) => c.type === 'private' && !resolvedPhotoChatIds.current.has(c.id));
+    if (toResolve.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(toResolve.map(async (c) => {
+        resolvedPhotoChatIds.current.add(c.id);
+        try {
+          if (persona === 'admin' && c.memberId) {
+            const url = await getMemberPhotoUrl(c.memberId, firestoreDb);
+            return [c.id, url] as const;
+          }
+          const otherUid = c.participantIds.find((id) => id !== user.uid);
+          if (!otherUid) return [c.id, null] as const;
+          const profile = await getPublicProfile(otherUid, firestoreDb);
+          return [c.id, profile?.photoUrl || null] as const;
+        } catch (e) {
+          console.error('[profile] failed to resolve chat photo:', e);
+          return [c.id, null] as const;
+        }
+      }));
+      if (cancelled) return;
+      setOtherPhotoByChatId((prev) => {
+        const next = { ...prev };
+        for (const [id, url] of entries) if (url) next[id] = url;
+        return next;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [chats, persona, user.uid, firestoreDb]);
+
+  const handlePhotoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please choose an image file.');
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhotoError('Image is too large (max 5 MB).');
+      return;
+    }
+    setPhotoError('');
+    setUploadingPhoto(true);
+    try {
+      let url: string;
+      if (persona === 'member') {
+        let id = myMemberId;
+        if (!id) {
+          id = await getMyMemberDocId(user.uid, firestoreDb);
+          setMyMemberId(id);
+        }
+        if (!id) throw new Error('Could not find your member profile.');
+        url = await uploadMemberPhoto(id, file, storageInstance, firestoreDb);
+      } else {
+        const displayName = user.displayName || user.email?.split('@')[0] || 'Organizer';
+        url = await uploadOrganizerPhoto(user.uid, displayName, file, storageInstance, firestoreDb);
+      }
+      setMyPhotoUrl(url);
+    } catch (err) {
+      console.error('[profile] photo upload failed:', err);
+      setPhotoError('Upload failed. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   // --- Unread-chat counter (new, minimal, for the Home tab shortcut and
   // the Messages nav badge) ---
@@ -424,15 +586,8 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
             <button onClick={() => { setActiveChatId(null); setMessages([]); setShowMenu(false); }}
               style={{ background: 'none', border: 'none', color: textGris, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><path d='M15 18l-6-6 6-6' /></svg></button>
             <div onClick={() => setShowProfileModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <div style={{
-              width: '30px', height: '30px', borderRadius: '50%',
-              background: `linear-gradient(135deg, ${avatarGradient(activeChatName)[0]}, ${avatarGradient(activeChatName)[1]})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', color: 'white',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.25)', border: `1.5px solid ${dore}`,
-            }}>
-              {activeChatName?.[0]?.toUpperCase() || '?'}
-            </div>
-            <span style={{ fontWeight: 700, fontSize: '13px', color: textGris }}>{activeChatName}</span>
+              <ChatAvatar photoUrl={otherPhotoByChatId[activeChatId]} name={activeChatName} size={30} ringColor={dore} />
+              <span style={{ fontWeight: 700, fontSize: '13px', color: textGris }}>{activeChatName}</span>
             </div>
           </div>
         ) : (
@@ -440,8 +595,27 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
         )}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
           {!activeChatId && (
-            <button onClick={() => setShowSearch(!showSearch)}
-              style={{ background: 'none', border: 'none', color: textGris, fontSize: '18px', fontWeight: 700, cursor: 'pointer', lineHeight: 1 }}>+</button>
+            <>
+              <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoSelected} style={{ display: 'none' }} />
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                title="Your photo"
+                aria-label="Change your photo"
+                style={{ position: 'relative', background: 'none', border: 'none', padding: 0, cursor: uploadingPhoto ? 'default' : 'pointer', opacity: uploadingPhoto ? 0.6 : 1, display: 'flex' }}
+              >
+                <ChatAvatar photoUrl={myPhotoUrl} name={user.displayName || user.email || '?'} size={26} ringColor={dore} />
+                <span style={{
+                  position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%',
+                  background: C.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: `1.5px solid ${C.white}`,
+                }}>
+                  <CameraIcon size={8} />
+                </span>
+              </button>
+              <button onClick={() => setShowSearch(!showSearch)}
+                style={{ background: 'none', border: 'none', color: textGris, fontSize: '18px', fontWeight: 700, cursor: 'pointer', lineHeight: 1 }}>+</button>
+            </>
           )}
           {activeChatId && (
             <button onClick={() => setShowMenu(!showMenu)}
@@ -457,6 +631,9 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
           )}
         </div>
       </div>
+      {photoError && !activeChatId && (
+        <div style={{ padding: '6px 14px', fontSize: '11.5px', color: danger, background: dangerBg, borderBottom: `1px solid ${C.border}` }}>{photoError}</div>
+      )}
       {!activeChatId && (
         <div style={{ flex: 1, overflowY: 'auto', background: C.white }}>
           {showSearch && (
@@ -479,23 +656,13 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
             <p style={{ textAlign: 'center', color: textGris, fontSize: '13px', marginTop: '40px' }}>No conversations yet.</p>
           ) : (
             chats.map((chat) => {
-              const grad = avatarGradient(chat.name || '?');
               const isUnread = !!chat.lastMessage && chat.lastMessage.senderId !== user.uid && !seenChatIds.has(chat.id);
               return (
                 <div key={chat.id} onClick={() => openChat(chat.id, chat.name)}
                   style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', borderBottom: `1px solid ${bg}` }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = bg)}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                  <div style={{
-                    width: '38px', height: '38px', borderRadius: '50%',
-                    background: chat.type === 'group' ? bg : `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: chat.type === 'group' ? textGris : 'white', fontWeight: 700, fontSize: '14px', flexShrink: 0,
-                    boxShadow: chat.type === 'group' ? 'none' : '0 1px 3px rgba(0,0,0,0.2)',
-                    border: chat.type === 'group' ? `1px solid ${C.border}` : 'none',
-                  }}>
-                    {chat.type === 'group' ? '👥' : chat.name?.[0]?.toUpperCase() || '?'}
-                  </div>
+                  <ChatAvatar photoUrl={otherPhotoByChatId[chat.id]} name={chat.name} size={38} isGroup={chat.type === 'group'} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: '13px', color: textDark, display: 'flex', alignItems: 'center', gap: 6 }}>
                       {chat.name}
@@ -798,20 +965,15 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
               {chats.filter((c) => c.id !== activeChatId).length === 0 ? (
                 <p style={{ color: textGris, fontSize: '12.5px', textAlign: 'center', marginTop: '20px' }}>No other conversations.</p>
               ) : (
-                chats.filter((c) => c.id !== activeChatId).map((c) => {
-                  const grad = avatarGradient(c.name || '?');
-                  return (
-                    <div key={c.id} onClick={() => handleForwardTo(c.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 8px', borderRadius: '8px', cursor: 'pointer' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = bg)}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                      <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px', color: 'white', flexShrink: 0 }}>
-                        {c.name?.[0]?.toUpperCase() || '?'}
-                      </div>
-                      <span style={{ fontSize: '13px', color: textDark, fontWeight: 600 }}>{c.name}</span>
-                    </div>
-                  );
-                })
+                chats.filter((c) => c.id !== activeChatId).map((c) => (
+                  <div key={c.id} onClick={() => handleForwardTo(c.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 8px', borderRadius: '8px', cursor: 'pointer' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = bg)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                    <ChatAvatar photoUrl={otherPhotoByChatId[c.id]} name={c.name} size={30} isGroup={c.type === 'group'} />
+                    <span style={{ fontSize: '13px', color: textDark, fontWeight: 600 }}>{c.name}</span>
+                  </div>
+                ))
               )}
             </div>
             <button onClick={() => setForwardingMsg(null)}
@@ -825,13 +987,8 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10001, padding: '20px' }}
           onClick={() => setShowProfileModal(false)}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: C.white, borderRadius: '14px', padding: '24px', maxWidth: '300px', width: '100%', textAlign: 'center' }}>
-            <div style={{
-              width: '76px', height: '76px', borderRadius: '50%', margin: '0 auto 14px',
-              background: `linear-gradient(135deg, ${avatarGradient(activeChatName)[0]}, ${avatarGradient(activeChatName)[1]})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '28px', color: 'white',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            }}>
-              {activeChatName?.[0]?.toUpperCase() || '?'}
+            <div style={{ margin: '0 auto 14px', display: 'flex', justifyContent: 'center' }}>
+              <ChatAvatar photoUrl={otherPhotoByChatId[activeChatId]} name={activeChatName} size={76} />
             </div>
             <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 4px' }}>{activeChatName}</h3>
             <p style={{ color: textGris, fontSize: '12px', margin: '0 0 18px' }}>UNIMUNITY member</p>
