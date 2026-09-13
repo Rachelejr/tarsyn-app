@@ -40,47 +40,21 @@ interface RobotAvatarProps {
   persona?: AIPersona;
 }
 
-function StatusBadge({ state, size }: { state: RobotAvatarState; size: number }) {
-  const r = Math.max(6, size * 0.24);
-  const style = { position: 'absolute' as const, bottom: -1, right: -1, width: r * 2, height: r * 2 };
-
-  if (state === 'success') {
-    return (
-      <svg style={style} viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="11" fill={C.success} stroke={C.ivoire} strokeWidth="2" />
-        <path d="M7,12 L10.5,15.5 L17,8" stroke={C.ivoire} strokeWidth="2.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  if (state === 'error') {
-    return (
-      <svg style={style} viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="11" fill={C.danger} stroke={C.ivoire} strokeWidth="2" />
-        <line x1="12" y1="7" x2="12" y2="13" stroke={C.ivoire} strokeWidth="2.4" strokeLinecap="round" />
-        <circle cx="12" cy="17" r="1.4" fill={C.ivoire} />
-      </svg>
-    );
-  }
-  if (state === 'thinking' || state === 'waiting') {
-    return (
-      <svg style={style} viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="11" fill={C.creme} stroke={C.bordeaux} strokeWidth="1.6" />
-        <circle cx="7" cy="12" r="1.7" fill={C.bordeaux} opacity="0.9" />
-        <circle cx="12" cy="12" r="1.7" fill={C.bordeaux} opacity="0.6" />
-        <circle cx="17" cy="12" r="1.7" fill={C.bordeaux} opacity="0.35" />
-      </svg>
-    );
-  }
-  return (
-    <svg style={style} viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="11" fill={C.or} stroke={C.ivoire} strokeWidth="2.4" opacity={state === 'idle' ? 0.55 : 1} />
-    </svg>
-  );
-}
-
-export default function RobotAvatar({ state = 'welcome', size = 96, variant = 'bust', persona = 'member' }: RobotAvatarProps) {
-  const ringColor = state === 'error' ? C.danger : state === 'success' ? C.success : C.or;
-  const showBadge = variant === 'bust' || size >= 36;
+// Rachele asked for every colored circular overlay on the avatar photos -
+// the gold "idle" dot, the green success check, the red error mark, the
+// thinking dots - to be removed outright, not just the yellow one, and
+// for the fix to be in the component that generates them rather than a
+// CSS patch on top. That component was this file's StatusBadge (a small
+// SVG badge drawn in the corner of the photo) plus the state-dependent
+// ring color below (which turned the whole border red/green). Both are
+// gone now: the avatar is just the photo in a single, constant-colored
+// ring - the "normal avatar container/border" she asked to keep - with
+// nothing else drawn on top of it. `state` stays in the props for the
+// existing call sites (AIContent.tsx passes 'thinking' while the AI is
+// answering, for example) but no longer changes what's rendered; if a
+// visual "thinking/sent/error" cue is wanted again later, it should live
+// next to the message bubble, not as an overlay on the identity photo.
+export default function RobotAvatar({ size = 96, persona = 'member' }: RobotAvatarProps) {
   const label = persona === 'admin' ? 'UNIMUNITY AI (admin view)' : 'UNIMUNITY AI';
 
   return (
@@ -94,7 +68,7 @@ export default function RobotAvatar({ state = 'welcome', size = 96, variant = 'b
     >
       <div style={{
         width: size, height: size, borderRadius: '50%', overflow: 'hidden',
-        border: `2px solid ${ringColor}`, background: C.ivoire, flexShrink: 0,
+        border: `2px solid ${C.or}`, background: C.ivoire, flexShrink: 0,
       }}>
         <Image
           src={PERSONA_SRC[persona]}
@@ -105,7 +79,6 @@ export default function RobotAvatar({ state = 'welcome', size = 96, variant = 'b
           unoptimized
         />
       </div>
-      {showBadge && <StatusBadge state={state} size={size} />}
     </div>
   );
 }
