@@ -19,7 +19,7 @@
 //     responsive AI view, but NEVER a large Dashboard-covering window"),
 //     so there is no separate expanded state to control anymore
 import { useEffect, useRef, useState } from 'react';
-import { auth } from '@/lib/firebase';
+import type { User } from 'firebase/auth';
 import { C } from './theme';
 import { t, SupportLang } from './i18n';
 import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
@@ -35,9 +35,10 @@ const SendIcon = ({ size = 15 }: { size?: number }) => (
 interface AIContentProps {
   lang: SupportLang;
   persona: AIPersona;
+  user: User;
 }
 
-export default function AIContent({ lang, persona }: AIContentProps) {
+export default function AIContent({ lang, persona, user }: AIContentProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState('');
@@ -57,7 +58,17 @@ export default function AIContent({ lang, persona }: AIContentProps) {
     setInput('');
     setSending(true);
     try {
-      const idToken = await auth.currentUser?.getIdToken();
+      // Bug found once member accounts could actually reach this component
+      // (previously only the Super Admin account - signed in via `auth` -
+      // ever got this far): this used to read `auth.currentUser` directly,
+      // which is the ADMIN Firebase Auth instance and is always null for a
+      // member session (members sign in via the separate `memberAuth`
+      // instance - see lib/firebase.ts). That silently sent idToken as
+      // undefined, and the backend correctly rejected it as "Missing
+      // idToken or message". Fixed by taking the already-resolved `user`
+      // (adminUser || memberUser) as a prop from the parent widget, the
+      // same pattern MessagesContent already uses.
+      const idToken = await user.getIdToken();
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
