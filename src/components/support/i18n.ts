@@ -14,6 +14,17 @@
 // message", etc.) are intentionally left as they already were - that is
 // existing, preserved UI, not new text introduced by this task.
 //
+// widgetTitle vs aiAgentName: per Rachele's reference model (an AutoDS-style
+// support widget), the panel's own header/title bar shows the BRAND
+// ("UNIMUNITY" - same as AutoDS's header shows "AutoDS"), while the
+// assistant's own persona name ("Orben") is shown separately, next to its
+// avatar photo inside the AI chat itself (same as AutoDS's chat shows
+// "Orin" next to its agent's photo). widgetTitle is the brand/header string
+// (used by UnimunitySupportWidget.tsx's top bar); aiAgentName is the
+// persona name (used by AIContent.tsx next to the avatar in each message).
+// Neither varies with role (Admin/Member get the exact same assistant name)
+// - see the "ONE central UNIMUNITY AI" note in aiService.ts.
+//
 // aiSug1..aiSug4: the Member AI's suggested-question chips (per the
 // "MEMBER CHAT / AI ASSISTANT - FINAL UI/UX DESIGN SPECIFICATION" -
 // section 6). These are UI copy only, not new AI backend behavior: the
@@ -35,19 +46,20 @@ type Dict = Record<string, string>;
 
 const STRINGS: Record<SupportLang, Dict> = {
   en: {
-    widgetTitle: 'UNIMUNITY AI',
+    widgetTitle: 'UNIMUNITY',
+    aiAgentName: 'Orben',
     navHome: 'Home',
     navMessages: 'Messages',
     navAI: 'AI',
     homeGreeting: 'How can we help?',
-    homeSubtitle: 'Get help, chat with your team, or ask UNIMUNITY AI.',
+    homeSubtitle: 'Get help, chat with your team, or ask Orben, your UNIMUNITY AI assistant.',
     homeMessages: 'Messages',
     homeMessagesUnread: 'unread',
     homeMessagesEmpty: 'Chat with your team',
-    homeAskAI: 'Ask UNIMUNITY AI',
+    homeAskAI: 'Ask Orben',
     homeAskAISubtitle: 'Your intelligent assistant',
-    aiWelcome: 'Hello! How can I help you? I can help you understand your UNIMUNITY account and your Tontine.',
-    aiFooter: 'UNIMUNITY AI — not a human. Use Messages to reach your organizer or team.',
+    aiWelcome: 'Hello! I\'m Orben. How can I help you? I can help you understand your UNIMUNITY account and your Tontine.',
+    aiFooter: 'Orben is an automated assistant, not a human. Use Messages to reach your organizer or team.',
     aiPlaceholder: 'Type a message',
     aiThinking: 'Thinking...',
     aiSuggestionsLabel: 'Suggestions',
@@ -57,19 +69,20 @@ const STRINGS: Record<SupportLang, Dict> = {
     aiSug4: 'How do I upload a document?',
   },
   fr: {
-    widgetTitle: 'UNIMUNITY AI',
+    widgetTitle: 'UNIMUNITY',
+    aiAgentName: 'Orben',
     navHome: 'Accueil',
     navMessages: 'Messages',
     navAI: 'IA',
     homeGreeting: 'Comment pouvons-nous vous aider ?',
-    homeSubtitle: 'Obtenez de l’aide, discutez avec votre équipe ou posez une question à UNIMUNITY AI.',
+    homeSubtitle: 'Obtenez de l’aide, discutez avec votre équipe ou posez une question à Orben, votre assistant IA UNIMUNITY.',
     homeMessages: 'Messages',
     homeMessagesUnread: 'non lu(s)',
     homeMessagesEmpty: 'Discutez avec votre équipe',
-    homeAskAI: 'Demander à UNIMUNITY AI',
+    homeAskAI: 'Demander à Orben',
     homeAskAISubtitle: 'Votre assistant intelligent',
-    aiWelcome: 'Bonjour ! Comment puis-je vous aider ? Je peux vous aider à comprendre votre compte UNIMUNITY et votre Tontine.',
-    aiFooter: 'UNIMUNITY AI — pas une personne humaine. Utilisez Messages pour joindre votre organisateur ou votre équipe.',
+    aiWelcome: 'Bonjour ! Je suis Orben. Comment puis-je vous aider ? Je peux vous aider à comprendre votre compte UNIMUNITY et votre Tontine.',
+    aiFooter: 'Orben est un assistant automatisé, pas une personne humaine. Utilisez Messages pour joindre votre organisateur ou votre équipe.',
     aiPlaceholder: 'Écrivez un message',
     aiThinking: 'Réflexion...',
     aiSuggestionsLabel: 'Suggestions',
@@ -79,19 +92,20 @@ const STRINGS: Record<SupportLang, Dict> = {
     aiSug4: 'Comment puis-je téléverser un document ?',
   },
   ht: {
-    widgetTitle: 'UNIMUNITY AI',
+    widgetTitle: 'UNIMUNITY',
+    aiAgentName: 'Orben',
     navHome: 'Akey',
     navMessages: 'Mesaj',
     navAI: 'AI',
     homeGreeting: 'Kijan nou ka ede w?',
-    homeSubtitle: 'Jwenn èd, pale ak ekip ou, oswa poze UNIMUNITY AI yon kesyon.',
+    homeSubtitle: 'Jwenn èd, pale ak ekip ou, oswa poze Orben, asistan IA UNIMUNITY ou, yon kesyon.',
     homeMessages: 'Mesaj',
     homeMessagesUnread: 'pa li',
     homeMessagesEmpty: 'Pale ak ekip ou',
-    homeAskAI: 'Mande UNIMUNITY AI',
+    homeAskAI: 'Mande Orben',
     homeAskAISubtitle: 'Asistan entèlijan ou',
-    aiWelcome: 'Bonjou! Kijan mwen ka ede w? Mwen ka ede w konprann kont UNIMUNITY ou ak Tontine ou.',
-    aiFooter: 'UNIMUNITY AI — se pa yon moun. Sèvi ak Mesaj pou kontakte òganizatè w oswa ekip ou.',
+    aiWelcome: 'Bonjou! Se mwen Orben. Kijan mwen ka ede w? Mwen ka ede w konprann kont UNIMUNITY ou ak Tontine ou.',
+    aiFooter: 'Orben se yon asistan otomatik, se pa yon moun. Sèvi ak Mesaj pou kontakte òganizatè w oswa ekip ou.',
     aiPlaceholder: 'Ekri yon mesaj',
     aiThinking: 'Ap reflechi...',
     aiSuggestionsLabel: 'Sijesyon',
@@ -101,19 +115,20 @@ const STRINGS: Record<SupportLang, Dict> = {
     aiSug4: 'Kijan mwen ka telechaje yon dokiman?',
   },
   es: {
-    widgetTitle: 'UNIMUNITY AI',
+    widgetTitle: 'UNIMUNITY',
+    aiAgentName: 'Orben',
     navHome: 'Inicio',
     navMessages: 'Mensajes',
     navAI: 'IA',
     homeGreeting: '¿Cómo podemos ayudarte?',
-    homeSubtitle: 'Obtén ayuda, chatea con tu equipo o pregúntale a UNIMUNITY AI.',
+    homeSubtitle: 'Obtén ayuda, chatea con tu equipo o pregúntale a Orben, tu asistente de IA de UNIMUNITY.',
     homeMessages: 'Mensajes',
     homeMessagesUnread: 'sin leer',
     homeMessagesEmpty: 'Chatea con tu equipo',
-    homeAskAI: 'Preguntar a UNIMUNITY AI',
+    homeAskAI: 'Preguntar a Orben',
     homeAskAISubtitle: 'Tu asistente inteligente',
-    aiWelcome: '¡Hola! ¿Cómo puedo ayudarte? Puedo ayudarte a entender tu cuenta de UNIMUNITY y tu Tontine.',
-    aiFooter: 'UNIMUNITY AI — no es una persona humana. Usa Mensajes para contactar a tu organizador o equipo.',
+    aiWelcome: '¡Hola! Soy Orben. ¿Cómo puedo ayudarte? Puedo ayudarte a entender tu cuenta de UNIMUNITY y tu Tontine.',
+    aiFooter: 'Orben es un asistente automatizado, no una persona humana. Usa Mensajes para contactar a tu organizador o equipo.',
     aiPlaceholder: 'Escribe un mensaje',
     aiThinking: 'Pensando...',
     aiSuggestionsLabel: 'Sugerencias',
@@ -123,19 +138,20 @@ const STRINGS: Record<SupportLang, Dict> = {
     aiSug4: '¿Cómo subo un documento?',
   },
   pt: {
-    widgetTitle: 'UNIMUNITY AI',
+    widgetTitle: 'UNIMUNITY',
+    aiAgentName: 'Orben',
     navHome: 'Início',
     navMessages: 'Mensagens',
     navAI: 'IA',
     homeGreeting: 'Como podemos ajudar?',
-    homeSubtitle: 'Obtenha ajuda, converse com sua equipe ou pergunte à UNIMUNITY AI.',
+    homeSubtitle: 'Obtenha ajuda, converse com sua equipe ou pergunte à Orben, sua assistente de IA da UNIMUNITY.',
     homeMessages: 'Mensagens',
     homeMessagesUnread: 'não lida(s)',
     homeMessagesEmpty: 'Converse com sua equipe',
-    homeAskAI: 'Perguntar à UNIMUNITY AI',
+    homeAskAI: 'Perguntar à Orben',
     homeAskAISubtitle: 'Sua assistente inteligente',
-    aiWelcome: 'Olá! Como posso ajudar você? Posso ajudar você a entender sua conta UNIMUNITY e sua Tontine.',
-    aiFooter: 'UNIMUNITY AI — não é uma pessoa humana. Use Mensagens para falar com seu organizador ou equipe.',
+    aiWelcome: 'Olá! Eu sou a Orben. Como posso ajudar você? Posso ajudar você a entender sua conta UNIMUNITY e sua Tontine.',
+    aiFooter: 'Orben é uma assistente automatizada, não é uma pessoa humana. Use Mensagens para falar com seu organizador ou equipe.',
     aiPlaceholder: 'Digite uma mensagem',
     aiThinking: 'Pensando...',
     aiSuggestionsLabel: 'Sugestões',
