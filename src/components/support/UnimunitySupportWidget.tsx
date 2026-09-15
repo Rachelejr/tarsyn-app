@@ -174,9 +174,7 @@ export default function UnimunitySupportWidget() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             {/* Original UNIMUNITY logo, left - present in this header on every
-                page (the widget is mounted once, globally, in the root layout).
-                Per Rachele's instruction, the header now shows ONLY this logo
-                mark - no "UNIMUNITY" text label next to it anymore. */}
+                page (the widget is mounted once, globally, in the root layout). */}
             <Image
               src="/unimunity-logo-color.png"
               alt="UNIMUNITY"
@@ -197,7 +195,7 @@ export default function UnimunitySupportWidget() {
                 <Image src="/ai/ai-avatar-admin-male.png" alt="Orben" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
               <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0, marginLeft: -8 }}>
-                <Image src="/ai/ai-avatar-member-female.png" alt="Orben" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+                <Image src="/ai/ai-avatar-member-female.png" alt="Ornella" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
             </div>
             <select
@@ -284,14 +282,20 @@ export default function UnimunitySupportWidget() {
           {!!user && (
             <button
               onClick={() => setActiveTab('ai')}
+              aria-label={t(lang, 'navAI')}
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                 padding: '6px 4px', background: 'none', border: 'none', cursor: 'pointer',
                 color: effectiveTab === 'ai' ? C.bordeaux : C.muted,
               }}
             >
+              {/* Per Rachele's instruction: the bottom nav tab keeps its
+                  avatar icon and its onClick (still switches to the AI
+                  tab, still the same assistant/session/history) - only the
+                  visible "AI" text label is removed. The label itself
+                  (t(lang, 'navAI')) is kept as the button's aria-label so
+                  the tab stays properly identified for accessibility. */}
               <RobotAvatar state={effectiveTab === 'ai' ? 'welcome' : 'idle'} variant="head" size={20} persona={persona} />
-              <span style={{ fontSize: 10.5, fontWeight: 700 }}>{t(lang, 'navAI')}</span>
             </button>
           )}
         </div>
