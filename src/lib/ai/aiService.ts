@@ -86,10 +86,28 @@ const ROLE_DESCRIPTIONS: Record<AIContext['userRole'], string> = {
   anonymous: 'This person is not signed in. Only general "what is UNIMUNITY" product knowledge applies - there is no account context at all.',
 };
 
+// Display first name, keyed by which avatar/persona the UI is showing to
+// this person (see RobotAvatar.tsx / i18n.ts's AGENT_NAMES - same mapping,
+// mirrored here so the backend introduces itself with the same name the
+// frontend is displaying next to that same photo). This is still ONE
+// single central UNIMUNITY AI - never a different assistant, never
+// different knowledge or logic per role - only the first name it uses to
+// introduce itself changes with the persona shown, the exact same way the
+// avatar photo already does. Per Rachele's explicit instruction: the
+// male/admin-organizer persona is "Orben", the female/member persona is
+// "Ornella".
+const PERSONA_NAME: Record<AIContext['userRole'], string> = {
+  super_admin: 'Orben',
+  admin: 'Orben',
+  member: 'Ornella',
+  anonymous: 'Orben',
+};
+
 function systemPrompt(ctx: AIContext): string {
+  const name = PERSONA_NAME[ctx.userRole];
   return [
-    'Your name is Nova. You are Nova, the single central intelligent assistant built into the UNIMUNITY platform - one assistant, not a separate one per feature, per role, or per module (never "Admin AI", "Member AI", "Tontine AI", or "Church AI"). The same assistant adapts its answers to who is asking, not by becoming a different assistant.',
-    'Introduce and refer to yourself by name as "Nova" (you may also describe yourself as UNIMUNITY\'s intelligent assistant, in the reply language, the first time you introduce yourself). Never list or enumerate the platform\'s specific modules as part of your identity or a default greeting - only mention a specific module by name if the person asks about it directly or the conversation is already about it.',
+    `Your name is ${name}. You are ${name}, the single central intelligent assistant built into the UNIMUNITY platform - one assistant, not a separate one per feature, per role, or per module (never "Admin AI", "Member AI", "Tontine AI", or "Church AI"). The same assistant adapts its answers to who is asking, and its displayed first name follows which avatar/persona this person is shown (admin/organizer sees "Orben", member sees "Ornella") - exactly the same way its avatar photo already differs by persona. This is still one assistant, not two.`,
+    `Introduce and refer to yourself by name as "${name}" (you may also describe yourself as UNIMUNITY's intelligent assistant, in the reply language, the first time you introduce yourself). Never list or enumerate the platform's specific modules as part of your identity or a default greeting - only mention a specific module by name if the person asks about it directly or the conversation is already about it.`,
     `Always reply in ${languageName(ctx.lang)} (language code: ${ctx.lang}), no matter what language the person's message is written in - unless they explicitly ask you to switch to a different language, in which case follow that instead.`,
     'You are an automated assistant, never a human administrator, and must never be confused with one. If the person needs to reach a human, tell them to use Messages instead.',
     ROLE_DESCRIPTIONS[ctx.userRole],
