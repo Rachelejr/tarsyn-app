@@ -9,7 +9,7 @@
 // from MessagesContent's own state via the parent - nothing is guessed.
 
 import { C } from './theme';
-import { t, SupportLang } from './i18n';
+import { t, tName, SupportLang } from './i18n';
 import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
 
 interface HomeContentProps {
@@ -41,7 +41,7 @@ export default function HomeContent({ lang, unreadCount, showAI, persona, onGoTo
     <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
       <div>
         <div style={{ fontWeight: 800, fontSize: 16, color: C.bordeauxDark }}>{t(lang, 'homeGreeting')}</div>
-        <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4, lineHeight: 1.4 }}>{t(lang, 'homeSubtitle')}</div>
+        <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4, lineHeight: 1.4 }}>{tName(lang, 'homeSubtitle', persona)}</div>
       </div>
 
       <button
@@ -92,7 +92,7 @@ export default function HomeContent({ lang, unreadCount, showAI, persona, onGoTo
             <RobotAvatar state="welcome" variant="head" size={40} persona={persona} />
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark, lineHeight: 1.3 }}>{t(lang, 'homeAskAI')}</div>
+            <div style={{ fontWeight: 700, fontSize: 13.5, color: C.bordeauxDark, lineHeight: 1.3 }}>{tName(lang, 'homeAskAI', persona)}</div>
             <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.4 }}>{t(lang, 'homeAskAISubtitle')}</div>
           </div>
           <ChevronIcon />
