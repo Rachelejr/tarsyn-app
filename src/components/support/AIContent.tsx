@@ -21,7 +21,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { C } from './theme';
-import { t, SupportLang } from './i18n';
+import { t, tName, agentName, SupportLang } from './i18n';
 import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
 
 type ChatEntry = { role: 'user' | 'assistant'; content: string };
@@ -99,11 +99,11 @@ export default function AIContent({ lang, persona, user }: AIContentProps) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '4px 0 6px' }}>
               <RobotAvatar state="welcome" variant="bust" size={76} persona={persona} />
               <div style={{ fontWeight: 800, fontSize: 13.5, color: C.bordeauxDark, letterSpacing: 0.2 }}>
-                {t(lang, 'aiAgentName')}
+                {agentName(persona)}
               </div>
             </div>
             <div style={{ background: C.white, border: `1px solid ${C.border}`, color: C.bordeauxDark, padding: '13px 15px', borderRadius: 14, fontSize: 13.5, lineHeight: 1.55, boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
-              {t(lang, 'aiWelcome')}
+              {tName(lang, 'aiWelcome', persona)}
             </div>
             <div style={{ fontSize: 10.5, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 2 }}>
               {t(lang, 'aiSuggestionsLabel')}
@@ -131,7 +131,7 @@ export default function AIContent({ lang, persona, user }: AIContentProps) {
             {e.role === 'assistant' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 2 }}>
                 <RobotAvatar state="welcome" variant="head" size={20} persona={persona} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: C.bordeauxDark }}>{t(lang, 'aiAgentName')}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.bordeauxDark }}>{agentName(persona)}</span>
               </div>
             )}
             <div style={{
@@ -152,7 +152,7 @@ export default function AIContent({ lang, persona, user }: AIContentProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 2 }}>
               <RobotAvatar state="thinking" variant="head" size={20} persona={persona} />
-              <span style={{ fontSize: 11, fontWeight: 800, color: C.bordeauxDark }}>{t(lang, 'aiAgentName')}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: C.bordeauxDark }}>{agentName(persona)}</span>
             </div>
             <div style={{ background: C.white, border: `1px solid ${C.border}`, color: C.muted, padding: '11px 14px', borderRadius: '3px 14px 14px 14px', fontSize: 13 }}>
               {t(lang, 'aiThinking')}
@@ -165,7 +165,7 @@ export default function AIContent({ lang, persona, user }: AIContentProps) {
         )}
 
         <div style={{ marginTop: 'auto', fontSize: 10.5, color: C.muted, textAlign: 'center', paddingTop: 8 }}>
-          {t(lang, 'aiFooter')}
+          {tName(lang, 'aiFooter', persona)}
         </div>
         <div ref={bottomRef} />
       </div>
