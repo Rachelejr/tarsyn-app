@@ -174,7 +174,9 @@ export default function UnimunitySupportWidget() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             {/* Original UNIMUNITY logo, left - present in this header on every
-                page (the widget is mounted once, globally, in the root layout). */}
+                page (the widget is mounted once, globally, in the root layout).
+                Per Rachele's instruction, the header now shows ONLY this logo
+                mark - no "UNIMUNITY" text label next to it anymore. */}
             <Image
               src="/unimunity-logo-color.png"
               alt="UNIMUNITY"
@@ -183,9 +185,6 @@ export default function UnimunitySupportWidget() {
               unoptimized
               style={{ height: isMobile ? 18 : 20, width: 'auto', flexShrink: 0 }}
             />
-            <div style={{ fontWeight: 800, fontSize: 13, color: C.bordeauxDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-              {effectiveTab === 'messages' ? t(lang, 'navMessages') : t(lang, 'widgetTitle')}
-            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             {/* The two UNIMUNITY AI portraits, right - both together here as
@@ -195,10 +194,10 @@ export default function UnimunitySupportWidget() {
                 RobotAvatar via `persona` above, not here. */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0 }}>
-                <Image src="/ai/ai-avatar-admin-male.png" alt="UNIMUNITY AI" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+                <Image src="/ai/ai-avatar-admin-male.png" alt="Orben" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
               <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0, marginLeft: -8 }}>
-                <Image src="/ai/ai-avatar-member-female.png" alt="UNIMUNITY AI" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+                <Image src="/ai/ai-avatar-member-female.png" alt="Orben" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
             </div>
             <select
