@@ -311,9 +311,16 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
         url = await uploadOrganizerPhoto(user.uid, displayName, file, storageInstance, firestoreDb);
       }
       setMyPhotoUrl(url);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[profile] photo upload failed:', err);
-      setPhotoError('Upload failed. Please try again.');
+      // Storage rules already allow any signed-in write (see
+      // storage.rules), so a failure here is a runtime issue (network,
+      // an offline connection, a rejected image, etc.), not a permissions
+      // block. Show the actual reason instead of a bare generic message
+      // so that if this happens again, the on-screen text itself says why
+      // - no browser console needed to diagnose it.
+      const reason = err?.code || err?.message || 'unknown error';
+      setPhotoError(`Upload failed (${reason}). Please try again.`);
     } finally {
       setUploadingPhoto(false);
     }
@@ -604,13 +611,17 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
                 aria-label="Change your photo"
                 style={{ position: 'relative', background: 'none', border: 'none', padding: 0, cursor: uploadingPhoto ? 'default' : 'pointer', opacity: uploadingPhoto ? 0.6 : 1, display: 'flex' }}
               >
-                <ChatAvatar photoUrl={myPhotoUrl} name={user.displayName || user.email || '?'} size={26} ringColor={dore} />
+                {/* Enlarged per Rachele's request: the whole tappable photo
+                    area was too small (26px avatar + an 8px camera icon in
+                    a 14px badge) - bumped up so it's easier to hit and to
+                    notice, especially on a phone. */}
+                <ChatAvatar photoUrl={myPhotoUrl} name={user.displayName || user.email || '?'} size={36} ringColor={dore} />
                 <span style={{
-                  position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%',
+                  position: 'absolute', bottom: -3, right: -3, width: 19, height: 19, borderRadius: '50%',
                   background: C.bordeaux, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: `1.5px solid ${C.white}`,
+                  border: `2px solid ${C.white}`,
                 }}>
-                  <CameraIcon size={8} />
+                  <CameraIcon size={11} />
                 </span>
               </button>
               <button onClick={() => setShowSearch(!showSearch)}
@@ -967,38 +978,4 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
               ) : (
                 chats.filter((c) => c.id !== activeChatId).map((c) => (
                   <div key={c.id} onClick={() => handleForwardTo(c.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 8px', borderRadius: '8px', cursor: 'pointer' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = bg)}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                    <ChatAvatar photoUrl={otherPhotoByChatId[c.id]} name={c.name} size={30} isGroup={c.type === 'group'} />
-                    <span style={{ fontSize: '13px', color: textDark, fontWeight: 600 }}>{c.name}</span>
-                  </div>
-                ))
-              )}
-            </div>
-            <button onClick={() => setForwardingMsg(null)}
-              style={{ marginTop: '10px', padding: '9px', background: 'transparent', color: C.bordeaux, border: `1.5px solid ${C.bordeaux}`, borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-      {showProfileModal && activeChatId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10001, padding: '20px' }}
-          onClick={() => setShowProfileModal(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: C.white, borderRadius: '14px', padding: '24px', maxWidth: '300px', width: '100%', textAlign: 'center' }}>
-            <div style={{ margin: '0 auto 14px', display: 'flex', justifyContent: 'center' }}>
-              <ChatAvatar photoUrl={otherPhotoByChatId[activeChatId]} name={activeChatName} size={76} />
-            </div>
-            <h3 style={{ color: C.bordeaux, fontSize: '17px', fontWeight: 800, margin: '0 0 4px' }}>{activeChatName}</h3>
-            <p style={{ color: textGris, fontSize: '12px', margin: '0 0 18px' }}>UNIMUNITY member</p>
-            <button onClick={() => setShowProfileModal(false)}
-              style={{ width: '100%', padding: '10px', background: C.bordeaux, color: dore, border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 8px', borderRadius: '8px', cursor:
