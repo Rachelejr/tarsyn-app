@@ -181,7 +181,7 @@ export default function UnimunitySupportWidget() {
               width={90}
               height={30}
               unoptimized
-              style={{ height: isMobile ? 18 : 20, width: 'auto', flexShrink: 0 }}
+              style={{ height: isMobile ? 20 : 23, width: 'auto', flexShrink: 0 }}
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -190,11 +190,11 @@ export default function UnimunitySupportWidget() {
                 role-specific portrait used *as* the AI's avatar elsewhere in
                 this widget (nav tab, chat bubbles, Home row) is handled by
                 RobotAvatar via `persona` above, not here. */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0 }}>
                 <Image src="/ai/ai-avatar-admin-male.png" alt="Orben" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
-              <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0, marginLeft: -8 }}>
+              <div style={{ width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${C.creme}`, boxShadow: '0 0 0 1px ' + C.or, flexShrink: 0 }}>
                 <Image src="/ai/ai-avatar-member-female.png" alt="Ornella" width={48} height={48} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function UnimunitySupportWidget() {
               aria-label={t(lang, 'navAI')}
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                padding: '6px 4px', background: 'none', border: 'none', cursor: 'pointer',
+                padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer',
                 color: effectiveTab === 'ai' ? C.bordeaux : C.muted,
               }}
             >
@@ -294,8 +294,15 @@ export default function UnimunitySupportWidget() {
                   tab, still the same assistant/session/history) - only the
                   visible "AI" text label is removed. The label itself
                   (t(lang, 'navAI')) is kept as the button's aria-label so
-                  the tab stays properly identified for accessibility. */}
-              <RobotAvatar state={effectiveTab === 'ai' ? 'welcome' : 'idle'} variant="head" size={20} persona={persona} />
+                  the tab stays properly identified for accessibility.
+                  size=18 (was 20) matches HomeIcon/MessagesIcon exactly,
+                  and padding is now identical to those two buttons (8px
+                  4px) - the hidden spacer below reserves the exact same
+                  height their text label would take, so this icon sits at
+                  the same vertical position as the Home/Messages icons
+                  instead of drifting since it has no second row. */}
+              <RobotAvatar state={effectiveTab === 'ai' ? 'welcome' : 'idle'} variant="head" size={18} persona={persona} />
+              <span aria-hidden="true" style={{ fontSize: 10.5, fontWeight: 700, visibility: 'hidden', lineHeight: 1 }}>&nbsp;</span>
             </button>
           )}
         </div>
