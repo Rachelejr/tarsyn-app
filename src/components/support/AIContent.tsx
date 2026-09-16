@@ -141,6 +141,12 @@ export default function AIContent({ lang, persona, user }: AIContentProps) {
               padding: '11px 14px',
               borderRadius: e.role === 'user' ? '14px 14px 3px 14px' : '3px 14px 14px 14px',
               fontSize: 13.5, lineHeight: 1.55, maxWidth: '82%', whiteSpace: 'pre-wrap',
+              // A long unbroken token (e.g. a slash-joined region list) has
+              // no normal space for the browser to wrap on, so without this
+              // it can push past the bubble's maxWidth and spill over the
+              // input area below - overflowWrap forces it to wrap anywhere
+              // instead, whatever text the AI ever generates.
+              overflowWrap: 'anywhere', wordBreak: 'break-word',
               boxShadow: e.role === 'user' ? 'none' : '0 1px 6px rgba(74,31,56,0.05)',
             }}>
               {e.content}
