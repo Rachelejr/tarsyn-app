@@ -64,6 +64,10 @@ export default function UnimunitySupportWidget() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [lang, setLang] = useState<SupportLang>('en');
   const [unreadCount, setUnreadCount] = useState(0);
+  // Set when a Home tab "Quick Help" shortcut is tapped (see
+  // HomeContent.tsx) - carries the predefined question over to the AI tab
+  // so it gets asked immediately, then AIContent clears it once sent.
+  const [pendingAIQuestion, setPendingAIQuestion] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setAdminUser(u));
@@ -226,7 +230,10 @@ export default function UnimunitySupportWidget() {
               showAI={!!user}
               persona={persona}
               onGoToMessages={() => setActiveTab('messages')}
-              onGoToAI={() => setActiveTab('ai')}
+              onGoToAI={(question) => {
+                if (question) setPendingAIQuestion(question);
+                setActiveTab('ai');
+              }}
             />
           </div>
           <div style={{ position: 'absolute', inset: 0, display: effectiveTab === 'messages' ? 'flex' : 'none', flexDirection: 'column' }}>
@@ -240,7 +247,13 @@ export default function UnimunitySupportWidget() {
           </div>
           {!!user && (
             <div style={{ position: 'absolute', inset: 0, display: effectiveTab === 'ai' ? 'flex' : 'none', flexDirection: 'column' }}>
-              <AIContent lang={lang} persona={persona} user={user} />
+              <AIContent
+                lang={lang}
+                persona={persona}
+                user={user}
+                initialQuestion={pendingAIQuestion}
+                onConsumeInitialQuestion={() => setPendingAIQuestion(undefined)}
+              />
             </div>
           )}
         </div>
