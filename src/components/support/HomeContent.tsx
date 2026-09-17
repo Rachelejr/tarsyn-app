@@ -38,7 +38,7 @@ function ChevronIcon({ size = 16 }: { size?: number }) {
 
 export default function HomeContent({ lang, unreadCount, showAI, persona, onGoToMessages, onGoToAI }: HomeContentProps) {
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16, boxSizing: 'border-box' }}>
       <div>
         <div style={{ fontWeight: 800, fontSize: 16, color: C.bordeauxDark }}>{t(lang, 'homeGreeting')}</div>
         <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4, lineHeight: 1.4 }}>{tName(lang, 'homeSubtitle', persona)}</div>
