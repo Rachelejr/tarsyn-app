@@ -18,7 +18,12 @@ interface HomeContentProps {
   showAI: boolean;
   persona: AIPersona;
   onGoToMessages: () => void;
-  onGoToAI: () => void;
+  // Optional `question`: when provided (from a Quick Help shortcut below),
+  // the parent navigates to the AI tab AND has the assistant answer that
+  // exact question immediately - same as if the person had typed/tapped it
+  // themselves inside the AI tab. Called with no argument (the existing
+  // "Ask {name}" card) it just opens the AI tab as before.
+  onGoToAI: (question?: string) => void;
 }
 
 function ChatBubbleIcon({ size = 20 }: { size?: number }) {
@@ -36,9 +41,24 @@ function ChevronIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+// Quick Help shortcuts (Home tab only): each one just opens the AI tab and
+// immediately asks one of the assistant's own existing suggested questions
+// (the same aiSug1..aiSug4 strings already offered inside the AI tab's
+// welcome screen - see AIContent.tsx / i18n.ts). This intentionally adds NO
+// new backend capability and no topic the assistant couldn't already
+// answer: it is a shortcut to an existing question, not a new feature.
+function quickHelpItems(lang: SupportLang) {
+  return [
+    { key: 'grid', label: t(lang, 'homeQHGrid'), question: t(lang, 'aiSug1') },
+    { key: 'receipts', label: t(lang, 'homeQHReceipts'), question: t(lang, 'aiSug2') },
+    { key: 'documents', label: t(lang, 'homeQHDocuments'), question: t(lang, 'aiSug4') },
+    { key: 'status', label: t(lang, 'homeQHStatus'), question: t(lang, 'aiSug3') },
+  ];
+}
+
 export default function HomeContent({ lang, unreadCount, showAI, persona, onGoToMessages, onGoToAI }: HomeContentProps) {
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16, boxSizing: 'border-box' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box' }}>
       <div>
         <div style={{ fontWeight: 800, fontSize: 16, color: C.bordeauxDark }}>{t(lang, 'homeGreeting')}</div>
         <div style={{ fontSize: 12.5, color: C.muted, marginTop: 4, lineHeight: 1.4 }}>{tName(lang, 'homeSubtitle', persona)}</div>
@@ -80,7 +100,7 @@ export default function HomeContent({ lang, unreadCount, showAI, persona, onGoTo
 
       {showAI && (
         <button
-          onClick={onGoToAI}
+          onClick={() => onGoToAI()}
           style={{
             display: 'flex', alignItems: 'center', gap: 14, padding: '16px 16px',
             borderRadius: 14, border: `1px solid ${C.border}`, background: C.white,
@@ -97,6 +117,29 @@ export default function HomeContent({ lang, unreadCount, showAI, persona, onGoTo
           </div>
           <ChevronIcon />
         </button>
+      )}
+
+      {showAI && (
+        <div>
+          <div style={{ fontSize: 10.5, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+            {t(lang, 'homeQuickHelpLabel')}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {quickHelpItems(lang).map((item) => (
+              <button
+                key={item.key}
+                onClick={() => onGoToAI(item.question)}
+                style={{
+                  padding: '10px 12px', borderRadius: 12, border: `1px solid ${C.border}`, background: C.white,
+                  color: C.bordeauxDark, fontSize: 12, fontWeight: 600, cursor: 'pointer', textAlign: 'left',
+                  boxShadow: '0 1px 4px rgba(74,31,56,0.05)', lineHeight: 1.3,
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
