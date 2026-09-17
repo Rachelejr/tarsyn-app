@@ -36,9 +36,16 @@ interface AIContentProps {
   lang: SupportLang;
   persona: AIPersona;
   user: User;
+  // Set by the parent widget when a Home tab "Quick Help" shortcut was
+  // tapped (see HomeContent.tsx) - this component sends it exactly once,
+  // the same way a suggestion chip below is sent, then asks the parent to
+  // clear it via onConsumeInitialQuestion so it never re-fires (e.g. when
+  // switching away from and back to the AI tab).
+  initialQuestion?: string;
+  onConsumeInitialQuestion?: () => void;
 }
 
-export default function AIContent({ lang, persona, user }: AIContentProps) {
+export default function AIContent({ lang, persona, user, initialQuestion, onConsumeInitialQuestion }: AIContentProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [entries, setEntries] = useState<ChatEntry[]>([]);
   const [input, setInput] = useState('');
@@ -49,6 +56,13 @@ export default function AIContent({ lang, persona, user }: AIContentProps) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [entries, sending]);
+
+  useEffect(() => {
+    if (!initialQuestion) return;
+    send(initialQuestion);
+    onConsumeInitialQuestion?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion]);
 
   const send = async (textOverride?: string) => {
     const text = (textOverride ?? input).trim();
