@@ -209,7 +209,7 @@ export default function HomePage() {
       <nav style={{background:'#FBEEDD',padding:'14px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 16px rgba(107,45,78,0.12)',borderBottom:'1px solid #D9C0CC'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div>
-            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="Unimunity" style={{height:'64px'}}/></a>
+            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="Unimunity" style={{height:'60px'}}/></a>
             <div style={{color:'#8B3A5E',fontSize:'12px',letterSpacing:'1.5px',fontWeight:700,fontStyle:'italic',marginTop:'4px'}}>{t(lang,'tagline')}</div>
           </div>
         </div>
@@ -436,3 +436,4 @@ export default function HomePage() {
     </div>
   );
 }
+
