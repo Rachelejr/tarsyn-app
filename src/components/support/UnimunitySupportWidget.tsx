@@ -14,6 +14,7 @@
 // AIContent.tsx / MessagesContent.tsx exactly as it worked before.
 import { useEffect, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, memberAuth, db, memberDb, storage, memberStorage } from '@/lib/firebase';
 import { C, deviceTierFor, DeviceTier } from './theme';
@@ -49,6 +50,16 @@ const MessagesIcon = ({ size = 18, active = false }: { size?: number; active?: b
 );
 
 export default function UnimunitySupportWidget() {
+  // The public marketing homepage ("/" - src/app/page.tsx: product pitch,
+  // "Create Free Account" / "Sign In", the free-trial banner) must stay a
+  // pure pre-auth landing page, per Rachele's explicit instruction - the
+  // floating support widget (and everything inside it: Messages, the AI
+  // assistant, Quick Help) is a signed-in-account tool and must never
+  // appear there, even for a browser that still has a signed-in Firebase
+  // session from a previous visit (auth state alone was not enough - see
+  // the screenshots that prompted this). Every other route is unaffected;
+  // this only ever hides the widget on that exact "/" path.
+  const pathname = usePathname();
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [memberUser, setMemberUser] = useState<User | null>(null);
   const user = adminUser || memberUser;
@@ -84,7 +95,7 @@ export default function UnimunitySupportWidget() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  if (!user) return null;
+  if (!user || pathname === '/') return null;
   const isMobile = tier === 'mobile';
 
   // UNIMUNITY AI is available to every signed-in account (organizer/admin
