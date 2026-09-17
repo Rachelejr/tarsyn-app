@@ -151,11 +151,19 @@ export default function HomePage() {
         @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
         @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-        @keyframes imgFade{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+        @keyframes imgFade{0%{opacity:0;transform:scale(1)}15%{opacity:1}100%{opacity:1;transform:scale(1.12)}}
         .animate-fade{animation:fadeUp 0.8s ease forwards;}
         .floating{animation:float 3s ease-in-out infinite;}
         .tcard{animation:slideIn 0.5s ease forwards;}
-        .img-fade{animation:imgFade 0.8s ease forwards;}
+        /* Continuous slow zoom (Ken Burns effect) for the full ~4.6s the image
+           is shown - the interval below swaps to the next photo every 4000ms,
+           so the zoom is still gently progressing (not yet finished) at the
+           moment of the swap, which reads as smooth, ongoing motion rather
+           than a static photo that abruptly fades in and then sits still -
+           closer to what Rachele described as "like a video" than the old
+           quick 0.8s fade-and-stop. Same photos, same swap logic, same click-
+           to-advance and dots - only the motion during display changed. */
+        .img-fade{animation:imgFade 4.6s ease-out forwards;}
         .btn-gold{transition:all 0.2s ease;}
         .btn-gold:hover{background:#c49a5a!important;transform:translateY(-2px);box-shadow:0 8px 24px rgba(233,199,123,0.4);}
         .btn-outline{transition:all 0.2s ease;}
@@ -209,7 +217,7 @@ export default function HomePage() {
       <nav style={{background:'#FBEEDD',padding:'14px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 16px rgba(107,45,78,0.12)',borderBottom:'1px solid #D9C0CC'}}>
         <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
           <div>
-            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="Unimunity" style={{height:'60px'}}/></a>
+            <div style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="Unimunity" style={{height:'54px'}}/></a>
             <div style={{color:'#8B3A5E',fontSize:'12px',letterSpacing:'1.5px',fontWeight:700,fontStyle:'italic',marginTop:'4px'}}>{t(lang,'tagline')}</div>
           </div>
         </div>
