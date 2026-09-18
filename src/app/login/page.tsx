@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { auth, db, memberAuth } from '@/lib/firebase';
@@ -7,6 +7,7 @@ import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, addD
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import Footer from '@/components/Footer';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 function LoginPageInner() {
   const searchParams = useSearchParams();
@@ -204,6 +205,7 @@ function LoginPageInner() {
   if (step === '2fa') {
     return (
       <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
+        <Nav />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
         <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{'\ud83d\udd10'}</div>
@@ -273,13 +275,9 @@ function LoginPageInner() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF0E6', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
+      <Nav />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-
-        <div style={{ marginBottom: '2rem' }}>
-          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ height: '60px', width: 'auto', display: 'block' }} /></a>
-          <p style={{ margin: 0, fontSize: '0.7rem', color: '#888', letterSpacing: '0.12em' }}>YOUR COMMUNITY. YOUR POWER.</p>
-        </div>
 
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6B2D4E', margin: '0 0 0.25rem' }}>Sign In</h1>
         <p style={{ color: '#888', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Access your UNIMUNITY account</p>
@@ -367,6 +365,32 @@ function LoginPageInner() {
 
       <Footer />
     </div>
+  );
+}
+
+function Nav() {
+  // Same header treatment as the dashboard pages (e.g. dashboard/reminders)
+  // and the register page - gradient bar, color logo, date/time/weather
+  // right-aligned - per Rachele's request to match that style here too.
+  return (
+    <nav style={{
+      background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+      padding: '16px 32px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      rowGap: '10px',
+    }}>
+      <div>
+        <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px' }} /></a>
+        <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+      </div>
+    </nav>
   );
 }
 
