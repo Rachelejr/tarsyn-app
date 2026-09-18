@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -99,7 +99,7 @@ function PaymentsSetupContent() {
       <div style={{
         background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '16px 32px',
+        padding: '20px 40px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
