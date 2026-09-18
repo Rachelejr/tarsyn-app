@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -455,18 +455,28 @@ function SubscriptionContent() {
         }
       `}</style>
 
-      <nav style={{ background: '#FBEEDD', padding: '10px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #6B2D4E' }}>
+      <nav style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '14px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap' as const,
+        rowGap: '10px',
+      }}>
         <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
           <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <DateTimeWeather textColor="#6B2D4E" />
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
           <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
-            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(107,45,78,0.3)', background: 'rgba(107,45,78,0.06)', color: '#6B2D4E', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.35)', background: 'rgba(255,255,255,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
             {LANGUAGES.map((l) => (<option key={l.code} value={l.code} style={{ color: '#4A1F38' }}>{l.label}</option>))}
           </select>
           <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-            style={{ background: 'transparent', border: '1px solid rgba(107,45,78,0.5)', color: '#6B2D4E', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            style={{ background: 'transparent', border: '1px solid rgba(251,238,221,0.5)', color: '#FBEEDD', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
             Sign Out
           </button>
         </div>
