@@ -181,17 +181,27 @@ export default function RegisterPage() {
 }
 
 function Nav() {
+  // Same header treatment as the dashboard pages (e.g. dashboard/reminders) -
+  // gradient bar, color logo, date/time/weather right-aligned - per
+  // Rachele's screenshot of that page as the reference to match.
   return (
-    <nav style={{background:'#6B2D4E',padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+    <nav style={{
+      background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+      padding: '16px 32px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      rowGap: '10px',
+    }}>
       <div>
-        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{height:'48px'}}/></a>
-        <div style={{color:'#E9C77B',fontSize:'9px',letterSpacing:'3px',fontStyle:'italic'}}>YOUR COMMUNITY. YOUR POWER.</div>
+        <div style={{color:'white',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',display:'none'}}>UNIMUNITY</div><a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{height:'48px'}}/></a>
+        <div style={{color:'#C4748E',fontSize:'9px',letterSpacing:'2px',fontStyle:'italic',marginTop:'2px'}}>YOUR COMMUNITY. YOUR POWER.</div>
       </div>
-      {/* Same date/time/weather widget as the public homepage header
-          (src/app/page.tsx) - default text color (semi-transparent white)
-          reads correctly here since, unlike the homepage's cream nav, this
-          one has the dark bordeaux background. */}
-      <DateTimeWeather fontSize="13px" bold={true} />
+      <div style={{textAlign:'right'}}>
+        <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+      </div>
     </nav>
   );
 }
