@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
@@ -30,14 +31,19 @@ export default function RecordContribution() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const loadMembers = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    // auth.currentUser is read synchronously here, but on a fresh page
+    // load Firebase Auth hasn't finished restoring the persisted session
+    // yet - currentUser is still null for a brief moment even for an
+    // already-logged-in admin, so this effect would silently load zero
+    // members (same root cause as the AI chat idToken bug fixed earlier).
+    // onAuthStateChanged waits for that restoration to actually finish.
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) { router.push('/login'); return; }
       const ms = await getDocs(query(collection(db, 'members'), where('organizerId', '==', user.uid)));
       setMembers(ms.docs.map(d => ({ id: d.id, ...d.data() })));
-    };
-    loadMembers();
-  }, []);
+    });
+    return () => unsub();
+  }, [router]);
 
   const effectivePaymentMethod = paymentMethod === 'Other' ? customPaymentMethod.trim() : paymentMethod;
 
@@ -159,13 +165,13 @@ export default function RecordContribution() {
       <div style={{maxWidth:'880px',margin:'0 auto'}}>
         <div onClick={() => router.push('/dashboard')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#6B2D4E', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}>
-          ← Back to Dashboard
+          Back to Dashboard
         </div>
 
         <div style={{background:'white',borderRadius:'18px',padding:'24px 28px',boxShadow:'0 8px 32px rgba(107,45,78,0.12)'}}>
 
-          <h1 style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',margin:'0 0 2px'}}>Record Contribution</h1>
-          <p style={{color:'#6B2D4E',fontSize:'12px',margin:'0 0 16px'}}>Log a payment for a member of your group.</p>
+          <h1 style={{color:'#6B2D4E',fontSize:'20px',fontWeight:'800',margin:'0 0 2px',textAlign:'center'}}>Record Contribution</h1>
+          <p style={{color:'#6B2D4E',fontSize:'12px',margin:'0 0 16px',textAlign:'center'}}>Log a payment for a member of your group.</p>
 
           {error && <p style={{color:'#E53935',fontSize:'12px',marginBottom:'12px',background:'#FFEBEE',padding:'8px 12px',borderRadius:'8px'}}>{error}</p>}
           {success && (
