@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -120,21 +120,38 @@ export default function ReferralsPage() {
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1 }}>
 
+      <style>{`
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer {
+          0% { background-position: 0% center; }
+          100% { background-position: -200% center; }
+        }
+      `}</style>
       <div style={{
         background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
         padding: '16px 32px',
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap' as const,
-        rowGap: '10px',
+        columnGap: '16px',
       }}>
-        <div>
+        <div style={{ justifySelf: 'start' }}>
           <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
           <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
         </div>
-        <div style={{ textAlign: 'right' as const }}>
+        <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>Referral Commissions</h1>
+        </div>
+        <div style={{ textAlign: 'right' as const, justifySelf: 'end' }}>
           <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
         </div>
       </div>
@@ -149,8 +166,7 @@ export default function ReferralsPage() {
         </div>
 
         <div style={{ marginBottom: 22 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Referral Commissions</h1>
-          <p style={{ fontSize: 13, color: C.muted, margin: '6px 0 0', maxWidth: 640, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: C.muted, margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
             Members who bring in new members earn a commission based on their total number of referrals:
             10 referrals = 5%, 15 referrals = 4.5%, 16 or more = 3.5%.
           </p>
