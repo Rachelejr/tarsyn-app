@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -66,7 +66,7 @@ function RemindersContent() {
   // --- Load the groups this admin organizes (handles organizerId or adminId) ---
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) { setGroupsLoading(false); return; }
+      if (!u) { setGroupsLoading(false); router.push('/login'); return; }
       setAdminUid(u.uid);
       try {
         const userSnap = await getDoc(doc(db, 'users', u.uid));
@@ -240,7 +240,7 @@ function RemindersContent() {
       <div style={{
         background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '16px 32px',
+        padding: '16px 40px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
