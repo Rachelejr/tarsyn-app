@@ -114,7 +114,6 @@ export default function RegisterPage() {
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 16px'}}>
         <div style={{background:'white',border:'1px solid #D9C0CC',borderRadius:'20px',padding:'52px 44px',width:'100%',maxWidth:'440px',boxShadow:'0 8px 40px rgba(107,45,78,0.10)'}}>
           <div style={{textAlign:'center',marginBottom:'32px'}}>
-            <div style={{width:'56px',height:'56px',background:'#6B2D4E',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:'24px',color:'#E9C77B'}}>?</div>
             <h1 style={{color:'#6B2D4E',fontSize:'28px',fontWeight:'700',marginBottom:'6px'}}>Create Account</h1>
             <p style={{color:'#6B2D4E',fontSize:'14px'}}>Join the <strong style={{color:'#E9C77B'}}>UNIMUNITY</strong> community</p>
           </div>
