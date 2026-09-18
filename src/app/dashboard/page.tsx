@@ -598,8 +598,7 @@ function OverviewContent() {
         </div>
 
         <div className="UNIMUNITY-ov-nav-title fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
-          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}> UNIMUNITY Handles the Rest</h1>
-          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '12.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>Organizer Dashboard</h1>
         </div>
 
         <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
