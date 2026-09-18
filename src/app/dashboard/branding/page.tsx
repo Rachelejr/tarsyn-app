@@ -247,11 +247,48 @@ export default function BrandingPage() {
   if (!hasWhiteLabel) {
     return (
       <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
-          <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
+        <style>{`
+          .UNIMUNITY-hdr-shimmer-title{
+            background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+          }
+          @keyframes UNIMUNITY-hdr-shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: -200% center; }
+          }
+        `}</style>
+        <div style={{
+          background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+          boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+          padding: '16px 32px',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          columnGap: '16px',
+        }}>
+          <div style={{ justifySelf: 'start' }}>
+            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+            <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+          </div>
+          <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+            <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>Branding Studio</h1>
+          </div>
+          <div style={{ textAlign: 'right' as const, justifySelf: 'end' }}>
+            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+          </div>
         </div>
-        <div style={{ maxWidth: '480px', margin: '60px auto', textAlign: 'center', background: C.blanc, borderRadius: '16px', padding: '36px 28px', border: `1.5px solid ${C.border}` }}>
+        <div style={{ maxWidth: '480px', margin: '28px auto 0', padding: '0 24px' }}>
+          <button onClick={() => router.push('/dashboard')}
+            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
+            Back to Dashboard
+          </button>
+        </div>
+        <div style={{ maxWidth: '480px', margin: '20px auto 60px', textAlign: 'center', background: C.blanc, borderRadius: '16px', padding: '36px 28px', border: `1.5px solid ${C.border}` }}>
           <div style={{ fontSize: '40px', marginBottom: '10px' }}>{'\u{1F512}'}</div>
           <h2 style={{ color: C.bordeauxDark, fontSize: '18px', fontWeight: 800, margin: '0 0 10px' }}>White Label isn&apos;t included in your {planDisplayName || 'current'} plan</h2>
           <p style={{ color: C.muted, fontSize: '13.5px', lineHeight: 1.6, margin: '0 0 20px' }}>
@@ -268,11 +305,48 @@ export default function BrandingPage() {
   if (groups.length === 0) {
     return (
       <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: C.bordeauxDark, padding: '16px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'transparent', border: 'none', color: C.or, cursor: 'pointer', fontSize: '20px' }}>{'<'}</button>
-          <h1 style={{ color: C.orLight, fontSize: '18px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
+        <style>{`
+          .UNIMUNITY-hdr-shimmer-title{
+            background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+          }
+          @keyframes UNIMUNITY-hdr-shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: -200% center; }
+          }
+        `}</style>
+        <div style={{
+          background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+          boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+          padding: '16px 32px',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          columnGap: '16px',
+        }}>
+          <div style={{ justifySelf: 'start' }}>
+            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
+            <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+          </div>
+          <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+            <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>Branding Studio</h1>
+          </div>
+          <div style={{ textAlign: 'right' as const, justifySelf: 'end' }}>
+            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+          </div>
         </div>
-        <div style={{ maxWidth: '500px', margin: '60px auto', textAlign: 'center' }}>
+        <div style={{ maxWidth: '500px', margin: '28px auto 0', padding: '0 24px' }}>
+          <button onClick={() => router.push('/dashboard')}
+            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
+            Back to Dashboard
+          </button>
+        </div>
+        <div style={{ maxWidth: '500px', margin: '40px auto 60px', textAlign: 'center' }}>
           <p style={{ color: C.muted, fontSize: '14px' }}>Create a group first to configure its branding.</p>
         </div>
       </div>
