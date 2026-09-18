@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -299,6 +299,28 @@ function OverviewContent() {
           opacity: 0;
           animation: fadeUp 0.45s ease forwards;
         }
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: inline-block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        .UNIMUNITY-hdr-shimmer-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: inline-block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer {
+          0% { background-position: 0% center; }
+          100% { background-position: -200% center; }
+        }
         .stat-card, .panel-card, .action-card {
           transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
@@ -576,8 +598,8 @@ function OverviewContent() {
         </div>
 
         <div className="UNIMUNITY-ov-nav-title fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
-          <h1 style={{ color: '#F0DCE8', fontSize: '17px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}> UNIMUNITY Handles the Rest</h1>
-          <p style={{ color: 'rgba(251,238,221,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}> UNIMUNITY Handles the Rest</h1>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '12.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
         </div>
 
         <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
