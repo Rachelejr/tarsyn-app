@@ -351,19 +351,6 @@ function AddMemberContent() {
           </button>
         </div>
 
-        <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', textAlign: 'center' as const }}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const, justifyContent: 'center' as const }}>
-            <div style={{ background: C.blanc, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>TYN-ID</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{tynId}</span>
-            </div>
-            <div style={{ background: C.blanc, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>Position</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>#{nextPosition} - Auto-assigned</span>
-            </div>
-          </div>
-        </div>
-
         <div className="UNIMUNITY-addmember-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 18 }}>
 
