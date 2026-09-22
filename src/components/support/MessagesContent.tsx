@@ -178,6 +178,12 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
   const [searchResults, setSearchResults] = useState<{userId:string;name:string;email:string;memberId:string}[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const [clearing, setClearing] = useState(false);
+  // Lets Rachele pick specific message(s) to delete instead of only
+  // "clear the whole conversation" or one message at a time via its own
+  // menu - a checkbox appears on every message while active.
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
+  const [deletingSelected, setDeletingSelected] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [recordingMode, setRecordingMode] = useState<null | 'audio' | 'video'>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -341,14 +347,15 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
   };
   const addEmoji = (emoji: string) => setText((t) => t + emoji);
   const handleClearChat = async () => {
-    if (!activeChatId) return;
-    if (!confirm('Clear this entire conversation? This cannot be undone.')) return;
+    if (!activeChatId || !user) return;
+    if (!confirm('Clear this conversation from your side? This cannot be undone.')) return;
     setClearing(true);
     setShowMenu(false);
     try {
-      await clearChat(activeChatId, firestoreDb);
+      await clearChat(activeChatId, user.uid, firestoreDb);
     } catch (e) {
       console.error(e);
+      alert('Failed to clear conversation.');
     }
     setClearing(false);
   };
@@ -367,6 +374,30 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
     try {
       await deleteMessageForEveryone(activeChatId, messageId, firestoreDb);
     } catch (e) { console.error(e); }
+  };
+
+  const toggleSelectMsg = (messageId: string) => {
+    setSelectedMsgIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(messageId)) next.delete(messageId); else next.add(messageId);
+      return next;
+    });
+  };
+  const cancelSelectMode = () => { setSelectMode(false); setSelectedMsgIds(new Set()); };
+  const handleDeleteSelected = async () => {
+    if (!activeChatId || !user || selectedMsgIds.size === 0) return;
+    if (!confirm(`Delete ${selectedMsgIds.size} selected message(s) from your side? This cannot be undone.`)) return;
+    setDeletingSelected(true);
+    try {
+      await Promise.all(
+        Array.from(selectedMsgIds).map((id) => deleteMessageForMe(activeChatId, id, user.uid, firestoreDb))
+      );
+    } catch (e) {
+      console.error(e);
+      alert('Failed to delete the selected messages.');
+    }
+    setDeletingSelected(false);
+    cancelSelectMode();
   };
 
   const formatTime = (ts: any) => {
@@ -536,6 +567,10 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
           )}
           {showMenu && activeChatId && (
             <div style={{ position: 'absolute', right: 0, top: '28px', background: C.white, borderRadius: '8px', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', minWidth: '170px', zIndex: 30, overflow: 'hidden', border: `1px solid ${C.border}` }}>
+              <button onClick={() => { setSelectMode(true); setSelectedMsgIds(new Set()); setShowMenu(false); }}
+                style={{ width: '100%', padding: '10px 14px', background: C.white, border: 'none', color: textDark, fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
+                Select messages
+              </button>
               <button onClick={handleClearChat} disabled={clearing}
                 style={{ width: '100%', padding: '10px 14px', background: C.white, border: 'none', color: '#C62828', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
                 {clearing ? 'Clearing...' : 'Clear conversation'}
@@ -544,6 +579,26 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
           )}
         </div>
       </div>
+      {/* Selection mode bar - lets Rachele pick one or several specific
+          messages (via the checkbox that appears on each one below) and
+          delete just those, instead of only "one at a time" or "clear
+          everything". Deletes are "for me" only, matching the rules-safe
+          pattern used everywhere else in this file. */}
+      {selectMode && activeChatId && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: C.creme, borderBottom: `1px solid ${bg}`, flexShrink: 0 }}>
+          <span style={{ fontSize: '12.5px', fontWeight: 700, color: textDark }}>{selectedMsgIds.size} selected</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={cancelSelectMode}
+              style={{ background: 'none', border: 'none', color: textGris, fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', padding: '6px 10px' }}>
+              Cancel
+            </button>
+            <button onClick={handleDeleteSelected} disabled={selectedMsgIds.size === 0 || deletingSelected}
+              style={{ background: selectedMsgIds.size === 0 ? '#f5f5f5' : '#FFEBEE', color: selectedMsgIds.size === 0 ? textGris : '#C62828', border: 'none', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: selectedMsgIds.size === 0 ? 'default' : 'pointer', padding: '6px 12px' }}>
+              {deletingSelected ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      )}
       {!activeChatId && (
         <div style={{ flex: 1, overflowY: 'auto', background: C.white }}>
           {showSearch && (
@@ -611,14 +666,20 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
                 );
               }
               const isRead = !isDeleted && isMine && otherParticipantId ? (m.readBy || []).includes(otherParticipantId) : false;
+              const isSelected = selectedMsgIds.has(m.id);
               items.push(
                 <div key={m.id}
                   style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start', position: 'relative' }}
                   onMouseEnter={() => setHoveredMsgId(m.id)}
                   onMouseLeave={() => setHoveredMsgId((v) => (v === m.id ? null : v))}
-                  onContextMenu={(e) => { if (!isDeleted) { e.preventDefault(); e.stopPropagation(); setOpenMsgMenu(m.id); } }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', maxWidth: '84%' }}>
-                    {isMine && !isDeleted && (hoveredMsgId === m.id || openMsgMenu === m.id) && (
+                  onContextMenu={(e) => { if (!isDeleted && !selectMode) { e.preventDefault(); e.stopPropagation(); setOpenMsgMenu(m.id); } }}
+                  onClick={(e) => { if (selectMode) { e.stopPropagation(); toggleSelectMsg(m.id); } }}>
+                  {selectMode && (
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleSelectMsg(m.id)} onClick={(e) => e.stopPropagation()}
+                      style={{ width: '16px', height: '16px', margin: '0 8px', flexShrink: 0, alignSelf: 'center', cursor: 'pointer', accentColor: dore }} />
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', maxWidth: '84%', opacity: selectMode && !isSelected ? 0.7 : 1 }}>
+                    {isMine && !isDeleted && !selectMode && (hoveredMsgId === m.id || openMsgMenu === m.id) && (
                       <button className="cw-msg-action-btn" onClick={(e) => { e.stopPropagation(); setOpenMsgMenu(openMsgMenu === m.id ? null : m.id); }}
                         style={{ background: 'none', border: 'none', color: textGris, fontSize: '14px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', order: -1 }}>
                         ⋮
@@ -679,7 +740,7 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
                         {isMine && !isDeleted && <CheckIcon size={12} double={isRead} color={isRead ? '#4FA3E3' : '#B8B0AA'} />}
                       </div>
                     </div>
-                    {!isMine && !isDeleted && (hoveredMsgId === m.id || openMsgMenu === m.id) && (
+                    {!isMine && !isDeleted && !selectMode && (hoveredMsgId === m.id || openMsgMenu === m.id) && (
                       <button className="cw-msg-action-btn" onClick={(e) => { e.stopPropagation(); setOpenMsgMenu(openMsgMenu === m.id ? null : m.id); }}
                         style={{ background: 'none', border: 'none', color: textGris, fontSize: '14px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px' }}>
                         ⋮
