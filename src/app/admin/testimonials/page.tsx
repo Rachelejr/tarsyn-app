@@ -16,6 +16,7 @@ export default function TestimonialsAdminPage() {
   const [authorized, setAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState<any[]>([]);
+  const [approved, setApproved] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingOn, setActingOn] = useState<string | null>(null);
 
@@ -27,16 +28,16 @@ export default function TestimonialsAdminPage() {
     return () => unsub();
   }, []);
 
+  // No orderBy in either query on purpose: pairing where('status', '==',
+  // ...) with orderBy('createdAt', ...) needs a composite Firestore index
+  // that was never created for this project, so the query used to fail
+  // every time (silently - the error only ever reached the console), and
+  // this page always showed "No pending reviews" even when people had
+  // submitted some. Sorting each small list by hand below gets the same
+  // newest-first order without requiring that index.
   const loadPending = async () => {
     setLoading(true);
     try {
-      // No orderBy here on purpose: pairing where('status', '==', 'pending')
-      // with orderBy('createdAt', ...) needs a composite Firestore index
-      // that was never created for this project, so the query used to fail
-      // every time (silently - the error only ever reached the console),
-      // and this page always showed "No pending reviews" even when people
-      // had submitted some. Sorting the small pending list by hand below
-      // gets the same newest-first order without requiring that index.
       const q = query(collection(db, 'testimonials'), where('status', '==', 'pending'));
       const snap = await getDocs(q);
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
@@ -46,9 +47,19 @@ export default function TestimonialsAdminPage() {
     setLoading(false);
   };
 
-  useEffect(() => { if (authorized) loadPending(); }, [authorized]);
+  const loadApproved = async () => {
+    try {
+      const q = query(collection(db, 'testimonials'), where('status', '==', 'approved'));
+      const snap = await getDocs(q);
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      docs.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+      setApproved(docs);
+    } catch (e) { console.error(e); }
+  };
 
-  const moderate = async (testimonialId: string, action: 'approve' | 'reject') => {
+  useEffect(() => { if (authorized) { loadPending(); loadApproved(); } }, [authorized]);
+
+  const moderate = async (testimonialId: string, action: 'approve' | 'reject' | 'delete') => {
     setActingOn(testimonialId);
     try {
       const idToken = await auth.currentUser?.getIdToken();
@@ -60,6 +71,7 @@ export default function TestimonialsAdminPage() {
       const data = await res.json();
       if (data.success) {
         setPending(prev => prev.filter(t => t.id !== testimonialId));
+        setApproved(prev => prev.filter(t => t.id !== testimonialId));
       } else {
         alert('Failed: ' + (data.error || 'unknown error'));
       }
@@ -117,6 +129,38 @@ export default function TestimonialsAdminPage() {
                     {actingOn === t.id ? '...' : 'Reject'}
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Published reviews - the ones already showing on the public
+            homepage, with a Remove option. Added so Rachele can clear out
+            her own test submissions (used to check the moderation flow
+            actually worked) without needing to touch Firebase directly. */}
+        <h2 style={{ color: C.bordeaux, fontSize: '18px', fontWeight: 800, margin: '36px 0 6px' }}>Published on homepage</h2>
+        <p style={{ color: C.muted, fontSize: '13px', margin: '0 0 16px' }}>
+          These are live on the public homepage right now. Remove any you don&apos;t want showing (e.g. test reviews).
+        </p>
+        {approved.length === 0 ? (
+          <div style={{ background: 'white', borderRadius: '16px', padding: '32px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+            <p style={{ color: C.muted, fontSize: '14px' }}>Nothing published yet.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {approved.map((t) => (
+              <div key={t.id} style={{ background: 'white', borderRadius: '16px', padding: '20px 22px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div>
+                    <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '14px', margin: 0 }}>{t.authorName} <span style={{ color: C.muted, fontWeight: 400, fontSize: '12px' }}>({t.authorRole})</span></p>
+                    <p style={{ color: C.or, fontSize: '14px', margin: '3px 0 0' }}>{'★'.repeat(t.rating || 0)}{'☆'.repeat(5 - (t.rating || 0))}</p>
+                  </div>
+                </div>
+                <p style={{ color: '#333', fontSize: '13.5px', lineHeight: 1.6, margin: '0 0 16px' }}>{t.text}</p>
+                <button onClick={() => { if (confirm('Remove this review from the homepage? This cannot be undone.')) moderate(t.id, 'delete'); }} disabled={actingOn === t.id}
+                  style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+                  {actingOn === t.id ? '...' : 'Remove'}
+                </button>
               </div>
             ))}
           </div>
