@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -105,7 +105,7 @@ export default function LeaveReviewPage() {
       <div style={{
         background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '16px 32px',
+        padding: '20px 40px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -150,7 +150,7 @@ export default function LeaveReviewPage() {
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: C.bordeaux, marginBottom: '6px' }}>Rating</label>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '18px' }}>
               {[1, 2, 3, 4, 5].map(n => (
-                <span key={n} onClick={() => setRating(n)} style={{ fontSize: '28px', cursor: 'pointer', color: n <= rating ? C.or : C.orLight }}>*</span>
+                <span key={n} onClick={() => setRating(n)} style={{ fontSize: '28px', cursor: 'pointer', color: n <= rating ? C.or : C.orLight }}>★</span>
               ))}
             </div>
 
