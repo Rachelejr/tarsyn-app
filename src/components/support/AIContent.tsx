@@ -116,7 +116,7 @@ export default function AIContent({ lang, persona, user, initialQuestion, onCons
                 {agentName(persona)}
               </div>
             </div>
-            <div style={{ background: C.white, border: `1px solid ${C.border}`, color: C.bordeauxDark, padding: '13px 15px', borderRadius: 14, fontSize: 13.5, lineHeight: 1.55, boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div style={{ background: C.white, border: `1px solid ${C.border}`, color: C.bordeauxDark, padding: '13px 15px', borderRadius: 14, fontSize: 13.5, lineHeight: 1.55, textAlign: 'justify', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
               {tName(lang, 'aiWelcome', persona)}
             </div>
             <div style={{ fontSize: 10.5, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 2 }}>
@@ -155,6 +155,12 @@ export default function AIContent({ lang, persona, user, initialQuestion, onCons
               padding: '11px 14px',
               borderRadius: e.role === 'user' ? '14px 14px 3px 14px' : '3px 14px 14px 14px',
               fontSize: 13.5, lineHeight: 1.55, maxWidth: '82%', whiteSpace: 'pre-wrap',
+              // Rachele asked for the message text to look "professional" -
+              // justified left/right edges like printed text, not ragged on
+              // the right. Only makes a visible difference once a message
+              // wraps to 2+ lines, which is exactly when ragged edges were
+              // the complaint.
+              textAlign: 'justify',
               // A long unbroken token (e.g. a slash-joined region list) has
               // no normal space for the browser to wrap on, so without this
               // it can push past the bubble's maxWidth and spill over the
