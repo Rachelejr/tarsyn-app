@@ -11,23 +11,31 @@ import { adminDb } from '@/lib/firebase-admin';
 // rejected ones never leave the server.
 export async function GET() {
   try {
+    // No orderBy here on purpose - see the same fix in
+    // admin/testimonials/page.tsx: pairing where('status', '==', ...) with
+    // orderBy('createdAt', ...) needs a composite Firestore index that was
+    // never created, so this always failed silently and the home page
+    // never showed any approved review. Sorted by hand below instead.
     const snap = await adminDb
       .collection('testimonials')
       .where('status', '==', 'approved')
-      .orderBy('createdAt', 'desc')
-      .limit(9)
       .get();
 
-    const testimonials = snap.docs.map((d) => {
-      const data = d.data() as any;
-      return {
-        id: d.id,
-        authorName: data.authorName || 'UNIMUNITY user',
-        authorRole: data.authorRole === 'member' ? 'member' : 'organizer',
-        rating: typeof data.rating === 'number' ? data.rating : 5,
-        text: data.text || '',
-      };
-    });
+    const testimonials = snap.docs
+      .map((d) => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          authorName: data.authorName || 'UNIMUNITY user',
+          authorRole: data.authorRole === 'member' ? 'member' : 'organizer',
+          rating: typeof data.rating === 'number' ? data.rating : 5,
+          text: data.text || '',
+          _createdAtMs: data.createdAt?.toMillis?.() ?? 0,
+        };
+      })
+      .sort((a, b) => b._createdAtMs - a._createdAtMs)
+      .slice(0, 9)
+      .map(({ _createdAtMs, ...rest }) => rest);
 
     return NextResponse.json({ testimonials });
   } catch (e: any) {
