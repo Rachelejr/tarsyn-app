@@ -113,11 +113,12 @@ export default function UnimunitySupportWidget() {
   // viewport-relative caps (vh / calc(100vh - ...)). Height is shared by
   // both admin and member - only width differs, see below.
   //
-  // Width: first pass was 320px, then briefly shrunk to 288px. Rachele
-  // then asked for it wider than 320px so the chat text has room to
-  // wrap/align cleanly - but explicitly only on the MEMBER side, not
-  // admin, so the admin view keeps its original 320px width.
-  const panelWidth = persona === 'member' ? 344 : 320;
+  // Width: first pass was 320px, then briefly shrunk to 288px, then
+  // widened to 344px (member only, admin held at 320px). Still not wide
+  // enough for Rachele - she wants noticeably more room so the message
+  // text can be justified like professional text, so this is now a
+  // bigger jump (380px), applied to both admin and member.
+  const panelWidth = 380;
   const panelStyle: CSSProperties = isMobile
     ? { right: 12, bottom: 12, width: 'calc(100vw - 24px)', height: 'min(78vh, 540px)', borderRadius: 18 }
     : tier === 'tablet'
