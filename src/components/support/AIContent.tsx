@@ -154,7 +154,14 @@ export default function AIContent({ lang, persona, user, initialQuestion, onCons
               border: e.role === 'user' ? 'none' : `1px solid ${C.border}`,
               padding: '11px 14px',
               borderRadius: e.role === 'user' ? '14px 14px 3px 14px' : '3px 14px 14px 14px',
-              fontSize: 13.5, lineHeight: 1.55, maxWidth: '82%', whiteSpace: 'pre-wrap',
+              // maxWidth was 82% (chat-bubble style, lots of empty side
+              // space) - Rachele wants the text to fill the background,
+              // respecting only the panel's own left/right margin (the
+              // 16px padding on the scrollable container above). The
+              // parent's alignItems (flex-end/flex-start) would otherwise
+              // shrink this to fit its content, so width is set to 100%
+              // explicitly rather than just raising maxWidth.
+              fontSize: 13.5, lineHeight: 1.55, width: '100%', boxSizing: 'border-box', whiteSpace: 'pre-wrap',
               // Rachele asked for the message text to look "professional" -
               // justified left/right edges like printed text, not ragged on
               // the right. Only makes a visible difference once a message
