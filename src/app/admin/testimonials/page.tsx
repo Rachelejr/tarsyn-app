@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
 
@@ -13,6 +15,7 @@ const C = {
 };
 
 export default function TestimonialsAdminPage() {
+  const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState<any[]>([]);
@@ -95,7 +98,31 @@ export default function TestimonialsAdminPage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', padding: '40px 24px' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      {/* Same header bar as every other page in the app (logo + tagline,
+          date/time/temperature on the right) - this page was missing it
+          entirely and had no way back into the rest of the app. Logo is
+          clickable back to /dashboard, matching the other admin pages. */}
+      <div style={{
+        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
+        padding: '20px 40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap' as const,
+        rowGap: '10px',
+      }}>
+        <div>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+        </div>
+        <div style={{ textAlign: 'right' as const }}>
+          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+        </div>
+      </div>
+
+      <div style={{ flex: 1, padding: '40px 24px' }}>
       <div style={{ maxWidth: '760px', margin: '0 auto' }}>
         <h1 style={{ color: C.bordeaux, fontSize: '24px', fontWeight: 800, margin: '0 0 6px' }}>Review Moderation</h1>
         <p style={{ color: C.muted, fontSize: '13px', margin: '0 0 24px' }}>
@@ -165,6 +192,7 @@ export default function TestimonialsAdminPage() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
