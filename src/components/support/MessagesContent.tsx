@@ -672,7 +672,7 @@ export default function MessagesContent({ user, firestoreDb, storageInstance, on
                           </div>
                         </a>
                       ) : (
-                        <p style={{ margin: 0, fontSize: '13px', color: textDark, wordBreak: 'break-word' }}>{m.text}</p>
+                        <p style={{ margin: 0, fontSize: '13px', color: textDark, wordBreak: 'break-word', textAlign: 'justify' }}>{m.text}</p>
                       )}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '3px' }}>
                         <span style={{ fontSize: '10px', color: textGris }}>{formatTime(m.createdAt)}</span>
