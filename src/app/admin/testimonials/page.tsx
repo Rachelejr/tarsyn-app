@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const SUPER_ADMIN_EMAIL = 'rachelejr779@gmail.com';
 
@@ -30,9 +30,18 @@ export default function TestimonialsAdminPage() {
   const loadPending = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, 'testimonials'), where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+      // No orderBy here on purpose: pairing where('status', '==', 'pending')
+      // with orderBy('createdAt', ...) needs a composite Firestore index
+      // that was never created for this project, so the query used to fail
+      // every time (silently - the error only ever reached the console),
+      // and this page always showed "No pending reviews" even when people
+      // had submitted some. Sorting the small pending list by hand below
+      // gets the same newest-first order without requiring that index.
+      const q = query(collection(db, 'testimonials'), where('status', '==', 'pending'));
       const snap = await getDocs(q);
-      setPending(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      docs.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+      setPending(docs);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -94,7 +103,7 @@ export default function TestimonialsAdminPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                   <div>
                     <p style={{ color: C.bordeaux, fontWeight: 700, fontSize: '14px', margin: 0 }}>{t.authorName} <span style={{ color: C.muted, fontWeight: 400, fontSize: '12px' }}>({t.authorRole})</span></p>
-                    <p style={{ color: C.or, fontSize: '14px', margin: '3px 0 0' }}>{'*'.repeat(t.rating || 0)}{'o'.repeat(5 - (t.rating || 0))}</p>
+                    <p style={{ color: C.or, fontSize: '14px', margin: '3px 0 0' }}>{'★'.repeat(t.rating || 0)}{'☆'.repeat(5 - (t.rating || 0))}</p>
                   </div>
                 </div>
                 <p style={{ color: '#333', fontSize: '13.5px', lineHeight: 1.6, margin: '0 0 16px' }}>{t.text}</p>
