@@ -110,15 +110,19 @@ export default function UnimunitySupportWidget() {
   // Panel heights were bumped up a bit (~80px) from the first pass -
   // Rachele felt the window was too short - while still respecting the
   // spec's "never a large Dashboard-covering window" rule via the
-  // viewport-relative caps (vh / calc(100vh - ...)).
-  // Width: first pass was 320px, then briefly shrunk to 288px - Rachele
-  // found 320px (and narrower) too tight for the chat text to wrap/align
-  // cleanly, so it's now a bit wider than the original 320px baseline.
+  // viewport-relative caps (vh / calc(100vh - ...)). Height is shared by
+  // both admin and member - only width differs, see below.
+  //
+  // Width: first pass was 320px, then briefly shrunk to 288px. Rachele
+  // then asked for it wider than 320px so the chat text has room to
+  // wrap/align cleanly - but explicitly only on the MEMBER side, not
+  // admin, so the admin view keeps its original 320px width.
+  const panelWidth = persona === 'member' ? 344 : 320;
   const panelStyle: CSSProperties = isMobile
     ? { right: 12, bottom: 12, width: 'calc(100vw - 24px)', height: 'min(78vh, 540px)', borderRadius: 18 }
     : tier === 'tablet'
-      ? { right: 16, bottom: 16, width: 'min(344px, calc(100vw - 32px))', height: 'min(520px, calc(100vh - 32px))', borderRadius: 18 }
-      : { right: 20, bottom: 20, width: 'min(344px, 92vw)', height: 'min(500px, calc(100vh - 40px))', borderRadius: 20 };
+      ? { right: 16, bottom: 16, width: `min(${panelWidth}px, calc(100vw - 32px))`, height: 'min(520px, calc(100vh - 32px))', borderRadius: 18 }
+      : { right: 20, bottom: 20, width: `min(${panelWidth}px, 92vw)`, height: 'min(500px, calc(100vh - 40px))', borderRadius: 20 };
 
   return (
     <>
