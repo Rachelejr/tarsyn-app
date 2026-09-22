@@ -120,10 +120,10 @@ export default function UnimunitySupportWidget() {
   // bigger jump (380px), applied to both admin and member.
   const panelWidth = 380;
   const panelStyle: CSSProperties = isMobile
-    ? { right: 12, bottom: 12, width: 'calc(100vw - 24px)', height: 'min(78vh, 540px)', borderRadius: 18 }
+    ? { right: 12, bottom: 12, width: 'calc(100vw - 24px)', height: 'min(82vh, 580px)', borderRadius: 18 }
     : tier === 'tablet'
-      ? { right: 16, bottom: 16, width: `min(${panelWidth}px, calc(100vw - 32px))`, height: 'min(520px, calc(100vh - 32px))', borderRadius: 18 }
-      : { right: 20, bottom: 20, width: `min(${panelWidth}px, 92vw)`, height: 'min(500px, calc(100vh - 40px))', borderRadius: 20 };
+      ? { right: 16, bottom: 16, width: `min(${panelWidth}px, calc(100vw - 32px))`, height: 'min(560px, calc(100vh - 32px))', borderRadius: 18 }
+      : { right: 20, bottom: 20, width: `min(${panelWidth}px, 92vw)`, height: 'min(540px, calc(100vh - 40px))', borderRadius: 20 };
 
   return (
     <>
