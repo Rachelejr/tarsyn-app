@@ -186,6 +186,14 @@ async function healPrivateChatIfNeeded(chatId: string, firestoreDb: Firestore): 
   }
 }
 
+// No orderBy here on purpose - same fix as the testimonials queries
+// (admin/testimonials/page.tsx, public-testimonials/route.ts). Pairing
+// where('participantIds', 'array-contains', ...) with orderBy('updatedAt',
+// ...) needs a composite Firestore index that was never created for this
+// project, so this listener's onSnapshot error callback fired every time
+// and the Messages tab's conversation list stayed permanently empty
+// ("No conversations yet") even though the conversations existed - nothing
+// Rachele did deleted them. Sorted by hand below instead.
 export function listenToUserChats(
   userId: string,
   callback: (chats: ChatSummary[]) => void,
@@ -193,11 +201,11 @@ export function listenToUserChats(
 ): Unsubscribe {
   const q = query(
     collection(firestoreDb, 'chats'),
-    where('participantIds', 'array-contains', userId),
-    orderBy('updatedAt', 'desc')
+    where('participantIds', 'array-contains', userId)
   );
   return onSnapshot(q, (snap) => {
     const chats: ChatSummary[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    chats.sort((a: any, b: any) => (b.updatedAt?.toMillis?.() ?? 0) - (a.updatedAt?.toMillis?.() ?? 0));
     callback(chats);
   }, (err) => {
     console.error('[chat] listenToUserChats failed:', err);
@@ -342,22 +350,32 @@ export async function markChatAsRead(chatId: string, userId: string, firestoreDb
   }
 }
 
-export async function clearChat(chatId: string, firestoreDb: Firestore = db): Promise<void> {
+// "Clear conversation" used to hard-delete every message document with
+// batch.delete(). That always failed silently: firestore.rules has
+// `allow delete: if false` on /chats/{chatId}/messages/{messageId} (no one
+// can hard-delete a message, by design - only "delete for me" or "delete
+// for everyone", both of which are updates, not deletes), so every one of
+// those batch commits was rejected as a permission error, caught by the
+// caller's try/catch and never surfaced to Rachele. Fixed the same way
+// deleteMessageForMe already works within that rule: add the clearing
+// user's id to each message's `deletedFor` array instead of deleting the
+// document. MessagesContent already filters out any message whose
+// deletedFor includes the current user (see `visibleMessages`), so this
+// clears the conversation from that person's view - the other participant
+// still sees their side untouched, same as WhatsApp's "clear chat".
+export async function clearChat(chatId: string, userId: string, firestoreDb: Firestore = db): Promise<void> {
   const messagesSnap = await getDocs(collection(firestoreDb, 'chats', chatId, 'messages'));
-  const docs = messagesSnap.docs;
+  const docs = messagesSnap.docs.filter((d) => !(d.data().deletedFor || []).includes(userId));
 
   for (let i = 0; i < docs.length; i += 450) {
     const batch = writeBatch(firestoreDb);
     docs.slice(i, i + 450).forEach((d) => {
-      batch.delete(doc(firestoreDb, 'chats', chatId, 'messages', d.id));
+      batch.update(doc(firestoreDb, 'chats', chatId, 'messages', d.id), {
+        deletedFor: arrayUnion(userId),
+      });
     });
     await batch.commit();
   }
-
-  await updateDoc(doc(firestoreDb, 'chats', chatId), {
-    lastMessage: null,
-    updatedAt: serverTimestamp(),
-  });
 }
 
 // NEW: delete a message only for the current user (it stays visible to others).
