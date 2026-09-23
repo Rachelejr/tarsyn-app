@@ -2,52 +2,53 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
 // Only Dashboard, Members, Groups and Ministries are wired to real pages.
+// All labels are in English (UI rule for the whole platform).
 // Every other item routes to the generic /coming-soon page instead of
 // being hidden, per the "don't fake functionality, but don't hide it
 // either" rule — it just doesn't pretend to work yet.
+// Light sidebar (soft white), active item in the pink -> green pastel
+// gradient with dark text. Palette: CHURCH_UI in src/lib/moduleTheme.ts.
 const C = {
-  navy: '#172554',
-  primary: '#1E3A8A',
-  gold: '#D4AF37',
-  ivory: '#FFFDF7',
-  lightBlue: '#EFF6FF',
-  champagne: '#F8F1D8',
-  textMuted: 'rgba(255,255,255,0.55)',
-  textActive: '#FFFFFF',
+  bg: 'rgba(255,255,255,0.85)',
+  border: CHURCH_UI.border,
+  text: CHURCH_UI.textSoft,
+  textDark: CHURCH_UI.text,
+  label: CHURCH_UI.textSoft,
 };
 
 type NavItem = { key: string; label: string; icon: string; enabled: boolean };
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: '🏠', enabled: true },
-  { key: 'members', label: 'Membres', icon: '👥', enabled: true },
-  { key: 'families', label: 'Familles', icon: '👨‍👩‍👧‍👦', enabled: false },
-  { key: 'groups', label: 'Groupes', icon: '👫', enabled: true },
-  { key: 'ministries', label: 'Ministères', icon: '⛪', enabled: true },
-  { key: 'services', label: 'Cultes & Services', icon: '🕊️', enabled: false },
-  { key: 'events', label: 'Événements & Calendrier', icon: '📅', enabled: false },
-  { key: 'attendance', label: 'Présences', icon: '✅', enabled: false },
-  { key: 'pastoral-care', label: 'Suivi pastoral', icon: '💬', enabled: false },
-  { key: 'prayer', label: 'Prières', icon: '🙏', enabled: false },
-  { key: 'discipleship', label: 'Discipulat & Formations', icon: '📖', enabled: false },
-  { key: 'sermons', label: 'Sermons & Médias', icon: '🎙️', enabled: false },
-  { key: 'children', label: 'Enfants', icon: '🧒', enabled: false },
-  { key: 'youth', label: 'Jeunesse', icon: '🧑‍🎓', enabled: false },
-  { key: 'volunteers', label: 'Bénévoles', icon: '🤝', enabled: false },
-  { key: 'outreach', label: 'Évangélisation', icon: '📣', enabled: false },
+  { key: 'members', label: 'Members', icon: '👥', enabled: true },
+  { key: 'families', label: 'Families', icon: '👨‍👩‍👧‍👦', enabled: false },
+  { key: 'groups', label: 'Groups', icon: '👫', enabled: true },
+  { key: 'ministries', label: 'Ministries', icon: '⛪', enabled: true },
+  { key: 'services', label: 'Services & Worship', icon: '🕊️', enabled: false },
+  { key: 'events', label: 'Events & Calendar', icon: '📅', enabled: false },
+  { key: 'attendance', label: 'Attendance', icon: '✅', enabled: false },
+  { key: 'pastoral-care', label: 'Pastoral Care', icon: '💬', enabled: false },
+  { key: 'prayer', label: 'Prayer', icon: '🙏', enabled: false },
+  { key: 'discipleship', label: 'Discipleship & Training', icon: '📖', enabled: false },
+  { key: 'sermons', label: 'Sermons & Media', icon: '🎙️', enabled: false },
+  { key: 'children', label: 'Children', icon: '🧒', enabled: false },
+  { key: 'youth', label: 'Youth', icon: '🧑‍🎓', enabled: false },
+  { key: 'volunteers', label: 'Volunteers', icon: '🤝', enabled: false },
+  { key: 'outreach', label: 'Evangelism', icon: '📣', enabled: false },
   { key: 'missions', label: 'Missions', icon: '🌍', enabled: false },
   { key: 'communication', label: 'Communication', icon: '💌', enabled: false },
   { key: 'contributions', label: 'Contributions', icon: '💰', enabled: false },
-  { key: 'expenses', label: 'Dépenses & Budget', icon: '📊', enabled: false },
+  { key: 'expenses', label: 'Expenses & Budget', icon: '📊', enabled: false },
   { key: 'documents', label: 'Documents', icon: '📁', enabled: false },
-  { key: 'governance', label: 'Gouvernance', icon: '🏛️', enabled: false },
-  { key: 'reports', label: 'Rapports', icon: '📈', enabled: false },
-  { key: 'roles', label: 'Rôles & Permissions', icon: '🔐', enabled: false },
-  { key: 'audit-log', label: "Journal d'audit", icon: '📜', enabled: false },
-  { key: 'settings', label: 'Paramètres Church', icon: '⚙️', enabled: false },
+  { key: 'governance', label: 'Governance', icon: '🏛️', enabled: false },
+  { key: 'reports', label: 'Reports', icon: '📈', enabled: false },
+  { key: 'roles', label: 'Roles & Permissions', icon: '🔐', enabled: false },
+  { key: 'audit-log', label: 'Audit Log', icon: '📜', enabled: false },
+  { key: 'settings', label: 'Church Settings', icon: '⚙️', enabled: false },
 ];
 
 // Below this width the sidebar is no longer a permanent 236px column - it
@@ -102,9 +103,9 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
 
   const navContent = (
     <>
-      <div style={{ padding: '0 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '10px' }}>
-        <div style={{ color: C.textActive, fontSize: '15px', fontWeight: 800 }}>UNIMUNITY</div>
-        <div style={{ color: C.gold, fontSize: '10px', fontWeight: 700, letterSpacing: '1px' }}>MODULE CHURCH</div>
+      <div style={{ padding: '0 20px 14px', borderBottom: `1px solid ${C.border}`, marginBottom: '10px' }}>
+        <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ width: '100%', maxWidth: '170px', height: 'auto', display: 'block', marginBottom: '10px' }} />
+        <div style={{ color: C.label, fontSize: '9px', fontWeight: 700, letterSpacing: '0.8px' }}>CHURCH MODULE</div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '4px 10px' }}>
@@ -117,17 +118,18 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '9px 12px', marginBottom: '2px', borderRadius: '9px',
-                background: active ? C.primary : 'transparent',
+                background: active ? CHURCH_UI.activeGradient : 'transparent',
                 border: 'none', cursor: 'pointer', textAlign: 'left',
-                color: active ? C.textActive : C.textMuted,
+                color: active ? C.textDark : C.text,
+                boxShadow: active ? '0 2px 8px rgba(36,50,74,0.06)' : 'none',
                 fontSize: '13px', fontWeight: active ? 700 : 500,
               }}
             >
               <span style={{ fontSize: '15px' }}>{item.icon}</span>
               <span style={{ flex: 1 }}>{item.label}</span>
               {!item.enabled && (
-                <span style={{ fontSize: '9px', background: 'rgba(212,175,55,0.18)', color: C.gold, padding: '2px 6px', borderRadius: '999px', fontWeight: 700 }}>
-                  Bientôt
+                <span style={{ fontSize: '9px', background: CHURCH_UI.cream, color: CHURCH_UI.goldText, padding: '2px 7px', borderRadius: '999px', fontWeight: 700 }}>
+                  Soon
                 </span>
               )}
             </button>
@@ -136,10 +138,10 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
       </div>
 
       {churchName && (
-        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', color: C.textMuted, fontSize: '12px' }}>
-          <div style={{ fontWeight: 700, color: C.textActive, fontSize: '13px', marginBottom: '2px' }}>{churchName}</div>
-          <button onClick={() => router.push('/dashboard/church')} style={{ background: 'none', border: 'none', color: C.gold, fontSize: '11px', cursor: 'pointer', padding: 0 }}>
-            Changer d'église
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${C.border}`, color: C.label, fontSize: '12px' }}>
+          <div style={{ fontWeight: 700, color: C.textDark, fontSize: '12.5px', marginBottom: '2px' }}>{churchName}</div>
+          <button onClick={() => router.push('/dashboard/church')} style={{ background: 'none', border: 'none', color: CHURCH_UI.goldText, fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+            Switch church
           </button>
         </div>
       )}
@@ -150,7 +152,7 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
   // normal flex row layout every Church page already wraps it in.
   if (!isMobile) {
     return (
-      <div style={{ width: '236px', minWidth: '236px', background: C.navy, minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '20px 0' }}>
+      <div style={{ width: '236px', minWidth: '236px', background: C.bg, borderRight: `1px solid ${C.border}`, minHeight: '100vh', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', padding: '20px 0' }}>
         {navContent}
       </div>
     );
@@ -164,11 +166,11 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Ouvrir le menu Church"
+        aria-label="Open Church menu"
         style={{
           position: 'fixed', top: 14, left: 14, zIndex: 1100,
-          width: 42, height: 42, borderRadius: 10, background: C.navy,
-          border: 'none', color: C.textActive, display: 'flex',
+          width: 42, height: 42, borderRadius: 10, background: CHURCH_UI.white,
+          border: `1px solid ${CHURCH_UI.border}`, color: CHURCH_UI.text, display: 'flex',
           alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
           boxShadow: '0 4px 14px rgba(0,0,0,0.28)',
         }}
@@ -187,7 +189,7 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
       <div
         style={{
           position: 'fixed', top: 0, left: 0, height: '100dvh', maxHeight: '100vh',
-          width: 'min(236px, 82vw)', background: C.navy,
+          width: 'min(236px, 82vw)', background: '#FFFFFF',
           display: 'flex', flexDirection: 'column', padding: '20px 0',
           zIndex: 1200, boxShadow: '4px 0 24px rgba(0,0,0,0.32)',
           transform: open ? 'translateX(0)' : 'translateX(-100%)',
@@ -196,8 +198,8 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
       >
         <button
           onClick={() => setOpen(false)}
-          aria-label="Fermer le menu Church"
-          style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', color: C.textActive, cursor: 'pointer', display: 'flex', padding: 4 }}
+          aria-label="Close Church menu"
+          style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', color: C.textDark, cursor: 'pointer', display: 'flex', padding: 4 }}
         >
           <CloseIcon />
         </button>
