@@ -16,8 +16,10 @@
 import Image from 'next/image';
 
 const C = {
-  bordeaux: '#6B2D4E',
-  or: '#E9C77B',
+  // Follows the page's module theme (see src/lib/moduleTheme.ts);
+  // falls back to the original bordeaux / gold.
+  bordeaux: 'var(--uni-accent, #6B2D4E)',
+  or: 'var(--uni-accent-2, #E9C77B)',
   creme: '#FBEEDD',
   ivoire: '#FFFDF7',
   success: '#3F7D5C',
