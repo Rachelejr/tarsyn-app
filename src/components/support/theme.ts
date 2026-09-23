@@ -1,16 +1,18 @@
 // UNIMUNITY Support Widget - shared visual tokens
-// Extracted from the colors that ChatWidget.tsx and UnimunityAIPanel.tsx
-// already both used (identically) before being unified into one widget.
-// Values are unchanged - this file only removes the duplication so the
-// shared shell, Home, Messages and AI content all draw from one place.
+//
+// The main colors are CSS variables so the widget (chat, launcher, AI
+// avatar ring) automatically takes the colors of the module / page the
+// person is on. UnimunitySupportWidget sets these variables from
+// src/lib/moduleTheme.ts. The value after the comma is the original
+// Tontine bordeaux/gold, used if no variable is set.
 export const C = {
-  bordeaux: '#6B2D4E',
-  bordeauxDark: '#4A1F38',
-  creme: '#FBEEDD',
+  bordeaux: 'var(--uni-accent, #6B2D4E)',
+  bordeauxDark: 'var(--uni-accent-dark, #4A1F38)',
+  creme: 'var(--uni-soft, #FBEEDD)',
   ivoire: '#FFFDF7',
   white: '#FFFFFF',
-  border: '#EAD9BE',
-  or: '#E9C77B',
+  border: 'var(--uni-border, #EAD9BE)',
+  or: 'var(--uni-accent-2, #E9C77B)',
   muted: '#6b7280',
 };
 
