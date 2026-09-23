@@ -18,6 +18,7 @@ import { usePathname } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, memberAuth, db, memberDb, storage, memberStorage } from '@/lib/firebase';
 import { C, deviceTierFor, DeviceTier } from './theme';
+import { getModuleTheme, themeCssVars } from '@/lib/moduleTheme';
 import { t, SUPPORT_LANGUAGES, SupportLang } from './i18n';
 import RobotAvatar, { AIPersona } from '../ai/RobotAvatar';
 import HomeContent from './HomeContent';
@@ -97,6 +98,10 @@ export default function UnimunitySupportWidget() {
 
   if (!user || pathname === '/') return null;
   const isMobile = tier === 'mobile';
+  // The chat, launcher and avatar take the colors of the current module /
+  // page automatically (Tontine bordeaux, Church Dashboard green,
+  // Ministries pink...). See src/lib/moduleTheme.ts.
+  const themeVars = themeCssVars(getModuleTheme(pathname));
 
   // UNIMUNITY AI is available to every signed-in account (organizer/admin
   // or member) - the isSuperAdmin-only gate that shipped with Phase 1 of
@@ -126,7 +131,7 @@ export default function UnimunitySupportWidget() {
       : { right: 20, bottom: 20, width: `min(${panelWidth}px, 92vw)`, height: 'min(540px, calc(100vh - 40px))', borderRadius: 20 };
 
   return (
-    <>
+    <div style={{ display: 'contents', ...themeVars }}>
       {panelState === 'closed' && (
         <button
           onClick={() => setPanelState('open')}
@@ -339,6 +344,6 @@ export default function UnimunitySupportWidget() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
