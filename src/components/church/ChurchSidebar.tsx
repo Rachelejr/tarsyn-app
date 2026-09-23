@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 // Shared navigation for every page inside a specific church workspace.
-// Only Dashboard, Members and Groups are wired to real pages in Phase 1.
+// Only Dashboard, Members, Groups and Ministries are wired to real pages.
 // Every other item routes to the generic /coming-soon page instead of
 // being hidden, per the "don't fake functionality, but don't hide it
 // either" rule — it just doesn't pretend to work yet.
@@ -26,7 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'members', label: 'Membres', icon: '👥', enabled: true },
   { key: 'families', label: 'Familles', icon: '👨‍👩‍👧‍👦', enabled: false },
   { key: 'groups', label: 'Groupes', icon: '👫', enabled: true },
-  { key: 'ministries', label: 'Ministères', icon: '⛪', enabled: false },
+  { key: 'ministries', label: 'Ministères', icon: '⛪', enabled: true },
   { key: 'services', label: 'Cultes & Services', icon: '🕊️', enabled: false },
   { key: 'events', label: 'Événements & Calendrier', icon: '📅', enabled: false },
   { key: 'attendance', label: 'Présences', icon: '✅', enabled: false },
