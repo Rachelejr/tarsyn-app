@@ -27,7 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'members', label: 'Members', icon: '👥', enabled: true },
   { key: 'families', label: 'Families', icon: '👨‍👩‍👧‍👦', enabled: false },
   { key: 'groups', label: 'Groups', icon: '👫', enabled: true },
-  { key: 'ministries', label: 'Ministries', icon: '⛪', enabled: true },
+  { key: 'ministries', label: 'Ministries', icon: '🧭', enabled: true },
   { key: 'services', label: 'Services & Worship', icon: '🕊️', enabled: false },
   { key: 'events', label: 'Events & Calendar', icon: '📅', enabled: false },
   { key: 'attendance', label: 'Attendance', icon: '✅', enabled: false },
