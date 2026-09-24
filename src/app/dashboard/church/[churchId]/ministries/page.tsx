@@ -1,244 +1,678 @@
-'use client';
+"use client";
 
 // src/app/dashboard/church/[churchId]/ministries/page.tsx
 //
-// Ministries - list page (new visual direction).
-// Same data as before (churchMinistries / churchMembers, organizerId +
-// churchId), same create / edit / delete / member-assignment logic - only
-// the experience changes: pastel banner, stat cards, a modern grid of
-// ministry cards, and Edit / Delete moved into each card's "..." menu.
+// Ministries section of the Church module.
+//  - Data lives at churches/{churchId}/ministries/{ministryId} — a per-church
+//    subcollection, not a shared flat collection filtered by churchId.
+//  - Pastel palette (Sept 2026 direction): baby pink #FDE2E4, cream #F6EFDD,
+//    baby green #E2F0CB, discreet gold #D8B15A, text #24324A / #68758A.
+//  - No cross, no crucifix, no graphic religious symbol anywhere in this module
+//    (icons, images, banners) — icons below are deliberately neutral.
+//  - English UI copy (app-facing content convention).
+//  - No fake/mock data — every number shown comes from Firestore.
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import ChurchSidebar from '@/components/church/ChurchSidebar';
-import type { Ministry } from '@/types/ministry';
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import {
-  P, useMinistriesData, deleteMinistry, iconKindFor, MinistryIcon, CardArt, CommunityArt,
-  StatusPill, ActionMenu, BannerVisual, ChurchPageStyles, MinistryFormModal, ManageMembersModal,
-  btnPrimary, TINTS,
-} from '@/components/church/ministryKit';
+  collection,
+  query,
+  where,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import ChurchSidebar from "@/components/church/ChurchSidebar";
+import type { Ministry, MinistryFormValues, MinistryStatus } from "@/types/ministry";
+import { SUGGESTED_MINISTRY_CATEGORIES } from "@/types/ministry";
 
-type StatusFilter = 'all' | 'active' | 'inactive';
+interface ChurchMemberLite {
+  id: string;
+  fullName: string;
+}
+
+const EMPTY_FORM: MinistryFormValues = {
+  name: "",
+  description: "",
+  category: "",
+  status: "active",
+  leaderId: null,
+  meetingSchedule: "",
+  parentMinistryId: null,
+};
 
 export default function MinistriesPage() {
   const params = useParams();
-  const router = useRouter();
   const churchId = params?.churchId as string;
-  const { uid, churchName, ministries, members, loading, error } = useMinistriesData(churchId);
 
-  const [formState, setFormState] = useState<{ editing: Ministry | null; parentId: string | null } | null>(null);
-  const [managing, setManaging] = useState<Ministry | null>(null);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [category, setCategory] = useState<string>('');
+  const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [members, setMembers] = useState<ChurchMemberLite[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const topLevel = useMemo(() => ministries.filter((m) => !m.parentMinistryId), [ministries]);
-  const subCount = useMemo(() => {
-    const map = new Map<string, number>();
-    ministries.forEach((m) => { if (m.parentMinistryId) map.set(m.parentMinistryId, (map.get(m.parentMinistryId) ?? 0) + 1); });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<MinistryFormValues>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [managingMembersFor, setManagingMembersFor] = useState<Ministry | null>(null);
+  const [churchName, setChurchName] = useState<string | undefined>(undefined);
+
+  const organizerId = auth.currentUser?.uid ?? null;
+
+  useEffect(() => {
+    if (!churchId) return;
+    getDoc(doc(db, "churches", churchId))
+      .then((snap) => {
+        if (snap.exists()) {
+          setChurchName((snap.data().name as string) || undefined);
+        }
+      })
+      .catch((err) => console.error("Failed to load church name:", err));
+  }, [churchId]);
+
+  // --- Live subscriptions -------------------------------------------------
+
+  useEffect(() => {
+    if (!churchId) return;
+
+    // Per-church subcollection: no organizerId/churchId filter needed, the
+    // path itself already scopes every document to this one church.
+    const ministriesQuery = collection(db, "churches", churchId, "ministries");
+
+    const unsubscribe = onSnapshot(
+      ministriesQuery,
+      (snapshot) => {
+        const rows: Ministry[] = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<Ministry, "id">),
+        }));
+        rows.sort((a, b) => a.name.localeCompare(b.name));
+        setMinistries(rows);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Failed to load ministries:", err);
+        setError("Unable to load ministries. Please try again.");
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [churchId]);
+
+  useEffect(() => {
+    if (!organizerId || !churchId) return;
+
+    // Members haven't moved to the per-church structure yet — still the
+    // existing flat churchMembers collection filtered by churchId.
+    const membersQuery = query(
+      collection(db, "churchMembers"),
+      where("organizerId", "==", organizerId),
+      where("churchId", "==", churchId)
+    );
+
+    const unsubscribe = onSnapshot(membersQuery, (snapshot) => {
+      const rows: ChurchMemberLite[] = snapshot.docs.map((d) => ({
+        id: d.id,
+        fullName: (d.data().fullName as string) || "Unnamed member",
+      }));
+      rows.sort((a, b) => a.fullName.localeCompare(b.fullName));
+      setMembers(rows);
+    });
+
+    return () => unsubscribe();
+  }, [organizerId, churchId]);
+
+  const memberById = useMemo(() => {
+    const map = new Map<string, ChurchMemberLite>();
+    members.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [members]);
+
+  const topLevelMinistries = useMemo(
+    () => ministries.filter((m) => !m.parentMinistryId),
+    [ministries]
+  );
+
+  const subMinistriesByParent = useMemo(() => {
+    const map = new Map<string, Ministry[]>();
+    ministries
+      .filter((m) => m.parentMinistryId)
+      .forEach((m) => {
+        const list = map.get(m.parentMinistryId as string) ?? [];
+        list.push(m);
+        map.set(m.parentMinistryId as string, list);
+      });
     return map;
   }, [ministries]);
 
-  const stats = useMemo(() => {
-    const uniqueMembers = new Set<string>();
-    ministries.forEach((m) => m.memberIds.forEach((id) => uniqueMembers.add(id)));
-    return {
-      total: topLevel.length,
-      active: topLevel.filter((m) => m.status === 'active').length,
-      members: uniqueMembers.size,
-      subs: ministries.length - topLevel.length,
-    };
-  }, [ministries, topLevel]);
+  // --- Modal handling -------------------------------------------------
 
-  const categories = useMemo(
-    () => Array.from(new Set(topLevel.map((m) => (m.category || '').trim()).filter(Boolean))).sort(),
-    [topLevel],
-  );
+  function openCreateModal(parentMinistryId: string | null = null) {
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM, parentMinistryId });
+    setError(null);
+    setIsModalOpen(true);
+  }
 
-  const visible = topLevel.filter((m) => {
-    if (statusFilter !== 'all' && m.status !== statusFilter) return false;
-    if (category && (m.category || '').trim() !== category) return false;
-    const q = search.trim().toLowerCase();
-    if (q && !`${m.name} ${m.leaderName ?? ''} ${m.category ?? ''}`.toLowerCase().includes(q)) return false;
-    return true;
-  });
+  function openEditModal(ministry: Ministry) {
+    setEditingId(ministry.id);
+    setForm({
+      name: ministry.name,
+      description: ministry.description,
+      category: ministry.category,
+      status: ministry.status,
+      leaderId: ministry.leaderId,
+      meetingSchedule: ministry.meetingSchedule ?? "",
+      parentMinistryId: ministry.parentMinistryId,
+    });
+    setError(null);
+    setIsModalOpen(true);
+  }
 
-  const openCreate = (parentId: string | null = null) => setFormState({ editing: null, parentId });
-  const openEdit = (m: Ministry) => setFormState({ editing: m, parentId: m.parentMinistryId });
-  const detailHref = (m: Ministry) => `/dashboard/church/${churchId}/ministries/${m.id}`;
+  function closeModal() {
+    if (saving) return;
+    setIsModalOpen(false);
+  }
 
-  const statCards = [
-    { label: 'Ministries', value: stats.total, bg: P.pink, icon: 'sprout' as const },
-    { label: 'Active ministries', value: stats.active, bg: P.green, icon: 'check' as const },
-    { label: 'Members', value: stats.members, bg: P.cream, icon: 'users' as const },
-    { label: 'Sub-ministries', value: stats.subs, bg: P.lavender, icon: 'handshake' as const },
-  ];
+  async function handleSave() {
+    if (!organizerId || !churchId) return;
 
-  const chip = (active: boolean) => ({
-    border: `1px solid ${active ? 'rgba(216,177,90,0.5)' : P.border}`,
-    background: active ? P.activeGradient : P.white,
-    color: P.text, borderRadius: 999, padding: '8px 16px', fontSize: 12.5,
-    fontWeight: active ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const,
-  });
+    if (!form.name.trim()) {
+      setError("Ministry name is required.");
+      return;
+    }
+
+    if (editingId && form.parentMinistryId === editingId) {
+      setError("A ministry cannot be its own parent.");
+      return;
+    }
+
+    if (form.parentMinistryId) {
+      const parent = ministries.find((m) => m.id === form.parentMinistryId);
+      if (parent?.parentMinistryId) {
+        setError("Sub-ministries can't have their own sub-ministries.");
+        return;
+      }
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const leaderName = form.leaderId
+        ? memberById.get(form.leaderId)?.fullName ?? null
+        : null;
+      const parentMinistryName = form.parentMinistryId
+        ? ministries.find((m) => m.id === form.parentMinistryId)?.name ?? null
+        : null;
+
+      const ministriesRef = collection(db, "churches", churchId, "ministries");
+
+      if (editingId) {
+        await updateDoc(doc(ministriesRef, editingId), {
+          name: form.name.trim(),
+          description: form.description.trim(),
+          category: form.category.trim(),
+          status: form.status,
+          leaderId: form.leaderId,
+          leaderName,
+          meetingSchedule: form.meetingSchedule.trim() || null,
+          parentMinistryId: form.parentMinistryId,
+          parentMinistryName,
+          updatedAt: Date.now(),
+        });
+      } else {
+        await addDoc(ministriesRef, {
+          organizerId,
+          churchId,
+          name: form.name.trim(),
+          description: form.description.trim(),
+          category: form.category.trim(),
+          status: form.status,
+          leaderId: form.leaderId,
+          leaderName,
+          memberIds: [],
+          memberCount: 0,
+          meetingSchedule: form.meetingSchedule.trim() || null,
+          parentMinistryId: form.parentMinistryId,
+          parentMinistryName,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Failed to save ministry:", err);
+      setError("Something went wrong while saving. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(ministry: Ministry) {
+    const childCount = subMinistriesByParent.get(ministry.id)?.length ?? 0;
+    const warning =
+      childCount > 0
+        ? `"${ministry.name}" has ${childCount} sub-ministry${
+            childCount === 1 ? "" : "ies"
+          }. Deleting it will NOT delete those sub-ministries, but they will become unassigned. Continue?`
+        : `Delete "${ministry.name}"? This cannot be undone.`;
+    if (!confirm(warning)) return;
+    try {
+      await deleteDoc(doc(db, "churches", churchId, "ministries", ministry.id));
+    } catch (err) {
+      console.error("Failed to delete ministry:", err);
+      alert("Unable to delete this ministry. Please try again.");
+    }
+  }
+
+  // --- Member assignment -------------------------------------------------
+
+  async function toggleMember(ministry: Ministry, memberId: string) {
+    const isMember = ministry.memberIds.includes(memberId);
+    const nextIds = isMember
+      ? ministry.memberIds.filter((id) => id !== memberId)
+      : [...ministry.memberIds, memberId];
+
+    try {
+      await updateDoc(doc(db, "churches", churchId, "ministries", ministry.id), {
+        memberIds: nextIds,
+        memberCount: nextIds.length,
+        updatedAt: Date.now(),
+      });
+      setManagingMembersFor((prev) =>
+        prev && prev.id === ministry.id
+          ? { ...prev, memberIds: nextIds, memberCount: nextIds.length }
+          : prev
+      );
+    } catch (err) {
+      console.error("Failed to update ministry members:", err);
+    }
+  }
+
+  // --- Render -------------------------------------------------
 
   return (
-    <div style={{ minHeight: '100vh', background: P.page, display: 'flex', fontFamily: P.font, color: P.text }}>
-      <ChurchPageStyles />
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <ChurchSidebar churchId={churchId} churchName={churchName} />
-
-      <main style={{ flex: 1, minWidth: 0 }}>
-        <div className="um-wrap" style={{ maxWidth: 1320, boxSizing: 'border-box' }}>
-
-          <nav aria-label="Breadcrumb" style={{ fontSize: 12.5, color: P.textSoft, marginBottom: 16 }}>
-            <Link href={`/dashboard/church/${churchId}`} className="um-link" style={{ color: P.textSoft, textDecoration: 'none' }}>Home</Link>
-            <span style={{ margin: '0 8px' }}>›</span>
-            <span style={{ color: P.text, fontWeight: 600 }}>Ministries</span>
-          </nav>
-
-          {/* Banner */}
-          <section className="um-banner um-gradient" style={{ borderRadius: 28, overflow: 'hidden', marginBottom: 26, minHeight: 230, boxShadow: P.shadow }}>
-            <div className="um-banner-text" style={{ flex: 1, padding: '38px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: P.goldText, marginBottom: 10 }}>SERVE · ORGANIZE · GROW</div>
-              <h1 className="um-banner-title" style={{ margin: '0 0 10px', fontSize: 34, fontWeight: 800, letterSpacing: -0.5, color: P.text }}>Ministries</h1>
-              <p style={{ margin: '0 0 22px', fontSize: 15.5, lineHeight: 1.55, color: P.textSoft, maxWidth: 480 }}>
-                Different gifts, one calling: to serve God and impact lives.
+      <div className="min-h-screen flex-1 p-6" style={{ background: "linear-gradient(120deg, #FDE2E4 0%, #F6EFDD 55%, #E2F0CB 100%)", backgroundAttachment: "fixed" }}>
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold" style={{ color: "#24324A" }}>Ministries</h1>
+              <p className="text-sm" style={{ color: "#68758A" }}>
+                Organize your church's ministries, assign leaders, and track membership.
               </p>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button onClick={() => openCreate()} style={btnPrimary}>
-                  <span aria-hidden="true" style={{ fontSize: 16, lineHeight: 1 }}>+</span> New Ministry
+            </div>
+            <button
+              onClick={() => openCreateModal()}
+              className="rounded-lg px-4 py-2 text-sm font-semibold"
+              style={{ background: "#D8B15A", color: "#24324A" }}
+            >
+              + New Ministry
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="rounded-lg bg-white/80 p-8 text-center" style={{ color: "#68758A" }}>
+              Loading ministries…
+            </div>
+          ) : ministries.length === 0 ? (
+            <div className="rounded-lg bg-white/80 p-10 text-center">
+              <p className="mb-4" style={{ color: "#68758A" }}>
+                No ministries yet. Create your first one to get started.
+              </p>
+              <button
+                onClick={() => openCreateModal()}
+                className="rounded-lg px-4 py-2 text-sm font-semibold"
+                style={{ background: "#D8B15A", color: "#24324A" }}
+              >
+                + New Ministry
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {topLevelMinistries.map((ministry) => {
+                const subMinistries = subMinistriesByParent.get(ministry.id) ?? [];
+                return (
+                  <div
+                    key={ministry.id}
+                    className="rounded-lg bg-white/90 p-5 shadow-sm"
+                    style={{ border: "1px solid rgba(216,177,90,0.35)" }}
+                  >
+                    <div className="mb-2 flex items-start justify-between">
+                      <h2 className="text-lg font-semibold" style={{ color: "#24324A" }}>
+                        {ministry.name}
+                      </h2>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={
+                          ministry.status === "active"
+                            ? { background: "#E2F0CB", color: "#3F6B34" }
+                            : { background: "#F1F2F4", color: "#68758A" }
+                        }
+                      >
+                        {ministry.status === "active" ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+
+                    {ministry.category && (
+                      <p
+                        className="mb-1 text-xs font-medium uppercase tracking-wide"
+                        style={{ color: "#B4854E" }}
+                      >
+                        {ministry.category}
+                      </p>
+                    )}
+
+                    {ministry.description && (
+                      <p className="mb-3 text-sm" style={{ color: "#68758A" }}>
+                        {ministry.description}
+                      </p>
+                    )}
+
+                    <dl className="mb-4 space-y-1 text-sm" style={{ color: "#24324A" }}>
+                      <div className="flex justify-between">
+                        <dt>Leader</dt>
+                        <dd>{ministry.leaderName ?? "Not assigned"}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt>Members</dt>
+                        <dd>{ministry.memberCount}</dd>
+                      </div>
+                      {ministry.meetingSchedule && (
+                        <div className="flex justify-between">
+                          <dt>Meets</dt>
+                          <dd>{ministry.meetingSchedule}</dd>
+                        </div>
+                      )}
+                    </dl>
+
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      <button
+                        onClick={() => setManagingMembersFor(ministry)}
+                        className="rounded px-3 py-1"
+                        style={{ border: "1px solid #24324A", color: "#24324A" }}
+                      >
+                        Manage Members
+                      </button>
+                      <button
+                        onClick={() => openEditModal(ministry)}
+                        className="rounded px-3 py-1"
+                        style={{ border: "1px solid #D8B15A", color: "#8A6D1F" }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(ministry)}
+                        className="rounded px-3 py-1"
+                        style={{ border: "1px solid #E7A9A9", color: "#B4453E" }}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => openCreateModal(ministry.id)}
+                        className="rounded px-3 py-1"
+                        style={{ border: "1px dashed #24324A", color: "#24324A" }}
+                      >
+                        + Add Sub-Ministry
+                      </button>
+                    </div>
+
+                    {subMinistries.length > 0 && (
+                      <div className="mt-4 space-y-2" style={{ borderLeft: "2px solid rgba(216,177,90,0.5)", paddingLeft: "16px" }}>
+                        {subMinistries.map((sub) => (
+                          <div key={sub.id} className="rounded-md p-3" style={{ background: "rgba(253,226,228,0.5)" }}>
+                            <div className="mb-1 flex items-center justify-between">
+                              <h3 className="text-sm font-semibold" style={{ color: "#24324A" }}>
+                                {sub.name}
+                              </h3>
+                              <span
+                                className="rounded-full px-2 py-0.5 text-xs font-medium"
+                                style={
+                                  sub.status === "active"
+                                    ? { background: "#E2F0CB", color: "#3F6B34" }
+                                    : { background: "#F1F2F4", color: "#68758A" }
+                                }
+                              >
+                                {sub.status === "active" ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+                            {sub.description && (
+                              <p className="mb-2 text-xs" style={{ color: "#68758A" }}>
+                                {sub.description}
+                              </p>
+                            )}
+                            <div className="mb-2 flex justify-between text-xs" style={{ color: "#24324A" }}>
+                              <span>Leader: {sub.leaderName ?? "Not assigned"}</span>
+                              <span>{sub.memberCount} members</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              <button
+                                onClick={() => setManagingMembersFor(sub)}
+                                className="rounded px-2 py-0.5"
+                                style={{ border: "1px solid #24324A", color: "#24324A" }}
+                              >
+                                Manage Members
+                              </button>
+                              <button
+                                onClick={() => openEditModal(sub)}
+                                className="rounded px-2 py-0.5"
+                                style={{ border: "1px solid #D8B15A", color: "#8A6D1F" }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(sub)}
+                                className="rounded px-2 py-0.5"
+                                style={{ border: "1px solid #E7A9A9", color: "#B4453E" }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <footer className="mt-10 text-center text-xs" style={{ color: "#9AA5B4" }}>
+            Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
+            Rights Reserved · v1.0.0
+          </footer>
+        </div>
+
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-md rounded-lg bg-white p-6">
+              <h3 className="mb-4 text-lg font-semibold" style={{ color: "#24324A" }}>
+                {editingId ? "Edit Ministry" : "New Ministry"}
+              </h3>
+
+              {error && (
+                <p className="mb-3 rounded px-3 py-2 text-sm" style={{ background: "#FDECEC", color: "#B4453E" }}>
+                  {error}
+                </p>
+              )}
+
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Name</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    placeholder="e.g. Worship Team"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Category</label>
+                  <input
+                    type="text"
+                    list="ministry-category-suggestions"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    placeholder="e.g. Worship, Youth, Evangelism"
+                  />
+                  <datalist id="ministry-category-suggestions">
+                    {SUGGESTED_MINISTRY_CATEGORIES.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Parent Ministry</label>
+                  <select
+                    value={form.parentMinistryId ?? ""}
+                    onChange={(e) => setForm({ ...form, parentMinistryId: e.target.value || null })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">None — top-level ministry</option>
+                    {topLevelMinistries
+                      .filter((m) => m.id !== editingId)
+                      .map((m) => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-400">
+                    e.g. make this a sub-ministry under "Evangelism" (Prison
+                    Ministry, Hospital Visitation, Street Evangelism, Missions…)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Description</label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Leader</label>
+                  <select
+                    value={form.leaderId ?? ""}
+                    onChange={(e) => setForm({ ...form, leaderId: e.target.value || null })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  >
+                    <option value="">Not assigned</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>{m.fullName}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Meeting Schedule</label>
+                  <input
+                    type="text"
+                    value={form.meetingSchedule}
+                    onChange={(e) => setForm({ ...form, meetingSchedule: e.target.value })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    placeholder="e.g. Sundays 9:00 AM"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value as MinistryStatus })}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  onClick={closeModal}
+                  disabled={saving}
+                  className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="rounded px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                  style={{ background: "#D8B15A", color: "#24324A" }}
+                >
+                  {saving ? "Saving…" : "Save"}
                 </button>
               </div>
             </div>
-            <div className="um-banner-art" aria-hidden="true">
-              <BannerVisual />
-            </div>
-          </section>
+          </div>
+        )}
 
-          {/* Stats */}
-          <section aria-label="Ministry statistics" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 16, marginBottom: 28 }}>
-            {statCards.map((s) => (
-              <div key={s.label} style={{ background: s.bg, borderRadius: 20, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 16, background: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <MinistryIcon kind={s.icon} size={22} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.05 }}>{loading ? '–' : s.value}</div>
-                  <div style={{ fontSize: 12.5, color: P.textSoft, fontWeight: 600 }}>{s.label}</div>
-                </div>
-              </div>
-            ))}
-          </section>
+        {managingMembersFor && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-md rounded-lg bg-white p-6">
+              <h3 className="mb-1 text-lg font-semibold" style={{ color: "#24324A" }}>
+                Members — {managingMembersFor.name}
+              </h3>
+              <p className="mb-4 text-xs" style={{ color: "#68758A" }}>
+                {managingMembersFor.memberCount} member
+                {managingMembersFor.memberCount === 1 ? "" : "s"} assigned
+              </p>
 
-          {/* Toolbar */}
-          <section style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="um-chip" onClick={() => { setStatusFilter('all'); setCategory(''); }} style={chip(statusFilter === 'all' && !category)}>All</button>
-              <button className="um-chip" onClick={() => setStatusFilter('active')} style={chip(statusFilter === 'active')}>Active</button>
-              <button className="um-chip" onClick={() => setStatusFilter('inactive')} style={chip(statusFilter === 'inactive')}>Inactive</button>
-              {categories.map((c) => (
-                <button key={c} className="um-chip" onClick={() => setCategory(category === c ? '' : c)} style={chip(category === c)}>{c}</button>
-              ))}
-            </div>
-            <div style={{ position: 'relative', flex: '0 1 280px', minWidth: 200 }}>
-              <label htmlFor="ministry-search" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Search ministries</label>
-              <span aria-hidden="true" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', display: 'flex' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.textSoft} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-              </span>
-              <input
-                id="ministry-search" type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search a ministry or leader…"
-                style={{ width: '100%', boxSizing: 'border-box', border: `1px solid ${P.border}`, borderRadius: 999, padding: '10px 14px 10px 38px', fontSize: 13.5, background: P.white, color: P.text, fontFamily: 'inherit' }}
-              />
-            </div>
-          </section>
-
-          {error && <p style={{ background: '#FDECEE', color: '#B4474F', borderRadius: 14, padding: '12px 16px', fontSize: 13.5 }}>{error}</p>}
-
-          {/* Grid */}
-          {loading ? (
-            <div style={{ background: P.white, borderRadius: 22, padding: 40, textAlign: 'center', color: P.textSoft, boxShadow: P.shadow }}>Loading ministries…</div>
-          ) : topLevel.length === 0 ? (
-            <div style={{ background: P.white, borderRadius: 26, overflow: 'hidden', boxShadow: P.shadow, textAlign: 'center' }}>
-              <div style={{ height: 160, background: P.gradient }}><CommunityArt /></div>
-              <div style={{ padding: '26px 24px 32px' }}>
-                <h2 style={{ margin: '0 0 6px', fontSize: 19, fontWeight: 800 }}>No ministries yet</h2>
-                <p style={{ margin: '0 0 18px', fontSize: 14, color: P.textSoft }}>Create your first ministry to start organizing your teams.</p>
-                <button onClick={() => openCreate()} style={btnPrimary}>+ New Ministry</button>
-              </div>
-            </div>
-          ) : visible.length === 0 ? (
-            <div style={{ background: P.white, borderRadius: 22, padding: 36, textAlign: 'center', color: P.textSoft, boxShadow: P.shadow }}>No ministry matches these filters.</div>
-          ) : (
-            <section aria-label="Ministries" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 20 }}>
-              {visible.map((m, i) => {
-                const kind = iconKindFor(m.name, m.category);
-                const subs = subCount.get(m.id) ?? 0;
-                return (
-                  <article key={m.id} className="um-card" style={{ background: P.white, borderRadius: 22, overflow: 'hidden', boxShadow: P.shadow, border: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column' }}>
-                    <CardArt kind={kind} tintIndex={i}>
-                      <div style={{ position: 'absolute', top: 12, left: 12 }}><StatusPill status={m.status} /></div>
-                      <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                        <ActionMenu
-                          label={`Actions for ${m.name}`}
-                          items={[
-                            { label: 'View ministry', onClick: () => router.push(detailHref(m)) },
-                            { label: 'Manage members', onClick: () => setManaging(m) },
-                            { label: 'Add sub-ministry', onClick: () => openCreate(m.id) },
-                            { label: 'Edit', onClick: () => openEdit(m) },
-                            { label: 'Delete', onClick: () => { deleteMinistry(m, ministries); }, danger: true },
-                          ]}
-                        />
-                      </div>
-                    </CardArt>
-                    <div style={{ padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      {m.category && <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: P.goldText, textTransform: 'uppercase', marginBottom: 4 }}>{m.category}</div>}
-                      <h2 style={{ margin: '0 0 8px', fontSize: 16.5, fontWeight: 800, lineHeight: 1.25 }}>{m.name}</h2>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', fontSize: 12.5, color: P.textSoft, marginBottom: 10 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><MinistryIcon kind="users" size={14} color={P.textSoft} />{m.memberCount} member{m.memberCount === 1 ? '' : 's'}</span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><MinistryIcon kind="star" size={14} color={P.textSoft} />{m.leaderName ?? 'No leader yet'}</span>
-                      </div>
-                      <p style={{ margin: '0 0 12px', fontSize: 13, lineHeight: 1.5, color: P.textSoft, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {m.description || 'No description yet.'}
-                      </p>
-                      {subs > 0 && (
-                        <div style={{ marginBottom: 12 }}>
-                          <span style={{ fontSize: 11.5, fontWeight: 700, background: TINTS[(i + 3) % TINTS.length].bg, borderRadius: 999, padding: '4px 10px' }}>
-                            {subs} sub-ministr{subs === 1 ? 'y' : 'ies'}
-                          </span>
-                        </div>
-                      )}
-                      <Link
-                        href={detailHref(m)}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none', background: '#FBF7EC', border: `1px solid ${P.border}`, color: P.text, borderRadius: 999, padding: '10px 14px', fontSize: 13, fontWeight: 700 }}
+              <div className="max-h-72 space-y-1 overflow-y-auto">
+                {members.length === 0 ? (
+                  <p className="text-sm" style={{ color: "#68758A" }}>
+                    No church members recorded yet.
+                  </p>
+                ) : (
+                  members.map((m) => {
+                    const checked = managingMembersFor.memberIds.includes(m.id);
+                    return (
+                      <label
+                        key={m.id}
+                        className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-sm"
+                        style={{ background: checked ? "rgba(226,240,203,0.4)" : "transparent" }}
                       >
-                        View ministry <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
-          )}
+                        <span style={{ color: "#24324A" }}>{m.fullName}</span>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleMember(managingMembersFor, m.id)}
+                        />
+                      </label>
+                    );
+                  })
+                )}
+              </div>
 
-          <footer style={{ marginTop: 44, textAlign: 'center', fontSize: 11.5, color: P.textSoft }}>
-            Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved
-          </footer>
-        </div>
-      </main>
-
-      {formState && (
-        <MinistryFormModal
-          organizerId={uid}
-          churchId={churchId}
-          ministries={ministries}
-          members={members}
-          editing={formState.editing}
-          initialParentId={formState.parentId}
-          onClose={() => setFormState(null)}
-        />
-      )}
-      {managing && <ManageMembersModal ministry={managing} members={members} onClose={() => setManaging(null)} />}
+              <div className="mt-5 flex justify-end">
+                <button
+                  onClick={() => setManagingMembersFor(null)}
+                  className="rounded px-4 py-2 text-sm font-semibold"
+                  style={{ background: "#D8B15A", color: "#24324A" }}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
