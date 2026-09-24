@@ -5,14 +5,16 @@
 // Ministries section of the Church module.
 //  - Data lives at churches/{churchId}/ministries/{ministryId} — a per-church
 //    subcollection, not a shared flat collection filtered by churchId.
+//  - Styled entirely with inline styles (matching ChurchSidebar/Dashboard/
+//    Groups), not Tailwind utility classes — Tailwind classes were not
+//    rendering on this page, so this avoids that entirely.
 //  - Pastel palette (Sept 2026 direction): baby pink #FDE2E4, cream #F6EFDD,
 //    baby green #E2F0CB, discreet gold #D8B15A, text #24324A / #68758A.
-//  - No cross, no crucifix, no graphic religious symbol anywhere in this module
-//    (icons, images, banners) — icons below are deliberately neutral.
-//  - English UI copy (app-facing content convention).
-//  - No fake/mock data — every number shown comes from Firestore.
+//  - No cross, no crucifix, no graphic religious symbol anywhere in this module.
+//  - English UI copy. No fake/mock data — every number comes from Firestore.
 
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { useParams } from "next/navigation";
 import {
   collection,
@@ -29,6 +31,24 @@ import { db, auth } from "@/lib/firebase";
 import ChurchSidebar from "@/components/church/ChurchSidebar";
 import type { Ministry, MinistryFormValues, MinistryStatus } from "@/types/ministry";
 import { SUGGESTED_MINISTRY_CATEGORIES } from "@/types/ministry";
+
+const COLOR = {
+  pink: "#FDE2E4",
+  cream: "#F6EFDD",
+  green: "#E2F0CB",
+  gold: "#D8B15A",
+  goldText: "#8A6D1F",
+  text: "#24324A",
+  textSoft: "#68758A",
+  greenBadgeBg: "#E2F0CB",
+  greenBadgeText: "#3F6B34",
+  grayBadgeBg: "#F1F2F4",
+  grayBadgeText: "#68758A",
+  redBorder: "#E7A9A9",
+  redText: "#B4453E",
+  redBg: "#FDECEC",
+  border: "rgba(216,177,90,0.35)",
+};
 
 interface ChurchMemberLite {
   id: string;
@@ -80,8 +100,6 @@ export default function MinistriesPage() {
   useEffect(() => {
     if (!churchId) return;
 
-    // Per-church subcollection: no organizerId/churchId filter needed, the
-    // path itself already scopes every document to this one church.
     const ministriesQuery = collection(db, "churches", churchId, "ministries");
 
     const unsubscribe = onSnapshot(
@@ -108,8 +126,6 @@ export default function MinistriesPage() {
   useEffect(() => {
     if (!organizerId || !churchId) return;
 
-    // Members haven't moved to the per-church structure yet — still the
-    // existing flat churchMembers collection filtered by churchId.
     const membersQuery = query(
       collection(db, "churchMembers"),
       where("organizerId", "==", organizerId),
@@ -296,183 +312,180 @@ export default function MinistriesPage() {
     }
   }
 
+  // --- Small style helpers -------------------------------------------------
+
+  const btnBase: CSSProperties = {
+    borderRadius: 6,
+    padding: "6px 12px",
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: "pointer",
+    background: "transparent",
+  };
+
+  const inputStyle: CSSProperties = {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid #D1D5DB",
+    borderRadius: 8,
+    padding: "9px 10px",
+    fontSize: 13,
+  };
+
+  const labelStyle: CSSProperties = {
+    display: "block",
+    fontSize: 12,
+    fontWeight: 600,
+    color: COLOR.text,
+    marginBottom: 4,
+  };
+
   // --- Render -------------------------------------------------
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <ChurchSidebar churchId={churchId} churchName={churchName} />
-      <div className="min-h-screen flex-1 p-6" style={{ background: "linear-gradient(120deg, #FDE2E4 0%, #F6EFDD 55%, #E2F0CB 100%)", backgroundAttachment: "fixed" }}>
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-6 flex items-center justify-between">
+      <div
+        style={{
+          flex: 1,
+          minHeight: "100vh",
+          padding: 24,
+          boxSizing: "border-box",
+          background: `linear-gradient(120deg, ${COLOR.pink} 0%, ${COLOR.cream} 55%, ${COLOR.green} 100%)`,
+          backgroundAttachment: "fixed",
+        }}
+      >
+        <div style={{ maxWidth: 920, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: "#24324A" }}>Ministries</h1>
-              <p className="text-sm" style={{ color: "#68758A" }}>
+              <h1 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: COLOR.text }}>Ministries</h1>
+              <p style={{ margin: 0, fontSize: 14, color: COLOR.textSoft }}>
                 Organize your church's ministries, assign leaders, and track membership.
               </p>
             </div>
             <button
               onClick={() => openCreateModal()}
-              className="rounded-lg px-4 py-2 text-sm font-semibold"
-              style={{ background: "#D8B15A", color: "#24324A" }}
+              style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}
             >
               + New Ministry
             </button>
           </div>
 
           {loading ? (
-            <div className="rounded-lg bg-white/80 p-8 text-center" style={{ color: "#68758A" }}>
+            <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.85)", padding: 32, textAlign: "center", color: COLOR.textSoft }}>
               Loading ministries…
             </div>
           ) : ministries.length === 0 ? (
-            <div className="rounded-lg bg-white/80 p-10 text-center">
-              <p className="mb-4" style={{ color: "#68758A" }}>
+            <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.85)", padding: 40, textAlign: "center" }}>
+              <p style={{ marginBottom: 16, color: COLOR.textSoft }}>
                 No ministries yet. Create your first one to get started.
               </p>
               <button
                 onClick={() => openCreateModal()}
-                className="rounded-lg px-4 py-2 text-sm font-semibold"
-                style={{ background: "#D8B15A", color: "#24324A" }}
+                style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}
               >
                 + New Ministry
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {topLevelMinistries.map((ministry) => {
                 const subMinistries = subMinistriesByParent.get(ministry.id) ?? [];
                 return (
                   <div
                     key={ministry.id}
-                    className="rounded-lg bg-white/90 p-5 shadow-sm"
-                    style={{ border: "1px solid rgba(216,177,90,0.35)" }}
+                    style={{ borderRadius: 12, background: "rgba(255,255,255,0.92)", padding: 20, boxShadow: "0 1px 3px rgba(23,37,84,0.06)", border: `1px solid ${COLOR.border}` }}
                   >
-                    <div className="mb-2 flex items-start justify-between">
-                      <h2 className="text-lg font-semibold" style={{ color: "#24324A" }}>
-                        {ministry.name}
-                      </h2>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
+                      <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: COLOR.text }}>{ministry.name}</h2>
                       <span
-                        className="rounded-full px-2 py-0.5 text-xs font-medium"
-                        style={
-                          ministry.status === "active"
-                            ? { background: "#E2F0CB", color: "#3F6B34" }
-                            : { background: "#F1F2F4", color: "#68758A" }
-                        }
+                        style={{
+                          borderRadius: 999,
+                          padding: "2px 10px",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          background: ministry.status === "active" ? COLOR.greenBadgeBg : COLOR.grayBadgeBg,
+                          color: ministry.status === "active" ? COLOR.greenBadgeText : COLOR.grayBadgeText,
+                        }}
                       >
                         {ministry.status === "active" ? "Active" : "Inactive"}
                       </span>
                     </div>
 
                     {ministry.category && (
-                      <p
-                        className="mb-1 text-xs font-medium uppercase tracking-wide"
-                        style={{ color: "#B4854E" }}
-                      >
+                      <p style={{ margin: "0 0 10px", fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: COLOR.goldText }}>
                         {ministry.category}
                       </p>
                     )}
 
                     {ministry.description && (
-                      <p className="mb-3 text-sm" style={{ color: "#68758A" }}>
-                        {ministry.description}
-                      </p>
+                      <p style={{ margin: "0 0 14px", fontSize: 13, color: COLOR.textSoft, lineHeight: 1.5 }}>{ministry.description}</p>
                     )}
 
-                    <dl className="mb-4 space-y-1 text-sm" style={{ color: "#24324A" }}>
-                      <div className="flex justify-between">
-                        <dt>Leader</dt>
-                        <dd>{ministry.leaderName ?? "Not assigned"}</dd>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 16, fontSize: 13, color: COLOR.text }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Leader</span>
+                        <span>{ministry.leaderName ?? "Not assigned"}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <dt>Members</dt>
-                        <dd>{ministry.memberCount}</dd>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Members</span>
+                        <span>{ministry.memberCount}</span>
                       </div>
                       {ministry.meetingSchedule && (
-                        <div className="flex justify-between">
-                          <dt>Meets</dt>
-                          <dd>{ministry.meetingSchedule}</dd>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span>Meets</span>
+                          <span>{ministry.meetingSchedule}</span>
                         </div>
                       )}
-                    </dl>
+                    </div>
 
-                    <div className="flex flex-wrap gap-2 text-sm">
-                      <button
-                        onClick={() => setManagingMembersFor(ministry)}
-                        className="rounded px-3 py-1"
-                        style={{ border: "1px solid #24324A", color: "#24324A" }}
-                      >
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      <button onClick={() => setManagingMembersFor(ministry)} style={{ ...btnBase, border: `1px solid ${COLOR.text}`, color: COLOR.text }}>
                         Manage Members
                       </button>
-                      <button
-                        onClick={() => openEditModal(ministry)}
-                        className="rounded px-3 py-1"
-                        style={{ border: "1px solid #D8B15A", color: "#8A6D1F" }}
-                      >
+                      <button onClick={() => openEditModal(ministry)} style={{ ...btnBase, border: `1px solid ${COLOR.gold}`, color: COLOR.goldText }}>
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDelete(ministry)}
-                        className="rounded px-3 py-1"
-                        style={{ border: "1px solid #E7A9A9", color: "#B4453E" }}
-                      >
+                      <button onClick={() => handleDelete(ministry)} style={{ ...btnBase, border: `1px solid ${COLOR.redBorder}`, color: COLOR.redText }}>
                         Delete
                       </button>
-                      <button
-                        onClick={() => openCreateModal(ministry.id)}
-                        className="rounded px-3 py-1"
-                        style={{ border: "1px dashed #24324A", color: "#24324A" }}
-                      >
+                      <button onClick={() => openCreateModal(ministry.id)} style={{ ...btnBase, border: `1px dashed ${COLOR.text}`, color: COLOR.text }}>
                         + Add Sub-Ministry
                       </button>
                     </div>
 
                     {subMinistries.length > 0 && (
-                      <div className="mt-4 space-y-2" style={{ borderLeft: "2px solid rgba(216,177,90,0.5)", paddingLeft: "16px" }}>
+                      <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8, borderLeft: "2px solid rgba(216,177,90,0.5)", paddingLeft: 16 }}>
                         {subMinistries.map((sub) => (
-                          <div key={sub.id} className="rounded-md p-3" style={{ background: "rgba(253,226,228,0.5)" }}>
-                            <div className="mb-1 flex items-center justify-between">
-                              <h3 className="text-sm font-semibold" style={{ color: "#24324A" }}>
-                                {sub.name}
-                              </h3>
+                          <div key={sub.id} style={{ borderRadius: 8, background: "rgba(253,226,228,0.5)", padding: 12 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                              <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: COLOR.text }}>{sub.name}</h3>
                               <span
-                                className="rounded-full px-2 py-0.5 text-xs font-medium"
-                                style={
-                                  sub.status === "active"
-                                    ? { background: "#E2F0CB", color: "#3F6B34" }
-                                    : { background: "#F1F2F4", color: "#68758A" }
-                                }
+                                style={{
+                                  borderRadius: 999,
+                                  padding: "2px 9px",
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  background: sub.status === "active" ? COLOR.greenBadgeBg : COLOR.grayBadgeBg,
+                                  color: sub.status === "active" ? COLOR.greenBadgeText : COLOR.grayBadgeText,
+                                }}
                               >
                                 {sub.status === "active" ? "Active" : "Inactive"}
                               </span>
                             </div>
-                            {sub.description && (
-                              <p className="mb-2 text-xs" style={{ color: "#68758A" }}>
-                                {sub.description}
-                              </p>
-                            )}
-                            <div className="mb-2 flex justify-between text-xs" style={{ color: "#24324A" }}>
+                            {sub.description && <p style={{ margin: "0 0 8px", fontSize: 11, color: COLOR.textSoft }}>{sub.description}</p>}
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: COLOR.text, marginBottom: 8 }}>
                               <span>Leader: {sub.leaderName ?? "Not assigned"}</span>
                               <span>{sub.memberCount} members</span>
                             </div>
-                            <div className="flex flex-wrap gap-2 text-xs">
-                              <button
-                                onClick={() => setManagingMembersFor(sub)}
-                                className="rounded px-2 py-0.5"
-                                style={{ border: "1px solid #24324A", color: "#24324A" }}
-                              >
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                              <button onClick={() => setManagingMembersFor(sub)} style={{ ...btnBase, padding: "4px 9px", fontSize: 11, border: `1px solid ${COLOR.text}`, color: COLOR.text }}>
                                 Manage Members
                               </button>
-                              <button
-                                onClick={() => openEditModal(sub)}
-                                className="rounded px-2 py-0.5"
-                                style={{ border: "1px solid #D8B15A", color: "#8A6D1F" }}
-                              >
+                              <button onClick={() => openEditModal(sub)} style={{ ...btnBase, padding: "4px 9px", fontSize: 11, border: `1px solid ${COLOR.gold}`, color: COLOR.goldText }}>
                                 Edit
                               </button>
-                              <button
-                                onClick={() => handleDelete(sub)}
-                                className="rounded px-2 py-0.5"
-                                style={{ border: "1px solid #E7A9A9", color: "#B4453E" }}
-                              >
+                              <button onClick={() => handleDelete(sub)} style={{ ...btnBase, padding: "4px 9px", fontSize: 11, border: `1px solid ${COLOR.redBorder}`, color: COLOR.redText }}>
                                 Delete
                               </button>
                             </div>
@@ -486,45 +499,38 @@ export default function MinistriesPage() {
             </div>
           )}
 
-          <footer className="mt-10 text-center text-xs" style={{ color: "#9AA5B4" }}>
-            Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All
-            Rights Reserved · v1.0.0
-          </footer>
+          <div style={{ textAlign: "center", fontSize: 11, color: "#9AA5B4", marginTop: 40 }}>
+            Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
+          </div>
         </div>
 
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-md rounded-lg bg-white p-6">
-              <h3 className="mb-4 text-lg font-semibold" style={{ color: "#24324A" }}>
+          <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", padding: 16 }}>
+            <div style={{ width: "100%", maxWidth: 420, borderRadius: 12, background: "#FFFFFF", padding: 24 }}>
+              <h3 style={{ margin: "0 0 16px", fontSize: 17, fontWeight: 700, color: COLOR.text }}>
                 {editingId ? "Edit Ministry" : "New Ministry"}
               </h3>
 
               {error && (
-                <p className="mb-3 rounded px-3 py-2 text-sm" style={{ background: "#FDECEC", color: "#B4453E" }}>
+                <p style={{ marginBottom: 12, borderRadius: 6, background: COLOR.redBg, color: COLOR.redText, padding: "8px 12px", fontSize: 13 }}>
                   {error}
                 </p>
               )}
 
-              <div className="space-y-3">
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Name</label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                    placeholder="e.g. Worship Team"
-                  />
+                  <label style={labelStyle}>Name</label>
+                  <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} placeholder="e.g. Worship Team" />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Category</label>
+                  <label style={labelStyle}>Category</label>
                   <input
                     type="text"
                     list="ministry-category-suggestions"
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    style={inputStyle}
                     placeholder="e.g. Worship, Youth, Evangelism"
                   />
                   <datalist id="ministry-category-suggestions">
@@ -535,11 +541,11 @@ export default function MinistriesPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Parent Ministry</label>
+                  <label style={labelStyle}>Parent Ministry</label>
                   <select
                     value={form.parentMinistryId ?? ""}
                     onChange={(e) => setForm({ ...form, parentMinistryId: e.target.value || null })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                    style={inputStyle}
                   >
                     <option value="">None — top-level ministry</option>
                     {topLevelMinistries
@@ -548,29 +554,19 @@ export default function MinistriesPage() {
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
                   </select>
-                  <p className="mt-1 text-xs text-gray-400">
-                    e.g. make this a sub-ministry under "Evangelism" (Prison
-                    Ministry, Hospital Visitation, Street Evangelism, Missions…)
+                  <p style={{ marginTop: 4, fontSize: 11, color: "#9CA3AF" }}>
+                    e.g. make this a sub-ministry under "Evangelism" (Prison Ministry, Hospital Visitation, Street Evangelism, Missions…)
                   </p>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Description</label>
-                  <textarea
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                    rows={3}
-                  />
+                  <label style={labelStyle}>Description</label>
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...inputStyle, resize: "vertical" }} rows={3} />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Leader</label>
-                  <select
-                    value={form.leaderId ?? ""}
-                    onChange={(e) => setForm({ ...form, leaderId: e.target.value || null })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                  >
+                  <label style={labelStyle}>Leader</label>
+                  <select value={form.leaderId ?? ""} onChange={(e) => setForm({ ...form, leaderId: e.target.value || null })} style={inputStyle}>
                     <option value="">Not assigned</option>
                     {members.map((m) => (
                       <option key={m.id} value={m.id}>{m.fullName}</option>
@@ -579,43 +575,24 @@ export default function MinistriesPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Meeting Schedule</label>
-                  <input
-                    type="text"
-                    value={form.meetingSchedule}
-                    onChange={(e) => setForm({ ...form, meetingSchedule: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                    placeholder="e.g. Sundays 9:00 AM"
-                  />
+                  <label style={labelStyle}>Meeting Schedule</label>
+                  <input type="text" value={form.meetingSchedule} onChange={(e) => setForm({ ...form, meetingSchedule: e.target.value })} style={inputStyle} placeholder="e.g. Sundays 9:00 AM" />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "#24324A" }}>Status</label>
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value as MinistryStatus })}
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-                  >
+                  <label style={labelStyle}>Status</label>
+                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as MinistryStatus })} style={inputStyle}>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
               </div>
 
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  onClick={closeModal}
-                  disabled={saving}
-                  className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-                >
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 20 }}>
+                <button onClick={closeModal} disabled={saving} style={{ ...btnBase, border: "1px solid #D1D5DB", color: "#4B5563" }}>
                   Cancel
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="rounded px-4 py-2 text-sm font-semibold disabled:opacity-50"
-                  style={{ background: "#D8B15A", color: "#24324A" }}
-                >
+                <button onClick={handleSave} disabled={saving} style={{ ...btnBase, border: "none", background: COLOR.gold, color: COLOR.text, opacity: saving ? 0.5 : 1 }}>
                   {saving ? "Saving…" : "Save"}
                 </button>
               </div>
@@ -624,48 +601,36 @@ export default function MinistriesPage() {
         )}
 
         {managingMembersFor && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-md rounded-lg bg-white p-6">
-              <h3 className="mb-1 text-lg font-semibold" style={{ color: "#24324A" }}>
+          <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", padding: 16 }}>
+            <div style={{ width: "100%", maxWidth: 420, borderRadius: 12, background: "#FFFFFF", padding: 24 }}>
+              <h3 style={{ margin: "0 0 4px", fontSize: 17, fontWeight: 700, color: COLOR.text }}>
                 Members — {managingMembersFor.name}
               </h3>
-              <p className="mb-4 text-xs" style={{ color: "#68758A" }}>
-                {managingMembersFor.memberCount} member
-                {managingMembersFor.memberCount === 1 ? "" : "s"} assigned
+              <p style={{ margin: "0 0 16px", fontSize: 11, color: COLOR.textSoft }}>
+                {managingMembersFor.memberCount} member{managingMembersFor.memberCount === 1 ? "" : "s"} assigned
               </p>
 
-              <div className="max-h-72 space-y-1 overflow-y-auto">
+              <div style={{ maxHeight: 280, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
                 {members.length === 0 ? (
-                  <p className="text-sm" style={{ color: "#68758A" }}>
-                    No church members recorded yet.
-                  </p>
+                  <p style={{ fontSize: 13, color: COLOR.textSoft }}>No church members recorded yet.</p>
                 ) : (
                   members.map((m) => {
                     const checked = managingMembersFor.memberIds.includes(m.id);
                     return (
                       <label
                         key={m.id}
-                        className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-sm"
-                        style={{ background: checked ? "rgba(226,240,203,0.4)" : "transparent" }}
+                        style={{ display: "flex", cursor: "pointer", alignItems: "center", justifyContent: "space-between", borderRadius: 6, padding: "6px 8px", fontSize: 13, background: checked ? "rgba(226,240,203,0.4)" : "transparent" }}
                       >
-                        <span style={{ color: "#24324A" }}>{m.fullName}</span>
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleMember(managingMembersFor, m.id)}
-                        />
+                        <span style={{ color: COLOR.text }}>{m.fullName}</span>
+                        <input type="checkbox" checked={checked} onChange={() => toggleMember(managingMembersFor, m.id)} />
                       </label>
                     );
                   })
                 )}
               </div>
 
-              <div className="mt-5 flex justify-end">
-                <button
-                  onClick={() => setManagingMembersFor(null)}
-                  className="rounded px-4 py-2 text-sm font-semibold"
-                  style={{ background: "#D8B15A", color: "#24324A" }}
-                >
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+                <button onClick={() => setManagingMembersFor(null)} style={{ ...btnBase, border: "none", background: COLOR.gold, color: COLOR.text, padding: "10px 18px" }}>
                   Done
                 </button>
               </div>
