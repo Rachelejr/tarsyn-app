@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
-// Only Dashboard, Members, Groups and Ministries are wired to real pages.
+// Only Dashboard, Members, Groups, Ministries and Families are wired to real pages.
 // All labels are in English (UI rule for the whole platform).
 // Every other item routes to the generic /coming-soon page instead of
 // being hidden, per the "don't fake functionality, but don't hide it
@@ -25,7 +25,7 @@ type NavItem = { key: string; label: string; icon: string; enabled: boolean };
 const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: '🏠', enabled: true },
   { key: 'members', label: 'Members', icon: '👥', enabled: true },
-  { key: 'families', label: 'Families', icon: '👨‍👩‍👧‍👦', enabled: false },
+  { key: 'families', label: 'Families', icon: '👨‍👩‍👧‍👦', enabled: true },
   { key: 'groups', label: 'Groups', icon: '👫', enabled: true },
   { key: 'ministries', label: 'Ministries', icon: '🧭', enabled: true },
   { key: 'services', label: 'Services & Worship', icon: '🕊️', enabled: false },
