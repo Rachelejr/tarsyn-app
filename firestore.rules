@@ -99,6 +99,24 @@ service cloud.firestore {
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
+
+      match /newConverts/{convertId} {
+        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
+        allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
+      }
+
+      match /visitors/{visitorId} {
+        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
+        allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
+      }
+
+      match /affiliationRequests/{requestId} {
+        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
+        allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
+      }
     }
     match /churchMembers/{memberId} {
       allow read: if request.auth != null;
