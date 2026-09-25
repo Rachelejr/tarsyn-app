@@ -12,6 +12,15 @@ import { CommunityArt } from '@/components/church/ministryKit';
 // Church Dashboard - summary + quick access only.
 // Every number here is real (live Firestore counts). Sections that are not
 // built yet are shown with a "Soon" badge, never with made-up numbers.
+//
+// Sept 2026 update:
+//  - Ministries now live at churches/{churchId}/ministries (nested
+//    subcollection) instead of the old flat churchMinistries collection.
+//  - Families and Events & Calendar are real, live sections now.
+//  - Hero title/subtitle centered; date/time/temperature shown as bold
+//    italic chips (matching the shared ChurchPageHeader pattern used on
+//    Ministries/Families/Events, but styled for this hero banner).
+//  - ChurchSidebar now only takes churchId (it fetches its own name/logo).
 const C = {
   page: CHURCH_UI.page,
   card: CHURCH_UI.white,
@@ -66,6 +75,11 @@ function initialsOf(name: string): string {
   return ((parts[0][0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
+const CALENDAR_ICON = String.fromCodePoint(0x1f4c6);
+const CLOCK_ICON = String.fromCodePoint(0x1f550);
+const WEATHER_ICON = String.fromCodePoint(0x1f324) + String.fromCodePoint(0xfe0f);
+const DEGREE = String.fromCharCode(0xb0) + 'C';
+
 export default function ChurchDashboardPage() {
   const router = useRouter();
   const params = useParams();
@@ -81,6 +95,9 @@ export default function ChurchDashboardPage() {
   const [groupCount, setGroupCount] = useState(0);
   const [ministries, setMinistries] = useState<MinistryRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [now, setNow] = useState<Date | null>(null);
+  const [temp, setTemp] = useState<number | null>(null);
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (u) => {
@@ -128,9 +145,12 @@ export default function ChurchDashboardPage() {
     return () => unsub();
   }, [churchId]);
 
+  // Ministries: moved to the per-church nested subcollection
+  // churches/{churchId}/ministries — no churchId filter needed, the path
+  // itself already scopes every document to this one church.
   useEffect(() => {
     if (!churchId) return;
-    const q = query(collection(db, 'churchMinistries'), where('churchId', '==', churchId));
+    const q = collection(db, 'churches', churchId, 'ministries');
     const unsub = onSnapshot(
       q,
       (snap) => {
@@ -150,6 +170,38 @@ export default function ChurchDashboardPage() {
     return () => unsub();
   }, [churchId]);
 
+  // Live clock for the hero header.
+  useEffect(() => {
+    setNow(new Date());
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Weather — best-effort only, never blocks the page.
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const latitude = pos.coords.latitude;
+          const longitude = pos.coords.longitude;
+          const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current=temperature_2m';
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.current && data.current.temperature_2m != null) {
+            setTemp(Math.round(data.current.temperature_2m));
+          }
+        } catch (err) {
+          // Weather is a nice-to-have — silently skip on any failure.
+        }
+      },
+      () => {
+        // Permission denied or unavailable — silently skip.
+      },
+      { timeout: 5000 }
+    );
+  }, []);
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: C.page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -161,8 +213,10 @@ export default function ChurchDashboardPage() {
 
   const base = `/dashboard/church/${churchId}`;
   const soon = (label: string) => `${base}/coming-soon?section=${encodeURIComponent(label)}`;
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const firstName = userName.split(' ')[0];
+
+  const dateStr = now ? now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : '';
+  const timeStr = now ? now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
 
   const topMinistries = [...ministries]
     .filter(m => !m.parentMinistryId)
@@ -173,17 +227,17 @@ export default function ChurchDashboardPage() {
   const tiles: { icon: string; label: string; desc: string; bg: string; live: boolean; href: string }[] = [
     { icon: '👥', label: 'Members', desc: 'Directory, profiles and invitations.', bg: C.mint, live: true, href: `${base}/members` },
     { icon: '👫', label: 'Groups', desc: 'Small groups and their leaders.', bg: C.lilac, live: true, href: `${base}/groups` },
-    { icon: '⛪', label: 'Ministries', desc: 'Ministries, sub-ministries and teams.', bg: C.pink, live: true, href: `${base}/ministries` },
+    { icon: '🧭', label: 'Ministries', desc: 'Ministries, sub-ministries and teams.', bg: C.pink, live: true, href: `${base}/ministries` },
+    { icon: '👨‍👩‍👧‍👦', label: 'Families', desc: 'Households and family links.', bg: C.mint, live: true, href: `${base}/families` },
+    { icon: '📅', label: 'Events & Calendar', desc: 'Church calendar and registrations.', bg: C.lilac, live: true, href: `${base}/events` },
     { icon: '➕', label: 'Add Member', desc: 'Register a new member of the church.', bg: C.peach, live: true, href: `/dashboard/church/add-member?churchId=${churchId}` },
-    { icon: '👨‍👩‍👧‍👦', label: 'Families', desc: 'Households and family links.', bg: C.mint, live: false, href: soon('Families') },
     { icon: '🕊️', label: 'Services & Worship', desc: 'Service plans and order of worship.', bg: C.pink, live: false, href: soon('Services & Worship') },
-    { icon: '📅', label: 'Events & Calendar', desc: 'Church calendar and registrations.', bg: C.lilac, live: false, href: soon('Events & Calendar') },
     { icon: '💰', label: 'Contributions', desc: 'Tithes, offerings and pledges.', bg: C.peach, live: false, href: soon('Contributions') },
   ];
 
   return (
     <div style={{ minHeight: '100vh', background: C.page, display: 'flex', fontFamily: CHURCH_UI.font }}>
-      <ChurchSidebar churchId={churchId} churchName={church?.churchName} />
+      <ChurchSidebar churchId={churchId} />
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
@@ -205,17 +259,33 @@ export default function ChurchDashboardPage() {
 
         <div style={{ padding: '24px 28px 40px', boxSizing: 'border-box', maxWidth: '1320px', width: '100%' }}>
 
-          {/* Hero */}
-          <div style={{ borderRadius: '18px', overflow: 'hidden', position: 'relative', background: theme.hero, padding: '28px 32px', marginBottom: '22px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: CHURCH_UI.goldText, letterSpacing: '0.4px', marginBottom: '6px', textTransform: 'uppercase' }}>{today}</div>
+          {/* Hero — centered title, bold-italic date/time/temperature chips */}
+          <div style={{ borderRadius: '18px', overflow: 'hidden', position: 'relative', background: theme.hero, padding: '28px 32px', marginBottom: '22px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+              {dateStr ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', fontWeight: 700, fontStyle: 'italic', color: '#B4577A', background: '#FDE2E4', padding: '5px 12px', borderRadius: '999px' }}>
+                  {CALENDAR_ICON} {dateStr}
+                </span>
+              ) : null}
+              {timeStr ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', fontWeight: 700, fontStyle: 'italic', color: '#5A8A5F', background: '#E2F0CB', padding: '5px 12px', borderRadius: '999px' }}>
+                  {CLOCK_ICON} {timeStr}
+                </span>
+              ) : null}
+              {temp !== null ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', fontWeight: 700, fontStyle: 'italic', color: CHURCH_UI.goldText, background: '#F6EFDD', padding: '5px 12px', borderRadius: '999px' }}>
+                  {WEATHER_ICON} {temp}{DEGREE}
+                </span>
+              ) : null}
+            </div>
             <h1 style={{ margin: '0 0 8px', fontSize: '26px', fontWeight: 800, color: C.textDark, letterSpacing: '-0.3px' }}>
               {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
             </h1>
-            <p style={{ margin: '0 0 10px', fontSize: '14px', color: C.text, maxWidth: '520px' }}>
+            <p style={{ margin: '0 auto 10px', fontSize: '14px', color: C.text, maxWidth: '520px' }}>
               Here is what is happening at {church?.churchName || 'your church'}
               {[church?.city, church?.country].filter(Boolean).length > 0 ? ` (${[church?.city, church?.country].filter(Boolean).join(', ')})` : ''}.
             </p>
-            <p style={{ margin: 0, fontSize: '13px', color: C.text, fontStyle: 'italic', maxWidth: '560px' }}>
+            <p style={{ margin: '0 auto', fontSize: '13px', color: C.text, fontStyle: 'italic', fontWeight: 700, maxWidth: '560px' }}>
               &ldquo;For where two or three gather in my name, there am I with them.&rdquo; &mdash; Matthew 18:20
             </p>
             <div className="um-hero-art" aria-hidden="true" style={{ position: 'absolute', right: '18px', bottom: 0, width: '300px', height: '100%' }}>
@@ -234,12 +304,12 @@ export default function ChurchDashboardPage() {
                 <StatCard icon="👥" bg={C.mint} value={memberCount} label="Members" />
                 <StatCard icon="✨" bg={C.pink} value={newMemberCount} label="New members (30 days)" />
                 <StatCard icon="👫" bg={C.lilac} value={groupCount} label="Groups" />
-                <StatCard icon="⛪" bg={C.peach} value={ministries.length} label="Ministries" />
+                <StatCard icon="🧭" bg={C.peach} value={ministries.length} label="Ministries" />
               </div>
 
               {/* Quick access */}
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '12px', gap: '8px' }}>
-                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: C.textDark }}>Quick Access</h2>
+              <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+                <h2 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: C.textDark }}>Quick Access</h2>
                 <span style={{ fontSize: '11.5px', color: C.textMuted }}>Jump straight into a section</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '14px', marginBottom: '24px' }}>
@@ -263,14 +333,14 @@ export default function ChurchDashboardPage() {
 
               {/* Ministries overview */}
               <div style={{ background: C.card, borderRadius: '14px', border: `1px solid ${C.border}`, padding: '18px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', gap: '8px' }}>
-                  <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: C.textDark }}>Ministries Overview</h2>
+                <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+                  <h2 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 800, color: C.textDark }}>Ministries Overview</h2>
                   <button onClick={() => router.push(`${base}/ministries`)} style={{ border: 'none', background: 'none', color: CHURCH_UI.goldText, fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
                     View all ministries &rarr;
                   </button>
                 </div>
                 {topMinistries.length === 0 ? (
-                  <p style={{ margin: 0, fontSize: '13px', color: C.textMuted }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>
                     No ministries yet. Create your first one from the Ministries page.
                   </p>
                 ) : (
@@ -301,11 +371,15 @@ export default function ChurchDashboardPage() {
               </button>
 
               <div style={{ background: C.card, borderRadius: '14px', border: `1px solid ${C.border}`, padding: '16px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: C.textDark, marginBottom: '8px' }}>Upcoming Events</div>
-                <p style={{ margin: '0 0 10px', fontSize: '12px', color: C.textMuted, lineHeight: 1.5 }}>
-                  Events &amp; Calendar is coming soon. Your services and events will show up here.
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: C.textDark }}>Upcoming Events</div>
+                  <button onClick={() => router.push(`${base}/events`)} style={{ border: 'none', background: 'none', color: CHURCH_UI.goldText, fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                    View all
+                  </button>
+                </div>
+                <p style={{ margin: 0, fontSize: '12px', color: C.textMuted, lineHeight: 1.5 }}>
+                  Create your first event from the Events &amp; Calendar page — it will show up here.
                 </p>
-                <span style={{ fontSize: '9.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: CHURCH_UI.cream, color: CHURCH_UI.goldText }}>Soon</span>
               </div>
 
               <div style={{ background: C.card, borderRadius: '14px', border: `1px solid ${C.border}`, padding: '16px' }}>
