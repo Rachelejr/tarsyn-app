@@ -1,145 +1,214 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// src/app/dashboard/church/add-member/page.tsx
+//
+// Add Member page for the Church module.
+//  - Auto-generates a Member ID (e.g. "JD-001") the same way Tontine
+//    generates its TYN-ID: initials + a sequential number based on how
+//    many members this church already has. Shown live as a preview, then
+//    stored on the record as memberCode.
+//  - Full identity fields: First/Last Name, Date of Birth, Gender, Marital
+//    Status, National ID Number, Height, Color Tag (an organizing tag,
+//    same options as Tontine's — not a description of the person),
+//    Current Address, Previous Address (optional).
+//  - On successful creation, a join invitation email is sent automatically,
+//    linking to /join-church/{inviteCode}.
+//
+// churchId comes from the query string (?churchId=...), matching how the
+// Dashboard's "Add Member" tile already links here.
+
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import ChurchSidebar from '@/components/church/ChurchSidebar';
 
-// Same turquoise + rose-bebe palette used across the Church module screens.
 const C = {
-  primary: '#4FB8AE',
-  secondary: '#F7B8C6',
-  accent: '#D7F0EC',
-  bg: '#FBF6F2',
-  cardBg: '#FFFFFF',
-  borderSoft: '#F0D9DF',
-  borderMed: '#B8E4DE',
-  textDark: '#1F4A46',
-  textGris: '#7A9490',
-  success: '#5A8A6E',
-  danger: '#A14444',
+  pink: '#FDE2E4',
+  cream: '#F6EFDD',
+  green: '#E2F0CB',
+  gold: '#D8B15A',
+  goldText: '#8A6D1F',
+  text: '#24324A',
+  muted: '#68758A',
+  white: '#FFFFFF',
+  border: 'rgba(216,177,90,0.35)',
+  danger: '#B4453E',
+  dangerBg: '#FDECEC',
+  greenBg: '#E2F0CB',
+  greenText: '#3F6B34',
+  amberBg: '#FEF3C7',
+  amberText: '#92400E',
 };
 
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px',
-  border: `1.5px solid ${C.borderMed}`, borderRadius: '12px',
-  fontSize: '14px', color: C.textDark, background: C.bg,
-  boxSizing: 'border-box', outline: 'none',
+const inputStyle = {
+  width: '100%', padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + C.border,
+  fontSize: 14, color: C.text, background: C.white, outline: 'none', boxSizing: 'border-box' as const,
 };
 
-// Only leadership / staff roles get a login by default — most congregation
-// members are simply recorded, not given an account. The admin can still
-// override this per person with the checkbox below.
-const ROLES_NEEDING_ACCOUNT_BY_DEFAULT = new Set(['Deacon', 'Elder', 'Staff', 'Department Head']);
+const labelStyle = { fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5, display: 'block', marginBottom: 6 };
 
-interface Church { id: string; churchName?: string; }
+const ROLE_OPTIONS = ['Member', 'Leader', 'Deacon', 'Elder', 'Pastor', 'Administrator'];
+const GENDER_OPTIONS = ['', 'Male', 'Female'];
+const MARITAL_OPTIONS = ['', 'Single', 'Married', 'Divorced', 'Widowed'];
+const COLOR_TAG_OPTIONS = ['', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple'];
 
 function AddChurchMemberContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlChurchId = searchParams.get('churchId') || '';
+  const churchId = searchParams.get('churchId') || '';
 
-  const [organizerId, setOrganizerId] = useState('');
-  const [churches, setChurches] = useState<Church[]>([]);
-  const [selectedChurchId, setSelectedChurchId] = useState('');
-  const [churchesLoading, setChurchesLoading] = useState(true);
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', phone: '', email: '',
+    address: '', previousAddress: '',
+    dateOfBirth: '', gender: '', maritalStatus: '',
+    nationalId: '', height: '', colorTag: '',
+    role: 'Member', notes: '',
+  });
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('Member');
-  const [needsAccount, setNeedsAccount] = useState(false);
-  const [needsAccountTouched, setNeedsAccountTouched] = useState(false);
-
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [inviteStatus, setInviteStatus] = useState<'sent' | 'failed' | 'no-email' | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [churchName, setChurchName] = useState('');
+  const [nextPosition, setNextPosition] = useState(1);
+  const [memberCode, setMemberCode] = useState('');
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) { router.push('/login'); return; }
-      setOrganizerId(u.uid);
-      try {
-        const q = query(collection(db, 'churches'), where('organizerId', '==', u.uid));
-        const snap = await getDocs(q);
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Church));
-        setChurches(list);
-        if (urlChurchId) {
-          setSelectedChurchId(urlChurchId);
-        } else if (list.length === 1) {
-          setSelectedChurchId(list[0].id);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!churchId) return;
+    getDoc(doc(db, 'churches', churchId))
+      .then((snap) => {
+        if (snap.exists()) {
+          setChurchName((snap.data().name as string) || (snap.data().churchName as string) || '');
         }
-      } catch (e) { console.error(e); }
-      setChurchesLoading(false);
+      })
+      .catch((err) => console.error('Failed to load church name:', err));
+  }, [churchId]);
+
+  // Count existing church members once, so the new member's ID picks up
+  // where the last one left off (mirrors Tontine's TYN-ID / position
+  // pattern, just scoped to churchMembers for this church).
+  useEffect(() => {
+    if (!churchId) return;
+    (async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'churchMembers'), where('churchId', '==', churchId)));
+        setNextPosition(snap.size + 1);
+      } catch (err) {
+        console.error('Failed to count existing members:', err);
+      }
+    })();
+  }, [churchId]);
+
+  // Member ID = [First initial][Last initial]-[3-digit sequence], e.g. JD-001.
+  useEffect(() => {
+    const first = form.firstName.trim();
+    const last = form.lastName.trim();
+    if (!first && !last) { setMemberCode(''); return; }
+    const firstInitial = first[0]?.toUpperCase() || '';
+    const lastInitial = last[0]?.toUpperCase() || firstInitial;
+    const seq = String(nextPosition).padStart(3, '0');
+    setMemberCode(firstInitial + lastInitial + '-' + seq);
+  }, [form.firstName, form.lastName, nextPosition]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (!u) { router.push('/login'); return; }
     });
     return () => unsub();
-  }, [router, urlChurchId]);
+  }, [router]);
 
-  const handleRoleChange = (newRole: string) => {
-    setRole(newRole);
-    if (!needsAccountTouched) {
-      setNeedsAccount(ROLES_NEEDING_ACCOUNT_BY_DEFAULT.has(newRole));
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async () => {
+    if (!form.firstName || !form.lastName || !form.email || !form.phone) {
+      alert('First name, last name, email and phone number are required.');
+      return;
     }
-  };
+    if (!churchId) {
+      alert('Missing church. Please go back to the Dashboard and try again.');
+      return;
+    }
+    const user = auth.currentUser;
+    if (!user) return;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!selectedChurchId) return setError('Please select a church.');
-    if (!fullName.trim()) return setError('Full name is required.');
-    if (needsAccount && !email.trim()) return setError('An email is required to give this person a login account.');
+    const fullName = (form.firstName + ' ' + form.lastName).trim();
+    setLoading(true);
 
-    setSaving(true);
     try {
-      const memberInviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+      const existing = await getDocs(query(
+        collection(db, 'churchMembers'),
+        where('churchId', '==', churchId)
+      ));
+      const members = existing.docs.map(d => d.data());
+      if (members.some((m: any) => m.email === form.email)) {
+        alert('A member with this email already exists in this church.');
+        setLoading(false);
+        return;
+      }
+
+      const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+
       await addDoc(collection(db, 'churchMembers'), {
-        organizerId,
-        churchId: selectedChurchId,
-        fullName: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        role,
-        needsAccount,
-        // A member who doesn't need a login is simply recorded as active
-        // right away — there is no invitation to accept, nothing pending.
-        status: needsAccount ? 'pending' : 'active',
-        inviteCode: memberInviteCode,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        fullName,
+        memberCode,
+        phone: form.phone,
+        email: form.email,
+        address: form.address,
+        previousAddress: form.previousAddress,
+        dateOfBirth: form.dateOfBirth,
+        gender: form.gender,
+        maritalStatus: form.maritalStatus,
+        nationalId: form.nationalId,
+        height: form.height,
+        colorTag: form.colorTag,
+        role: form.role,
+        notes: form.notes,
+        churchId,
+        organizerId: user.uid,
+        userId: null,
+        inviteCode,
         createdAt: serverTimestamp(),
       });
 
       try {
         await addDoc(collection(db, 'audit_logs'), {
-          organizerId, category: 'Member',
+          organizerId: user.uid,
+          category: 'Church Member',
           action: 'Added church member',
-          user: auth.currentUser?.email || '', details: fullName.trim(),
+          user: user.email || '',
+          details: fullName + ' - ' + memberCode,
           createdAt: serverTimestamp(),
         });
-      } catch (auditErr) { /* silent - audit logging must never block member creation */ }
+      } catch (auditErr) {
+        // Silent — audit logging must never block member creation.
+      }
 
-      if (!needsAccount) {
-        setInviteStatus(null);
-      } else if (!email.trim()) {
+      if (!form.email) {
         setInviteStatus('no-email');
       } else {
-        const selectedChurch = churches.find(c => c.id === selectedChurchId);
-        const inviteLink = 'https://unimunity.com/join-church/' + memberInviteCode;
+        const inviteLink = 'https://unimunity.com/join-church/' + inviteCode;
         try {
-          const res = await fetch('/api/send-church-invite', {
+          const inviteRes = await fetch('/api/send-church-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              emails: [email.trim()],
-              churchName: selectedChurch?.churchName || 'your church',
+              emails: [form.email],
+              churchName: churchName || 'your church',
               inviteLink,
             }),
           });
-          const data = await res.json();
-          setInviteStatus(res.ok && data.sent > 0 ? 'sent' : 'failed');
+          const inviteData = await inviteRes.json();
+          setInviteStatus(inviteRes.ok && inviteData.sent > 0 ? 'sent' : 'failed');
         } catch (inviteErr) {
-          console.error('Church invite send failed:', inviteErr);
+          console.error('Invite send failed:', inviteErr);
           setInviteStatus('failed');
         }
       }
@@ -147,36 +216,64 @@ function AddChurchMemberContent() {
       setSuccess(true);
     } catch (e) {
       console.error(e);
-      setError('Something went wrong. Please try again.');
+      alert('Error adding member.');
     }
-    setSaving(false);
+    setLoading(false);
+  };
+
+  if (!mounted) return null;
+
+  const pageBg = {
+    minHeight: '100vh',
+    flex: 1,
+    padding: 24,
+    boxSizing: 'border-box' as const,
+    background: `linear-gradient(120deg, ${C.pink} 0%, ${C.cream} 55%, ${C.green} 100%)`,
+    backgroundAttachment: 'fixed' as const,
   };
 
   if (success) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-        <div style={{ background: C.cardBg, borderRadius: '20px', padding: '40px', maxWidth: '440px', width: '100%', textAlign: 'center' as const, border: `1px solid ${C.borderSoft}` }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: C.textDark, margin: '0 0 8px' }}>Member Added</h2>
-          <p style={{ fontSize: '13px', color: C.textGris, margin: '0 0 20px' }}>
-            {!needsAccount && 'This member has been recorded as active — no account or invitation was needed.'}
-            {needsAccount && inviteStatus === 'sent' && 'An invitation email was sent so they can create their login.'}
-            {needsAccount && inviteStatus === 'failed' && 'The member was added, but the invitation email could not be sent.'}
-            {needsAccount && inviteStatus === 'no-email' && 'The member was added without an email — no invitation was sent.'}
-          </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button
-              onClick={() => { setSuccess(false); setFullName(''); setEmail(''); setPhone(''); setRole('Member'); setNeedsAccount(false); setNeedsAccountTouched(false); setInviteStatus(null); }}
-              style={{ background: 'white', color: C.primary, border: `1.5px solid ${C.primary}`, borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Add Another
-            </button>
-            <button
-              onClick={() => router.push('/dashboard/church')}
-              style={{ background: C.primary, color: 'white', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Back to My Churches
-            </button>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <ChurchSidebar churchId={churchId} />
+        <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: C.white, borderRadius: 18, padding: '48px 40px', textAlign: 'center', maxWidth: 460, width: '100%', boxShadow: '0 8px 30px rgba(36,50,74,0.10)' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 999, background: C.greenBg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 24 }}>&#10003;</div>
+            <h2 style={{ fontSize: 19, fontWeight: 800, color: C.text, margin: '0 0 8px' }}>Member added successfully</h2>
+            <p style={{ fontSize: 13, color: C.muted, margin: '0 0 6px', lineHeight: 1.6 }}>
+              {form.firstName} {form.lastName} is now part of your church.
+            </p>
+            <p style={{ fontSize: 12, color: C.goldText, fontWeight: 700, margin: '0 0 16px' }}>Member ID: {memberCode}</p>
+
+            {inviteStatus === 'sent' && (
+              <div style={{ background: C.greenBg, color: C.greenText, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, margin: '0 0 20px' }}>
+                Invitation email sent — they can now create their account.
+              </div>
+            )}
+            {inviteStatus === 'no-email' && (
+              <div style={{ background: C.amberBg, color: C.amberText, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, margin: '0 0 20px' }}>
+                No email on file — no invitation was sent.
+              </div>
+            )}
+            {inviteStatus === 'failed' && (
+              <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, margin: '0 0 20px' }}>
+                Member added, but the invitation email could not be sent. You can resend it from the Members page.
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button onClick={() => router.push(`/dashboard/church/${churchId}/members`)}
+                style={{ background: C.gold, color: C.text, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                View Members
+              </button>
+              <button onClick={() => {
+                setSuccess(false); setInviteStatus(null);
+                setForm({ firstName: '', lastName: '', phone: '', email: '', address: '', previousAddress: '', dateOfBirth: '', gender: '', maritalStatus: '', nationalId: '', height: '', colorTag: '', role: 'Member', notes: '' });
+              }}
+                style={{ background: C.cream, color: C.goldText, border: `1.5px solid ${C.gold}`, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Add Another
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -184,96 +281,111 @@ function AddChurchMemberContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, padding: '32px 24px' }}>
-      <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-        <button
-          onClick={() => router.push('/dashboard/church')}
-          style={{ background: 'none', border: 'none', color: C.textGris, fontSize: '13px', cursor: 'pointer', padding: 0, marginBottom: '16px' }}
-        >
-          &larr; Back to My Churches
-        </button>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: C.textDark, margin: '0 0 20px' }}>Add Church Member</h1>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <ChurchSidebar churchId={churchId} />
+      <div style={pageBg}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
 
-        <form onSubmit={handleSubmit} style={{ background: C.cardBg, border: `1px solid ${C.borderSoft}`, borderRadius: '16px', padding: '24px' }}>
-          {error && (
-            <div style={{ background: '#FBEAEA', color: C.danger, borderRadius: '10px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>
-          )}
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>Church</label>
-            {churchesLoading ? (
-              <p style={{ fontSize: '13px', color: C.textGris }}>Loading churches...</p>
-            ) : churches.length === 0 ? (
-              <p style={{ fontSize: '13px', color: C.textGris }}>You have no churches yet. Create one first.</p>
-            ) : (
-              <select value={selectedChurchId} onChange={e => setSelectedChurchId(e.target.value)} style={inputStyle}>
-                <option value="">— Select a church —</option>
-                {churches.map(c => (
-                  <option key={c.id} value={c.id}>{c.churchName || '(Unnamed church)'}</option>
-                ))}
-              </select>
-            )}
+          <div style={{ marginBottom: 20 }}>
+            <button onClick={() => router.push(`/dashboard/church/${churchId}`)}
+              style={{ background: 'rgba(216,177,90,0.14)', border: 'none', color: C.goldText, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: '6px 12px', borderRadius: 999 }}>
+              ← Dashboard
+            </button>
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>Full Name *</label>
-            <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)} placeholder="e.g. Jean Dupont" style={inputStyle} />
-          </div>
+          <h1 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 800, color: C.text, textAlign: 'center' as const }}>Add Member</h1>
+          <p style={{ margin: '0 0 24px', fontSize: 14, color: C.muted, textAlign: 'center' as const }}>
+            They will automatically receive an email invitation to create their account.
+          </p>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="member@example.com" style={inputStyle} />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>Phone</label>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 555 123 4567" style={inputStyle} />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.textDark, marginBottom: '8px' }}>Role</label>
-            <select value={role} onChange={e => handleRoleChange(e.target.value)} style={inputStyle}>
-              <option>Member</option>
-              <option>Volunteer</option>
-              <option>Choir</option>
-              <option>Youth Leader</option>
-              <option>Deacon</option>
-              <option>Elder</option>
-              <option>Department Head</option>
-              <option>Staff</option>
-            </select>
-          </div>
-
-          <div style={{ marginBottom: '20px', background: C.bg, borderRadius: '12px', padding: '14px 16px', border: `1.5px solid ${C.borderMed}` }}>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={needsAccount}
-                onChange={e => { setNeedsAccount(e.target.checked); setNeedsAccountTouched(true); }}
-                style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: C.primary, flexShrink: 0 }}
-              />
-              <span>
-                <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 700, color: C.textDark }}>This person needs a login account</span>
-                <span style={{ display: 'block', fontSize: '12px', color: C.textGris, marginTop: '2px' }}>
-                  Only leaders, admin staff, and department heads typically need one. Most members are simply recorded — no invitation or sign-in required.
+          <div style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}`, marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 10, borderBottom: `1px solid ${C.border}` }}>
+              <h2 style={{ fontSize: 13, fontWeight: 800, color: C.goldText, textTransform: 'uppercase' as const, letterSpacing: 1, margin: 0 }}>
+                Personal Information
+              </h2>
+              {memberCode && (
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.text, background: C.cream, padding: '4px 10px', borderRadius: 999 }}>
+                  ID: {memberCode}
                 </span>
-              </span>
-            </label>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div>
+                <label style={labelStyle}>First Name *</label>
+                <input style={inputStyle} placeholder="First name" value={form.firstName} onChange={e => set('firstName', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Last Name *</label>
+                <input style={inputStyle} placeholder="Last name" value={form.lastName} onChange={e => set('lastName', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Phone *</label>
+                <input style={inputStyle} placeholder="+1 234 567 8900" value={form.phone} onChange={e => set('phone', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Email *</label>
+                <input style={inputStyle} type="email" placeholder="email@example.com" value={form.email} onChange={e => set('email', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Date of Birth</label>
+                <input style={inputStyle} type="date" value={form.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Gender</label>
+                <select style={inputStyle} value={form.gender} onChange={e => set('gender', e.target.value)}>
+                  {GENDER_OPTIONS.map(g => <option key={g} value={g}>{g || 'Not specified'}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Marital Status</label>
+                <select style={inputStyle} value={form.maritalStatus} onChange={e => set('maritalStatus', e.target.value)}>
+                  {MARITAL_OPTIONS.map(m => <option key={m} value={m}>{m || 'Not specified'}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>National ID Number</label>
+                <input style={inputStyle} placeholder="Optional" value={form.nationalId} onChange={e => set('nationalId', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Height</label>
+                <input style={inputStyle} placeholder="e.g. 5'8&quot; or 173 cm" value={form.height} onChange={e => set('height', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Color Tag</label>
+                <select style={inputStyle} value={form.colorTag} onChange={e => set('colorTag', e.target.value)}>
+                  {COLOR_TAG_OPTIONS.map(c => <option key={c} value={c}>{c || 'None'}</option>)}
+                </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Current Address</label>
+                <input style={inputStyle} placeholder="Optional" value={form.address} onChange={e => set('address', e.target.value)} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Previous Address (optional)</label>
+                <input style={inputStyle} placeholder="Optional" value={form.previousAddress} onChange={e => set('previousAddress', e.target.value)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Role</label>
+                <select style={inputStyle} value={form.role} onChange={e => set('role', e.target.value)}>
+                  {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Notes</label>
+                <input style={inputStyle} placeholder="Optional" value={form.notes} onChange={e => set('notes', e.target.value)} />
+              </div>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={saving || churches.length === 0}
-            style={{
-              width: '100%', padding: '13px', background: C.primary, color: 'white', border: 'none',
-              borderRadius: '12px', fontSize: '14.5px', fontWeight: 700,
-              cursor: saving || churches.length === 0 ? 'not-allowed' : 'pointer',
-              opacity: saving || churches.length === 0 ? 0.6 : 1,
-            }}
-          >
-            {saving ? 'Adding...' : 'Add Member'}
+          <button onClick={handleSubmit} disabled={loading}
+            style={{ width: '100%', padding: 14, background: C.gold, color: C.text, border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Adding member…' : 'Add Member'}
           </button>
-        </form>
+
+          <div style={{ textAlign: 'center' as const, marginTop: 34, fontSize: 11, color: C.muted }}>
+            Powered by UNIMUNITY™ · A product of Ma Production Luxenn Zara LLC · © 2026 All Rights Reserved · v1.0.0
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -281,7 +393,7 @@ function AddChurchMemberContent() {
 
 export default function AddChurchMemberPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#7A9490' }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#68758A' }}>Loading...</div>}>
       <AddChurchMemberContent />
     </Suspense>
   );
