@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
@@ -12,6 +14,11 @@ import { CHURCH_UI } from '@/lib/moduleTheme';
 // hide it either" rule — it just doesn't pretend to work yet.
 // Light sidebar (soft white), active item in the pink -> green pastel
 // gradient with dark text. Palette: CHURCH_UI in src/lib/moduleTheme.ts.
+//
+// This component is now self-sufficient: given only churchId, it fetches
+// the church's own name AND logo from Firestore (churches/{churchId}),
+// so every page just does <ChurchSidebar churchId={churchId} /> instead of
+// separately fetching + passing churchName each time.
 const C = {
   bg: 'rgba(255,255,255,0.85)',
   border: CHURCH_UI.border,
@@ -67,11 +74,25 @@ const CloseIcon = () => (
   </svg>
 );
 
-export default function ChurchSidebar({ churchId, churchName }: { churchId: string; churchName?: string }) {
+export default function ChurchSidebar({ churchId }: { churchId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  const [churchName, setChurchName] = useState<string | undefined>(undefined);
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!churchId) return;
+    const unsubscribe = onSnapshot(doc(db, 'churches', churchId), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setChurchName((data.name as string) || undefined);
+        setLogoUrl((data.logoUrl as string) || undefined);
+      }
+    });
+    return () => unsubscribe();
+  }, [churchId]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
@@ -104,7 +125,11 @@ export default function ChurchSidebar({ churchId, churchName }: { churchId: stri
   const navContent = (
     <>
       <div style={{ padding: '0 20px 14px', borderBottom: `1px solid ${C.border}`, marginBottom: '10px' }}>
-        <img src="/unimunity-logo.png" alt="UNIMUNITY" style={{ width: '100%', maxWidth: '170px', height: 'auto', display: 'block', marginBottom: '10px' }} />
+        <img
+          src={logoUrl || '/unimunity-logo.png'}
+          alt={churchName || 'UNIMUNITY'}
+          style={{ width: '100%', maxWidth: '170px', height: 'auto', display: 'block', marginBottom: '10px' }}
+        />
         <div style={{ color: C.label, fontSize: '9px', fontWeight: 700, letterSpacing: '0.8px' }}>CHURCH MODULE</div>
       </div>
 
