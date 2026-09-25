@@ -5,11 +5,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
-// Only Dashboard, Members, Groups, Ministries and Families are wired to real pages.
-// All labels are in English (UI rule for the whole platform).
-// Every other item routes to the generic /coming-soon page instead of
-// being hidden, per the "don't fake functionality, but don't hide it
-// either" rule — it just doesn't pretend to work yet.
+// Only Dashboard, Members, Groups, Ministries, Families and Events are
+// wired to real pages. All labels are in English (UI rule for the whole
+// platform). Every other item routes to the generic /coming-soon page
+// instead of being hidden, per the "don't fake functionality, but don't
+// hide it either" rule — it just doesn't pretend to work yet.
 // Light sidebar (soft white), active item in the pink -> green pastel
 // gradient with dark text. Palette: CHURCH_UI in src/lib/moduleTheme.ts.
 const C = {
@@ -29,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'groups', label: 'Groups', icon: '👫', enabled: true },
   { key: 'ministries', label: 'Ministries', icon: '🧭', enabled: true },
   { key: 'services', label: 'Services & Worship', icon: '🕊️', enabled: false },
-  { key: 'events', label: 'Events & Calendar', icon: '📅', enabled: false },
+  { key: 'events', label: 'Events & Calendar', icon: '📅', enabled: true },
   { key: 'attendance', label: 'Attendance', icon: '✅', enabled: false },
   { key: 'pastoral-care', label: 'Pastoral Care', icon: '💬', enabled: false },
   { key: 'prayer', label: 'Prayer', icon: '🙏', enabled: false },
