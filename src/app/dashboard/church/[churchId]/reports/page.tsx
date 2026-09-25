@@ -5,18 +5,15 @@
 // General reporting on top of the Finance data (churches/{churchId}/income
 // and churches/{churchId}/expenses):
 //  - Pick a period: This Week, This Month, or a Custom date range.
-//  - Income broken down by category (Tithe, Offering, Donation, Collection,
-//    Seed, Other) for that period, with a total.
-//  - Expenses broken down by category, across BOTH funds combined ("all
-//    domains") for that period, with a total — plus a secondary split by
-//    fund (Operating vs Social) underneath.
-//  - A Net figure (income - expenses) for the period.
-//  - A "Print Report" button that opens the browser's print dialog with a
-//    print-only stylesheet (no PDF library dependency — works everywhere,
-//    and the person can "Save as PDF" from the print dialog if they want a
-//    file for a presentation).
-//  - Every number is real Firestore data for the selected period — nothing
-//    fabricated.
+//  - Income broken down by category, Expenses broken down by category
+//    across both funds, a Net figure.
+//  - "Print Report" — browser print dialog (Save as PDF works from there).
+//  - "Send to HR" — auto-fills a text summary of the current period's
+//    figures and submits it into churches/{churchId}/departmentReports
+//    (department: "Finance"), the same place every Ministry's "Monthly
+//    Report" button writes to. The Human Resources page reads from there,
+//    so the report shows up automatically for whoever manages HR — no
+//    separate email step needed.
 
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
@@ -25,6 +22,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ChurchSidebar from "@/components/church/ChurchSidebar";
 import ChurchPageHeader from "@/components/church/ChurchPageHeader";
+import SubmitDepartmentReport from "@/components/church/SubmitDepartmentReport";
 import type { IncomeEntry, ExpenseEntry, IncomeCategory, FundKey } from "@/types/finance";
 import { INCOME_CATEGORIES, INCOME_CATEGORY_LABELS, FUND_LABELS } from "@/types/finance";
 
@@ -140,6 +138,28 @@ export default function ReportsPage() {
 
   const net = totalIncome - totalExpenses;
 
+  // Plain-text version of the report, pre-filled into the "Send to HR" modal
+  // so nobody has to retype numbers that already exist on this page.
+  const reportSummaryText = useMemo(() => {
+    const lines: string[] = [];
+    lines.push(`Financial Report — ${rangeLabel} (${formatDate(rangeStart)} to ${formatDate(rangeEnd)})`);
+    lines.push("");
+    lines.push("Income by category:");
+    INCOME_CATEGORIES.filter((cat) => incomeByCategory[cat] > 0).forEach((cat) => {
+      lines.push(`- ${INCOME_CATEGORY_LABELS[cat]}: ${formatMoney(incomeByCategory[cat])}`);
+    });
+    lines.push(`Total Income: ${formatMoney(totalIncome)}`);
+    lines.push("");
+    lines.push("Expenses by category:");
+    expensesByCategory.forEach(([cat, amount]) => {
+      lines.push(`- ${cat}: ${formatMoney(amount)}`);
+    });
+    lines.push(`Total Expenses: ${formatMoney(totalExpenses)}`);
+    lines.push("");
+    lines.push(`Net: ${formatMoney(net)}`);
+    return lines.join("\n");
+  }, [rangeLabel, rangeStart, rangeEnd, incomeByCategory, totalIncome, expensesByCategory, totalExpenses, net]);
+
   const btnBase: CSSProperties = { borderRadius: 6, padding: "8px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" };
   const cardStyle: CSSProperties = { borderRadius: 12, background: "rgba(255,255,255,0.92)", padding: 20, boxShadow: "0 1px 3px rgba(23,37,84,0.06)", border: `1px solid ${COLOR.border}` };
   const inputStyle: CSSProperties = { border: "1px solid #D1D5DB", borderRadius: 8, padding: "8px 10px", fontSize: 13 };
@@ -160,9 +180,17 @@ export default function ReportsPage() {
               title="Reports"
               subtitle="Detailed income and expenses by category, ready for a weekly or monthly review."
               actions={
-                <button onClick={() => window.print()} style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}>
-                  Print Report
-                </button>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+                  <button onClick={() => window.print()} style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}>
+                    Print Report
+                  </button>
+                  <SubmitDepartmentReport
+                    churchId={churchId}
+                    departmentName="Finance"
+                    initialSummary={reportSummaryText}
+                    buttonLabel="📤 Send to HR"
+                  />
+                </div>
               }
             />
           </div>
