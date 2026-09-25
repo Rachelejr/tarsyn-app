@@ -7,8 +7,8 @@ import { db } from '@/lib/firebase';
 import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
-// Only Dashboard, Members, Groups, Ministries, Families, Events and
-// Announcements are wired to real pages. All labels are in English (UI
+// Wired to real pages: Dashboard, Members, Families, Groups, Ministries,
+// Events, Announcements, Finance, Reports. All labels are in English (UI
 // rule for the whole platform). Every other item routes to the generic
 // /coming-soon page instead of being hidden, per the "don't fake
 // functionality, but don't hide it either" rule — it just doesn't pretend
@@ -20,6 +20,11 @@ import { CHURCH_UI } from '@/lib/moduleTheme';
 // the church's own name AND logo from Firestore (churches/{churchId}),
 // so every page just does <ChurchSidebar churchId={churchId} /> instead of
 // separately fetching + passing churchName each time.
+//
+// Note: "Contributions" was removed as its own nav item — it's now covered
+// by "Finance" (income by category, including tithes/offerings/donations)
+// plus the two funds (Operating/Social) and Reports, so it would have been
+// a duplicate, half-working entry point.
 const C = {
   bg: 'rgba(255,255,255,0.85)',
   border: CHURCH_UI.border,
@@ -39,6 +44,8 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'services', label: 'Services & Worship', icon: '🕊️', enabled: false },
   { key: 'events', label: 'Events & Calendar', icon: '📅', enabled: true },
   { key: 'announcements', label: 'Announcements', icon: '📣', enabled: true },
+  { key: 'finance', label: 'Finance', icon: '💰', enabled: true },
+  { key: 'reports', label: 'Reports', icon: '📈', enabled: true },
   { key: 'attendance', label: 'Attendance', icon: '✅', enabled: false },
   { key: 'pastoral-care', label: 'Pastoral Care', icon: '💬', enabled: false },
   { key: 'prayer', label: 'Prayer', icon: '🙏', enabled: false },
@@ -50,11 +57,9 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'outreach', label: 'Evangelism', icon: '📣', enabled: false },
   { key: 'missions', label: 'Missions', icon: '🌍', enabled: false },
   { key: 'communication', label: 'Communication', icon: '💌', enabled: false },
-  { key: 'contributions', label: 'Contributions', icon: '💰', enabled: false },
   { key: 'expenses', label: 'Expenses & Budget', icon: '📊', enabled: false },
   { key: 'documents', label: 'Documents', icon: '📁', enabled: false },
   { key: 'governance', label: 'Governance', icon: '🏛️', enabled: false },
-  { key: 'reports', label: 'Reports', icon: '📈', enabled: false },
   { key: 'roles', label: 'Roles & Permissions', icon: '🔐', enabled: false },
   { key: 'audit-log', label: 'Audit Log', icon: '📜', enabled: false },
   { key: 'settings', label: 'Church Settings', icon: '⚙️', enabled: false },
