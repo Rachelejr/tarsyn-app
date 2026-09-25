@@ -21,10 +21,10 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  getDoc,
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import ChurchSidebar from "@/components/church/ChurchSidebar";
+import ChurchPageHeader from "@/components/church/ChurchPageHeader";
 import type { ChurchEvent, EventFormValues } from "@/types/event";
 import { SUGGESTED_EVENT_CATEGORIES } from "@/types/event";
 
@@ -81,20 +81,7 @@ export default function EventsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [churchName, setChurchName] = useState<string | undefined>(undefined);
-
   const organizerId = auth.currentUser?.uid ?? null;
-
-  useEffect(() => {
-    if (!churchId) return;
-    getDoc(doc(db, "churches", churchId))
-      .then((snap) => {
-        if (snap.exists()) {
-          setChurchName((snap.data().name as string) || undefined);
-        }
-      })
-      .catch((err) => console.error("Failed to load church name:", err));
-  }, [churchId]);
 
   useEffect(() => {
     if (!churchId) return;
@@ -298,7 +285,7 @@ export default function EventsPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <ChurchSidebar churchId={churchId} churchName={churchName} />
+      <ChurchSidebar churchId={churchId} />
       <div
         style={{
           flex: 1,
@@ -310,20 +297,19 @@ export default function EventsPage() {
         }}
       >
         <div style={{ maxWidth: 920, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
-            <div>
-              <h1 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: COLOR.text }}>Events & Calendar</h1>
-              <p style={{ margin: 0, fontSize: 14, color: COLOR.textSoft }}>
-                Plan services, meetings and gatherings for your church.
-              </p>
-            </div>
-            <button
-              onClick={openCreateModal}
-              style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}
-            >
-              + New Event
-            </button>
-          </div>
+          <ChurchPageHeader
+            churchId={churchId}
+            title="Events & Calendar"
+            subtitle="Plan services, meetings and gatherings for your church."
+            actions={
+              <button
+                onClick={openCreateModal}
+                style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}
+              >
+                + New Event
+              </button>
+            }
+          />
 
           {loading ? (
             <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.85)", padding: 32, textAlign: "center", color: COLOR.textSoft }}>
