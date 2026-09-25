@@ -14,8 +14,13 @@
 //  - A "Back to Dashboard" link.
 //  - Optional `actions` slot (e.g. the "+ New X" button), centered below
 //    the subtitle.
+//
+// All style objects are plain named consts defined OUTSIDE the JSX (not
+// inline multi-line objects inside tags) to avoid a Turbopack parser quirk
+// seen in this project with certain inline style-object patterns.
 
 import { useEffect, useState, type ReactNode } from "react";
+import type { CSSProperties } from "react";
 
 interface ChurchPageHeaderProps {
   churchId: string;
@@ -24,39 +29,133 @@ interface ChurchPageHeaderProps {
   actions?: ReactNode;
 }
 
+const topRowStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 16,
+  flexWrap: "wrap",
+  gap: 10,
+};
+
+const backLinkStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: 12,
+  fontWeight: 700,
+  color: "#8A6D1F",
+  textDecoration: "none",
+  background: "rgba(216,177,90,0.14)",
+  padding: "6px 12px",
+  borderRadius: 999,
+};
+
+const chipsRowStyle: CSSProperties = {
+  display: "flex",
+  gap: 8,
+  alignItems: "center",
+  flexWrap: "wrap",
+};
+
+const dateChipStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+  fontSize: 11.5,
+  fontWeight: 600,
+  color: "#B4577A",
+  background: "#FDE2E4",
+  padding: "5px 12px",
+  borderRadius: 999,
+};
+
+const timeChipStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+  fontSize: 11.5,
+  fontWeight: 600,
+  color: "#5A8A5F",
+  background: "#E2F0CB",
+  padding: "5px 12px",
+  borderRadius: 999,
+};
+
+const weatherChipStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+  fontSize: 11.5,
+  fontWeight: 600,
+  color: "#8A6D1F",
+  background: "#F6EFDD",
+  padding: "5px 12px",
+  borderRadius: 999,
+};
+
+const titleBlockBaseStyle: CSSProperties = {
+  textAlign: "center",
+  transition: "opacity 0.5s ease, transform 0.5s ease",
+};
+
+const h1Style: CSSProperties = {
+  margin: "0 0 6px",
+  fontSize: 26,
+  fontWeight: 800,
+  color: "#24324A",
+};
+
+const subtitleStyle: CSSProperties = {
+  margin: 0,
+  fontSize: 14,
+  color: "#68758A",
+};
+
+const actionsRowStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "center",
+  marginTop: 16,
+};
+
+const wrapperStyle: CSSProperties = { marginBottom: 24 };
+
+const BACK_LABEL = String.fromCharCode(0x2190) + " Dashboard";
+const CALENDAR_ICON = String.fromCodePoint(0x1f4c6);
+const CLOCK_ICON = String.fromCodePoint(0x1f550);
+const WEATHER_ICON = String.fromCodePoint(0x1f324) + String.fromCodePoint(0xfe0f);
+const DEGREE = String.fromCharCode(0xb0) + "C";
+
 export default function ChurchPageHeader({ churchId, title, subtitle, actions }: ChurchPageHeaderProps) {
   const [visible, setVisible] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
   const [temp, setTemp] = useState<number | null>(null);
 
-  // Animation: fade/slide the title in shortly after mount.
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 30);
     return () => clearTimeout(t);
   }, []);
 
-  // Live clock.
   useEffect(() => {
     setNow(new Date());
     const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Weather — best-effort only, never blocks the page.
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m`
-          );
+          const latitude = pos.coords.latitude;
+          const longitude = pos.coords.longitude;
+          const url = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&current=temperature_2m";
+          const res = await fetch(url);
           const data = await res.json();
-          if (data?.current?.temperature_2m != null) {
+          if (data && data.current && data.current.temperature_2m != null) {
             setTemp(Math.round(data.current.temperature_2m));
           }
-        } catch {
+        } catch (err) {
           // Weather is a nice-to-have — silently skip on any failure.
         }
       },
@@ -67,107 +166,35 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
     );
   }, []);
 
-  const dateStr = now
-    ? now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })
-    : "";
-  const timeStr = now
-    ? now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-    : "";
+  const dateStr = now ? now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "";
+  const timeStr = now ? now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "";
+
+  const titleBlockStyle: CSSProperties = {
+    ...titleBlockBaseStyle,
+    opacity: visible ? 1 : 0,
+    transform: visible ? "translateY(0)" : "translateY(-10px)",
+  };
+
+  const backHref = "/dashboard/church/" + churchId;
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-          flexWrap: "wrap",
-          gap: 10,
-        }}>
-        
-          href={`/dashboard/church/${churchId}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 12,
-            fontWeight: 700,
-            color: "#8A6D1F",
-            textDecoration: "none",
-            background: "rgba(216,177,90,0.14)",
-            padding: "6px 12px",
-            borderRadius: 999,
-          }}>
-          {"\u2190 Dashboard"}
-        </a>
+    <div style={wrapperStyle}>
+      <div style={topRowStyle}>
+        <a href={backHref} style={backLinkStyle}>{BACK_LABEL}</a>
 
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          {dateStr && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: 11.5,
-                fontWeight: 600,
-                color: "#B4577A",
-                background: "#FDE2E4",
-                padding: "5px 12px",
-                borderRadius: 999,
-              }}>
-              {"\u{1F4C6} "}{dateStr}
-            </span>
-          )}
-          {timeStr && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: 11.5,
-                fontWeight: 600,
-                color: "#5A8A5F",
-                background: "#E2F0CB",
-                padding: "5px 12px",
-                borderRadius: 999,
-              }}>
-              {"\u{1F550} "}{timeStr}
-            </span>
-          )}
-          {temp !== null && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: 11.5,
-                fontWeight: 600,
-                color: "#8A6D1F",
-                background: "#F6EFDD",
-                padding: "5px 12px",
-                borderRadius: 999,
-              }}>
-              {"\u{1F324}\uFE0F "}{temp}{"\u00B0C"}
-            </span>
-          )}
+        <div style={chipsRowStyle}>
+          {dateStr ? <span style={dateChipStyle}>{CALENDAR_ICON + " " + dateStr}</span> : null}
+          {timeStr ? <span style={timeChipStyle}>{CLOCK_ICON + " " + timeStr}</span> : null}
+          {temp !== null ? <span style={weatherChipStyle}>{WEATHER_ICON + " " + temp + DEGREE}</span> : null}
         </div>
       </div>
 
-      <div
-        style={{
-          textAlign: "center",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(-10px)",
-          transition: "opacity 0.5s ease, transform 0.5s ease",
-        }}>
-        <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 800, color: "#24324A" }}>{title}</h1>
-        {subtitle && <p style={{ margin: 0, fontSize: 14, color: "#68758A" }}>{subtitle}</p>}
+      <div style={titleBlockStyle}>
+        <h1 style={h1Style}>{title}</h1>
+        {subtitle ? <p style={subtitleStyle}>{subtitle}</p> : null}
       </div>
 
-      {actions && (
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>{actions}</div>
-      )}
+      {actions ? <div style={actionsRowStyle}>{actions}</div> : null}
     </div>
   );
 }
