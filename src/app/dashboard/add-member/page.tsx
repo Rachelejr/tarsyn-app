@@ -16,7 +16,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import ChurchSidebar from '@/components/church/ChurchSidebar';
 
 const C = {
@@ -59,10 +59,22 @@ function AddChurchMemberContent() {
   const [success, setSuccess] = useState(false);
   const [inviteStatus, setInviteStatus] = useState<'sent' | 'failed' | 'no-email' | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [churchName, setChurchName] = useState('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!churchId) return;
+    getDoc(doc(db, 'churches', churchId))
+      .then((snap) => {
+        if (snap.exists()) {
+          setChurchName((snap.data().name as string) || (snap.data().churchName as string) || '');
+        }
+      })
+      .catch((err) => console.error('Failed to load church name:', err));
+  }, [churchId]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -141,7 +153,7 @@ function AddChurchMemberContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               emails: [form.email],
-              memberName: fullName,
+              churchName: churchName || 'your church',
               inviteLink,
             }),
           });
