@@ -3,14 +3,18 @@
 // src/components/church/SubmitDepartmentReport.tsx
 //
 // A small, reusable "+ Monthly Report" button + modal that any department
-// page can drop in — the Members page, or any Ministry card (Children,
-// Youth, Media, Evangelism, Prison Ministry, Cleaning, Kitchen, or any
-// other ministry name the admin creates). Submitting writes to
-// churches/{churchId}/departmentReports, which the Human Resources page
-// reads from directly — no department needs to know HR exists, and no
-// separate "send to HR" step is needed.
+// page can drop in — the Members page, any Ministry card (Children, Youth,
+// Media, Evangelism, Prison Ministry, Cleaning, Kitchen, or any other
+// ministry name the admin creates), or the Finance/Reports page. Submitting
+// writes to churches/{churchId}/departmentReports, which the Human
+// Resources page reads from directly — no department needs to know HR
+// exists, and no separate "send to HR" step is needed.
+//
+// initialSummary (optional) pre-fills the report text — used by the
+// Finance/Reports page to auto-fill the period's income/expenses figures
+// so the person doesn't have to retype numbers that already exist.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
@@ -35,13 +39,17 @@ function currentMonthValue(): string {
 export default function SubmitDepartmentReport({
   churchId,
   departmentName,
+  initialSummary,
+  buttonLabel,
 }: {
   churchId: string;
   departmentName: string;
+  initialSummary?: string;
+  buttonLabel?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [month, setMonth] = useState(currentMonthValue());
-  const [summary, setSummary] = useState("");
+  const [summary, setSummary] = useState(initialSummary || "");
   const [submittedBy, setSubmittedBy] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +63,7 @@ export default function SubmitDepartmentReport({
 
   function openModal() {
     setMonth(currentMonthValue());
-    setSummary("");
+    setSummary(initialSummary || "");
     setSubmittedBy("");
     setError(null);
     setSuccess(false);
@@ -95,18 +103,18 @@ export default function SubmitDepartmentReport({
   return (
     <>
       <button onClick={openModal} style={{ ...btnBase, border: `1px solid ${COLOR.gold}`, color: COLOR.goldText, background: "transparent" }}>
-        📋 Monthly Report
+        {buttonLabel || "📋 Monthly Report"}
       </button>
 
       {isOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", padding: 16 }}>
-          <div style={{ width: "100%", maxWidth: 420, borderRadius: 12, background: "#FFFFFF", padding: 24 }}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 17, fontWeight: 700, color: COLOR.text }}>Monthly Report</h3>
-            <p style={{ margin: "0 0 16px", fontSize: 12, color: COLOR.textSoft }}>{departmentName} department — visible to Human Resources.</p>
+          <div style={{ width: "100%", maxWidth: 460, borderRadius: 12, background: "#FFFFFF", padding: 24 }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 17, fontWeight: 700, color: COLOR.text }}>Send Report to Human Resources</h3>
+            <p style={{ margin: "0 0 16px", fontSize: 12, color: COLOR.textSoft }}>{departmentName} department — the HR manager will see this in their Monthly Reports.</p>
 
             {success ? (
               <p style={{ borderRadius: 6, background: "#E2F0CB", color: "#3F6B34", padding: "10px 14px", fontSize: 13, fontWeight: 600 }}>
-                Report submitted!
+                Report sent to Human Resources!
               </p>
             ) : (
               <>
@@ -118,7 +126,7 @@ export default function SubmitDepartmentReport({
                   </div>
                   <div>
                     <label style={labelStyle}>Summary</label>
-                    <textarea value={summary} onChange={(e) => setSummary(e.target.value)} style={{ ...inputStyle, resize: "vertical" }} rows={5} placeholder="What happened in this department this month?" />
+                    <textarea value={summary} onChange={(e) => setSummary(e.target.value)} style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }} rows={7} placeholder="What happened in this department this month?" />
                   </div>
                   <div>
                     <label style={labelStyle}>Submitted By</label>
@@ -127,7 +135,7 @@ export default function SubmitDepartmentReport({
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 20 }}>
                   <button onClick={closeModal} disabled={saving} style={{ ...btnBase, border: "1px solid #D1D5DB", color: "#4B5563", background: "transparent" }}>Cancel</button>
-                  <button onClick={handleSubmit} disabled={saving} style={{ ...btnBase, border: "none", background: COLOR.gold, color: COLOR.text, opacity: saving ? 0.5 : 1 }}>{saving ? "Submitting…" : "Submit"}</button>
+                  <button onClick={handleSubmit} disabled={saving} style={{ ...btnBase, border: "none", background: COLOR.gold, color: COLOR.text, opacity: saving ? 0.5 : 1 }}>{saving ? "Sending…" : "Send to HR"}</button>
                 </div>
               </>
             )}
