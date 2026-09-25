@@ -1,16 +1,22 @@
 // src/types/hr.ts
 //
-// Human Resources — groups everything about PEOPLE who are not yet full
-// church members (or aren't members at all) into one place: New Converts,
-// Visitors, and Affiliation Requests. Member Birthdays are shown here too,
-// computed from churchMembers' optional dateOfBirth field, but are not a
-// separate collection — Members stays the source of truth for its own
-// records.
+// Human Resources.
+//  - New Converts, Visitors, Affiliation Requests — people not yet full
+//    members, tracked directly here.
+//  - Member Birthdays — read-only, computed from churchMembers' optional
+//    dateOfBirth field.
+//  - Monthly Department Reports — every department (Members, and any
+//    Ministry such as Children, Youth, Media, Evangelism, Prison Ministry,
+//    Cleaning, Kitchen) can submit a monthly report from its own page. It
+//    is written here, at churches/{churchId}/departmentReports/{id}, so
+//    the HR manager sees every department's report in one place without
+//    each department needing to know HR exists.
 //
 // Data lives at:
 //   churches/{churchId}/newConverts/{id}
 //   churches/{churchId}/visitors/{id}
 //   churches/{churchId}/affiliationRequests/{id}
+//   churches/{churchId}/departmentReports/{id}
 
 export interface NewConvert {
   id: string;
@@ -51,6 +57,17 @@ export interface AffiliationRequest {
   createdAt: number;
 }
 
+export interface DepartmentReport {
+  id: string;
+  organizerId: string;
+  churchId: string;
+  departmentName: string; // e.g. "Members", "Children", "Media", "Kitchen"
+  month: string; // yyyy-mm
+  summary: string;
+  submittedBy: string;
+  createdAt: number;
+}
+
 export interface NewConvertFormValues {
   fullName: string;
   phone: string;
@@ -73,4 +90,10 @@ export interface AffiliationRequestFormValues {
   phone: string;
   email: string;
   reason: string;
+}
+
+export interface DepartmentReportFormValues {
+  month: string;
+  summary: string;
+  submittedBy: string;
 }
