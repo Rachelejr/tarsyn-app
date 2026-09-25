@@ -5,23 +5,27 @@ import { useRouter, useParams } from 'next/navigation';
 import { memberAuth as auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
-// Same turquoise + rose-bebe palette used across the Church module screens.
+// Church module pastel palette (Sept 2026 direction) — the same one used
+// across Ministries/Families/Events/Dashboard. Deliberately different from
+// Tontine's bordeaux/or join page, so a member always knows which product
+// they're joining just from the color the moment the page loads.
 const C = {
-  primary: '#4FB8AE',
-  secondary: '#F7B8C6',
-  accent: '#D7F0EC',
-  bg: '#FBF6F2',
-  cardBg: '#FFFFFF',
-  text: '#1F4A46',
-  muted: '#7A9490',
-  border: '#F0D9DF',
-  danger: '#A14444',
-  dangerBg: '#FBEAEA',
+  pink: '#FDE2E4',
+  cream: '#F6EFDD',
+  green: '#E2F0CB',
+  gold: '#D8B15A',
+  goldText: '#8A6D1F',
+  text: '#24324A',
+  muted: '#68758A',
+  white: '#FFFFFF',
+  border: 'rgba(216,177,90,0.35)',
+  danger: '#B4453E',
+  dangerBg: '#FDECEC',
 };
 
 const inputStyle = {
   width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid ' + C.border,
-  fontSize: 14, color: C.text, background: C.cardBg, outline: 'none', boxSizing: 'border-box' as const,
+  fontSize: 14, color: C.text, background: C.white, outline: 'none', boxSizing: 'border-box' as const,
   fontFamily: 'Inter, sans-serif',
 };
 
@@ -113,7 +117,7 @@ function JoinChurchContent() {
         setMode('signin');
         setPassword('');
         setConfirmPassword('');
-        setError('You already have a TARSYN account with this email. Sign in below to join this church too.');
+        setError('You already have a UNIMUNITY account with this email. Sign in below to join this church too.');
         setSubmitting(false);
         return;
       }
@@ -129,23 +133,29 @@ function JoinChurchContent() {
     setSubmitting(false);
   };
 
+  const pageBg = {
+    minHeight: '100vh',
+    background: `linear-gradient(120deg, ${C.pink} 0%, ${C.cream} 55%, ${C.green} 100%)`,
+    fontFamily: 'Inter, sans-serif',
+  };
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif' }}>
-        <p style={{ color: C.primary, fontSize: 16, fontWeight: 600 }}>Loading your invitation...</p>
+      <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: C.goldText, fontSize: 16, fontWeight: 700 }}>Loading your invitation...</p>
       </div>
     );
   }
 
   if (!lookup?.found) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 20 }}>
-        <div style={{ background: C.cardBg, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: C.white, borderTop: `5px solid ${C.gold}`, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 8px 30px rgba(36,50,74,0.10)' }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 10px' }}>Invitation not found</h2>
           <p style={{ fontSize: 14, color: C.muted, margin: '0 0 24px', lineHeight: 1.6 }}>
             This invite link is invalid or may have expired. Please contact your church administrator for a new invitation.
           </p>
-          <a href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: C.primary, color: 'white', borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+          <a href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: C.gold, color: C.text, borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
             Go to Sign In
           </a>
         </div>
@@ -155,13 +165,13 @@ function JoinChurchContent() {
 
   if (lookup.alreadyRegistered) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 20 }}>
-        <div style={{ background: C.cardBg, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: C.white, borderTop: `5px solid ${C.gold}`, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 8px 30px rgba(36,50,74,0.10)' }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 10px' }}>Already registered</h2>
           <p style={{ fontSize: 14, color: C.muted, margin: '0 0 24px', lineHeight: 1.6 }}>
             This invitation has already been used to create an account. Please sign in instead.
           </p>
-          <a href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: C.primary, color: 'white', borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+          <a href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: C.gold, color: C.text, borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
             Go to Sign In
           </a>
         </div>
@@ -171,9 +181,9 @@ function JoinChurchContent() {
 
   if (success) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 20 }}>
-        <div style={{ background: C.cardBg, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-          <div style={{ width: 56, height: 56, borderRadius: 14, background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 26, color: C.primary }}>&#10003;</div>
+      <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: C.white, borderTop: `5px solid ${C.gold}`, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 8px 30px rgba(36,50,74,0.10)' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 999, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 26, color: '#3F6B34' }}>&#10003;</div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 8px' }}>You're all set!</h2>
           <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>
             Welcome to {lookup.churchName || 'the community'}. Your church administrator can now see you as an active member.
@@ -184,17 +194,17 @@ function JoinChurchContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ background: C.cardBg, borderRadius: 20, padding: '40px 36px', maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(79,184,174,0.12)' }}>
+    <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ background: C.white, borderTop: `5px solid ${C.gold}`, borderRadius: 20, padding: '40px 36px', maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(36,50,74,0.12)' }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}>
-          <div style={{ width: 52, height: 52, background: C.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 22, color: 'white' }}>+</div>
-          <h1 style={{ color: C.primary, fontSize: 22, fontWeight: 700, margin: '0 0 6px' }}>You're invited!</h1>
+          <div style={{ width: 52, height: 52, background: C.pink, borderRadius: '999px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 22 }}>&#129309;</div>
+          <h1 style={{ color: C.goldText, fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>You're invited!</h1>
           <p style={{ color: C.text, fontSize: 14, margin: 0 }}>
-            Join <strong>{lookup.churchName || 'your church'}</strong> on TARSYN
+            Join <strong>{lookup.churchName || 'your church'}</strong> on UNIMUNITY
           </p>
         </div>
 
-        <div style={{ background: C.bg, borderRadius: 12, padding: '14px 16px', marginBottom: 22 }}>
+        <div style={{ background: C.cream, borderRadius: 12, padding: '14px 16px', marginBottom: 22 }}>
           <p style={{ fontSize: 12, color: C.muted, margin: '0 0 4px', textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>Member</p>
           <p style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: 0 }}>{lookup.fullName || 'Member'}</p>
           {lookup.role && <p style={{ fontSize: 12, color: C.muted, margin: '4px 0 0' }}>Role: {lookup.role}</p>}
@@ -223,7 +233,7 @@ function JoinChurchContent() {
               <input type={showPassword ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="Password" style={{ ...inputStyle, paddingRight: 64 }} />
               <button type="button" onClick={() => setShowPassword(s => !s)}
-                style={{ position: 'absolute' as const, right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.primary, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 6px' }}>
+                style={{ position: 'absolute' as const, right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.goldText, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 6px' }}>
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
@@ -235,7 +245,7 @@ function JoinChurchContent() {
                 <input type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                   placeholder="Confirm password" style={{ ...inputStyle, paddingRight: 64 }} />
                 <button type="button" onClick={() => setShowConfirmPassword(s => !s)}
-                  style={{ position: 'absolute' as const, right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.primary, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 6px' }}>
+                  style={{ position: 'absolute' as const, right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.goldText, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 6px' }}>
                   {showConfirmPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
@@ -243,16 +253,16 @@ function JoinChurchContent() {
           )}
 
           <button type="submit" disabled={submitting}
-            style={{ width: '100%', padding: 13, background: C.primary, color: 'white', border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, marginBottom: 14 }}>
+            style={{ width: '100%', padding: 13, background: C.gold, color: C.text, border: 'none', borderRadius: 10, fontSize: 14.5, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, marginBottom: 14 }}>
             {submitting ? 'Please wait...' : mode === 'signup' ? 'Create Account & Join' : 'Sign In & Join'}
           </button>
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 12.5, color: C.muted, margin: 0 }}>
           {mode === 'signup' ? (
-            <>Already have a TARSYN account? <span onClick={() => { setMode('signin'); setError(''); }} style={{ color: C.primary, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Sign in instead</span></>
+            <>Already have a UNIMUNITY account? <span onClick={() => { setMode('signin'); setError(''); }} style={{ color: C.goldText, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Sign in instead</span></>
           ) : (
-            <>New to TARSYN? <span onClick={() => { setMode('signup'); setError(''); }} style={{ color: C.primary, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create an account</span></>
+            <>New to UNIMUNITY? <span onClick={() => { setMode('signup'); setError(''); }} style={{ color: C.goldText, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create an account</span></>
           )}
         </p>
       </div>
@@ -262,7 +272,7 @@ function JoinChurchContent() {
 
 export default function JoinChurchPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#7A9490' }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#68758A' }}>Loading...</div>}>
       <JoinChurchContent />
     </Suspense>
   );
