@@ -14,8 +14,6 @@
 //  - A "Back to Dashboard" link.
 //  - Optional `actions` slot (e.g. the "+ New X" button), centered below
 //    the subtitle.
-//  - Date/time/weather shown as distinct pastel pill chips (deliberately
-//    different visual treatment from the Tontine module's DateTimeWeather).
 
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -103,7 +101,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
             borderRadius: 999,
           }}
         >
-          ← Dashboard
+          {"\u2190 Dashboard"}
         </a>
 
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -121,7 +119,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
                 borderRadius: 999,
               }}
             >
-              📆 {dateStr}
+              {"\u{1F4C6} "}{dateStr}
             </span>
           )}
           {timeStr && (
@@ -138,7 +136,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
                 borderRadius: 999,
               }}
             >
-              🕐 {timeStr}
+              {"\u{1F550} "}{timeStr}
             </span>
           )}
           {temp !== null && (
@@ -155,7 +153,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
                 borderRadius: 999,
               }}
             >
-              🌤️ {temp}°C
+              {"\u{1F324}\uFE0F "}{temp}{"\u00B0C"}
             </span>
           )}
         </div>
