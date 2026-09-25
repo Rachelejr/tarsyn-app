@@ -23,10 +23,10 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  getDoc,
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import ChurchSidebar from "@/components/church/ChurchSidebar";
+import ChurchPageHeader from "@/components/church/ChurchPageHeader";
 import type { Family, FamilyFormValues } from "@/types/family";
 
 const COLOR = {
@@ -70,20 +70,8 @@ export default function FamiliesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [managingMembersFor, setManagingMembersFor] = useState<Family | null>(null);
-  const [churchName, setChurchName] = useState<string | undefined>(undefined);
 
   const organizerId = auth.currentUser?.uid ?? null;
-
-  useEffect(() => {
-    if (!churchId) return;
-    getDoc(doc(db, "churches", churchId))
-      .then((snap) => {
-        if (snap.exists()) {
-          setChurchName((snap.data().name as string) || undefined);
-        }
-      })
-      .catch((err) => console.error("Failed to load church name:", err));
-  }, [churchId]);
 
   // --- Live subscriptions -------------------------------------------------
 
@@ -285,7 +273,7 @@ export default function FamiliesPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <ChurchSidebar churchId={churchId} churchName={churchName} />
+      <ChurchSidebar churchId={churchId} />
       <div
         style={{
           flex: 1,
@@ -297,20 +285,19 @@ export default function FamiliesPage() {
         }}
       >
         <div style={{ maxWidth: 920, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
-            <div>
-              <h1 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: COLOR.text }}>Families</h1>
-              <p style={{ margin: 0, fontSize: 14, color: COLOR.textSoft }}>
-                Group church members into households and keep track of each family.
-              </p>
-            </div>
-            <button
-              onClick={openCreateModal}
-              style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}
-            >
-              + New Family
-            </button>
-          </div>
+          <ChurchPageHeader
+            churchId={churchId}
+            title="Families"
+            subtitle="Group church members into households and keep track of each family."
+            actions={
+              <button
+                onClick={openCreateModal}
+                style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}
+              >
+                + New Family
+              </button>
+            }
+          />
 
           {loading ? (
             <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.85)", padding: 32, textAlign: "center", color: COLOR.textSoft }}>
