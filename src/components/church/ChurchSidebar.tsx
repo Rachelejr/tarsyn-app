@@ -7,12 +7,12 @@ import { db } from '@/lib/firebase';
 import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
-// Wired to real pages: Dashboard, Members, Families, Groups, Ministries,
-// Events, Announcements, Finance, Reports. All labels are in English (UI
-// rule for the whole platform). Every other item routes to the generic
-// /coming-soon page instead of being hidden, per the "don't fake
-// functionality, but don't hide it either" rule — it just doesn't pretend
-// to work yet.
+// Wired to real pages: Dashboard, Members, Families, Human Resources,
+// Groups, Ministries, Events, Announcements, Finance, Reports. All labels
+// are in English (UI rule for the whole platform). Every other item routes
+// to the generic /coming-soon page instead of being hidden, per the "don't
+// fake functionality, but don't hide it either" rule — it just doesn't
+// pretend to work yet.
 // Light sidebar (soft white), active item in the pink -> green pastel
 // gradient with dark text. Palette: CHURCH_UI in src/lib/moduleTheme.ts.
 //
@@ -21,10 +21,13 @@ import { CHURCH_UI } from '@/lib/moduleTheme';
 // so every page just does <ChurchSidebar churchId={churchId} /> instead of
 // separately fetching + passing churchName each time.
 //
-// Note: "Contributions" was removed as its own nav item — it's now covered
-// by "Finance" (income by category, including tithes/offerings/donations)
-// plus the two funds (Operating/Social) and Reports, so it would have been
-// a duplicate, half-working entry point.
+// Notes:
+//  - "Contributions" was removed as its own nav item — it's now covered by
+//    "Finance" (income by category, including tithes/offerings/donations)
+//    plus the two funds (Operating/Social) and Reports.
+//  - "Human Resources" groups everything about people who aren't yet full
+//    members (New Converts, Visitors, Affiliation Requests) plus member
+//    Birthdays, all in one place.
 const C = {
   bg: 'rgba(255,255,255,0.85)',
   border: CHURCH_UI.border,
@@ -39,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: '🏠', enabled: true },
   { key: 'members', label: 'Members', icon: '👥', enabled: true },
   { key: 'families', label: 'Families', icon: '👨‍👩‍👧‍👦', enabled: true },
+  { key: 'hr', label: 'Human Resources', icon: '🧑‍💼', enabled: true },
   { key: 'groups', label: 'Groups', icon: '👫', enabled: true },
   { key: 'ministries', label: 'Ministries', icon: '🧭', enabled: true },
   { key: 'services', label: 'Services & Worship', icon: '🕊️', enabled: false },
@@ -180,8 +184,6 @@ export default function ChurchSidebar({ churchId }: { churchId: string }) {
     </>
   );
 
-  // Desktop: unchanged from before - a permanent 236px column, part of the
-  // normal flex row layout every Church page already wraps it in.
   if (!isMobile) {
     return (
       <div style={{ width: '236px', minWidth: '236px', background: C.bg, borderRight: `1px solid ${C.border}`, minHeight: '100vh', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', padding: '20px 0' }}>
@@ -190,10 +192,6 @@ export default function ChurchSidebar({ churchId }: { churchId: string }) {
     );
   }
 
-  // Tablet/mobile: the sidebar no longer reserves any space in the page's
-  // flex row (so the content column can use the full screen width) - it
-  // becomes a small toggle button plus a closeable drawer, both taken out
-  // of normal flow with position: fixed.
   return (
     <>
       <button
