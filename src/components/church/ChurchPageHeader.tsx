@@ -84,8 +84,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
           marginBottom: 16,
           flexWrap: "wrap",
           gap: 10,
-        }}
-      >
+        }}>
         
           href={`/dashboard/church/${churchId}`}
           style={{
@@ -99,8 +98,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
             background: "rgba(216,177,90,0.14)",
             padding: "6px 12px",
             borderRadius: 999,
-          }}
-        >
+          }}>
           {"\u2190 Dashboard"}
         </a>
 
@@ -117,8 +115,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
                 background: "#FDE2E4",
                 padding: "5px 12px",
                 borderRadius: 999,
-              }}
-            >
+              }}>
               {"\u{1F4C6} "}{dateStr}
             </span>
           )}
@@ -134,8 +131,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
                 background: "#E2F0CB",
                 padding: "5px 12px",
                 borderRadius: 999,
-              }}
-            >
+              }}>
               {"\u{1F550} "}{timeStr}
             </span>
           )}
@@ -151,8 +147,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
                 background: "#F6EFDD",
                 padding: "5px 12px",
                 borderRadius: 999,
-              }}
-            >
+              }}>
               {"\u{1F324}\uFE0F "}{temp}{"\u00B0C"}
             </span>
           )}
@@ -165,8 +160,7 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(-10px)",
           transition: "opacity 0.5s ease, transform 0.5s ease",
-        }}
-      >
+        }}>
         <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 800, color: "#24324A" }}>{title}</h1>
         {subtitle && <p style={{ margin: 0, fontSize: 14, color: "#68758A" }}>{subtitle}</p>}
       </div>
