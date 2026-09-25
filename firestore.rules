@@ -79,6 +79,14 @@ service cloud.firestore {
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
+
+      match /giving/{givingId} {
+        allow read: if request.auth != null && (
+          resource.data.userId == request.auth.uid ||
+          resource.data.organizerId == request.auth.uid
+        );
+        allow write: if false;
+      }
     }
     match /churchMembers/{memberId} {
       allow read: if request.auth != null;
