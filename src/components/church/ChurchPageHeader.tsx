@@ -14,6 +14,8 @@
 //  - A "Back to Dashboard" link.
 //  - Optional `actions` slot (e.g. the "+ New X" button), centered below
 //    the subtitle.
+//  - Date/time/weather shown as distinct pastel pill chips (deliberately
+//    different visual treatment from the Tontine module's DateTimeWeather).
 
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -81,23 +83,81 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontSize: 12,
-          color: "#68758A",
           marginBottom: 16,
           flexWrap: "wrap",
-          gap: 8,
+          gap: 10,
         }}
       >
         
           href={`/dashboard/church/${churchId}`}
-          style={{ color: "#8A6D1F", textDecoration: "none", fontWeight: 600 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 12,
+            fontWeight: 700,
+            color: "#8A6D1F",
+            textDecoration: "none",
+            background: "rgba(216,177,90,0.14)",
+            padding: "6px 12px",
+            borderRadius: 999,
+          }}
         >
-          ← Back to Dashboard
+          ← Dashboard
         </a>
-        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          {dateStr && <span>{dateStr}</span>}
-          {timeStr && <span>{timeStr}</span>}
-          {temp !== null && <span>🌡️ {temp}°C</span>}
+
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          {dateStr && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: "#B4577A",
+                background: "#FDE2E4",
+                padding: "5px 12px",
+                borderRadius: 999,
+              }}
+            >
+              📆 {dateStr}
+            </span>
+          )}
+          {timeStr && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: "#5A8A5F",
+                background: "#E2F0CB",
+                padding: "5px 12px",
+                borderRadius: 999,
+              }}
+            >
+              🕐 {timeStr}
+            </span>
+          )}
+          {temp !== null && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: "#8A6D1F",
+                background: "#F6EFDD",
+                padding: "5px 12px",
+                borderRadius: 999,
+              }}
+            >
+              🌤️ {temp}°C
+            </span>
+          )}
         </div>
       </div>
 
