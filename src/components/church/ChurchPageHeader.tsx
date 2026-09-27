@@ -2,131 +2,237 @@
 
 // src/components/church/ChurchPageHeader.tsx
 //
-// Shared header for every Church module page (Ministries, Families, Events,
-// and every future section). Built once so new pages just import this
-// instead of re-implementing a header each time.
+// Shared page header for every Church module page (UNIMUNITY design system).
 //
-//  - Centered title with a gentle fade/slide-in animation on mount.
-//  - Live date + time (browser clock, no API needed).
-//  - Live temperature via Open-Meteo (free, no API key) using the visitor's
-//    browser geolocation. If location is denied or unavailable, the
-//    temperature is simply omitted — never blocks or errors the page.
-//  - A "Back to Dashboard" link.
-//  - Optional `actions` slot (e.g. the "+ New X" button), centered below
-//    the subtitle.
+// Structure:
+//   1. Light top row: small breadcrumb (home icon + page) on the left,
+//      live date / time / temperature chips on the right.
+//   2. Rounded pastel banner: title, short subtitle, optional description,
+//      optional primary + secondary actions, and a small line illustration
+//      on the right side.
 //
-// All style objects are plain named consts defined OUTSIDE the JSX (not
-// inline multi-line objects inside tags) to avoid a Turbopack parser quirk
-// seen in this project with certain inline style-object patterns.
+// Backward compatible: pages that still pass only { churchId, title,
+// subtitle, actions } keep working and simply get the new banner.
+//
+// New optional props:
+//   description      - one extra line under the subtitle
+//   breadcrumb       - label shown after the home icon (defaults to title),
+//                      or an array of { label, href } for deeper pages
+//   illustration     - "finance" | "reports" | "none" | any ReactNode
+//   primaryAction    - { label, onClick?, href?, icon? } or a ReactNode
+//   secondaryAction  - same shape, rendered as a white outlined button
+//   compact          - smaller banner (for "coming soon" pages)
+//
+// Style rules for this project: style objects are named consts defined
+// OUTSIDE the JSX (Turbopack parser quirk), responsive rules live in one
+// CSS string injected with a <style> tag, and the file is plain ASCII
+// (special characters are built with String.fromCodePoint).
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, isValidElement, type ReactNode } from "react";
 import type { CSSProperties } from "react";
+
+export type HeaderAction = {
+  label: string;
+  onClick?: () => void;
+  href?: string;
+  icon?: string;
+};
+
+export type BreadcrumbItem = { label: string; href?: string };
+
+export type HeaderIllustration = "finance" | "reports" | "none" | ReactNode;
 
 interface ChurchPageHeaderProps {
   churchId: string;
   title: string;
   subtitle?: string;
+  description?: string;
+  breadcrumb?: string | BreadcrumbItem[];
+  illustration?: HeaderIllustration;
+  primaryAction?: HeaderAction | ReactNode;
+  secondaryAction?: HeaderAction | ReactNode;
+  /** Legacy slot, still supported. Rendered after the other actions. */
   actions?: ReactNode;
+  compact?: boolean;
 }
 
-const topRowStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 16,
-  flexWrap: "wrap",
-  gap: 10,
+const PALETTE = {
+  pink: "#FDE2E4",
+  cream: "#F6EFDD",
+  green: "#E2F0CB",
+  gold: "#D8B15A",
+  goldDeep: "#B8913F",
+  goldText: "#8A6D1F",
+  text: "#24324A",
+  textSoft: "#68758A",
 };
 
-const backLinkStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-  fontSize: 12,
-  fontWeight: 700,
-  color: "#8A6D1F",
-  textDecoration: "none",
-  background: "rgba(216,177,90,0.14)",
-  padding: "6px 12px",
-  borderRadius: 999,
-};
+const HEADER_CSS = `
+.cph { margin-bottom: 24px; }
+.cph-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.cph-crumbs { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: ${PALETTE.textSoft}; min-width: 0; }
+.cph-crumbs a { color: ${PALETTE.textSoft}; text-decoration: none; display: inline-flex; align-items: center; border-radius: 6px; }
+.cph-crumbs a:hover { color: ${PALETTE.text}; }
+.cph-crumbs a:focus-visible { outline: 2px solid ${PALETTE.gold}; outline-offset: 2px; }
+.cph-crumb { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.cph-crumb-current { color: ${PALETTE.text}; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cph-sep { color: #C5CBD5; }
+.cph-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.cph-chip { font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(216,177,90,0.25); color: ${PALETTE.textSoft}; white-space: nowrap; }
 
-const chipsRowStyle: CSSProperties = {
-  display: "flex",
-  gap: 8,
-  alignItems: "center",
-  flexWrap: "wrap",
-};
+.cph-banner {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px;
+  padding: 26px 30px; border-radius: 22px;
+  background: linear-gradient(120deg, ${PALETTE.pink} 0%, ${PALETTE.cream} 55%, ${PALETTE.green} 100%);
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: 0 1px 2px rgba(36,50,74,0.04), 0 8px 24px -12px rgba(184,145,63,0.25);
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.cph-banner.is-in { opacity: 1; transform: none; }
+.cph-banner::after {
+  content: ""; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%); pointer-events: none;
+}
+.cph-banner.is-compact { padding: 18px 24px; }
+.cph-text { position: relative; z-index: 1; max-width: 620px; }
+.cph-title { margin: 0; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; color: ${PALETTE.text}; }
+.cph-banner.is-compact .cph-title { font-size: 22px; }
+.cph-subtitle { margin: 8px 0 0; font-size: 15px; font-weight: 600; color: ${PALETTE.text}; opacity: 0.85; }
+.cph-desc { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: ${PALETTE.textSoft}; }
+.cph-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 18px; }
+.cph-btn {
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 10px 18px;
+  font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; line-height: 1;
+  transition: box-shadow 0.15s ease, transform 0.15s ease; font-family: inherit;
+}
+.cph-btn:focus-visible { outline: 2px solid ${PALETTE.goldDeep}; outline-offset: 2px; }
+.cph-btn-primary { background: ${PALETTE.gold}; color: ${PALETTE.text}; border: 1px solid ${PALETTE.gold}; }
+.cph-btn-primary:hover { box-shadow: 0 4px 12px -4px rgba(184,145,63,0.6); }
+.cph-btn-secondary { background: #FFFFFF; color: ${PALETTE.text}; border: 1px solid rgba(216,177,90,0.45); }
+.cph-btn-secondary:hover { border-color: ${PALETTE.gold}; }
+.cph-art { position: relative; z-index: 1; width: 150px; height: 120px; flex-shrink: 0; }
+.cph-art svg { width: 100%; height: 100%; display: block; }
 
-const dateChipStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 5,
-  fontSize: 11.5,
-  fontWeight: 600,
-  color: "#B4577A",
-  background: "#FDE2E4",
-  padding: "5px 12px",
-  borderRadius: 999,
-};
+@media (max-width: 900px) {
+  .cph-art { width: 110px; height: 90px; }
+  .cph-banner { padding: 22px 22px; }
+}
+@media (max-width: 640px) {
+  .cph-top { flex-direction: column; align-items: flex-start; }
+  .cph-banner { grid-template-columns: minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 20px 18px; border-radius: 18px; }
+  .cph-art { width: 64px; height: 56px; }
+  .cph-actions { flex-direction: column; align-items: stretch; }
+  .cph-actions > * { width: 100%; }
+  .cph-btn { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cph-banner { transition: none; opacity: 1; transform: none; }
+}
+@media print {
+  .cph-top, .cph-actions, .cph-art { display: none !important; }
+  .cph-banner { background: #FFFFFF !important; box-shadow: none !important; border: 1px solid #ccc !important; opacity: 1 !important; transform: none !important; }
+}
+`;
 
-const timeChipStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 5,
-  fontSize: 11.5,
-  fontWeight: 600,
-  color: "#5A8A5F",
-  background: "#E2F0CB",
-  padding: "5px 12px",
-  borderRadius: 999,
-};
-
-const weatherChipStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 5,
-  fontSize: 11.5,
-  fontWeight: 600,
-  color: "#8A6D1F",
-  background: "#F6EFDD",
-  padding: "5px 12px",
-  borderRadius: 999,
-};
-
-const titleBlockBaseStyle: CSSProperties = {
-  textAlign: "center",
-  transition: "opacity 0.5s ease, transform 0.5s ease",
-};
-
-const h1Style: CSSProperties = {
-  margin: "0 0 6px",
-  fontSize: 26,
-  fontWeight: 800,
-  color: "#24324A",
-};
-
-const subtitleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: 14,
-  color: "#68758A",
-};
-
-const actionsRowStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "center",
-  marginTop: 16,
-};
-
-const wrapperStyle: CSSProperties = { marginBottom: 24 };
-
-const BACK_LABEL = String.fromCharCode(0x2190) + " Dashboard";
-const CALENDAR_ICON = String.fromCodePoint(0x1f4c6);
+const CALENDAR_ICON = String.fromCodePoint(0x1f4c5);
 const CLOCK_ICON = String.fromCodePoint(0x1f550);
-const WEATHER_ICON = String.fromCodePoint(0x1f324) + String.fromCodePoint(0xfe0f);
+const WEATHER_ICON = String.fromCodePoint(0x2600) + String.fromCodePoint(0xfe0f);
 const DEGREE = String.fromCharCode(0xb0) + "C";
 
-export default function ChurchPageHeader({ churchId, title, subtitle, actions }: ChurchPageHeaderProps) {
+const homeIconStyle: CSSProperties = { display: "block" };
+
+function HomeIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={homeIconStyle}>
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+    </svg>
+  );
+}
+
+// Finance: a sprout growing out of a small stack of coins.
+function FinanceArt() {
+  return (
+    <svg viewBox="0 0 150 120" fill="none" aria-hidden="true">
+      <circle cx="84" cy="62" r="50" fill="#FFFFFF" opacity="0.55" />
+      <ellipse cx="72" cy="98" rx="30" ry="7" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M42 98v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M102 98v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <ellipse cx="72" cy="90" rx="30" ry="7" fill="#FFFFFF" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M46 90v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M98 90v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <ellipse cx="72" cy="82" rx="26" ry="6" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M72 80V44" stroke="#6E9A5B" strokeWidth="2" strokeLinecap="round" />
+      <path d="M72 60c-14 0-22-8-22-20 12 0 22 6 22 20Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M72 52c2-14 12-22 26-22 0 14-10 22-26 22Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx="116" cy="34" r="9" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.4" />
+      <path d="M116 29v10M113 32h6" stroke={PALETTE.goldDeep} strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="30" cy="44" r="3" fill={PALETTE.gold} opacity="0.7" />
+      <circle cx="128" cy="70" r="2.2" fill={PALETTE.gold} opacity="0.6" />
+    </svg>
+  );
+}
+
+// Reports: a sheet with a small bar chart and a trend line.
+function ReportsArt() {
+  return (
+    <svg viewBox="0 0 150 120" fill="none" aria-hidden="true">
+      <circle cx="80" cy="60" r="50" fill="#FFFFFF" opacity="0.55" />
+      <rect x="44" y="16" width="64" height="86" rx="8" fill="#FFFFFF" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M54 30h30M54 38h20" stroke="#C9CFD8" strokeWidth="2" strokeLinecap="round" />
+      <rect x="54" y="70" width="9" height="20" rx="2" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.3" />
+      <rect x="67" y="60" width="9" height="30" rx="2" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.3" />
+      <rect x="80" y="52" width="9" height="38" rx="2" fill={PALETTE.green} stroke={PALETTE.goldDeep} strokeWidth="1.3" />
+      <path d="M54 62l13-8 13 4 16-14" stroke="#6E9A5B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="96" cy="44" r="2.6" fill="#6E9A5B" />
+      <circle cx="114" cy="84" r="14" fill={PALETTE.green} stroke={PALETTE.goldDeep} strokeWidth="1.6" />
+      <path d="M114 70v14h14" stroke={PALETTE.goldDeep} strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="30" cy="36" r="3" fill={PALETTE.gold} opacity="0.7" />
+      <circle cx="132" cy="30" r="2.2" fill={PALETTE.gold} opacity="0.6" />
+    </svg>
+  );
+}
+
+function isActionConfig(a: unknown): a is HeaderAction {
+  return !!a && typeof a === "object" && !isValidElement(a) && "label" in (a as Record<string, unknown>);
+}
+
+function ActionButton({ action, kind }: { action: HeaderAction | ReactNode; kind: "primary" | "secondary" }) {
+  if (!isActionConfig(action)) return <>{action}</>;
+  const cls = "cph-btn " + (kind === "primary" ? "cph-btn-primary" : "cph-btn-secondary");
+  const content = (
+    <>
+      {action.icon ? <span aria-hidden="true">{action.icon}</span> : null}
+      <span>{action.label}</span>
+    </>
+  );
+  if (action.href) {
+    return <a href={action.href} className={cls} onClick={action.onClick}>{content}</a>;
+  }
+  return <button type="button" className={cls} onClick={action.onClick}>{content}</button>;
+}
+
+function renderIllustration(illustration: HeaderIllustration | undefined): ReactNode {
+  if (!illustration || illustration === "none") return null;
+  if (illustration === "finance") return <FinanceArt />;
+  if (illustration === "reports") return <ReportsArt />;
+  return illustration;
+}
+
+export default function ChurchPageHeader({
+  churchId,
+  title,
+  subtitle,
+  description,
+  breadcrumb,
+  illustration,
+  primaryAction,
+  secondaryAction,
+  actions,
+  compact,
+}: ChurchPageHeaderProps) {
   const [visible, setVisible] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
   const [temp, setTemp] = useState<number | null>(null);
@@ -143,58 +249,81 @@ export default function ChurchPageHeader({ churchId, title, subtitle, actions }:
   }, []);
 
   useEffect(() => {
-    if (!("geolocation" in navigator)) return;
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const latitude = pos.coords.latitude;
-          const longitude = pos.coords.longitude;
-          const url = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&current=temperature_2m";
+          const url = "https://api.open-meteo.com/v1/forecast?latitude=" + pos.coords.latitude + "&longitude=" + pos.coords.longitude + "&current=temperature_2m";
           const res = await fetch(url);
           const data = await res.json();
           if (data && data.current && data.current.temperature_2m != null) {
             setTemp(Math.round(data.current.temperature_2m));
           }
         } catch (err) {
-          // Weather is a nice-to-have — silently skip on any failure.
+          // Weather is a nice-to-have: silently skip on any failure.
         }
       },
       () => {
-        // Permission denied or unavailable — silently skip.
+        // Permission denied or unavailable: silently skip.
       },
       { timeout: 5000 }
     );
   }, []);
 
-  const dateStr = now ? now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "";
+  const dateStr = now ? now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
   const timeStr = now ? now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "";
 
-  const titleBlockStyle: CSSProperties = {
-    ...titleBlockBaseStyle,
-    opacity: visible ? 1 : 0,
-    transform: visible ? "translateY(0)" : "translateY(-10px)",
-  };
+  const homeHref = "/dashboard/church/" + churchId;
+  const crumbs: BreadcrumbItem[] = Array.isArray(breadcrumb)
+    ? breadcrumb
+    : [{ label: breadcrumb || title }];
 
-  const backHref = "/dashboard/church/" + churchId;
+  const art = renderIllustration(illustration);
+  const hasActions = !!primaryAction || !!secondaryAction || !!actions;
+  const bannerClass = "cph-banner" + (visible ? " is-in" : "") + (compact ? " is-compact" : "");
 
   return (
-    <div style={wrapperStyle}>
-      <div style={topRowStyle}>
-        <a href={backHref} style={backLinkStyle}>{BACK_LABEL}</a>
+    <header className="cph">
+      <style>{HEADER_CSS}</style>
 
-        <div style={chipsRowStyle}>
-          {dateStr ? <span style={dateChipStyle}>{CALENDAR_ICON + " " + dateStr}</span> : null}
-          {timeStr ? <span style={timeChipStyle}>{CLOCK_ICON + " " + timeStr}</span> : null}
-          {temp !== null ? <span style={weatherChipStyle}>{WEATHER_ICON + " " + temp + DEGREE}</span> : null}
+      <div className="cph-top">
+        <nav className="cph-crumbs" aria-label="Breadcrumb">
+          <a href={homeHref} aria-label="Church dashboard"><HomeIcon /></a>
+          {crumbs.map((c, i) => {
+            const last = i === crumbs.length - 1;
+            return (
+              <span key={c.label + i} className="cph-crumb">
+                <span className="cph-sep" aria-hidden="true">/</span>
+                {c.href && !last
+                  ? <a href={c.href}>{c.label}</a>
+                  : <span className="cph-crumb-current" aria-current={last ? "page" : undefined}>{c.label}</span>}
+              </span>
+            );
+          })}
+        </nav>
+
+        <div className="cph-chips">
+          {dateStr ? <span className="cph-chip">{CALENDAR_ICON + " " + dateStr}</span> : null}
+          {timeStr ? <span className="cph-chip">{CLOCK_ICON + " " + timeStr}</span> : null}
+          {temp !== null ? <span className="cph-chip">{WEATHER_ICON + " " + temp + DEGREE}</span> : null}
         </div>
       </div>
 
-      <div style={titleBlockStyle}>
-        <h1 style={h1Style}>{title}</h1>
-        {subtitle ? <p style={subtitleStyle}>{subtitle}</p> : null}
+      <div className={bannerClass}>
+        <div className="cph-text">
+          <h1 className="cph-title">{title}</h1>
+          {subtitle ? <p className="cph-subtitle">{subtitle}</p> : null}
+          {description ? <p className="cph-desc">{description}</p> : null}
+          {hasActions ? (
+            <div className="cph-actions">
+              {primaryAction ? <ActionButton action={primaryAction} kind="primary" /> : null}
+              {secondaryAction ? <ActionButton action={secondaryAction} kind="secondary" /> : null}
+              {actions}
+            </div>
+          ) : null}
+        </div>
+        {art ? <div className="cph-art">{art}</div> : null}
       </div>
-
-      {actions ? <div style={actionsRowStyle}>{actions}</div> : null}
-    </div>
+    </header>
   );
 }
