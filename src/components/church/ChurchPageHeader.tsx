@@ -7,9 +7,12 @@
 // Structure:
 //   1. Light top row: small breadcrumb (home icon + page) on the left,
 //      live date / time / temperature chips on the right.
-//   2. Rounded pastel banner: title, short subtitle, optional description,
-//      optional primary + secondary actions, and a small line illustration
-//      on the right side.
+//   2. Rounded pastel banner, everything centered: church logo, title
+//      (revealed left to right on load, with a small gold rule growing
+//      under it), subtitle, optional description, optional actions, and a
+//      small line illustration on the right side (hidden on phones).
+//   Temperature is always shown (device location, else the church city,
+//   else New York); date / time / temperature chips are bold italic.
 //
 // The church's OWN logo (churches/{churchId}.logoUrl) is shown in the
 // banner next to the title on every page, and on printouts. If the church
@@ -85,12 +88,12 @@ const HEADER_CSS = `
 .cph-crumb-current { color: ${PALETTE.text}; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cph-sep { color: #C5CBD5; }
 .cph-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.cph-chip { font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(216,177,90,0.25); color: ${PALETTE.textSoft}; white-space: nowrap; }
+.cph-chip { font-size: 11.5px; font-weight: 700; font-style: italic; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.75); border: 1px solid rgba(216,177,90,0.25); color: ${PALETTE.textSoft}; white-space: nowrap; }
 
 .cph-banner {
   position: relative; overflow: hidden;
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px;
-  padding: 26px 30px; border-radius: 22px;
+  display: block; text-align: center;
+  padding: 30px 190px; border-radius: 22px;
   background: linear-gradient(120deg, ${PALETTE.pink} 0%, ${PALETTE.cream} 55%, ${PALETTE.green} 100%);
   border: 1px solid rgba(255,255,255,0.9);
   box-shadow: 0 1px 2px rgba(36,50,74,0.04), 0 8px 24px -12px rgba(184,145,63,0.25);
@@ -102,17 +105,25 @@ const HEADER_CSS = `
   content: ""; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%); pointer-events: none;
 }
-.cph-banner.is-compact { padding: 18px 24px; }
-.cph-text { position: relative; z-index: 1; max-width: 700px; display: flex; gap: 18px; align-items: flex-start; }
-.cph-text-body { min-width: 0; }
+.cph-banner.is-compact { padding: 20px 150px; }
+.cph-text { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.cph-text-body { min-width: 0; display: flex; flex-direction: column; align-items: center; }
 .cph-logo { flex-shrink: 0; width: 72px; height: 72px; border-radius: 18px; background: #FFFFFF; border: 1px solid rgba(216,177,90,0.3); box-shadow: 0 2px 8px -4px rgba(36,50,74,0.15); display: flex; align-items: center; justify-content: center; padding: 8px; box-sizing: border-box; overflow: hidden; }
 .cph-logo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 .cph-banner.is-compact .cph-logo { width: 52px; height: 52px; border-radius: 14px; padding: 6px; }
-.cph-title { margin: 0; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; color: ${PALETTE.text}; }
+.cph-title { margin: 0; font-size: clamp(24px, 2.6vw, 34px); line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; color: ${PALETTE.text}; }
+.cph-banner.is-in .cph-title { animation: cph-wipe 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.cph-rule { display: block; width: 64px; height: 3px; border-radius: 3px; margin: 10px auto 0; background: linear-gradient(90deg, ${PALETTE.gold}, rgba(216,177,90,0)); transform-origin: left center; transform: scaleX(0); }
+.cph-banner.is-in .cph-rule { animation: cph-grow 0.8s 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes cph-wipe {
+  from { clip-path: inset(0 100% 0 0); transform: translateX(-18px); opacity: 0.3; }
+  to { clip-path: inset(0 0 0 0); transform: none; opacity: 1; }
+}
+@keyframes cph-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .cph-banner.is-compact .cph-title { font-size: 22px; }
-.cph-subtitle { margin: 8px 0 0; font-size: 15px; font-weight: 600; color: ${PALETTE.text}; opacity: 0.85; }
-.cph-desc { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: ${PALETTE.textSoft}; }
-.cph-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 18px; }
+.cph-subtitle { margin: 10px 0 0; font-size: 15px; font-weight: 600; color: ${PALETTE.text}; opacity: 0.85; }
+.cph-desc { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: ${PALETTE.textSoft}; max-width: 620px; }
+.cph-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 18px; }
 .cph-btn {
   display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 10px 18px;
   font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; line-height: 1;
@@ -123,25 +134,29 @@ const HEADER_CSS = `
 .cph-btn-primary:hover { box-shadow: 0 4px 12px -4px rgba(184,145,63,0.6); }
 .cph-btn-secondary { background: #FFFFFF; color: ${PALETTE.text}; border: 1px solid rgba(216,177,90,0.45); }
 .cph-btn-secondary:hover { border-color: ${PALETTE.gold}; }
-.cph-art { position: relative; z-index: 1; width: 150px; height: 120px; flex-shrink: 0; }
+.cph-art { position: absolute; z-index: 1; right: 26px; top: 50%; transform: translateY(-50%); width: 150px; height: 120px; }
 .cph-art svg { width: 100%; height: 100%; display: block; }
 
+@media (max-width: 1100px) {
+  .cph-banner { padding: 26px 150px; }
+  .cph-art { width: 120px; height: 96px; right: 18px; }
+}
 @media (max-width: 900px) {
-  .cph-art { width: 110px; height: 90px; }
-  .cph-banner { padding: 22px 22px; }
+  .cph-banner { padding: 24px 110px; }
+  .cph-art { width: 92px; height: 74px; right: 12px; }
 }
 @media (max-width: 640px) {
   .cph-top { flex-direction: column; align-items: flex-start; }
-  .cph-banner { grid-template-columns: minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 20px 18px; border-radius: 18px; }
-  .cph-art { width: 64px; height: 56px; }
-  .cph-text { gap: 12px; }
-  .cph-logo { width: 52px; height: 52px; border-radius: 14px; padding: 6px; }
-  .cph-actions { flex-direction: column; align-items: stretch; }
+  .cph-banner, .cph-banner.is-compact { padding: 22px 16px; border-radius: 18px; }
+  .cph-art { display: none; }
+  .cph-logo { width: 56px; height: 56px; border-radius: 14px; padding: 6px; }
+  .cph-actions { flex-direction: column; align-items: stretch; width: 100%; }
   .cph-actions > * { width: 100%; }
   .cph-btn { justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cph-banner { transition: none; opacity: 1; transform: none; }
+  .cph-banner.is-in .cph-title, .cph-banner.is-in .cph-rule { animation: none; transform: none; clip-path: none; }
 }
 @media print {
   .cph-top, .cph-actions, .cph-art { display: none !important; }
@@ -153,7 +168,7 @@ const HEADER_CSS = `
 const CALENDAR_ICON = String.fromCodePoint(0x1f4c5);
 const CLOCK_ICON = String.fromCodePoint(0x1f550);
 const WEATHER_ICON = String.fromCodePoint(0x2600) + String.fromCodePoint(0xfe0f);
-const DEGREE = String.fromCharCode(0xb0) + "C";
+const DEGREE = String.fromCharCode(0xb0);
 
 const homeIconStyle: CSSProperties = { display: "block" };
 
@@ -274,6 +289,7 @@ export default function ChurchPageHeader({
   const [visible, setVisible] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
   const [temp, setTemp] = useState<number | null>(null);
+  const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 30);
@@ -286,27 +302,72 @@ export default function ChurchPageHeader({
     return () => clearInterval(interval);
   }, []);
 
+  // Temperature is always shown. Source, in order: the device location
+  // (if the browser allows it), else the church's own city (from its
+  // profile), else New York. Cached 30 min for the whole session.
+  // Fahrenheit for US churches, Celsius elsewhere.
   useEffect(() => {
-    if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const url = "https://api.open-meteo.com/v1/forecast?latitude=" + pos.coords.latitude + "&longitude=" + pos.coords.longitude + "&current=temperature_2m";
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data && data.current && data.current.temperature_2m != null) {
-            setTemp(Math.round(data.current.temperature_2m));
-          }
-        } catch (err) {
-          // Weather is a nice-to-have: silently skip on any failure.
+    if (!brand.loaded) return;
+    const country = (brand.country || "").toLowerCase();
+    const useF = !country || /united states|^usa?$|u\.s\./.test(country);
+    const unitParam = useF ? "fahrenheit" : "celsius";
+    const cacheKey = "UNIMUNITY_church_weather_" + unitParam;
+
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && Date.now() - parsed.ts < 30 * 60 * 1000) {
+          setTemp(parsed.temp);
+          setTempUnit(useF ? "F" : "C");
+          return;
         }
-      },
-      () => {
-        // Permission denied or unavailable: silently skip.
-      },
-      { timeout: 5000 }
-    );
-  }, []);
+      }
+    } catch (e) {
+      // ignore cache problems
+    }
+
+    let cancelled = false;
+    const fetchAt = async (lat: number, lon: number) => {
+      try {
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m&temperature_unit=" + unitParam;
+        const res = await fetch(url);
+        const data = await res.json();
+        const t = Math.round(data && data.current ? data.current.temperature_2m : NaN);
+        if (!cancelled && !isNaN(t)) {
+          setTemp(t);
+          setTempUnit(useF ? "F" : "C");
+          try { sessionStorage.setItem(cacheKey, JSON.stringify({ temp: t, ts: Date.now() })); } catch (e) { /* ignore */ }
+        }
+      } catch (e) {
+        // Weather is a nice-to-have: never block the page.
+      }
+    };
+    const fallback = async () => {
+      if (brand.city) {
+        try {
+          const g = await fetch("https://geocoding-api.open-meteo.com/v1/search?count=1&name=" + encodeURIComponent(brand.city));
+          const gd = await g.json();
+          const hit = gd && gd.results && gd.results[0];
+          if (hit) { fetchAt(hit.latitude, hit.longitude); return; }
+        } catch (e) {
+          // fall through to the default city
+        }
+      }
+      fetchAt(40.7128, -74.006);
+    };
+
+    if (typeof navigator !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => fetchAt(pos.coords.latitude, pos.coords.longitude),
+        () => { fallback(); },
+        { timeout: 5000 }
+      );
+    } else {
+      fallback();
+    }
+    return () => { cancelled = true; };
+  }, [brand.loaded, brand.city, brand.country]);
 
   const dateStr = now ? now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
   const timeStr = now ? now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "";
@@ -343,7 +404,7 @@ export default function ChurchPageHeader({
         <div className="cph-chips">
           {dateStr ? <span className="cph-chip">{CALENDAR_ICON + " " + dateStr}</span> : null}
           {timeStr ? <span className="cph-chip">{CLOCK_ICON + " " + timeStr}</span> : null}
-          {temp !== null ? <span className="cph-chip">{WEATHER_ICON + " " + temp + DEGREE}</span> : null}
+          {temp !== null ? <span className="cph-chip">{WEATHER_ICON + " " + temp + DEGREE + tempUnit}</span> : null}
         </div>
       </div>
 
@@ -356,6 +417,7 @@ export default function ChurchPageHeader({
           ) : null}
           <div className="cph-text-body">
             <h1 className="cph-title">{title}</h1>
+            <span className="cph-rule" aria-hidden="true" />
             {subtitle ? <p className="cph-subtitle">{subtitle}</p> : null}
             {description ? <p className="cph-desc">{description}</p> : null}
             {hasActions ? (
