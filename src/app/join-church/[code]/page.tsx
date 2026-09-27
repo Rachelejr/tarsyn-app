@@ -29,6 +29,12 @@ const inputStyle = {
   fontFamily: 'Inter, sans-serif',
 };
 
+// The inviting church's own logo, shown at the top of the card.
+const logoStyle = {
+  display: 'block', maxHeight: 84, maxWidth: 200, width: 'auto', height: 'auto',
+  objectFit: 'contain' as const, margin: '0 auto 16px',
+};
+
 type LookupResult = {
   found: boolean;
   memberId?: string;
@@ -36,6 +42,7 @@ type LookupResult = {
   email?: string;
   churchId?: string;
   churchName?: string;
+  churchLogoUrl?: string;
   role?: string;
   alreadyRegistered?: boolean;
 };
@@ -113,7 +120,7 @@ function JoinChurchContent() {
     } catch (err: any) {
       if (err?.code === 'auth/email-already-in-use') {
         // Same email may belong to a member of several groups or churches
-        // under a single TARSYN account - switch straight to sign in.
+        // under a single UNIMUNITY account - switch straight to sign in.
         setMode('signin');
         setPassword('');
         setConfirmPassword('');
@@ -183,6 +190,7 @@ function JoinChurchContent() {
     return (
       <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
         <div style={{ background: C.white, borderTop: `5px solid ${C.gold}`, borderRadius: 18, padding: '40px 32px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 8px 30px rgba(36,50,74,0.10)' }}>
+          {lookup.churchLogoUrl ? <img src={lookup.churchLogoUrl} alt={(lookup.churchName || 'Church') + ' logo'} style={logoStyle} /> : null}
           <div style={{ width: 56, height: 56, borderRadius: 999, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 26, color: '#3F6B34' }}>&#10003;</div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 8px' }}>You're all set!</h2>
           <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>
@@ -197,7 +205,11 @@ function JoinChurchContent() {
     <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ background: C.white, borderTop: `5px solid ${C.gold}`, borderRadius: 20, padding: '40px 36px', maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(36,50,74,0.12)' }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}>
-          <div style={{ width: 52, height: 52, background: C.pink, borderRadius: '999px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 22 }}>&#129309;</div>
+          {lookup.churchLogoUrl ? (
+            <img src={lookup.churchLogoUrl} alt={(lookup.churchName || 'Church') + ' logo'} style={logoStyle} />
+          ) : (
+            <div style={{ width: 52, height: 52, background: C.pink, borderRadius: '999px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 22 }}>&#129309;</div>
+          )}
           <h1 style={{ color: C.goldText, fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>You're invited!</h1>
           <p style={{ color: C.text, fontSize: 14, margin: 0 }}>
             Join <strong>{lookup.churchName || 'your church'}</strong> on UNIMUNITY
