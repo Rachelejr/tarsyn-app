@@ -11,6 +11,10 @@
 //      optional primary + secondary actions, and a small line illustration
 //      on the right side.
 //
+// The church's OWN logo (churches/{churchId}.logoUrl) is shown in the
+// banner next to the title on every page, and on printouts. If the church
+// has no logo yet, nothing is shown (never the UNIMUNITY logo).
+//
 // Backward compatible: pages that still pass only { churchId, title,
 // subtitle, actions } keep working and simply get the new banner.
 //
@@ -32,6 +36,7 @@
 
 import { useEffect, useState, isValidElement, type ReactNode } from "react";
 import type { CSSProperties } from "react";
+import { useChurchBrand } from "@/components/church/useChurchBrand";
 
 export type HeaderAction = {
   label: string;
@@ -98,7 +103,11 @@ const HEADER_CSS = `
   background: radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%); pointer-events: none;
 }
 .cph-banner.is-compact { padding: 18px 24px; }
-.cph-text { position: relative; z-index: 1; max-width: 620px; }
+.cph-text { position: relative; z-index: 1; max-width: 700px; display: flex; gap: 18px; align-items: flex-start; }
+.cph-text-body { min-width: 0; }
+.cph-logo { flex-shrink: 0; width: 72px; height: 72px; border-radius: 18px; background: #FFFFFF; border: 1px solid rgba(216,177,90,0.3); box-shadow: 0 2px 8px -4px rgba(36,50,74,0.15); display: flex; align-items: center; justify-content: center; padding: 8px; box-sizing: border-box; overflow: hidden; }
+.cph-logo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.cph-banner.is-compact .cph-logo { width: 52px; height: 52px; border-radius: 14px; padding: 6px; }
 .cph-title { margin: 0; font-size: clamp(24px, 2.6vw, 32px); line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; color: ${PALETTE.text}; }
 .cph-banner.is-compact .cph-title { font-size: 22px; }
 .cph-subtitle { margin: 8px 0 0; font-size: 15px; font-weight: 600; color: ${PALETTE.text}; opacity: 0.85; }
@@ -125,6 +134,8 @@ const HEADER_CSS = `
   .cph-top { flex-direction: column; align-items: flex-start; }
   .cph-banner { grid-template-columns: minmax(0, 1fr) 64px; gap: 12px; align-items: start; padding: 20px 18px; border-radius: 18px; }
   .cph-art { width: 64px; height: 56px; }
+  .cph-text { gap: 12px; }
+  .cph-logo { width: 52px; height: 52px; border-radius: 14px; padding: 6px; }
   .cph-actions { flex-direction: column; align-items: stretch; }
   .cph-actions > * { width: 100%; }
   .cph-btn { justify-content: center; }
@@ -134,6 +145,7 @@ const HEADER_CSS = `
 }
 @media print {
   .cph-top, .cph-actions, .cph-art { display: none !important; }
+  .cph-logo { box-shadow: none !important; }
   .cph-banner { background: #FFFFFF !important; box-shadow: none !important; border: 1px solid #ccc !important; opacity: 1 !important; transform: none !important; }
 }
 `;
@@ -258,6 +270,7 @@ export default function ChurchPageHeader({
   actions,
   compact,
 }: ChurchPageHeaderProps) {
+  const brand = useChurchBrand(churchId);
   const [visible, setVisible] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
   const [temp, setTemp] = useState<number | null>(null);
@@ -336,16 +349,23 @@ export default function ChurchPageHeader({
 
       <div className={bannerClass}>
         <div className="cph-text">
-          <h1 className="cph-title">{title}</h1>
-          {subtitle ? <p className="cph-subtitle">{subtitle}</p> : null}
-          {description ? <p className="cph-desc">{description}</p> : null}
-          {hasActions ? (
-            <div className="cph-actions">
-              {primaryAction ? <ActionButton action={primaryAction} kind="primary" /> : null}
-              {secondaryAction ? <ActionButton action={secondaryAction} kind="secondary" /> : null}
-              {actions}
+          {brand.logoUrl ? (
+            <div className="cph-logo">
+              <img src={brand.logoUrl} alt={(brand.name || "Church") + " logo"} />
             </div>
           ) : null}
+          <div className="cph-text-body">
+            <h1 className="cph-title">{title}</h1>
+            {subtitle ? <p className="cph-subtitle">{subtitle}</p> : null}
+            {description ? <p className="cph-desc">{description}</p> : null}
+            {hasActions ? (
+              <div className="cph-actions">
+                {primaryAction ? <ActionButton action={primaryAction} kind="primary" /> : null}
+                {secondaryAction ? <ActionButton action={secondaryAction} kind="secondary" /> : null}
+                {actions}
+              </div>
+            ) : null}
+          </div>
         </div>
         {art ? <div className="cph-art">{art}</div> : null}
       </div>
