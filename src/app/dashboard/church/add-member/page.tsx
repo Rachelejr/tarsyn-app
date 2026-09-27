@@ -21,10 +21,21 @@
 //  - Marital Status lives only in Personal Information, next to the
 //    separate Member Status field.
 //
+// Sept 27 update:
+//  - Ministries are read from BOTH places they can live in Firestore:
+//    churches/{churchId}/ministries (current) and the older flat
+//    churchMinistries collection (still written by the ministry detail
+//    page). Sub-ministries are listed as "Parent > Child".
+//  - Role list includes Usher (and more). Choosing "Other" for Role or for
+//    Member Status opens a text field to type the value.
+//  - Selected values (dropdowns, dates) show in bold italic.
+//  - After saving: a printable member badge (church logo, photo, name,
+//    role, Member ID, member since).
+//
 // Style rules for this project: responsive styles live in one CSS string
 // injected with a <style> tag; no multi-line inline style objects in JSX.
 
-import { useEffect, useState, Suspense, useRef } from 'react';
+import { useEffect, useMemo, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db, storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -36,6 +47,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { addDoc } from 'firebase/firestore';
 import ChurchSidebar from '@/components/church/ChurchSidebar';
 import ChurchPageHeader from '@/components/church/ChurchPageHeader';
+import { useChurchBrand } from '@/components/church/useChurchBrand';
 
 const C = {
   pink: '#FDE2E4',
@@ -58,9 +70,34 @@ const C = {
 const GENDER_OPTIONS = ['', 'Male', 'Female'];
 const MARITAL_OPTIONS = ['', 'Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
 const MEMBER_STATUS_OPTIONS = ['Active', 'Inactive', 'New', 'Pending', 'Transferred', 'Visitor', 'Suspended', 'Deceased', 'Other'];
-const ROLE_OPTIONS = ['Member', 'Leader', 'Deacon', 'Deaconess', 'Elder', 'Pastor', 'Administrator', 'Committee President', 'Usher Leader', 'Choir Director', 'Other'];
+const ROLE_OPTIONS = [
+  'Member', 'Usher', 'Usher Leader', 'Choir Member', 'Choir Director', 'Musician', 'Worship Leader',
+  'Sunday School Teacher', 'Youth Leader', 'Children Leader', 'Intercessor', 'Evangelist', 'Missionary',
+  'Deacon', 'Deaconess', 'Elder', 'Pastor', 'Associate Pastor', 'Secretary', 'Treasurer',
+  'Administrator', 'Committee President', 'Leader', 'Other',
+];
 
 interface OptionRow { id: string; name: string; }
+interface MinistryRow { id: string; name: string; parentId: string | null; }
+
+interface SavedBadge {
+  fullName: string;
+  memberCode: string;
+  role: string;
+  photo: string;
+  since: string;
+}
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+
+function formatSince(value: string): string {
+  const d = value ? new Date(value + 'T00:00:00') : new Date();
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
 
 const PAGE_CSS = `
 .am-shell { display: flex; min-height: 100vh; background: linear-gradient(180deg, #FFFDF9 0%, #FBF8F1 100%); }
@@ -117,6 +154,43 @@ select.am-input { padding-right: 30px; }
 .am-btn-ghost { background: transparent; border: 1px solid #E3E6EB; color: #68758A; padding: 0 12px; }
 .am-btn-block { width: 100%; margin-top: 10px; border-style: dashed; }
 
+.am-input.is-set { font-weight: 700; font-style: italic; }
+.am-other { margin-top: 8px; }
+.am-empty-link { margin-top: 6px; font-size: 12px; color: #8A6D1F; font-weight: 700; text-decoration: none; }
+.am-empty-link:hover { text-decoration: underline; }
+
+.am-done { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background: linear-gradient(120deg, #FDE2E4 0%, #F6EFDD 55%, #E2F0CB 100%); }
+.am-done-card { background: #FFFFFF; border-radius: 22px; box-shadow: 0 10px 40px -12px rgba(36,50,74,0.18); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 36px; align-items: center; padding: 40px; max-width: 860px; width: 100%; box-sizing: border-box; }
+.am-done-info h2 { font-size: 22px; font-weight: 800; color: #24324A; margin: 14px 0 8px; }
+.am-done-info p { font-size: 14px; color: #68758A; margin: 0 0 8px; line-height: 1.6; }
+.am-done-check { width: 52px; height: 52px; border-radius: 999px; background: #E2F0CB; color: #3F6B34; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.am-note { border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 700; margin: 12px 0; }
+.am-note-ok { background: #E2F0CB; color: #3F6B34; }
+.am-note-warn { background: #FEF3C7; color: #92400E; }
+.am-note-err { background: #FDECEC; color: #B4453E; }
+.am-done-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.am-badge-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+.am-badge { width: 2.125in; height: 3.375in; border-radius: 14px; overflow: hidden; background: #FFFFFF; border: 1px solid #EADFC8; box-shadow: 0 8px 24px -10px rgba(36,50,74,0.3); display: flex; flex-direction: column; align-items: center; text-align: center; font-family: inherit; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.am-badge-top { width: 100%; background: linear-gradient(120deg, #FDE2E4 0%, #F6EFDD 55%, #E2F0CB 100%); padding: 10px 8px 26px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.am-badge-logo { height: 34px; max-width: 120px; object-fit: contain; display: block; }
+.am-badge-church { font-size: 9.5px; font-weight: 700; color: #24324A; line-height: 1.25; padding: 0 4px; }
+.am-badge-photo { width: 84px; height: 84px; border-radius: 50%; margin-top: -24px; border: 3px solid #FFFFFF; box-shadow: 0 0 0 1.5px #D8B15A; background: #F6EFDD; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #8A6D1F; }
+.am-badge-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.am-badge-name { font-size: 14px; font-weight: 800; color: #24324A; margin: 10px 8px 2px; line-height: 1.2; }
+.am-badge-role { font-size: 11px; font-weight: 700; font-style: italic; color: #8A6D1F; }
+.am-badge-id { margin-top: auto; font-size: 10px; color: #68758A; }
+.am-badge-id strong { color: #24324A; letter-spacing: 0.04em; }
+.am-badge-since { font-size: 9px; color: #8A93A3; margin: 2px 0 8px; }
+.am-badge-foot { width: 100%; height: 8px; background: linear-gradient(90deg, #D8B15A, #E9CF8E); }
+
+@media print {
+  @page { margin: 12mm; }
+  body * { visibility: hidden !important; }
+  .am-badge, .am-badge * { visibility: visible !important; }
+  .am-badge { position: fixed; left: 0; top: 0; box-shadow: none; }
+}
+
 .am-footer { text-align: center; padding: 18px 0 10px; font-size: 11px; color: #8A93A3; }
 
 .am-bar { position: sticky; bottom: 0; z-index: 20; background: rgba(255,255,255,0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid #F0E6D2; }
@@ -140,6 +214,9 @@ select.am-input { padding-right: 30px; }
 }
 @media (max-width: 820px) {
   .am-row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .am-done-card { grid-template-columns: minmax(0, 1fr); padding: 26px 20px; }
 }
 @media (max-width: 640px) {
   .am-inner { padding: 12px 12px 8px; }
@@ -207,7 +284,7 @@ function AddChurchMemberContent() {
     dateOfBirth: '', gender: '', maritalStatus: '', status: 'Active',
     street: '', city: '', state: '', zip: '', country: 'United States',
     spouseName: '', familyId: '',
-    dateJoined: '', baptismDate: '', ministryId: '', groupId: '', role: 'Member',
+    dateJoined: '', baptismDate: '', ministryId: '', groupId: '', role: 'Member', roleOther: '', statusOther: '',
     nationalId: '', notes: '',
   });
 
@@ -215,7 +292,11 @@ function AddChurchMemberContent() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
 
   const [families, setFamilies] = useState<OptionRow[]>([]);
-  const [ministries, setMinistries] = useState<OptionRow[]>([]);
+  const [ministriesNew, setMinistriesNew] = useState<MinistryRow[]>([]);
+  const [ministriesOld, setMinistriesOld] = useState<MinistryRow[]>([]);
+  const [uid, setUid] = useState<string | null>(null);
+  const [badge, setBadge] = useState<SavedBadge | null>(null);
+  const brand = useChurchBrand(churchId);
   const [groups, setGroups] = useState<OptionRow[]>([]);
 
   const [showNewFamily, setShowNewFamily] = useState(false);
@@ -260,11 +341,14 @@ function AddChurchMemberContent() {
   }, [form.firstName, form.lastName, nextPosition]);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => { if (!u) router.push('/login'); });
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (!u) { router.push('/login'); return; }
+      setUid(u.uid);
+    });
     return () => unsub();
   }, [router]);
 
-  // Existing Families, top-level Ministries, and Groups — reused, never duplicated.
+  // Existing Families, Ministries, and Groups - reused, never duplicated.
   useEffect(() => {
     if (!churchId) return;
     const unsub = onSnapshot(collection(db, 'churches', churchId, 'families'), (snap) => {
@@ -273,15 +357,45 @@ function AddChurchMemberContent() {
     return () => unsub();
   }, [churchId]);
 
+  // Ministries can live in two places (see header note). Both are read
+  // and merged, so every ministry the church created shows up here.
   useEffect(() => {
     if (!churchId) return;
     const unsub = onSnapshot(collection(db, 'churches', churchId, 'ministries'), (snap) => {
-      setMinistries(snap.docs
-        .filter((d) => !d.data().parentMinistryId)
-        .map((d) => ({ id: d.id, name: (d.data().name as string) || 'Ministry' })));
-    }, (err) => console.error(err));
+      setMinistriesNew(snap.docs.map((d) => ({
+        id: d.id,
+        name: (d.data().name as string) || 'Ministry',
+        parentId: (d.data().parentMinistryId as string) || null,
+      })));
+    }, (err) => console.error('Ministries (church subcollection):', err));
     return () => unsub();
   }, [churchId]);
+
+  useEffect(() => {
+    if (!churchId || !uid) return;
+    const q = query(collection(db, 'churchMinistries'), where('organizerId', '==', uid), where('churchId', '==', churchId));
+    const unsub = onSnapshot(q, (snap) => {
+      setMinistriesOld(snap.docs.map((d) => ({
+        id: d.id,
+        name: (d.data().name as string) || 'Ministry',
+        parentId: (d.data().parentMinistryId as string) || null,
+      })));
+    }, (err) => console.error('Ministries (churchMinistries):', err));
+    return () => unsub();
+  }, [churchId, uid]);
+
+  const ministries = useMemo(() => {
+    const byId = new Map<string, MinistryRow>();
+    [...ministriesNew, ...ministriesOld].forEach((m) => { if (!byId.has(m.id)) byId.set(m.id, m); });
+    const all = Array.from(byId.values());
+    const label = (m: MinistryRow) => {
+      const parent = m.parentId ? byId.get(m.parentId) : undefined;
+      return parent ? parent.name + ' \u203A ' + m.name : m.name;
+    };
+    return all
+      .map((m) => ({ id: m.id, name: m.name, label: label(m) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [ministriesNew, ministriesOld]);
 
   useEffect(() => {
     if (!churchId) return;
@@ -335,6 +449,8 @@ function AddChurchMemberContent() {
     if (!form.phone.trim()) errs.phone = 'Phone is required.';
     if (!form.email.trim()) errs.email = 'Email is required.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = 'Enter a valid email address.';
+    if (form.role === 'Other' && !form.roleOther.trim()) errs.roleOther = 'Type the role or position.';
+    if (form.status === 'Other' && !form.statusOther.trim()) errs.statusOther = 'Type the member status.';
     setFieldError(errs);
     return Object.keys(errs).length === 0;
   }
@@ -345,7 +461,7 @@ function AddChurchMemberContent() {
       dateOfBirth: '', gender: '', maritalStatus: '', status: 'Active',
       street: '', city: '', state: '', zip: '', country: 'United States',
       spouseName: '', familyId: '',
-      dateJoined: '', baptismDate: '', ministryId: '', groupId: '', role: 'Member',
+      dateJoined: '', baptismDate: '', ministryId: '', groupId: '', role: 'Member', roleOther: '', statusOther: '',
       nationalId: '', notes: '',
     });
     setPhotoFile(null);
@@ -390,6 +506,7 @@ function AddChurchMemberContent() {
       const groupName = groups.find((g) => g.id === form.groupId)?.name || '';
       const familyName = families.find((f) => f.id === form.familyId)?.name || '';
       const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+      const finalRole = form.role === 'Other' ? form.roleOther.trim() : form.role;
 
       await setDoc(memberRef, {
         firstName: form.firstName,
@@ -403,6 +520,7 @@ function AddChurchMemberContent() {
         gender: form.gender,
         maritalStatus: form.maritalStatus,
         status: form.status,
+        statusDetail: form.status === 'Other' ? form.statusOther.trim() : '',
         address: { street: form.street, city: form.city, state: form.state, zip: form.zip, country: form.country },
         spouseName: form.spouseName,
         familyId: form.familyId || null,
@@ -413,7 +531,7 @@ function AddChurchMemberContent() {
         ministryName: ministryName || null,
         groupId: form.groupId || null,
         groupName: groupName || null,
-        role: form.role,
+        role: finalRole,
         nationalId: form.nationalId,
         notes: form.notes,
         churchId,
@@ -444,7 +562,7 @@ function AddChurchMemberContent() {
           details: fullName + ' - ' + memberCode,
           createdAt: serverTimestamp(),
         });
-      } catch (auditErr) { /* silent — must never block member creation */ }
+      } catch (auditErr) { /* silent - must never block member creation */ }
 
       if (!form.email) {
         setInviteStatus('no-email');
@@ -454,7 +572,7 @@ function AddChurchMemberContent() {
           const inviteRes = await fetch('/api/send-church-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ emails: [form.email], churchName: churchName || 'your church', inviteLink }),
+            body: JSON.stringify({ emails: [form.email], churchName: churchName || brand.name || 'your church', inviteLink, churchId }),
           });
           const inviteData = await inviteRes.json();
           setInviteStatus(inviteRes.ok && inviteData.sent > 0 ? 'sent' : 'failed');
@@ -464,6 +582,7 @@ function AddChurchMemberContent() {
         }
       }
 
+      setBadge({ fullName, memberCode, role: finalRole, photo: photoUrl || photoPreview, since: formatSince(form.dateJoined) });
       setSuccess(true);
     } catch (e) {
       console.error(e);
@@ -475,31 +594,44 @@ function AddChurchMemberContent() {
 
   if (!mounted) return null;
 
-  const pageBg = {
-    minHeight: '100vh',
-    background: `linear-gradient(120deg, ${C.pink} 0%, ${C.cream} 55%, ${C.green} 100%)`,
-    padding: 24, boxSizing: 'border-box' as const,
-  };
-
   if (success) {
     return (
-      <div style={{ ...pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: C.white, borderRadius: 18, padding: '48px 40px', textAlign: 'center', maxWidth: 460, width: '100%', boxShadow: '0 8px 30px rgba(36,50,74,0.10)' }}>
-          <div style={{ width: 56, height: 56, borderRadius: 999, background: C.greenBg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 24 }}>&#10003;</div>
-          <h2 style={{ fontSize: 19, fontWeight: 800, color: C.text, margin: '0 0 8px' }}>Member added successfully</h2>
-          <p style={{ fontSize: 13, color: C.muted, margin: '0 0 6px', lineHeight: 1.6 }}>
-            An invitation has been sent to their email address.
-          </p>
-          <p style={{ fontSize: 12, color: C.goldText, fontWeight: 700, margin: '0 0 16px' }}>Member ID: {memberCode}</p>
-
-          {inviteStatus === 'sent' && <div style={{ background: C.greenBg, color: C.greenText, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, margin: '0 0 20px' }}>Invitation email sent. They can now create their account.</div>}
-          {inviteStatus === 'no-email' && <div style={{ background: C.amberBg, color: C.amberText, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, margin: '0 0 20px' }}>No email on file, so no invitation was sent.</div>}
-          {inviteStatus === 'failed' && <div style={{ background: C.dangerBg, color: C.danger, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, margin: '0 0 20px' }}>Member added, but the invitation email could not be sent. You can resend it from the Members page.</div>}
-
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <button onClick={() => router.push(`/dashboard/church/${churchId}/members`)} style={{ background: C.gold, color: C.text, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>View Members</button>
-            <button onClick={() => { setSuccess(false); setInviteStatus(null); resetForm(); }} style={{ background: C.cream, color: C.goldText, border: `1.5px solid ${C.gold}`, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Add Another</button>
+      <div className="am-done">
+        <style>{PAGE_CSS}</style>
+        <div className="am-done-card">
+          <div className="am-done-info">
+            <div className="am-done-check">&#10003;</div>
+            <h2>Member added successfully</h2>
+            <p>Member ID: <strong><em>{memberCode}</em></strong></p>
+            {inviteStatus === 'sent' && <div className="am-note am-note-ok">Invitation email sent. They can now create their account.</div>}
+            {inviteStatus === 'no-email' && <div className="am-note am-note-warn">No email on file, so no invitation was sent.</div>}
+            {inviteStatus === 'failed' && <div className="am-note am-note-err">Member added, but the invitation email could not be sent. You can resend it from the Members page.</div>}
+            <p>Their member badge is ready. Print it on card stock or badge paper (credit card size).</p>
+            <div className="am-done-actions">
+              <button type="button" className="am-btn am-btn-gold" onClick={() => window.print()}>Print badge</button>
+              <button type="button" className="am-btn am-btn-outline" onClick={() => router.push(`/dashboard/church/${churchId}/members`)}>View Members</button>
+              <button type="button" className="am-btn am-btn-outline" onClick={() => { setSuccess(false); setInviteStatus(null); setBadge(null); resetForm(); }}>Add Another</button>
+            </div>
           </div>
+
+          {badge ? (
+            <div className="am-badge-col">
+              <div className="am-badge" aria-label="Member badge preview">
+                <div className="am-badge-top">
+                  {brand.logoUrl ? <img className="am-badge-logo" src={brand.logoUrl} alt={(brand.name || 'Church') + ' logo'} /> : null}
+                  <div className="am-badge-church">{brand.name || churchName}</div>
+                </div>
+                <div className="am-badge-photo">
+                  {badge.photo ? <img src={badge.photo} alt={badge.fullName} /> : initialsOf(badge.fullName)}
+                </div>
+                <div className="am-badge-name">{badge.fullName}</div>
+                <div className="am-badge-role">{badge.role}</div>
+                <div className="am-badge-id">Member ID <strong>{badge.memberCode}</strong></div>
+                <div className="am-badge-since">{badge.since ? 'Member since ' + badge.since : ''}</div>
+                <div className="am-badge-foot" />
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -507,6 +639,10 @@ function AddChurchMemberContent() {
 
   const membersHref = '/dashboard/church/' + churchId + '/members';
   const inputCls = (key: string) => 'am-input' + (fieldError[key] ? ' has-error' : '');
+  // Chosen values (dropdowns, dates) are shown in bold italic.
+  const setCls = (value: string) => 'am-input' + (value ? ' is-set' : '');
+  const groupsHref = '/dashboard/church/' + churchId + '/groups';
+  const ministriesHref = '/dashboard/church/' + churchId + '/ministries';
 
   return (
     <div className="am-shell">
@@ -553,22 +689,25 @@ function AddChurchMemberContent() {
                   <input className={inputCls('phone')} type="tel" placeholder="+1 234 567 8900" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
                 </Field>
                 <Field label="Date of Birth">
-                  <input className="am-input" type="date" value={form.dateOfBirth} onChange={(e) => set('dateOfBirth', e.target.value)} />
+                  <input className={setCls(form.dateOfBirth)} type="date" value={form.dateOfBirth} onChange={(e) => set('dateOfBirth', e.target.value)} />
                 </Field>
                 <Field label="Gender">
-                  <select className="am-input" value={form.gender} onChange={(e) => set('gender', e.target.value)}>
+                  <select className={setCls(form.gender)} value={form.gender} onChange={(e) => set('gender', e.target.value)}>
                     {GENDER_OPTIONS.map((g) => <option key={g} value={g}>{g || 'Not specified'}</option>)}
                   </select>
                 </Field>
                 <Field label="Marital Status">
-                  <select className="am-input" value={form.maritalStatus} onChange={(e) => set('maritalStatus', e.target.value)}>
+                  <select className={setCls(form.maritalStatus)} value={form.maritalStatus} onChange={(e) => set('maritalStatus', e.target.value)}>
                     {MARITAL_OPTIONS.map((m) => <option key={m} value={m}>{m || 'Not specified'}</option>)}
                   </select>
                 </Field>
-                <Field label="Member Status" required>
-                  <select className="am-input" value={form.status} onChange={(e) => set('status', e.target.value)}>
+                <Field label="Member Status" required error={fieldError.statusOther}>
+                  <select className={setCls(form.status)} value={form.status} onChange={(e) => set('status', e.target.value)}>
                     {MEMBER_STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
+                  {form.status === 'Other' ? (
+                    <input className={inputCls('statusOther') + ' am-other'} placeholder="Type the status" value={form.statusOther} onChange={(e) => set('statusOther', e.target.value)} autoFocus />
+                  ) : null}
                 </Field>
               </div>
             </div>
@@ -605,7 +744,7 @@ function AddChurchMemberContent() {
                 </Field>
                 <div className="am-field am-full">
                   <label className="am-label" htmlFor="am-family">Family</label>
-                  <select id="am-family" className="am-input" value={form.familyId} onChange={(e) => set('familyId', e.target.value)}>
+                  <select id="am-family" className={setCls(form.familyId)} value={form.familyId} onChange={(e) => set('familyId', e.target.value)}>
                     <option value="">Select a family</option>
                     {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
                   </select>
@@ -635,28 +774,35 @@ function AddChurchMemberContent() {
               <CardHead title="Church Information" subtitle="Involvement and role in the church." tint="pink" icon={ICON_LEAF} />
               <div className="am-g6">
                 <Field label="Date Joined Church" className="am-s2">
-                  <input className="am-input" type="date" value={form.dateJoined} onChange={(e) => set('dateJoined', e.target.value)} />
+                  <input className={setCls(form.dateJoined)} type="date" value={form.dateJoined} onChange={(e) => set('dateJoined', e.target.value)} />
                 </Field>
                 <Field label="Baptism Date" className="am-s2">
-                  <input className="am-input" type="date" value={form.baptismDate} onChange={(e) => set('baptismDate', e.target.value)} />
+                  <input className={setCls(form.baptismDate)} type="date" value={form.baptismDate} onChange={(e) => set('baptismDate', e.target.value)} />
                 </Field>
-                <Field label="Role / Position" className="am-s2">
-                  <select className="am-input" value={form.role} onChange={(e) => set('role', e.target.value)}>
+                <Field label="Role / Position" className="am-s2" error={fieldError.roleOther}>
+                  <select className={setCls(form.role)} value={form.role} onChange={(e) => set('role', e.target.value)}>
                     {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
+                  {form.role === 'Other' ? (
+                    <input className={inputCls('roleOther') + ' am-other'} placeholder="Type the role or position" value={form.roleOther} onChange={(e) => set('roleOther', e.target.value)} autoFocus />
+                  ) : null}
                 </Field>
-                <Field label="Ministry" className="am-s3">
-                  <select className="am-input" value={form.ministryId} onChange={(e) => set('ministryId', e.target.value)}>
+                <div className="am-field am-s3">
+                  <label className="am-label" htmlFor="am-ministry">Ministry</label>
+                  <select id="am-ministry" className={setCls(form.ministryId)} value={form.ministryId} onChange={(e) => set('ministryId', e.target.value)}>
                     <option value="">{ministries.length ? 'Select a ministry' : 'No ministries yet'}</option>
-                    {ministries.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                    {ministries.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
                   </select>
-                </Field>
-                <Field label="Group" className="am-s3">
-                  <select className="am-input" value={form.groupId} onChange={(e) => set('groupId', e.target.value)}>
+                  {ministries.length === 0 ? <a className="am-empty-link" href={ministriesHref}>+ Create a ministry</a> : null}
+                </div>
+                <div className="am-field am-s3">
+                  <label className="am-label" htmlFor="am-group">Group</label>
+                  <select id="am-group" className={setCls(form.groupId)} value={form.groupId} onChange={(e) => set('groupId', e.target.value)}>
                     <option value="">{groups.length ? 'Select a group' : 'No groups yet'}</option>
                     {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
-                </Field>
+                  {groups.length === 0 ? <a className="am-empty-link" href={groupsHref}>+ Create a group</a> : null}
+                </div>
               </div>
             </section>
 
