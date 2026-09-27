@@ -264,17 +264,16 @@ export default function FinancePage() {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <ChurchSidebar churchId={churchId} />
-      <div style={{ flex: 1, minHeight: "100vh", padding: 24, boxSizing: "border-box", background: `linear-gradient(120deg, ${COLOR.pink} 0%, ${COLOR.cream} 55%, ${COLOR.green} 100%)`, backgroundAttachment: "fixed" }}>
+      <div style={{ flex: 1, minHeight: "100vh", padding: 24, boxSizing: "border-box", background: "linear-gradient(180deg, #FFFDF9 0%, #FBF8F1 100%)" }}>
         <div style={{ maxWidth: 980, margin: "0 auto" }}>
           <ChurchPageHeader
             churchId={churchId}
             title="Finance"
-            subtitle="Track every category of income, plus the Operating and Social funds, all separately."
-            actions={
-              <button onClick={() => setModalMode("income")} style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}>
-                + Record Income
-              </button>
-            }
+            subtitle="Manage your community's resources."
+            description="Track income, expenses, funds and petty cash with clarity."
+            illustration="finance"
+            primaryAction={{ label: "Record income", icon: "+", onClick: () => setModalMode("income") }}
+            secondaryAction={{ label: "Manage funds", href: "/dashboard/church/" + churchId + "/funds" }}
           />
 
           {loading ? (
