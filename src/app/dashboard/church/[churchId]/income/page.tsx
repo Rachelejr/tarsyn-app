@@ -11,8 +11,9 @@
 //      2. Atomically credits the chosen fund's balance.
 //      3. Writes the income entry.
 //    All three happen inside a single Firestore transaction.
-//  - Every entry has a printable receipt (church name, receipt number,
-//    date, category, amount, fund, payment method, description).
+//  - Every entry has a printable receipt (church logo, church name,
+//    receipt number, date, category, amount, fund, payment method,
+//    description).
 //  - No permanent deletion — "Cancel" sets status to 'cancelled', reverses
 //    the fund's balance in the same transaction, and records who/when/why.
 
@@ -29,6 +30,7 @@ import {
 import { db, auth } from "@/lib/firebase";
 import ChurchSidebar from "@/components/church/ChurchSidebar";
 import ChurchPageHeader from "@/components/church/ChurchPageHeader";
+import { useChurchBrand, ChurchLogo } from "@/components/church/useChurchBrand";
 import type {
   IncomeEntryV2,
   IncomeFormValuesV2,
@@ -86,6 +88,7 @@ export default function IncomePage() {
 
   const [entries, setEntries] = useState<IncomeEntryV2[]>([]);
   const [churchName, setChurchName] = useState("");
+  const brand = useChurchBrand(churchId);
   const [loading, setLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -409,12 +412,13 @@ export default function IncomePage() {
           </div>
         )}
 
-        {/* Printable receipt */}
+        {/* Printable receipt - with the church's own logo */}
         {receiptEntry && (
           <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", padding: 16 }}>
             <div style={{ width: "100%", maxWidth: 420, borderRadius: 12, background: "#FFFFFF", padding: 28 }}>
               <div style={{ textAlign: "center", marginBottom: 18, paddingBottom: 14, borderBottom: `2px solid ${COLOR.gold}` }}>
-                <h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 800, color: COLOR.text }}>{churchName || "Church"}</h2>
+                <ChurchLogo logoUrl={brand.logoUrl} name={churchName || brand.name} height={56} style={{ margin: "0 auto 10px" }} />
+                <h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 800, color: COLOR.text }}>{churchName || brand.name || "Church"}</h2>
                 <p style={{ margin: 0, fontSize: 12, color: COLOR.textSoft }}>Official Receipt</p>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: COLOR.text, marginBottom: 20 }}>
