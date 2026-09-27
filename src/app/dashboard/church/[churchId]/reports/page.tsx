@@ -160,6 +160,38 @@ export default function ReportsPage() {
     return lines.join("\n");
   }, [rangeLabel, rangeStart, rangeEnd, incomeByCategory, totalIncome, expensesByCategory, totalExpenses, net]);
 
+  // Downloads the current period's figures as a CSV file (opens in Excel
+  // or Google Sheets). Uses the same numbers already shown on the page.
+  function exportCsv() {
+    const esc = (v: string) => '"' + v.replace(/"/g, '""') + '"';
+    const rows: string[][] = [];
+    rows.push(["Financial Report", rangeLabel]);
+    rows.push(["From", formatDate(rangeStart)]);
+    rows.push(["To", formatDate(rangeEnd)]);
+    rows.push([]);
+    rows.push(["Section", "Category", "Amount"]);
+    INCOME_CATEGORIES.forEach((cat) => {
+      rows.push(["Income", INCOME_CATEGORY_LABELS[cat], (incomeByCategory[cat] || 0).toFixed(2)]);
+    });
+    rows.push(["Income", "Total Income", totalIncome.toFixed(2)]);
+    expensesByCategory.forEach(([cat, amount]) => {
+      rows.push(["Expenses", cat, amount.toFixed(2)]);
+    });
+    rows.push(["Expenses", "Total Expenses", totalExpenses.toFixed(2)]);
+    rows.push([]);
+    rows.push(["Result", "Net", net.toFixed(2)]);
+    const csv = rows.map((r) => r.map(esc).join(",")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "financial-report-" + toDateInputValue(rangeStart) + "-to-" + toDateInputValue(rangeEnd) + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   const btnBase: CSSProperties = { borderRadius: 6, padding: "8px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" };
   const cardStyle: CSSProperties = { borderRadius: 12, background: "rgba(255,255,255,0.92)", padding: 20, boxShadow: "0 1px 3px rgba(23,37,84,0.06)", border: `1px solid ${COLOR.border}` };
   const inputStyle: CSSProperties = { border: "1px solid #D1D5DB", borderRadius: 8, padding: "8px 10px", fontSize: 13 };
@@ -172,25 +204,24 @@ export default function ReportsPage() {
         <ChurchSidebar churchId={churchId} />
       </div>
 
-      <div className="print-page" style={{ flex: 1, minHeight: "100vh", padding: 24, boxSizing: "border-box", background: `linear-gradient(120deg, ${COLOR.pink} 0%, ${COLOR.cream} 55%, ${COLOR.green} 100%)`, backgroundAttachment: "fixed" }}>
+      <div className="print-page" style={{ flex: 1, minHeight: "100vh", padding: 24, boxSizing: "border-box", background: "linear-gradient(180deg, #FFFDF9 0%, #FBF8F1 100%)" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div className="no-print">
             <ChurchPageHeader
               churchId={churchId}
               title="Reports"
-              subtitle="Detailed income and expenses by category, ready for a weekly or monthly review."
+              subtitle="A clear view of your financial activity."
+              description="Review income, expenses, funds and results for the period you choose."
+              illustration="reports"
+              primaryAction={{ label: "Print", onClick: () => window.print() }}
+              secondaryAction={{ label: "Export CSV", onClick: exportCsv }}
               actions={
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-                  <button onClick={() => window.print()} style={{ ...btnBase, background: COLOR.gold, color: COLOR.text, border: "none", padding: "10px 18px", fontSize: 13 }}>
-                    Print Report
-                  </button>
-                  <SubmitDepartmentReport
-                    churchId={churchId}
-                    departmentName="Finance"
-                    initialSummary={reportSummaryText}
-                    buttonLabel="📤 Send to HR"
-                  />
-                </div>
+                <SubmitDepartmentReport
+                  churchId={churchId}
+                  departmentName="Finance"
+                  initialSummary={reportSummaryText}
+                  buttonLabel="📤 Send to HR"
+                />
               }
             />
           </div>
