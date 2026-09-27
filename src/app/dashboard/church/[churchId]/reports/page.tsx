@@ -8,6 +8,8 @@
 //  - Income broken down by category, Expenses broken down by category
 //    across both funds, a Net figure.
 //  - "Print Report" — browser print dialog (Save as PDF works from there).
+//    The printed report shows the church's own logo and name at the top.
+//  - "Export CSV" — downloads the current period's figures.
 //  - "Send to HR" — auto-fills a text summary of the current period's
 //    figures and submits it into churches/{churchId}/departmentReports
 //    (department: "Finance"), the same place every Ministry's "Monthly
@@ -23,6 +25,7 @@ import { db } from "@/lib/firebase";
 import ChurchSidebar from "@/components/church/ChurchSidebar";
 import ChurchPageHeader from "@/components/church/ChurchPageHeader";
 import SubmitDepartmentReport from "@/components/church/SubmitDepartmentReport";
+import { useChurchBrand, ChurchLogo } from "@/components/church/useChurchBrand";
 import type { IncomeEntry, ExpenseEntry, IncomeCategory, FundKey } from "@/types/finance";
 import { INCOME_CATEGORIES, INCOME_CATEGORY_LABELS, FUND_LABELS } from "@/types/finance";
 
@@ -61,6 +64,7 @@ export default function ReportsPage() {
   const params = useParams();
   const churchId = params?.churchId as string;
 
+  const brand = useChurchBrand(churchId);
   const [income, setIncome] = useState<IncomeEntry[]>([]);
   const [expenses, setExpenses] = useState<ExpenseEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -247,8 +251,10 @@ export default function ReportsPage() {
             )}
           </div>
 
-          {/* Report title for print */}
+          {/* Report title for print - with the church's own logo and name */}
           <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <ChurchLogo logoUrl={brand.logoUrl} name={brand.name} height={64} style={{ margin: "0 auto 10px" }} />
+            {brand.name ? <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: COLOR.goldText }}>{brand.name}</p> : null}
             <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: COLOR.text }}>Financial Report</h1>
             <p style={{ margin: 0, fontSize: 13, color: COLOR.textSoft }}>
               {rangeLabel} — {formatDate(rangeStart)} to {formatDate(rangeEnd)}
