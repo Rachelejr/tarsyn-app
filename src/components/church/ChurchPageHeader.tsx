@@ -18,7 +18,9 @@
 //   description      - one extra line under the subtitle
 //   breadcrumb       - label shown after the home icon (defaults to title),
 //                      or an array of { label, href } for deeper pages
-//   illustration     - "finance" | "reports" | "none" | any ReactNode
+//   illustration     - "finance" | "reports" | "members" | "none" | any ReactNode
+//                      (decorations are botanical / abstract only - never
+//                      crosses or other religious symbols)
 //   primaryAction    - { label, onClick?, href?, icon? } or a ReactNode
 //   secondaryAction  - same shape, rendered as a white outlined button
 //   compact          - smaller banner (for "coming soon" pages)
@@ -40,7 +42,7 @@ export type HeaderAction = {
 
 export type BreadcrumbItem = { label: string; href?: string };
 
-export type HeaderIllustration = "finance" | "reports" | "none" | ReactNode;
+export type HeaderIllustration = "finance" | "reports" | "members" | "none" | ReactNode;
 
 interface ChurchPageHeaderProps {
   churchId: string;
@@ -195,6 +197,28 @@ function ReportsArt() {
   );
 }
 
+// Members: a curved leafy branch around three overlapping soft circles
+// (a gathered community). Botanical / abstract only.
+function MembersArt() {
+  return (
+    <svg viewBox="0 0 150 120" fill="none" aria-hidden="true">
+      <circle cx="80" cy="60" r="50" fill="#FFFFFF" opacity="0.55" />
+      <circle cx="66" cy="66" r="17" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.5" />
+      <circle cx="92" cy="66" r="17" fill={PALETTE.green} stroke={PALETTE.goldDeep} strokeWidth="1.5" opacity="0.95" />
+      <circle cx="79" cy="46" r="15" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.5" opacity="0.95" />
+      <path d="M24 100C40 104 64 102 84 96s38-18 46-34" stroke="#6E9A5B" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M44 101c-2-9 2-16 10-18 1 9-3 15-10 18Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M68 99c0-9 5-15 13-15-1 9-5 14-13 15Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M96 90c2-9 8-13 16-11-3 8-8 12-16 11Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M117 75c4-7 10-9 17-6-4 7-10 9-17 6Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M34 100c-8-2-13-7-13-14 8 1 12 6 13 14Z" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="120" cy="30" r="4" fill={PALETTE.gold} opacity="0.55" />
+      <circle cx="34" cy="40" r="3" fill={PALETTE.gold} opacity="0.6" />
+      <circle cx="132" cy="48" r="2" fill={PALETTE.gold} opacity="0.5" />
+    </svg>
+  );
+}
+
 function isActionConfig(a: unknown): a is HeaderAction {
   return !!a && typeof a === "object" && !isValidElement(a) && "label" in (a as Record<string, unknown>);
 }
@@ -218,6 +242,7 @@ function renderIllustration(illustration: HeaderIllustration | undefined): React
   if (!illustration || illustration === "none") return null;
   if (illustration === "finance") return <FinanceArt />;
   if (illustration === "reports") return <ReportsArt />;
+  if (illustration === "members") return <MembersArt />;
   return illustration;
 }
 
