@@ -9,8 +9,8 @@
 //      live date / time / temperature chips on the right.
 //   2. Rounded pastel banner, everything centered: church logo, title
 //      (revealed left to right on load, with a small gold rule growing
-//      under it), subtitle, optional description, optional actions, and a
-//      small line illustration on the right side (hidden on phones).
+//      under it), subtitle, optional description and optional actions.
+//      No drawings or illustrations in headers.
 //   Temperature is always shown (device location, else the church city,
 //   else New York); date / time / temperature chips are bold italic.
 //
@@ -25,9 +25,7 @@
 //   description      - one extra line under the subtitle
 //   breadcrumb       - label shown after the home icon (defaults to title),
 //                      or an array of { label, href } for deeper pages
-//   illustration     - "finance" | "reports" | "members" | "none" | any ReactNode
-//                      (decorations are botanical / abstract only - never
-//                      crosses or other religious symbols)
+//   illustration     - accepted for compatibility, ignored (no drawings)
 //   primaryAction    - { label, onClick?, href?, icon? } or a ReactNode
 //   secondaryAction  - same shape, rendered as a white outlined button
 //   compact          - smaller banner (for "coming soon" pages)
@@ -93,7 +91,7 @@ const HEADER_CSS = `
 .cph-banner {
   position: relative; overflow: hidden;
   display: block; text-align: center;
-  padding: 30px 190px; border-radius: 22px;
+  padding: 30px 40px; border-radius: 22px;
   background: linear-gradient(120deg, ${PALETTE.pink} 0%, ${PALETTE.cream} 55%, ${PALETTE.green} 100%);
   border: 1px solid rgba(255,255,255,0.9);
   box-shadow: 0 1px 2px rgba(36,50,74,0.04), 0 8px 24px -12px rgba(184,145,63,0.25);
@@ -105,7 +103,7 @@ const HEADER_CSS = `
   content: ""; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%); pointer-events: none;
 }
-.cph-banner.is-compact { padding: 20px 150px; }
+.cph-banner.is-compact { padding: 20px 32px; }
 .cph-text { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .cph-text-body { min-width: 0; display: flex; flex-direction: column; align-items: center; }
 .cph-logo { flex-shrink: 0; width: 72px; height: 72px; border-radius: 18px; background: #FFFFFF; border: 1px solid rgba(216,177,90,0.3); box-shadow: 0 2px 8px -4px rgba(36,50,74,0.15); display: flex; align-items: center; justify-content: center; padding: 8px; box-sizing: border-box; overflow: hidden; }
@@ -137,14 +135,6 @@ const HEADER_CSS = `
 .cph-art { position: absolute; z-index: 1; right: 26px; top: 50%; transform: translateY(-50%); width: 150px; height: 120px; }
 .cph-art svg { width: 100%; height: 100%; display: block; }
 
-@media (max-width: 1100px) {
-  .cph-banner { padding: 26px 150px; }
-  .cph-art { width: 120px; height: 96px; right: 18px; }
-}
-@media (max-width: 900px) {
-  .cph-banner { padding: 24px 110px; }
-  .cph-art { width: 92px; height: 74px; right: 12px; }
-}
 @media (max-width: 640px) {
   .cph-top { flex-direction: column; align-items: flex-start; }
   .cph-banner, .cph-banner.is-compact { padding: 22px 16px; border-radius: 18px; }
@@ -181,71 +171,6 @@ function HomeIcon() {
   );
 }
 
-// Finance: a sprout growing out of a small stack of coins.
-function FinanceArt() {
-  return (
-    <svg viewBox="0 0 150 120" fill="none" aria-hidden="true">
-      <circle cx="84" cy="62" r="50" fill="#FFFFFF" opacity="0.55" />
-      <ellipse cx="72" cy="98" rx="30" ry="7" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M42 98v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M102 98v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <ellipse cx="72" cy="90" rx="30" ry="7" fill="#FFFFFF" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M46 90v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M98 90v-8" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <ellipse cx="72" cy="82" rx="26" ry="6" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M72 80V44" stroke="#6E9A5B" strokeWidth="2" strokeLinecap="round" />
-      <path d="M72 60c-14 0-22-8-22-20 12 0 22 6 22 20Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M72 52c2-14 12-22 26-22 0 14-10 22-26 22Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.6" strokeLinejoin="round" />
-      <circle cx="116" cy="34" r="9" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.4" />
-      <path d="M116 29v10M113 32h6" stroke={PALETTE.goldDeep} strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="30" cy="44" r="3" fill={PALETTE.gold} opacity="0.7" />
-      <circle cx="128" cy="70" r="2.2" fill={PALETTE.gold} opacity="0.6" />
-    </svg>
-  );
-}
-
-// Reports: a sheet with a small bar chart and a trend line.
-function ReportsArt() {
-  return (
-    <svg viewBox="0 0 150 120" fill="none" aria-hidden="true">
-      <circle cx="80" cy="60" r="50" fill="#FFFFFF" opacity="0.55" />
-      <rect x="44" y="16" width="64" height="86" rx="8" fill="#FFFFFF" stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M54 30h30M54 38h20" stroke="#C9CFD8" strokeWidth="2" strokeLinecap="round" />
-      <rect x="54" y="70" width="9" height="20" rx="2" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.3" />
-      <rect x="67" y="60" width="9" height="30" rx="2" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.3" />
-      <rect x="80" y="52" width="9" height="38" rx="2" fill={PALETTE.green} stroke={PALETTE.goldDeep} strokeWidth="1.3" />
-      <path d="M54 62l13-8 13 4 16-14" stroke="#6E9A5B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="96" cy="44" r="2.6" fill="#6E9A5B" />
-      <circle cx="114" cy="84" r="14" fill={PALETTE.green} stroke={PALETTE.goldDeep} strokeWidth="1.6" />
-      <path d="M114 70v14h14" stroke={PALETTE.goldDeep} strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="30" cy="36" r="3" fill={PALETTE.gold} opacity="0.7" />
-      <circle cx="132" cy="30" r="2.2" fill={PALETTE.gold} opacity="0.6" />
-    </svg>
-  );
-}
-
-// Members: a curved leafy branch around three overlapping soft circles
-// (a gathered community). Botanical / abstract only.
-function MembersArt() {
-  return (
-    <svg viewBox="0 0 150 120" fill="none" aria-hidden="true">
-      <circle cx="80" cy="60" r="50" fill="#FFFFFF" opacity="0.55" />
-      <circle cx="66" cy="66" r="17" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.5" />
-      <circle cx="92" cy="66" r="17" fill={PALETTE.green} stroke={PALETTE.goldDeep} strokeWidth="1.5" opacity="0.95" />
-      <circle cx="79" cy="46" r="15" fill={PALETTE.cream} stroke={PALETTE.goldDeep} strokeWidth="1.5" opacity="0.95" />
-      <path d="M24 100C40 104 64 102 84 96s38-18 46-34" stroke="#6E9A5B" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M44 101c-2-9 2-16 10-18 1 9-3 15-10 18Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M68 99c0-9 5-15 13-15-1 9-5 14-13 15Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M96 90c2-9 8-13 16-11-3 8-8 12-16 11Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M117 75c4-7 10-9 17-6-4 7-10 9-17 6Z" fill={PALETTE.green} stroke="#6E9A5B" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M34 100c-8-2-13-7-13-14 8 1 12 6 13 14Z" fill={PALETTE.pink} stroke={PALETTE.goldDeep} strokeWidth="1.2" strokeLinejoin="round" />
-      <circle cx="120" cy="30" r="4" fill={PALETTE.gold} opacity="0.55" />
-      <circle cx="34" cy="40" r="3" fill={PALETTE.gold} opacity="0.6" />
-      <circle cx="132" cy="48" r="2" fill={PALETTE.gold} opacity="0.5" />
-    </svg>
-  );
-}
-
 function isActionConfig(a: unknown): a is HeaderAction {
   return !!a && typeof a === "object" && !isValidElement(a) && "label" in (a as Record<string, unknown>);
 }
@@ -265,12 +190,12 @@ function ActionButton({ action, kind }: { action: HeaderAction | ReactNode; kind
   return <button type="button" className={cls} onClick={action.onClick}>{content}</button>;
 }
 
-function renderIllustration(illustration: HeaderIllustration | undefined): ReactNode {
-  if (!illustration || illustration === "none") return null;
-  if (illustration === "finance") return <FinanceArt />;
-  if (illustration === "reports") return <ReportsArt />;
-  if (illustration === "members") return <MembersArt />;
-  return illustration;
+// Headers carry no drawings (decision of Sept 29): the banner shows only
+// the church logo, title, subtitle, description and actions. The
+// `illustration` prop is still accepted so existing pages keep compiling,
+// but it is ignored.
+function renderIllustration(_illustration: HeaderIllustration | undefined): ReactNode {
+  return null;
 }
 
 export default function ChurchPageHeader({
