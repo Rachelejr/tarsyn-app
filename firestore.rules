@@ -9,6 +9,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Church module: true when the signed-in user is the organizer (owner)
+    // of churches/{churchId}. Used so an organizer can LIST a church's
+    // finance / HR sub-collections (a rule that only checks
+    // resource.data.organizerId cannot authorize a list query).
+    function isChurchOwner(churchId) {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/churches/$(churchId)).data.organizerId == request.auth.uid;
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if request.auth != null && request.auth.uid == userId;
@@ -83,37 +92,62 @@ service cloud.firestore {
       }
 
       match /income/{entryId} {
-        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow read: if request.auth != null && (resource.data.organizerId == request.auth.uid || isChurchOwner(churchId));
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
 
       match /fundAllocations/{allocId} {
-        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow read: if request.auth != null && (resource.data.organizerId == request.auth.uid || isChurchOwner(churchId));
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
 
       match /expenses/{expenseId} {
-        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow read: if request.auth != null && (resource.data.organizerId == request.auth.uid || isChurchOwner(churchId));
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
 
       match /newConverts/{convertId} {
-        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow read: if request.auth != null && (resource.data.organizerId == request.auth.uid || isChurchOwner(churchId));
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
 
       match /visitors/{visitorId} {
-        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow read: if request.auth != null && (resource.data.organizerId == request.auth.uid || isChurchOwner(churchId));
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
 
+      // Finance V2: fund balances, internal transfers and receipt counters.
+      // Only the church organizer can read or write them. Nothing here can
+      // be deleted (full traceability).
+      match /funds/{fundId} {
+        allow read, create, update: if isChurchOwner(churchId);
+        allow delete: if false;
+      }
+
+      match /fundTransfers/{transferId} {
+        allow read, create: if isChurchOwner(churchId);
+        allow update, delete: if false;
+      }
+
+      match /counters/{counterId} {
+        allow read, create, update: if isChurchOwner(churchId);
+        allow delete: if false;
+      }
+
+      // Monthly department reports read by the HR page.
+      match /departmentReports/{reportId} {
+        allow read: if isChurchOwner(churchId);
+        allow create: if isChurchOwner(churchId) && request.resource.data.organizerId == request.auth.uid;
+        allow update, delete: if isChurchOwner(churchId);
+      }
+
       match /affiliationRequests/{requestId} {
-        allow read: if request.auth != null && resource.data.organizerId == request.auth.uid;
+        allow read: if request.auth != null && (resource.data.organizerId == request.auth.uid || isChurchOwner(churchId));
         allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
         allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
       }
@@ -129,6 +163,13 @@ service cloud.firestore {
         )
       );
       allow delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
+    }
+    // Older flat ministries collection, still written by the ministry
+    // detail page (ministryKit) and read by Add Member.
+    match /churchMinistries/{ministryId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.organizerId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.organizerId == request.auth.uid;
     }
     match /churchGroups/{groupId} {
       allow read: if request.auth != null;
