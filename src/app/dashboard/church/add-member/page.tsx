@@ -32,6 +32,10 @@
 //  - After saving: a printable member badge (church logo, photo, name,
 //    role, Member ID, member since).
 //
+// Sept 29 update:
+//  - When a ministry is chosen, the new member is also added to that
+//    ministry's own member list, so they appear on the Ministries page.
+//
 // Style rules for this project: responsive styles live in one CSS string
 // injected with a <style> tag; no multi-line inline style objects in JSX.
 
@@ -384,6 +388,15 @@ function AddChurchMemberContent() {
     return () => unsub();
   }, [churchId, uid]);
 
+  // Remember where each ministry lives, so the new member can be added to
+  // that ministry's own member list when saving.
+  const ministrySource = useMemo(() => {
+    const src = new Map<string, 'church' | 'legacy'>();
+    ministriesOld.forEach((m) => src.set(m.id, 'legacy'));
+    ministriesNew.forEach((m) => src.set(m.id, 'church'));
+    return src;
+  }, [ministriesNew, ministriesOld]);
+
   const ministries = useMemo(() => {
     const byId = new Map<string, MinistryRow>();
     [...ministriesNew, ...ministriesOld].forEach((m) => { if (!byId.has(m.id)) byId.set(m.id, m); });
@@ -540,6 +553,23 @@ function AddChurchMemberContent() {
         inviteCode,
         createdAt: serverTimestamp(),
       });
+
+      // Add the new member to the chosen ministry's member list, so they
+      // show up on the Ministries page.
+      if (form.ministryId) {
+        try {
+          const ministryDoc = ministrySource.get(form.ministryId) === 'legacy'
+            ? doc(db, 'churchMinistries', form.ministryId)
+            : doc(db, 'churches', churchId, 'ministries', form.ministryId);
+          await updateDoc(ministryDoc, {
+            memberIds: arrayUnion(memberRef.id),
+            memberCount: increment(1),
+            updatedAt: Date.now(),
+          });
+        } catch (minErr) {
+          console.error('Could not attach member to ministry:', minErr);
+        }
+      }
 
       if (form.familyId) {
         try {
