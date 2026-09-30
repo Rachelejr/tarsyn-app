@@ -35,15 +35,38 @@ export interface MinistryFormValues {
   parentMinistryId: string | null;
 }
 
+// Suggested ministry categories (a church can still type its own).
+// "Church Committee" is handled separately and pinned first on the
+// Ministries page.
 export const SUGGESTED_MINISTRY_CATEGORIES = [
   "Word / Teaching",
+  "Sunday School",
+  "Discipleship",
   "Prayer",
+  "Intercession",
   "Worship",
+  "Choir",
+  "Music / Musicians",
   "Dance",
+  "Ushers",
+  "Protocol / Security",
+  "Hospitality / Welcome",
+  "Men's Ministry",
+  "Women's Ministry",
+  "Couples / Marriage",
+  "Family Ministry",
   "Children's Ministry",
   "Youth Ministry",
-  "Family Ministry",
+  "Young Adults",
   "Adults / Seniors Ministry",
-  "Women's / Men's Ministry",
   "Evangelism",
+  "Missions",
+  "Prison Ministry",
+  "Hospital Visitation",
+  "Counseling / Pastoral Care",
+  "Social / Charity",
+  "Deacons / Deaconesses",
+  "Cleaning / Maintenance",
+  "Media / Sound",
+  "Transportation",
 ];
