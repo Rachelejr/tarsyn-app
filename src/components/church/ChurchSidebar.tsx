@@ -8,11 +8,11 @@ import { CHURCH_UI } from '@/lib/moduleTheme';
 
 // Shared navigation for every page inside a specific church workspace.
 // Wired to real pages: Dashboard, Members, Families, Human Resources,
-// Groups, Ministries, Events, Announcements, Finance, Reports. All labels
-// are in English (UI rule for the whole platform). Every other item routes
-// to the generic /coming-soon page instead of being hidden, per the "don't
-// fake functionality, but don't hide it either" rule — it just doesn't
-// pretend to work yet.
+// Groups, Ministries, Events, Announcements, Finance, Income, Funds,
+// Reports. All labels are in English (UI rule for the whole platform).
+// Every other item routes to the generic /coming-soon page instead of
+// being hidden, per the "don't fake functionality, but don't hide it
+// either" rule — it just doesn't pretend to work yet.
 // Light sidebar (soft white), active item in the pink -> green pastel
 // gradient with dark text. Palette: CHURCH_UI in src/lib/moduleTheme.ts.
 //
@@ -25,6 +25,8 @@ import { CHURCH_UI } from '@/lib/moduleTheme';
 //  - "Contributions" was removed as its own nav item — it's now covered by
 //    "Finance" (income by category, including tithes/offerings/donations)
 //    plus the two funds (Operating/Social) and Reports.
+//  - "Income" and "Funds" are the Finance V2 pages (receipts, 9 separate
+//    funds, transfers). They sit right under Finance.
 //  - "Human Resources" groups everything about people who aren't yet full
 //    members (New Converts, Visitors, Affiliation Requests) plus member
 //    Birthdays, all in one place.
@@ -49,6 +51,8 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'events', label: 'Events & Calendar', icon: '📅', enabled: true },
   { key: 'announcements', label: 'Announcements', icon: '📣', enabled: true },
   { key: 'finance', label: 'Finance', icon: '💰', enabled: true },
+  { key: 'income', label: 'Income', icon: '💵', enabled: true },
+  { key: 'funds', label: 'Funds', icon: '🏦', enabled: true },
   { key: 'reports', label: 'Reports', icon: '📈', enabled: true },
   { key: 'attendance', label: 'Attendance', icon: '✅', enabled: false },
   { key: 'pastoral-care', label: 'Pastoral Care', icon: '💬', enabled: false },
