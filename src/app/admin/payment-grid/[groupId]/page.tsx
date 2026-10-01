@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, addDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, updateDoc, writeBatch, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
@@ -54,6 +54,27 @@ interface Grid {
   status?: 'active' | 'completed';
   currency?: string;
 }
+
+interface RenewSlot {
+  memberId: string;
+  memberName: string;
+  include: boolean;
+}
+
+interface MemberView {
+  memberName: string;
+  slots: string[];
+  weeks: Record<string, string>;
+  payments: Record<string, Record<string, boolean>>;
+}
+
+function addDaysIso(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+const stripPartSuffix = (name: string) => name.replace(/\s*\(part \d+\/\d+\)$/, '');
 
 interface MemberMeta {
   status: string;
@@ -111,6 +132,11 @@ export default function PaymentGridPage() {
   const [cycleEndInput, setCycleEndInput] = useState('');
   const [savingCycleEnd, setSavingCycleEnd] = useState(false);
   const [suggestedCycleEnd, setSuggestedCycleEnd] = useState('');
+  const [showRenew, setShowRenew] = useState(false);
+  const [renewStart, setRenewStart] = useState('');
+  const [renewEnd, setRenewEnd] = useState('');
+  const [renewSlots, setRenewSlots] = useState<RenewSlot[]>([]);
+  const [renewing, setRenewing] = useState(false);
 
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
@@ -544,6 +570,220 @@ export default function PaymentGridPage() {
       alert('Could not save the cycle end date. Please try again.');
     }
     setSavingCycleEnd(false);
+  }
+
+  // ---- Cycle renewal -------------------------------------------------------
+  // Builds the per-member copies (memberViews) of a grid, keyed by Auth uid,
+  // exactly like syncMemberView does for the current grid.
+  function buildMemberViews(
+    slotsMap: Record<string, Slot>,
+    paymentsMap: Record<string, Record<string, boolean>>,
+    weeksMap: Record<string, string>
+  ): Record<string, MemberView> {
+    const views: Record<string, MemberView> = {};
+    Object.values(slotsMap)
+      .sort((a, b) => Number(a.slotNumber) - Number(b.slotNumber))
+      .forEach((s) => {
+        const uid = memberUserIds[s.memberId];
+        if (!uid) return;
+        if (!views[uid]) views[uid] = { memberName: s.memberName, slots: [], weeks: weeksMap, payments: {} };
+        views[uid].slots.push(s.slotNumber);
+        views[uid].payments[s.slotNumber] = paymentsMap[s.slotNumber] || {};
+      });
+    return views;
+  }
+
+  function openRenew() {
+    if (!grid) return;
+    const sorted = Object.entries(grid.slots).sort((a, b) => Number(a[0]) - Number(b[0]));
+    setRenewSlots(sorted.map(([, s]) => ({ memberId: s.memberId, memberName: s.memberName, include: true })));
+    const lastWeek = Object.values(grid.weeks).filter(Boolean).sort().pop() || grid.cycleEndDate || new Date().toISOString().split('T')[0];
+    const start = addDaysIso(lastWeek, 7);
+    const prevLength = Math.max(1, Object.keys(grid.weeks).length);
+    setRenewStart(start);
+    setRenewEnd(addDaysIso(start, (prevLength - 1) * 7));
+    setShowRenew(true);
+  }
+
+  function moveRenewSlot(i: number, dir: -1 | 1) {
+    setRenewSlots((prev) => {
+      const j = i + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const a = [...prev];
+      [a[i], a[j]] = [a[j], a[i]];
+      return a;
+    });
+  }
+
+  function reorderRenew(mode: 'rotate' | 'shuffle') {
+    setRenewSlots((prev) => {
+      if (prev.length < 2) return prev;
+      if (mode === 'rotate') return [...prev.slice(1), prev[0]];
+      const a = [...prev];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    });
+  }
+
+  async function handleRenew() {
+    if (!grid) return;
+    if (JSON.stringify(pendingPayments) !== JSON.stringify(grid.payments)) {
+      alert('Save or discard your pending payment changes first.');
+      return;
+    }
+    const included = renewSlots.filter((s) => s.include);
+    if (included.length === 0) {
+      alert('Select at least one member for the new cycle.');
+      return;
+    }
+    if (!renewStart || !renewEnd || renewEnd < renewStart) {
+      alert('Check the start and end dates of the new cycle.');
+      return;
+    }
+    const prevEnd = grid.cycleEndDate || '';
+    if (prevEnd && renewStart <= prevEnd) {
+      alert('The new cycle must start after the current cycle ends (' + prevEnd + ').');
+      return;
+    }
+    const cycleNo = grid.cycleNumber || 1;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const early = !prevEnd || todayStr <= prevEnd;
+    if (!confirm(
+      (early ? 'Cycle ' + cycleNo + ' has not ended yet' + (prevEnd ? ' (ends ' + prevEnd + ')' : '') + '.\n\n' : '') +
+      'Archive cycle ' + cycleNo + ' and start cycle ' + (cycleNo + 1) + ' on ' + renewStart +
+      ' with ' + included.length + ' slot(s)?\n\nCycle ' + cycleNo +
+      ' stays saved in full (payments, receipts, positions) as read-only history. Nothing is deleted.'
+    )) return;
+
+    setRenewing(true);
+    try {
+      const archiveId = groupId + '_' + grid.cycleId;
+      const memberIds = Array.from(new Set(Object.values(grid.slots).map((s) => s.memberId))).filter(Boolean);
+
+      // Positions and payout dates of the ending cycle, frozen in the archive.
+      const memberDocs: Record<string, Record<string, unknown>> = {};
+      await Promise.all(memberIds.map(async (id) => {
+        try {
+          const snap = await getDoc(doc(db, 'members', id));
+          if (snap.exists()) memberDocs[id] = snap.data();
+        } catch { /* member unreadable: skipped in snapshot */ }
+      }));
+      const memberSnapshot: Record<string, unknown> = {};
+      memberIds.forEach((id) => {
+        const d = memberDocs[id];
+        if (!d) return;
+        memberSnapshot[id] = {
+          name: d.fullName || d.name || '',
+          position: d.position ?? null,
+          payoutDate: d.payoutDate ?? null,
+          payoutDates: d.payoutDates ?? null,
+          shares: d.shares ?? null,
+          status: d.status ?? null,
+        };
+      });
+
+      // 1) Archive document (skipped if a previous attempt already wrote it).
+      const archiveRef = doc(db, 'paymentGrids', archiveId);
+      const archiveSnap = await getDoc(archiveRef);
+      if (!archiveSnap.exists()) {
+        const plainGrid = JSON.parse(JSON.stringify(grid));
+        await setDoc(archiveRef, {
+          ...plainGrid,
+          cycleNumber: cycleNo,
+          cycleEndDate: prevEnd || (Object.values(grid.weeks).filter(Boolean).sort().pop() || ''),
+          status: 'completed',
+          archivedAt: serverTimestamp(),
+          archivedBy: auth.currentUser?.uid || '',
+          memberSnapshot,
+        });
+      }
+
+      // 2) Archived member views + new current grid + new member views, all at once.
+      const newWeeks = generateWeeksFromDate(renewStart, renewEnd);
+      const newSlots: Record<string, Slot> = {};
+      included.forEach((s, i) => {
+        const n = String(i + 1);
+        newSlots[n] = { slotNumber: n, memberId: s.memberId, memberName: stripPartSuffix(s.memberName) };
+      });
+      const newCycleId = 'cycle-' + Date.now();
+
+      const batch = writeBatch(db);
+      const oldViews = buildMemberViews(grid.slots, grid.payments || {}, grid.weeks);
+      Object.entries(oldViews).forEach(([uid, view]) => {
+        batch.set(doc(db, 'paymentGrids', archiveId, 'memberViews', uid), view);
+      });
+      batch.set(doc(db, 'paymentGrids', gridId), {
+        organizerId: grid.organizerId,
+        groupId,
+        cycleId: newCycleId,
+        cycleNumber: cycleNo + 1,
+        previousCycleId: grid.cycleId,
+        startDate: renewStart,
+        startYear: new Date(renewStart).getUTCFullYear(),
+        cycleEndDate: renewEnd,
+        status: 'active',
+        weeks: newWeeks,
+        slots: newSlots,
+        payments: {},
+        ...(grid.currency ? { currency: grid.currency } : {}),
+      });
+      const newViews = buildMemberViews(newSlots, {}, newWeeks);
+      Object.entries(newViews).forEach(([uid, view]) => {
+        batch.set(doc(db, 'paymentGrids', gridId, 'memberViews', uid), view);
+      });
+      // Members who do not continue: their current view is emptied (their
+      // history stays in the archive).
+      Object.keys(oldViews).forEach((uid) => {
+        if (!newViews[uid]) {
+          batch.set(doc(db, 'paymentGrids', gridId, 'memberViews', uid), {
+            memberName: oldViews[uid].memberName, slots: [], weeks: newWeeks, payments: {},
+          });
+        }
+      });
+      await batch.commit();
+
+      // 3) New positions and payout dates on each member (old ones are in the archive).
+      const weekDates = Object.entries(newWeeks).sort((a, b) => Number(a[0]) - Number(b[0])).map(([, d]) => d);
+      const plan: Record<string, { positions: number[]; dates: string[] }> = {};
+      included.forEach((s, i) => {
+        if (!plan[s.memberId]) plan[s.memberId] = { positions: [], dates: [] };
+        plan[s.memberId].positions.push(i + 1);
+        plan[s.memberId].dates.push(weekDates[i] || '');
+      });
+      let failed = 0;
+      await Promise.all(memberIds.map(async (id) => {
+        const p = plan[id];
+        const data = p
+          ? { position: p.positions[0], payoutDate: p.dates[0] || null, payoutDates: p.dates, shares: p.positions.length }
+          : { position: null, payoutDate: null, payoutDates: [] };
+        try { await updateDoc(doc(db, 'members', id), data); } catch { failed++; }
+      }));
+
+      try {
+        const uid = auth.currentUser?.uid || '';
+        await addDoc(collection(db, 'audit_logs'), {
+          organizerId: uid, actorId: uid, category: 'Group', action: 'Cycle renewed',
+          user: auth.currentUser?.email || '',
+          details: groupName + ': cycle ' + cycleNo + ' archived (' + archiveId + '), cycle ' + (cycleNo + 1) +
+            ' starts ' + renewStart + ' with ' + included.length + ' slot(s)',
+          createdAt: serverTimestamp(),
+        });
+      } catch { /* logging must never block the renewal */ }
+
+      setShowRenew(false);
+      await loadGrid();
+      setPageStart(0);
+      alert('Cycle ' + (cycleNo + 1) + ' started. Cycle ' + cycleNo + ' is archived.' +
+        (failed > 0 ? '\n\nNote: ' + failed + ' member record(s) could not be updated with their new position. Check them in Member Management.' : ''));
+    } catch (err) {
+      console.error('Cycle renewal failed:', err);
+      alert('The renewal could not be completed. The current cycle was not changed. Please try again.');
+    } finally {
+      setRenewing(false);
+    }
   }
 
   function handleDiscardAll() {
@@ -1027,6 +1267,11 @@ export default function PaymentGridPage() {
               >
                 {endDate ? '✎ Change cycle end' : '⚙ Set cycle end date'}
               </button>
+              {endDate && (
+                <button onClick={openRenew} style={btnStyle(isComplete ? 'primary' : 'ghost')}>
+                  🔁 Renew Cycle
+                </button>
+              )}
             </div>
           );
         })()}
@@ -1064,6 +1309,82 @@ export default function PaymentGridPage() {
             </button>
           </div>
         )}
+
+        {showRenew && (() => {
+          const cycleNo = grid.cycleNumber || 1;
+          const preview = renewStart && renewEnd && renewEnd >= renewStart ? generateWeeksFromDate(renewStart, renewEnd) : {};
+          const previewDates = Object.entries(preview).sort((a, b) => Number(a[0]) - Number(b[0])).map(([, d]) => d);
+          const includedCount = renewSlots.filter((s) => s.include).length;
+          let order = 0;
+          return (
+            <div
+              className="UNIMUNITY-no-print"
+              style={{ background: C.ivoire, border: '1px solid ' + C.bordeaux, borderRadius: 12, padding: '14px 16px', marginBottom: 12 }}
+            >
+              <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 800, color: C.bordeaux }}>
+                🔁 Renew: start cycle {cycleNo + 1}
+              </p>
+              <p style={{ margin: '0 0 12px', fontSize: 12.5, color: C.texteGris }}>
+                Cycle {cycleNo} will be archived in full (payments, receipts, positions) as read-only history. Nothing is deleted.
+              </p>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+                <span style={{ fontSize: 12.5, color: C.texteFonce, fontWeight: 600 }}>New start:</span>
+                <input type="date" value={renewStart} onChange={(e) => setRenewStart(e.target.value)} style={dateInputStyle} />
+                <span style={{ fontSize: 12.5, color: C.texteFonce, fontWeight: 600 }}>New end:</span>
+                <input type="date" value={renewEnd} onChange={(e) => setRenewEnd(e.target.value)} style={dateInputStyle} />
+                <span style={{ fontSize: 12.5, color: C.texteGris }}>{previewDates.length} weeks · {includedCount} slot(s)</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+                <span style={{ fontSize: 12.5, color: C.texteFonce, fontWeight: 600 }}>Payout order:</span>
+                <button onClick={() => reorderRenew('rotate')} style={btnStyle('ghost')}>Rotate (first → last)</button>
+                <button onClick={() => reorderRenew('shuffle')} style={btnStyle('ghost')}>Random draw</button>
+                <span style={{ fontSize: 12, color: C.texteGris }}>or use ↑ ↓ to set it by hand</span>
+              </div>
+              <div style={{ border: '1px solid ' + C.border, borderRadius: 10, overflow: 'hidden', marginBottom: 10 }}>
+                {renewSlots.map((s, i) => {
+                  const pos = s.include ? ++order : 0;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px',
+                        borderTop: i === 0 ? 'none' : '1px solid ' + C.border,
+                        background: s.include ? 'white' : C.creme, opacity: s.include ? 1 : 0.6,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={s.include}
+                        onChange={() => setRenewSlots((prev) => prev.map((x, k) => (k === i ? { ...x, include: !x.include } : x)))}
+                        title="Continues in the new cycle"
+                      />
+                      <span style={{ width: 36, fontSize: 12.5, fontWeight: 700, color: C.bordeaux }}>{pos ? '#' + pos : '-'}</span>
+                      <span style={{ flex: 1, fontSize: 13, color: C.texteFonce }}>{s.memberName}</span>
+                      <span style={{ fontSize: 12, color: C.texteGris, minWidth: 110 }}>
+                        {pos ? (previewDates[pos - 1] ? 'Payout ' + previewDates[pos - 1] : 'after end date') : 'not continuing'}
+                      </span>
+                      <button onClick={() => moveRenewSlot(i, -1)} disabled={i === 0} style={btnStyle('ghost', i === 0)}>↑</button>
+                      <button onClick={() => moveRenewSlot(i, 1)} disabled={i === renewSlots.length - 1} style={btnStyle('ghost', i === renewSlots.length - 1)}>↓</button>
+                    </div>
+                  );
+                })}
+              </div>
+              {includedCount > previewDates.length && (
+                <p style={{ margin: '0 0 10px', fontSize: 12.5, color: C.danger }}>
+                  More slots ({includedCount}) than weeks ({previewDates.length}): some payouts would fall after the end date. Move the end date later.
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button onClick={handleRenew} disabled={renewing || includedCount === 0} style={btnStyle('primary', renewing || includedCount === 0)}>
+                  {renewing ? 'Renewing...' : 'Archive cycle ' + cycleNo + ' and start cycle ' + (cycleNo + 1)}
+                </button>
+                <button onClick={() => setShowRenew(false)} disabled={renewing} style={btnStyle('ghost', renewing)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Compact summary bar */}
         <div
