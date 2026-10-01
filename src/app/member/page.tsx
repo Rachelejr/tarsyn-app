@@ -95,6 +95,7 @@ function MemberContent() {
     cycleStart: string;
     cycleEnd: string | null;
     history: { cycleNumber: number; archiveId: string; startDate: string; endDate: string }[];
+    askedFor: number;
   } | null>(null);
   const [viewingArchiveId, setViewingArchiveId] = useState('');
   const [archiveView, setArchiveView] = useState<{
@@ -218,6 +219,7 @@ function MemberContent() {
         cycleStart: data.cycleStart || weeks[weekKeys[0]] || '',
         cycleEnd: data.cycleEnd || null,
         history: Array.isArray(data.cycleHistory) ? data.cycleHistory : [],
+        askedFor: typeof data.renewalAskedFor === 'number' ? data.renewalAskedFor : 0,
       });
       setViewingArchiveId('');
       setArchiveView(null);
@@ -266,7 +268,7 @@ function MemberContent() {
 
   // "Join next cycle": the member's answer is stored on their member record,
   // and the organizer sees it in the Renew Cycle panel.
-  const answerNextCycle = async (answer: 'yes' | 'no') => {
+  const answerNextCycle = async (answer: 'yes' | 'pause' | 'no') => {
     if (!activeMember?.id || !cycleMeta) return;
     setJoinSaving(true);
     try {
@@ -1068,7 +1070,11 @@ function MemberContent() {
             const daysToEnd = cycleMeta?.cycleEnd
               ? Math.ceil((new Date(cycleMeta.cycleEnd).getTime() - new Date(todayStr).getTime()) / 86400000)
               : null;
-            const showJoin = !isArchive && cycleMeta && daysToEnd !== null && daysToEnd <= 30;
+            // Shown when the organizer (or the automatic reminder, 30 days
+            // before the end) asked the question, or once the end is near.
+            const showJoin = !isArchive && cycleMeta && (
+              cycleMeta.askedFor === cycleMeta.cycleNumber + 1 || (daysToEnd !== null && daysToEnd <= 30)
+            );
             const myAnswer = activeMember && cycleMeta && activeMember.nextCycleFor === cycleMeta.cycleNumber + 1
               ? activeMember.nextCycleResponse : null;
             return (
@@ -1119,29 +1125,38 @@ function MemberContent() {
                   <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: C.bordeaux }}>
                     {daysToEnd !== null && daysToEnd < 0
                       ? 'Cycle ' + cycleMeta!.cycleNumber + ' has ended.'
-                      : 'Cycle ' + cycleMeta!.cycleNumber + ' ends on ' + cycleMeta!.cycleEnd + '.'}
-                    {' '}Will you join cycle {cycleMeta!.cycleNumber + 1}?
+                      : cycleMeta!.cycleEnd
+                        ? 'Cycle ' + cycleMeta!.cycleNumber + ' ends on ' + cycleMeta!.cycleEnd + '.'
+                        : 'Cycle ' + cycleMeta!.cycleNumber + ' is coming to an end.'}
+                    {' '}What are your plans for cycle {cycleMeta!.cycleNumber + 1}?
                   </p>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => answerNextCycle('yes')}
-                      disabled={joinSaving}
-                      style={{ padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12.5,
-                        background: myAnswer === 'yes' ? C.success : C.bordeaux, color: 'white' }}
-                    >
-                      {myAnswer === 'yes' ? '✓ Joining next cycle' : 'Join next cycle'}
-                    </button>
-                    <button
-                      onClick={() => answerNextCycle('no')}
-                      disabled={joinSaving}
-                      style={{ padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 12.5,
-                        border: '1px solid ' + (myAnswer === 'no' ? C.danger : C.border),
-                        background: 'white', color: myAnswer === 'no' ? C.danger : C.texteFonce }}
-                    >
-                      {myAnswer === 'no' ? '✗ Not joining' : 'Not this time'}
-                    </button>
+                    {([
+                      { key: 'yes', label: '✓ Continue', on: C.success },
+                      { key: 'pause', label: '⏸ Pause', on: '#9C7A2E' },
+                      { key: 'no', label: '✗ No', on: C.danger },
+                    ] as const).map((opt) => {
+                      const selected = myAnswer === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() => answerNextCycle(opt.key)}
+                          disabled={joinSaving}
+                          style={{
+                            padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 12.5,
+                            border: '1.5px solid ' + (selected ? opt.on : C.border),
+                            background: selected ? opt.on : 'white',
+                            color: selected ? 'white' : C.texteFonce,
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                     <span style={{ fontSize: 11.5, color: C.texteGris }}>
-                      {myAnswer ? 'You can change your answer until the organizer starts the new cycle.' : 'Your organizer will see your answer.'}
+                      {myAnswer
+                        ? 'Your answer: ' + (myAnswer === 'yes' ? 'Continue' : myAnswer === 'pause' ? 'Pause (you stay in the group)' : 'No (you leave the group)') + '. You can change it until the new cycle starts.'
+                        : 'Continue = I join the next cycle · Pause = I skip it but stay in the group · No = I leave the group.'}
                     </span>
                   </div>
                 </div>

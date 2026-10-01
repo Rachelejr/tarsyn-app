@@ -54,6 +54,8 @@ interface Grid {
   status?: 'active' | 'completed';
   currency?: string;
   cycleHistory?: CycleHistoryEntry[];
+  renewalAskedFor?: number;
+  renewalAskedAt?: string;
 }
 
 interface CycleHistoryEntry {
@@ -157,7 +159,8 @@ export default function PaymentGridPage() {
   const [renewEnd, setRenewEnd] = useState('');
   const [renewSlots, setRenewSlots] = useState<RenewSlot[]>([]);
   const [renewing, setRenewing] = useState(false);
-  const [renewResponses, setRenewResponses] = useState<Record<string, 'yes' | 'no'>>({});
+  const [renewResponses, setRenewResponses] = useState<Record<string, 'yes' | 'pause' | 'no'>>({});
+  const [askingMembers, setAskingMembers] = useState(false);
 
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
@@ -630,23 +633,61 @@ export default function PaymentGridPage() {
     const sorted = Object.entries(grid.slots).sort((a, b) => Number(a[0]) - Number(b[0]));
     // Members' answers to "Join next cycle" (asked on their page before the end).
     const nextNo = (grid.cycleNumber || 1) + 1;
-    const responses: Record<string, 'yes' | 'no'> = {};
+    const responses: Record<string, 'yes' | 'pause' | 'no'> = {};
     const ids = Array.from(new Set(sorted.map(([, s]) => s.memberId))).filter(Boolean);
     await Promise.all(ids.map(async (id) => {
       try {
         const snap = await getDoc(doc(db, 'members', id));
         const d = snap.exists() ? snap.data() : null;
-        if (d && d.nextCycleFor === nextNo && (d.nextCycleResponse === 'yes' || d.nextCycleResponse === 'no')) {
+        if (d && d.nextCycleFor === nextNo && ['yes', 'pause', 'no'].includes(d.nextCycleResponse)) {
           responses[id] = d.nextCycleResponse;
         }
       } catch { /* unreadable: no answer shown */ }
     }));
     setRenewResponses(responses);
-    setRenewSlots(sorted.map(([, s]) => ({ memberId: s.memberId, memberName: s.memberName, include: responses[s.memberId] !== 'no' })));
+    setRenewSlots(sorted.map(([, s]) => ({ memberId: s.memberId, memberName: s.memberName, include: !responses[s.memberId] || responses[s.memberId] === 'yes' })));
     // No date is imposed: the organizer chooses when the new cycle starts and ends.
     setRenewStart('');
     setRenewEnd('');
     setShowRenew(true);
+  }
+
+  // Sends every member of the grid an email + an in-app question:
+  // continue, pause, or leave for the next cycle.
+  async function handleAskMembers() {
+    if (!grid) return;
+    const nextNo = (grid.cycleNumber || 1) + 1;
+    const already = grid.renewalAskedFor === nextNo;
+    if (!confirm(
+      (already ? 'Members were already asked on ' + (grid.renewalAskedAt || '').split('T')[0] + '. Send the reminder again?\n\n' : '') +
+      'Ask every member of this cycle if they continue, pause, or leave for cycle ' + nextNo + '?\n\n' +
+      'They receive an email, and the question appears on their member page.'
+    )) return;
+    setAskingMembers(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not signed in');
+      const idToken = await user.getIdToken();
+      const res = await fetch('/api/cycles/ask-renewal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+        body: JSON.stringify({ groupId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || 'Could not send the question. Please try again.');
+        return;
+      }
+      setGrid((prev) => (prev ? { ...prev, renewalAskedFor: nextNo, renewalAskedAt: new Date().toISOString() } : prev));
+      alert('Question sent for cycle ' + nextNo + '.\n\nEmails sent: ' + (data.emailed ?? 0) +
+        '\nShown on member pages: ' + (data.inApp ?? 0) +
+        (data.noAccount ? '\nMembers without a member account (email only or nothing): ' + data.noAccount : ''));
+    } catch (err) {
+      console.error(err);
+      alert('Could not send the question. Please try again.');
+    } finally {
+      setAskingMembers(false);
+    }
   }
 
   function moveRenewSlot(i: number, dir: -1 | 1) {
@@ -1325,6 +1366,10 @@ export default function PaymentGridPage() {
               >
                 {endDate ? '✎ Change cycle end' : '⚙ Set cycle end date'}
               </button>
+              <button onClick={handleAskMembers} disabled={askingMembers} style={btnStyle('ghost', askingMembers)}
+                title="Ask members: continue, pause or leave for the next cycle">
+                {askingMembers ? 'Sending...' : grid.renewalAskedFor === cycleNo + 1 ? '📨 Ask again' : '📨 Ask members'}
+              </button>
               {endDate && (
                 <button onClick={openRenew} style={btnStyle(isComplete ? 'primary' : 'ghost')}>
                   🔁 Renew Cycle
@@ -1423,9 +1468,11 @@ export default function PaymentGridPage() {
                         {s.memberName}
                         <span style={{
                           marginLeft: 8, fontSize: 11, fontWeight: 700,
-                          color: renewResponses[s.memberId] === 'yes' ? C.success : renewResponses[s.memberId] === 'no' ? C.danger : C.texteGris,
+                          color: renewResponses[s.memberId] === 'yes' ? C.success : renewResponses[s.memberId] === 'no' ? C.danger
+                            : renewResponses[s.memberId] === 'pause' ? C.warning : C.texteGris,
                         }}>
-                          {renewResponses[s.memberId] === 'yes' ? '✓ joins' : renewResponses[s.memberId] === 'no' ? '✗ not joining' : 'no answer yet'}
+                          {renewResponses[s.memberId] === 'yes' ? '✓ continues' : renewResponses[s.memberId] === 'no' ? '✗ leaving'
+                            : renewResponses[s.memberId] === 'pause' ? '⏸ pause' : 'no answer yet'}
                         </span>
                       </span>
                       <span style={{ fontSize: 12, color: C.texteGris, minWidth: 110 }}>
