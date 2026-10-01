@@ -38,25 +38,25 @@ function StatCard({ label, value, icon, gradient, glow, delay }: { label: string
       className="stat-card fade-up"
       style={{
         background: '#FFFFFF',
-        borderRadius: '16px',
-        padding: '16px 18px',
+        borderRadius: '14px',
+        padding: '12px 14px',
         boxShadow: '0 4px 16px rgba(107,45,78,0.08)',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
+        gap: '10px',
         animationDelay: `${delay}ms`,
       }}
     >
       <div
         style={{
-          width: '42px',
-          height: '42px',
-          borderRadius: '12px',
+          width: '34px',
+          height: '34px',
+          borderRadius: '10px',
           background: gradient,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '18px',
+          fontSize: '15px',
           boxShadow: `0 5px 14px ${glow}`,
           flexShrink: 0,
         }}
@@ -64,8 +64,8 @@ function StatCard({ label, value, icon, gradient, glow, delay }: { label: string
         {icon}
       </div>
       <div>
-        <p style={{ color: '#C4748E', fontSize: '10px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '1.1px', fontWeight: 700 }}>{label}</p>
-        <p style={{ color: '#4A1F38', fontSize: '21px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
+        <p style={{ color: '#C4748E', fontSize: '9px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>{label}</p>
+        <p style={{ color: '#4A1F38', fontSize: '17px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
           {isNumeric ? animated : value}
         </p>
       </div>
@@ -102,6 +102,8 @@ function OverviewContent() {
   const [memberEditEmail, setMemberEditEmail] = useState('');
   const [memberEditCountry, setMemberEditCountry] = useState('');
   const [savingMember, setSavingMember] = useState(false);
+  const [memberShowCount, setMemberShowCount] = useState<number | 'all'>(5);
+  const [paymentShowCount, setPaymentShowCount] = useState<number | 'all'>(5);
 
   useEffect(() => {
     let unsubMembers: (() => void) | null = null;
@@ -616,21 +618,21 @@ function OverviewContent() {
           <StatCard label="Pending Payments" value={pendingPayments} icon={'\u23f3'} gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
 
-        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>{'\ud83c\udfd8\ufe0f'} My Groups</h3>
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <h3 style={{ color: '#6B2D4E', fontSize: '14px', fontWeight: 700, margin: '0 0 10px' }}>{'\ud83c\udfd8\ufe0f'} My Groups</h3>
           {groups.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '8px' }}>
               {groups.map((g, i) => (
-                <div key={i} style={{ background: '#FBEEDD', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                <div key={i} style={{ background: '#FBEEDD', borderRadius: '10px', padding: '9px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
                   <div>
-                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 2px' }}>{g.name}</p>
-                    <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{g.frequency} - {g.status}</p>
+                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12px', margin: '0 0 2px' }}>{g.name}</p>
+                    <p style={{ color: '#C4748E', fontSize: '10px', margin: 0 }}>{g.frequency} - {g.status}</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ display: 'flex', gap: '5px' }}>
                     <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
-                      style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '7px', padding: '4px 9px', fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>
                       {'\ud83d\udcca'} Payment Grid
                     </button>
                     <button onClick={() => {
@@ -644,7 +646,7 @@ function OverviewContent() {
                       setGroupEditStatus(g.status || 'active');
                       setGroupEditDescription(g.description || '');
                     }} className="btn-action"
-                      style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '7px', padding: '4px 9px', fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>
                       {'\u270f\ufe0f'} Edit
                     </button>
                   </div>
@@ -655,7 +657,21 @@ function OverviewContent() {
         </div>
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>{'\ud83d\udc65'} Member Management</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: 0 }}>{'\ud83d\udc65'} Member Management</h3>
+            {members.length > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#C4748E' }}>
+                Show:
+                <select value={memberShowCount} onChange={(e) => setMemberShowCount(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  style={{ border: '1px solid #FBEEDD', borderRadius: '8px', padding: '4px 8px', fontSize: '12px', color: '#4A1F38', background: 'white', cursor: 'pointer' }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value="all">All ({members.length})</option>
+                </select>
+              </label>
+            )}
+          </div>
           {members.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No members yet.</p>
           ) : (
@@ -669,7 +685,7 @@ function OverviewContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.sort((a, b) => a.position - b.position).map((m, i) => (
+                  {members.sort((a, b) => a.position - b.position).slice(0, memberShowCount === 'all' ? undefined : memberShowCount).map((m, i) => (
                     <tr key={m.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
                       <td style={{ padding: '10px 10px', color: '#6B2D4E', fontWeight: 700, fontSize: '13px' }}>#{m.position}</td>
                       <td style={{ padding: '10px 10px', color: '#C4748E', fontFamily: 'monospace', fontSize: '12px' }}>{m.tynId}</td>
@@ -758,7 +774,21 @@ function OverviewContent() {
         )}
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>{'\ud83d\udccb'} Recent Contributions</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: 0 }}>{'\ud83d\udccb'} Recent Contributions</h3>
+            {payments.length > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#C4748E' }}>
+                Show:
+                <select value={paymentShowCount} onChange={(e) => setPaymentShowCount(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  style={{ border: '1px solid #FBEEDD', borderRadius: '8px', padding: '4px 8px', fontSize: '12px', color: '#4A1F38', background: 'white', cursor: 'pointer' }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value="all">All ({payments.length})</option>
+                </select>
+              </label>
+            )}
+          </div>
           {payments.length === 0 ? (
             <p style={{ color: '#C4748E', fontSize: '13px' }}>No payments recorded yet.</p>
           ) : (
@@ -772,7 +802,7 @@ function OverviewContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.slice(0, 10).map((p, i) => (
+                  {payments.slice(0, paymentShowCount === 'all' ? undefined : paymentShowCount).map((p, i) => (
                     <tr key={p.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
                       <td style={{ padding: '10px 10px' }}>
                         <a href={`/receipt/${p.receiptNumber}`} target="_blank" rel="noreferrer"
