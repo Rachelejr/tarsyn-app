@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { auth, db, memberAuth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, signInWithCredential, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence, AuthCredential } from 'firebase/auth';
-import { collection, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { signInWithEmailAndPassword, signInWithCredential, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence, AuthCredential } from 'firebase/auth';
+import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import Footer from '@/components/Footer';
@@ -25,7 +25,7 @@ function LoginPageInner() {
   const [userEmail, setUserEmail] = useState('');
   const [googleCredential, setGoogleCredential] = useState<AuthCredential | null>(null);
 
-  const redirectByRole = async (uid: string, uEmail: string) => {
+  const redirectByRole = async (uid: string, uEmail: string, customToken?: string) => {
     try {
       let role = null;
       const userDoc = await getDoc(doc(db, 'users', uid));
@@ -67,9 +67,15 @@ function LoginPageInner() {
         // vice versa. Uses whichever credential got us here (password or
         // Google), then signs the default auth instance back out.
         try {
-          if (googleCredential) {
+          // Preferred: reuse the server-issued token (carries the verified
+          // 2FA flag). Falls back to the previous method if it fails.
+          let moved = false;
+          if (customToken) {
+            try { await signInWithCustomToken(memberAuth, customToken); moved = true; } catch { moved = false; }
+          }
+          if (!moved && googleCredential) {
             await signInWithCredential(memberAuth, googleCredential);
-          } else if (password) {
+          } else if (!moved && password) {
             await signInWithEmailAndPassword(memberAuth, uEmail, password);
           }
           await auth.signOut();
@@ -83,17 +89,18 @@ function LoginPageInner() {
     }
   };
 
-  const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
-
-  const sendOTP = async (uid: string, uEmail: string): Promise<boolean> => {
-    const otp = generateOTP();
-    const expires = Date.now() + 10 * 60 * 1000;
-    await setDoc(doc(db, 'otp_codes', uid), { otp, expires, email: uEmail });
+  // 2FA codes are now generated, stored and checked ONLY on the server
+  // (/api/auth/send-2fa and /api/auth/verify-2fa). The browser never sees
+  // or stores the code. The two parameters are kept so the call sites
+  // below stay unchanged; the server uses the signed-in account instead.
+  const sendOTP = async (_uid?: string, _uEmail?: string): Promise<boolean> => {
     try {
+      const user = auth.currentUser;
+      if (!user) return false;
+      const idToken = await user.getIdToken();
       const res = await fetch('/api/auth/send-2fa', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: uEmail, otp }),
+        headers: { Authorization: `Bearer ${idToken}` },
       });
       return res.ok;
     } catch {
@@ -136,18 +143,27 @@ function LoginPageInner() {
     setLoading(true);
     try {
       const entered = code.join('');
-      const otpDoc = await getDoc(doc(db, 'otp_codes', userId));
-      if (!otpDoc.exists()) { setError('Code expired. Request a new code.'); setLoading(false); return; }
-      const { otp, expires } = otpDoc.data();
-      if (Date.now() > expires) {
-        await deleteDoc(doc(db, 'otp_codes', userId));
-        setError('Code expired. Request a new code.');
-        setLoading(false);
+      const user = auth.currentUser;
+      if (!user) {
+        setError('Session expired. Please sign in again.');
+        setStep('login');
         return;
       }
-      if (entered !== otp) { setError('Incorrect code. Please try again.'); setLoading(false); return; }
-      await deleteDoc(doc(db, 'otp_codes', userId));
-      await redirectByRole(userId, userEmail);
+      const idToken = await user.getIdToken();
+      const res = await fetch('/api/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ code: entered }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token) {
+        setError(data.error || 'Verification error. Please try again.');
+        return;
+      }
+      // Re-open the session with the server-issued token, which carries
+      // the "2FA verified" flag (mfa: true).
+      await signInWithCustomToken(auth, data.token);
+      await redirectByRole(userId, userEmail, data.token);
     } catch {
       setError('Verification error. Please try again.');
     } finally {
@@ -163,7 +179,7 @@ function LoginPageInner() {
       setResendMsg('New code sent!');
       setTimeout(() => setResendMsg(''), 4000);
     } else {
-      setError('Failed to send the email. Please try again in a moment.');
+      setError('Could not send a new code. Please wait a minute and try again.');
     }
   };
 
