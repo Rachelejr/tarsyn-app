@@ -161,6 +161,7 @@ export default function PaymentGridPage() {
   const [renewing, setRenewing] = useState(false);
   const [renewResponses, setRenewResponses] = useState<Record<string, 'yes' | 'pause' | 'no'>>({});
   const [askingMembers, setAskingMembers] = useState(false);
+  const [renewNotes, setRenewNotes] = useState<Record<string, string>>({});
 
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
@@ -634,6 +635,7 @@ export default function PaymentGridPage() {
     // Members' answers to "Join next cycle" (asked on their page before the end).
     const nextNo = (grid.cycleNumber || 1) + 1;
     const responses: Record<string, 'yes' | 'pause' | 'no'> = {};
+    const notes: Record<string, string> = {};
     const ids = Array.from(new Set(sorted.map(([, s]) => s.memberId))).filter(Boolean);
     await Promise.all(ids.map(async (id) => {
       try {
@@ -641,10 +643,12 @@ export default function PaymentGridPage() {
         const d = snap.exists() ? snap.data() : null;
         if (d && d.nextCycleFor === nextNo && ['yes', 'pause', 'no'].includes(d.nextCycleResponse)) {
           responses[id] = d.nextCycleResponse;
+          if (typeof d.nextCycleNote === 'string' && d.nextCycleNote.trim()) notes[id] = d.nextCycleNote.trim();
         }
       } catch { /* unreadable: no answer shown */ }
     }));
     setRenewResponses(responses);
+    setRenewNotes(notes);
     setRenewSlots(sorted.map(([, s]) => ({ memberId: s.memberId, memberName: s.memberName, include: !responses[s.memberId] || responses[s.memberId] === 'yes' })));
     // No date is imposed: the organizer chooses when the new cycle starts and ends.
     setRenewStart('');
@@ -1474,6 +1478,11 @@ export default function PaymentGridPage() {
                           {renewResponses[s.memberId] === 'yes' ? '✓ continues' : renewResponses[s.memberId] === 'no' ? '✗ leaving'
                             : renewResponses[s.memberId] === 'pause' ? '⏸ pause' : 'no answer yet'}
                         </span>
+                        {renewNotes[s.memberId] && (
+                          <span style={{ display: 'block', fontSize: 11.5, color: C.texteGris, fontStyle: 'italic', marginTop: 2 }}>
+                            {'\u201C' + renewNotes[s.memberId] + '\u201D'}
+                          </span>
+                        )}
                       </span>
                       <span style={{ fontSize: 12, color: C.texteGris, minWidth: 110 }}>
                         {pos

@@ -109,6 +109,8 @@ function MemberContent() {
   } | null>(null);
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [joinSaving, setJoinSaving] = useState(false);
+  const [joinNote, setJoinNote] = useState('');
+  const [joinSaved, setJoinSaved] = useState(false);
   // --- Pay Now (embedded Stripe Elements) state ---
   const [showPayModal, setShowPayModal] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
@@ -271,10 +273,22 @@ function MemberContent() {
   const answerNextCycle = async (answer: 'yes' | 'pause' | 'no') => {
     if (!activeMember?.id || !cycleMeta) return;
     setJoinSaving(true);
+    setJoinSaved(false);
     try {
-      const data = { nextCycleResponse: answer, nextCycleFor: cycleMeta.cycleNumber + 1, nextCycleRespondedAt: serverTimestamp() };
-      await updateDoc(doc(db, 'members', activeMember.id), data);
-      setActiveMember({ ...activeMember, nextCycleResponse: answer, nextCycleFor: cycleMeta.cycleNumber + 1 });
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not signed in');
+      const idToken = await user.getIdToken();
+      // Saved on the server, which also emails the organizer; the answer then
+      // shows up live on the organizer's dashboard.
+      const res = await fetch('/api/cycles/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+        body: JSON.stringify({ memberId: activeMember.id, answer, note: joinNote }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'failed');
+      setActiveMember({ ...activeMember, nextCycleResponse: answer, nextCycleFor: data.nextCycle ?? cycleMeta.cycleNumber + 1, nextCycleNote: joinNote.trim() });
+      setJoinSaved(true);
     } catch {
       alert('Your answer could not be saved. Please try again.');
     } finally {
@@ -1130,6 +1144,14 @@ function MemberContent() {
                         : 'Cycle ' + cycleMeta!.cycleNumber + ' is coming to an end.'}
                     {' '}What are your plans for cycle {cycleMeta!.cycleNumber + 1}?
                   </p>
+                  <textarea
+                    value={joinNote}
+                    onChange={(e) => setJoinNote(e.target.value.slice(0, 500))}
+                    onFocus={() => { if (!joinNote && activeMember?.nextCycleNote) setJoinNote(activeMember.nextCycleNote); }}
+                    placeholder="Message to your organizer (optional) - e.g. I take a pause and come back in March"
+                    rows={2}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + C.border, fontSize: 12.5, fontFamily: 'inherit', marginBottom: 8, resize: 'vertical', background: 'white' }}
+                  />
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     {([
                       { key: 'yes', label: '✓ Continue', on: C.success },
@@ -1154,6 +1176,7 @@ function MemberContent() {
                       );
                     })}
                     <span style={{ fontSize: 11.5, color: C.texteGris }}>
+                      {joinSaved ? '\u2713 Sent to your organizer. ' : ''}
                       {myAnswer
                         ? 'Your answer: ' + (myAnswer === 'yes' ? 'Continue' : myAnswer === 'pause' ? 'Pause (you stay in the group)' : 'No (you leave the group)') + '. You can change it until the new cycle starts.'
                         : 'Continue = I join the next cycle · Pause = I skip it but stay in the group · No = I leave the group.'}

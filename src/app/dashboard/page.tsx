@@ -104,6 +104,8 @@ function OverviewContent() {
   const [savingMember, setSavingMember] = useState(false);
   const [memberShowCount, setMemberShowCount] = useState<number | 'all'>(5);
   const [paymentShowCount, setPaymentShowCount] = useState<number | 'all'>(5);
+  // Current cycle of each group's payment grid (for the "next cycle answers" card).
+  const [gridCycles, setGridCycles] = useState<Record<string, { cycleNumber: number; askedFor: number; memberIds: string[] }>>({});
 
   useEffect(() => {
     let unsubMembers: (() => void) | null = null;
@@ -120,6 +122,18 @@ function OverviewContent() {
         setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
 
         setGroups(gsnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        // Cycle info per group, for the members' next-cycle answers.
+        const cycles: Record<string, { cycleNumber: number; askedFor: number; memberIds: string[] }> = {};
+        await Promise.all(gsnap.docs.map(async (g) => {
+          try {
+            const gs = await getDoc(doc(db, 'paymentGrids', g.id + '_current'));
+            if (!gs.exists()) return;
+            const gd: any = gs.data();
+            const ids = Array.from(new Set(Object.values(gd.slots || {}).map((s: any) => s.memberId))).filter(Boolean) as string[];
+            cycles[g.id] = { cycleNumber: gd.cycleNumber || 1, askedFor: gd.renewalAskedFor || 0, memberIds: ids };
+          } catch { /* grid unreadable: no card for this group */ }
+        }));
+        setGridCycles(cycles);
         setPayments(psnap.docs.map(d => ({ id: d.id, ...d.data() })));
 
         // Members are kept live rather than fetched once: a member's status
@@ -655,6 +669,64 @@ function OverviewContent() {
             </div>
           )}
         </div>
+
+        {/* Next cycle answers: what members replied from their page (live). */}
+        {(() => {
+          const blocks = groups.map((g) => {
+            const gc = gridCycles[g.id];
+            if (!gc) return null;
+            const nextNo = gc.cycleNumber + 1;
+            const groupMembers = members.filter((m) => m.groupId === g.id);
+            const answered = groupMembers
+              .filter((m) => m.nextCycleFor === nextNo && ['yes', 'pause', 'no'].includes(m.nextCycleResponse))
+              .sort((a, b) => (b.nextCycleRespondedAt?.seconds || 0) - (a.nextCycleRespondedAt?.seconds || 0));
+            if (gc.askedFor !== nextNo && answered.length === 0) return null;
+            const answeredIds = new Set(answered.map((m) => m.id));
+            const waiting = gc.memberIds.filter((id) => !answeredIds.has(id)).length;
+            const count = (k: string) => answered.filter((m) => m.nextCycleResponse === k).length;
+            return { g, nextNo, answered, waiting, yes: count('yes'), pause: count('pause'), no: count('no') };
+          }).filter(Boolean) as any[];
+          if (blocks.length === 0) return null;
+          const tag = (r: string) => r === 'yes'
+            ? { t: '\u2713 Continue', c: '#2E7D32', b: '#E8F5E9' }
+            : r === 'pause' ? { t: '\u23f8 Pause', c: '#9C7A2E', b: '#FBF0D9' } : { t: '\u2717 No', c: '#B0525F', b: '#F5E4E6' };
+          return (
+            <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px', border: '1.5px solid #E9C77B' }}>
+              <h3 style={{ color: '#6B2D4E', fontSize: '14px', fontWeight: 700, margin: '0 0 10px' }}>{'\ud83d\udd01'} Next Cycle Answers</h3>
+              {blocks.map((bk) => (
+                <div key={bk.g.id} style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                    <span style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12.5px' }}>{bk.g.name} - cycle {bk.nextNo}</span>
+                    <span style={{ fontSize: '11px', color: '#2E7D32', fontWeight: 600 }}>{bk.yes} continue</span>
+                    <span style={{ fontSize: '11px', color: '#9C7A2E', fontWeight: 600 }}>{bk.pause} pause</span>
+                    <span style={{ fontSize: '11px', color: '#B0525F', fontWeight: 600 }}>{bk.no} no</span>
+                    <span style={{ fontSize: '11px', color: '#8A7B6C' }}>{bk.waiting} no answer yet</span>
+                    <button onClick={() => router.push(`/admin/payment-grid/${bk.g.id}`)} className="btn-action"
+                      style={{ marginLeft: 'auto', background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '7px', padding: '4px 9px', fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>
+                      {'\ud83d\udcca'} Open grid
+                    </button>
+                  </div>
+                  {bk.answered.length === 0 ? (
+                    <p style={{ fontSize: '11.5px', color: '#8A7B6C', margin: 0 }}>Question sent. No answers yet.</p>
+                  ) : bk.answered.map((m: any) => {
+                    const tg = tag(m.nextCycleResponse);
+                    const when = m.nextCycleRespondedAt?.toDate ? m.nextCycleRespondedAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                    return (
+                      <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#FFFDF7', marginBottom: '4px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: tg.c, background: tg.b, borderRadius: '6px', padding: '2px 7px', whiteSpace: 'nowrap' }}>{tg.t}</span>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#3A2F1F' }}>{m.fullName || m.name}</span>
+                        {m.nextCycleNote && (
+                          <span style={{ fontSize: '11.5px', color: '#5A4A3A', fontStyle: 'italic', flex: '1 1 200px' }}>{'\u201C' + m.nextCycleNote + '\u201D'}</span>
+                        )}
+                        <span style={{ fontSize: '10.5px', color: '#8A7B6C', marginLeft: 'auto' }}>{when}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
