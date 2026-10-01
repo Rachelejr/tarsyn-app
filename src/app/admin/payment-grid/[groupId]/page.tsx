@@ -511,9 +511,12 @@ export default function PaymentGridPage() {
     }
     const newWeeks = generateWeeksFromDate(start, cycleEndInput);
     const keptIdx = new Set(Object.keys(newWeeks));
-    // Never hide weeks that already have recorded payments.
+    const currentIdx = new Set(Object.keys(grid.weeks));
+    // Never hide weeks that already have recorded payments. Old checkmarks
+    // left on week numbers that no longer exist in this grid (e.g. after an
+    // earlier start-date change) are ignored here and left untouched.
     const paidOutside = Object.values(grid.payments || {}).some((byWeek) =>
-      Object.entries(byWeek || {}).some(([wIdx, paid]) => paid && !keptIdx.has(wIdx))
+      Object.entries(byWeek || {}).some(([wIdx, paid]) => paid && currentIdx.has(wIdx) && !keptIdx.has(wIdx))
     );
     if (paidOutside) {
       alert('Some payments are recorded after this date. Pick a later end date (on or after the last paid week).');
