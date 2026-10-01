@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { memberAuth as auth, memberDb as db, memberStorage as storage } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, getDoc, query, where, orderBy, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, query, where, orderBy, addDoc, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { loadStripe } from '@stripe/stripe-js';
 import { Suspense } from 'react';
@@ -89,6 +89,25 @@ function MemberContent() {
     memberName: string;
   } | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
+  // --- Tontine cycles (current + archived, read-only) ---
+  const [cycleMeta, setCycleMeta] = useState<{
+    cycleNumber: number;
+    cycleStart: string;
+    cycleEnd: string | null;
+    history: { cycleNumber: number; archiveId: string; startDate: string; endDate: string }[];
+  } | null>(null);
+  const [viewingArchiveId, setViewingArchiveId] = useState('');
+  const [archiveView, setArchiveView] = useState<{
+    paid: number;
+    total: number;
+    missingWeeks: string[];
+    weeks: Record<string, string>;
+    payments: Record<string, Record<string, boolean>>;
+    slots: string[];
+    memberName: string;
+  } | null>(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [joinSaving, setJoinSaving] = useState(false);
   // --- Pay Now (embedded Stripe Elements) state ---
   const [showPayModal, setShowPayModal] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
@@ -194,10 +213,70 @@ function MemberContent() {
       });
 
       setMyPayments({ paid, total, missingWeeks, weeks, payments, slots, memberName: data.memberName || membership?.fullName || 'You' });
+      setCycleMeta({
+        cycleNumber: typeof data.cycleNumber === 'number' ? data.cycleNumber : 1,
+        cycleStart: data.cycleStart || weeks[weekKeys[0]] || '',
+        cycleEnd: data.cycleEnd || null,
+        history: Array.isArray(data.cycleHistory) ? data.cycleHistory : [],
+      });
+      setViewingArchiveId('');
+      setArchiveView(null);
     } catch (e) {
       setMyPayments(null);
     } finally {
       setPaymentsLoading(false);
+    }
+  };
+
+  // Opens an archived cycle (read-only) from paymentGrids/{archiveId}/memberViews/{uid}.
+  const loadArchivedCycle = async (archiveId: string) => {
+    setViewingArchiveId(archiveId);
+    if (!archiveId) { setArchiveView(null); return; }
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    setArchiveLoading(true);
+    try {
+      const snap = await getDoc(doc(db, 'paymentGrids', archiveId, 'memberViews', uid));
+      if (!snap.exists()) {
+        setArchiveView({ paid: 0, total: 0, missingWeeks: [], weeks: {}, payments: {}, slots: [], memberName: '' });
+        return;
+      }
+      const data = snap.data();
+      const weeks: Record<string, string> = data.weeks || {};
+      const payments: Record<string, Record<string, boolean>> = data.payments || {};
+      const slots: string[] = data.slots || [];
+      let paid = 0;
+      let total = 0;
+      const missingWeeks: string[] = [];
+      Object.keys(weeks).sort((a, b) => Number(a) - Number(b)).forEach((wIdx) => {
+        slots.forEach((slotNum) => {
+          total++;
+          if (payments[slotNum]?.[wIdx]) paid++;
+          else missingWeeks.push('W' + wIdx);
+        });
+      });
+      setArchiveView({ paid, total, missingWeeks, weeks, payments, slots, memberName: data.memberName || '' });
+    } catch {
+      setArchiveView(null);
+      setViewingArchiveId('');
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  // "Join next cycle": the member's answer is stored on their member record,
+  // and the organizer sees it in the Renew Cycle panel.
+  const answerNextCycle = async (answer: 'yes' | 'no') => {
+    if (!activeMember?.id || !cycleMeta) return;
+    setJoinSaving(true);
+    try {
+      const data = { nextCycleResponse: answer, nextCycleFor: cycleMeta.cycleNumber + 1, nextCycleRespondedAt: serverTimestamp() };
+      await updateDoc(doc(db, 'members', activeMember.id), data);
+      setActiveMember({ ...activeMember, nextCycleResponse: answer, nextCycleFor: cycleMeta.cycleNumber + 1 });
+    } catch {
+      alert('Your answer could not be saved. Please try again.');
+    } finally {
+      setJoinSaving(false);
     }
   };
 
@@ -981,26 +1060,104 @@ function MemberContent() {
         <div className="UNIMUNITY-mem-center" style={{ padding: '24px 26px', overflowY: 'auto' }}>
 
           {/* My Payment Grid (full table, read-only, this member's rows only) */}
-          {myPayments && (
+          {myPayments && (() => {
+            const shown = (viewingArchiveId && archiveView) ? archiveView : myPayments;
+            const shownWeekKeys = Object.keys(shown.weeks).sort((a, b) => Number(a) - Number(b));
+            const isArchive = !!viewingArchiveId;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const daysToEnd = cycleMeta?.cycleEnd
+              ? Math.ceil((new Date(cycleMeta.cycleEnd).getTime() - new Date(todayStr).getTime()) / 86400000)
+              : null;
+            const showJoin = !isArchive && cycleMeta && daysToEnd !== null && daysToEnd <= 30;
+            const myAnswer = activeMember && cycleMeta && activeMember.nextCycleFor === cycleMeta.cycleNumber + 1
+              ? activeMember.nextCycleResponse : null;
+            return (
             <div style={{ marginBottom: '28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', gap: 10, flexWrap: 'wrap' }}>
                 <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>My Payment Grid</h2>
                 <span style={{ fontSize: '16px', color: C.bordeaux, fontWeight: 800 }}>
-                  {myPayments.paid}/{myPayments.total} weeks paid
+                  {shown.paid}/{shown.total} weeks paid
                 </span>
               </div>
+
+              {cycleMeta && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10, fontSize: 12.5, color: C.texteFonce }}>
+                  <span style={{ fontWeight: 700, color: C.bordeaux }}>🔄 Cycle</span>
+                  {cycleMeta.history.length > 0 ? (
+                    <select
+                      value={viewingArchiveId}
+                      onChange={(e) => loadArchivedCycle(e.target.value)}
+                      style={{ padding: '5px 8px', borderRadius: 8, border: '1px solid ' + C.border, fontSize: 12.5, background: 'white' }}
+                    >
+                      <option value="">Cycle {cycleMeta.cycleNumber} (current)</option>
+                      {[...cycleMeta.history].reverse().map((h) => (
+                        <option key={h.archiveId} value={h.archiveId}>
+                          Cycle {h.cycleNumber} ({h.startDate} → {h.endDate})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span style={{ fontWeight: 700 }}>{cycleMeta.cycleNumber}</span>
+                  )}
+                  {!isArchive && (
+                    <span style={{ color: C.texteGris }}>
+                      {cycleMeta.cycleStart}{cycleMeta.cycleEnd ? ' → ' + cycleMeta.cycleEnd : ''}
+                    </span>
+                  )}
+                  {archiveLoading && <span style={{ color: C.texteGris }}>Loading...</span>}
+                </div>
+              )}
+
+              {isArchive && (
+                <div style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: C.texteFonce }}>
+                  Archived cycle - history only. Your current cycle is still available in the list above.
+                </div>
+              )}
+
+              {showJoin && (
+                <div style={{ background: C.ivoire, border: '1.5px solid ' + C.bordeaux, borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
+                  <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: C.bordeaux }}>
+                    {daysToEnd !== null && daysToEnd < 0
+                      ? 'Cycle ' + cycleMeta!.cycleNumber + ' has ended.'
+                      : 'Cycle ' + cycleMeta!.cycleNumber + ' ends on ' + cycleMeta!.cycleEnd + '.'}
+                    {' '}Will you join cycle {cycleMeta!.cycleNumber + 1}?
+                  </p>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => answerNextCycle('yes')}
+                      disabled={joinSaving}
+                      style={{ padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12.5,
+                        background: myAnswer === 'yes' ? C.success : C.bordeaux, color: 'white' }}
+                    >
+                      {myAnswer === 'yes' ? '✓ Joining next cycle' : 'Join next cycle'}
+                    </button>
+                    <button
+                      onClick={() => answerNextCycle('no')}
+                      disabled={joinSaving}
+                      style={{ padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 12.5,
+                        border: '1px solid ' + (myAnswer === 'no' ? C.danger : C.border),
+                        background: 'white', color: myAnswer === 'no' ? C.danger : C.texteFonce }}
+                    >
+                      {myAnswer === 'no' ? '✗ Not joining' : 'Not this time'}
+                    </button>
+                    <span style={{ fontSize: 11.5, color: C.texteGris }}>
+                      {myAnswer ? 'You can change your answer until the organizer starts the new cycle.' : 'Your organizer will see your answer.'}
+                    </span>
+                  </div>
+                </div>
+              )}
               <div style={{ background: C.ivoire, borderRadius: '14px', border: '1px solid ' + C.border, padding: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                {myPayments.slots.map((slotNum, i) => (
-                  <div key={slotNum} style={{ marginBottom: i < myPayments.slots.length - 1 ? '16px' : 0 }}>
-                    {myPayments.slots.length > 1 && (
+                {shown.slots.map((slotNum, i) => (
+                  <div key={slotNum} style={{ marginBottom: i < shown.slots.length - 1 ? '16px' : 0 }}>
+                    {shown.slots.length > 1 && (
                       <p style={{ color: C.texteFonce, fontWeight: 700, fontSize: '12.5px', margin: '0 0 8px' }}>
-                        {myPayments.memberName} (part {i + 1})
+                        {shown.memberName} (part {i + 1})
                       </p>
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))', gap: '8px' }}>
-                      {weekKeysSorted.map((wIdx) => {
-                        const isPaid = myPayments.payments[slotNum]?.[wIdx] || false;
-                        const isFuture = new Date(myPayments.weeks[wIdx]) > new Date();
+                      {shownWeekKeys.map((wIdx) => {
+                        const isPaid = shown.payments[slotNum]?.[wIdx] || false;
+                        const isFuture = !isArchive && new Date(shown.weeks[wIdx]) > new Date();
                         const weekColor = paidWeekColor(wIdx);
                         return (
                           <div key={wIdx} style={{
@@ -1012,7 +1169,7 @@ function MemberContent() {
                               W{wIdx}{isPaid && <span>{'\u2713'}</span>}
                             </div>
                             <div style={{ color: isPaid ? 'rgba(255,255,255,0.85)' : C.muted, fontSize: 9, marginTop: 2 }}>
-                              {myPayments.weeks[wIdx]}
+                              {shown.weeks[wIdx]}
                             </div>
                           </div>
                         );
@@ -1025,7 +1182,8 @@ function MemberContent() {
                 View only - your organizer marks payments as received.
               </p>
             </div>
-          )}
+            );
+          })()}
 
           <div ref={documentsSectionRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <h2 style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 800, margin: 0 }}>Documents</h2>

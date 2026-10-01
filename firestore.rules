@@ -44,7 +44,7 @@ service cloud.firestore {
         ) ||
         (
           resource.data.userId == request.auth.uid &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['photoUrl'])
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['photoUrl', 'nextCycleResponse', 'nextCycleFor', 'nextCycleRespondedAt'])
         )
       );
       allow delete: if request.auth != null && resource.data.organizerId == request.auth.uid;

@@ -53,6 +53,23 @@ interface Grid {
   cycleEndDate?: string;
   status?: 'active' | 'completed';
   currency?: string;
+  cycleHistory?: CycleHistoryEntry[];
+}
+
+interface CycleHistoryEntry {
+  cycleNumber: number;
+  archiveId: string;
+  startDate: string;
+  endDate: string;
+}
+
+// Cycle details copied into every member view, so members can see which
+// cycle they are in and open archived cycles (they cannot read the grids).
+interface CycleInfo {
+  cycleNumber: number;
+  cycleStart: string;
+  cycleEnd: string | null;
+  cycleHistory: CycleHistoryEntry[];
 }
 
 interface RenewSlot {
@@ -61,7 +78,7 @@ interface RenewSlot {
   include: boolean;
 }
 
-interface MemberView {
+interface MemberView extends CycleInfo {
   memberName: string;
   slots: string[];
   weeks: Record<string, string>;
@@ -89,7 +106,10 @@ function generateWeeksFromDate(startDateStr: string, endDateStr?: string): Recor
   const start = new Date(startDateStr);
   let end: Date;
   if (endDateStr) {
+    // Include the whole end day: after the November time change the weekly
+    // cursor sits an hour later, which would otherwise drop the last week.
     end = new Date(endDateStr);
+    end.setUTCHours(23, 59, 59, 999);
   } else {
     const startYear = start.getFullYear();
     const currentYear = new Date().getFullYear();
@@ -137,6 +157,7 @@ export default function PaymentGridPage() {
   const [renewEnd, setRenewEnd] = useState('');
   const [renewSlots, setRenewSlots] = useState<RenewSlot[]>([]);
   const [renewing, setRenewing] = useState(false);
+  const [renewResponses, setRenewResponses] = useState<Record<string, 'yes' | 'no'>>({});
 
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
@@ -334,7 +355,8 @@ export default function PaymentGridPage() {
     memberId: string,
     slotsMap: Record<string, Slot>,
     paymentsMap: Record<string, Record<string, boolean>>,
-    weeksMap: Record<string, string>
+    weeksMap: Record<string, string>,
+    cycleInfo?: Partial<CycleInfo>
   ) {
     const memberSlots = Object.values(slotsMap).filter((s) => s.memberId === memberId);
     if (memberSlots.length === 0) return;
@@ -354,6 +376,15 @@ export default function PaymentGridPage() {
         slots: memberSlots.map((s) => s.slotNumber),
         weeks: weeksMap,
         payments: memberPayments,
+        ...(grid
+          ? {
+              cycleNumber: grid.cycleNumber || 1,
+              cycleStart: grid.startDate || '',
+              cycleEnd: grid.cycleEndDate || null,
+              cycleHistory: grid.cycleHistory || [],
+            }
+          : {}),
+        ...(cycleInfo || {}),
       },
       { merge: true }
     );
@@ -562,7 +593,7 @@ export default function PaymentGridPage() {
       setGrid(updated);
       // Members see the same end date right away.
       const ids = Array.from(new Set(Object.values(grid.slots).map((s) => s.memberId))).filter(Boolean);
-      await Promise.all(ids.map((id) => syncMemberView(id, grid.slots, grid.payments || {}, newWeeks)));
+      await Promise.all(ids.map((id) => syncMemberView(id, grid.slots, grid.payments || {}, newWeeks, { cycleEnd: cycleEndInput })));
       setPageStart(0);
       setShowCycleEndEditor(false);
     } catch (err) {
@@ -578,7 +609,8 @@ export default function PaymentGridPage() {
   function buildMemberViews(
     slotsMap: Record<string, Slot>,
     paymentsMap: Record<string, Record<string, boolean>>,
-    weeksMap: Record<string, string>
+    weeksMap: Record<string, string>,
+    cycleInfo: CycleInfo
   ): Record<string, MemberView> {
     const views: Record<string, MemberView> = {};
     Object.values(slotsMap)
@@ -586,22 +618,34 @@ export default function PaymentGridPage() {
       .forEach((s) => {
         const uid = memberUserIds[s.memberId];
         if (!uid) return;
-        if (!views[uid]) views[uid] = { memberName: s.memberName, slots: [], weeks: weeksMap, payments: {} };
+        if (!views[uid]) views[uid] = { memberName: s.memberName, slots: [], weeks: weeksMap, payments: {}, ...cycleInfo };
         views[uid].slots.push(s.slotNumber);
         views[uid].payments[s.slotNumber] = paymentsMap[s.slotNumber] || {};
       });
     return views;
   }
 
-  function openRenew() {
+  async function openRenew() {
     if (!grid) return;
     const sorted = Object.entries(grid.slots).sort((a, b) => Number(a[0]) - Number(b[0]));
-    setRenewSlots(sorted.map(([, s]) => ({ memberId: s.memberId, memberName: s.memberName, include: true })));
-    const lastWeek = Object.values(grid.weeks).filter(Boolean).sort().pop() || grid.cycleEndDate || new Date().toISOString().split('T')[0];
-    const start = addDaysIso(lastWeek, 7);
-    const prevLength = Math.max(1, Object.keys(grid.weeks).length);
-    setRenewStart(start);
-    setRenewEnd(addDaysIso(start, (prevLength - 1) * 7));
+    // Members' answers to "Join next cycle" (asked on their page before the end).
+    const nextNo = (grid.cycleNumber || 1) + 1;
+    const responses: Record<string, 'yes' | 'no'> = {};
+    const ids = Array.from(new Set(sorted.map(([, s]) => s.memberId))).filter(Boolean);
+    await Promise.all(ids.map(async (id) => {
+      try {
+        const snap = await getDoc(doc(db, 'members', id));
+        const d = snap.exists() ? snap.data() : null;
+        if (d && d.nextCycleFor === nextNo && (d.nextCycleResponse === 'yes' || d.nextCycleResponse === 'no')) {
+          responses[id] = d.nextCycleResponse;
+        }
+      } catch { /* unreadable: no answer shown */ }
+    }));
+    setRenewResponses(responses);
+    setRenewSlots(sorted.map(([, s]) => ({ memberId: s.memberId, memberName: s.memberName, include: responses[s.memberId] !== 'no' })));
+    // No date is imposed: the organizer chooses when the new cycle starts and ends.
+    setRenewStart('');
+    setRenewEnd('');
     setShowRenew(true);
   }
 
@@ -639,13 +683,17 @@ export default function PaymentGridPage() {
       alert('Select at least one member for the new cycle.');
       return;
     }
-    if (!renewStart || !renewEnd || renewEnd < renewStart) {
-      alert('Check the start and end dates of the new cycle.');
+    if (!renewStart || !renewEnd) {
+      alert('Choose the start date and the end date of the new cycle.');
+      return;
+    }
+    if (renewEnd < renewStart) {
+      alert('The end date must be after the start date.');
       return;
     }
     const prevEnd = grid.cycleEndDate || '';
-    if (prevEnd && renewStart <= prevEnd) {
-      alert('The new cycle must start after the current cycle ends (' + prevEnd + ').');
+    if (prevEnd && renewStart <= prevEnd &&
+      !confirm('The new cycle starts on ' + renewStart + ', before the current cycle ends (' + prevEnd + '). Continue anyway?')) {
       return;
     }
     const cycleNo = grid.cycleNumber || 1;
@@ -710,8 +758,17 @@ export default function PaymentGridPage() {
       });
       const newCycleId = 'cycle-' + Date.now();
 
+      const oldEnd = prevEnd || (Object.values(grid.weeks).filter(Boolean).sort().pop() || '');
+      const oldHistory = grid.cycleHistory || [];
+      const newHistory: CycleHistoryEntry[] = [
+        ...oldHistory,
+        { cycleNumber: cycleNo, archiveId, startDate: grid.startDate || '', endDate: oldEnd },
+      ];
+      const oldInfo: CycleInfo = { cycleNumber: cycleNo, cycleStart: grid.startDate || '', cycleEnd: oldEnd, cycleHistory: oldHistory };
+      const newInfo: CycleInfo = { cycleNumber: cycleNo + 1, cycleStart: renewStart, cycleEnd: renewEnd, cycleHistory: newHistory };
+
       const batch = writeBatch(db);
-      const oldViews = buildMemberViews(grid.slots, grid.payments || {}, grid.weeks);
+      const oldViews = buildMemberViews(grid.slots, grid.payments || {}, grid.weeks, oldInfo);
       Object.entries(oldViews).forEach(([uid, view]) => {
         batch.set(doc(db, 'paymentGrids', archiveId, 'memberViews', uid), view);
       });
@@ -728,9 +785,10 @@ export default function PaymentGridPage() {
         weeks: newWeeks,
         slots: newSlots,
         payments: {},
+        cycleHistory: newHistory,
         ...(grid.currency ? { currency: grid.currency } : {}),
       });
-      const newViews = buildMemberViews(newSlots, {}, newWeeks);
+      const newViews = buildMemberViews(newSlots, {}, newWeeks, newInfo);
       Object.entries(newViews).forEach(([uid, view]) => {
         batch.set(doc(db, 'paymentGrids', gridId, 'memberViews', uid), view);
       });
@@ -739,7 +797,7 @@ export default function PaymentGridPage() {
       Object.keys(oldViews).forEach((uid) => {
         if (!newViews[uid]) {
           batch.set(doc(db, 'paymentGrids', gridId, 'memberViews', uid), {
-            memberName: oldViews[uid].memberName, slots: [], weeks: newWeeks, payments: {},
+            memberName: oldViews[uid].memberName, slots: [], weeks: newWeeks, payments: {}, ...newInfo,
           });
         }
       });
@@ -1332,7 +1390,9 @@ export default function PaymentGridPage() {
                 <input type="date" value={renewStart} onChange={(e) => setRenewStart(e.target.value)} style={dateInputStyle} />
                 <span style={{ fontSize: 12.5, color: C.texteFonce, fontWeight: 600 }}>New end:</span>
                 <input type="date" value={renewEnd} onChange={(e) => setRenewEnd(e.target.value)} style={dateInputStyle} />
-                <span style={{ fontSize: 12.5, color: C.texteGris }}>{previewDates.length} weeks · {includedCount} slot(s)</span>
+                <span style={{ fontSize: 12.5, color: C.texteGris }}>
+                  {renewStart && renewEnd ? previewDates.length + ' weeks · ' : 'Choose the dates of the new cycle · '}{includedCount} slot(s)
+                </span>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
                 <span style={{ fontSize: 12.5, color: C.texteFonce, fontWeight: 600 }}>Payout order:</span>
@@ -1359,9 +1419,19 @@ export default function PaymentGridPage() {
                         title="Continues in the new cycle"
                       />
                       <span style={{ width: 36, fontSize: 12.5, fontWeight: 700, color: C.bordeaux }}>{pos ? '#' + pos : '-'}</span>
-                      <span style={{ flex: 1, fontSize: 13, color: C.texteFonce }}>{s.memberName}</span>
+                      <span style={{ flex: 1, fontSize: 13, color: C.texteFonce }}>
+                        {s.memberName}
+                        <span style={{
+                          marginLeft: 8, fontSize: 11, fontWeight: 700,
+                          color: renewResponses[s.memberId] === 'yes' ? C.success : renewResponses[s.memberId] === 'no' ? C.danger : C.texteGris,
+                        }}>
+                          {renewResponses[s.memberId] === 'yes' ? '✓ joins' : renewResponses[s.memberId] === 'no' ? '✗ not joining' : 'no answer yet'}
+                        </span>
+                      </span>
                       <span style={{ fontSize: 12, color: C.texteGris, minWidth: 110 }}>
-                        {pos ? (previewDates[pos - 1] ? 'Payout ' + previewDates[pos - 1] : 'after end date') : 'not continuing'}
+                        {pos
+                          ? (!renewStart || !renewEnd ? 'Payout date: set the dates' : previewDates[pos - 1] ? 'Payout ' + previewDates[pos - 1] : 'after end date')
+                          : 'not continuing'}
                       </span>
                       <button onClick={() => moveRenewSlot(i, -1)} disabled={i === 0} style={btnStyle('ghost', i === 0)}>↑</button>
                       <button onClick={() => moveRenewSlot(i, 1)} disabled={i === renewSlots.length - 1} style={btnStyle('ghost', i === renewSlots.length - 1)}>↓</button>
@@ -1369,7 +1439,7 @@ export default function PaymentGridPage() {
                   );
                 })}
               </div>
-              {includedCount > previewDates.length && (
+              {renewStart && renewEnd && includedCount > previewDates.length && (
                 <p style={{ margin: '0 0 10px', fontSize: 12.5, color: C.danger }}>
                   More slots ({includedCount}) than weeks ({previewDates.length}): some payouts would fall after the end date. Move the end date later.
                 </p>
