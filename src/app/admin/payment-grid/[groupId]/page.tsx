@@ -47,6 +47,12 @@ interface Grid {
   weeks: Record<string, string>;
   slots: Record<string, Slot>;
   payments: Record<string, Record<string, boolean>>;
+  // Tontine cycle (one full rotation of the sol). Missing on older grids,
+  // which are treated as cycle 1, active, with no end date yet.
+  cycleNumber?: number;
+  cycleEndDate?: string;
+  status?: 'active' | 'completed';
+  currency?: string;
 }
 
 interface MemberMeta {
@@ -54,13 +60,21 @@ interface MemberMeta {
   joinedLabel: string;
 }
 
-function generateWeeksFromDate(startDateStr: string): Record<string, string> {
+// Without an end date (older grids), weeks run through Dec 31 of the current
+// year, as before. With a cycle end date, the grid stops at that date and no
+// longer grows on its own when a new year starts.
+function generateWeeksFromDate(startDateStr: string, endDateStr?: string): Record<string, string> {
   const weeks: Record<string, string> = {};
   const start = new Date(startDateStr);
-  const startYear = start.getFullYear();
-  const currentYear = new Date().getFullYear();
-  const endYear = Math.max(startYear, currentYear);
-  const end = new Date(endYear, 11, 31);
+  let end: Date;
+  if (endDateStr) {
+    end = new Date(endDateStr);
+  } else {
+    const startYear = start.getFullYear();
+    const currentYear = new Date().getFullYear();
+    const endYear = Math.max(startYear, currentYear);
+    end = new Date(endYear, 11, 31);
+  }
   let idx = 0;
   let cursor = new Date(start);
   while (cursor <= end) {
@@ -93,6 +107,10 @@ export default function PaymentGridPage() {
   const [showStartDateEditor, setShowStartDateEditor] = useState(false);
   const [gridStartInput, setGridStartInput] = useState('');
   const [savingStartDate, setSavingStartDate] = useState(false);
+  const [showCycleEndEditor, setShowCycleEndEditor] = useState(false);
+  const [cycleEndInput, setCycleEndInput] = useState('');
+  const [savingCycleEnd, setSavingCycleEnd] = useState(false);
+  const [suggestedCycleEnd, setSuggestedCycleEnd] = useState('');
 
   const [pendingPayments, setPendingPayments] = useState<Record<string, Record<string, boolean>>>({});
   const [savingAll, setSavingAll] = useState(false);
@@ -175,7 +193,7 @@ export default function PaymentGridPage() {
       }
 
       const effectiveStartDate = loadedGrid.startDate || startOfGridDate(loadedGrid.weeks) || new Date().toISOString().split('T')[0];
-      const correctedWeeks = generateWeeksFromDate(effectiveStartDate);
+      const correctedWeeks = generateWeeksFromDate(effectiveStartDate, loadedGrid.cycleEndDate);
       const weeksChanged = JSON.stringify(correctedWeeks) !== JSON.stringify(loadedGrid.weeks);
       if (weeksChanged || !loadedGrid.startDate) {
         loadedGrid = { ...loadedGrid, startDate: effectiveStartDate, startYear: new Date(effectiveStartDate).getFullYear(), weeks: correctedWeeks };
@@ -192,6 +210,7 @@ export default function PaymentGridPage() {
       const collectedUserIds: Record<string, string> = {};
       const collectedAmounts: Record<string, number> = {};
       const collectedMeta: Record<string, MemberMeta> = {};
+      let latestPayout = '';
       await Promise.all(
         Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
           let displayName = slot.memberName;
@@ -202,6 +221,12 @@ export default function PaymentGridPage() {
               displayName = d.fullName || d.name || '(no name)';
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
               if (typeof d.expectedAmount === 'number') collectedAmounts[slot.memberId] = d.expectedAmount;
+              // Latest payout date among members = suggested end of the cycle.
+              const payoutList: string[] = [
+                ...(typeof d.payoutDate === 'string' ? [d.payoutDate] : []),
+                ...(Array.isArray(d.payoutDates) ? d.payoutDates.filter((x: unknown) => typeof x === 'string') : []),
+              ];
+              payoutList.forEach((pd) => { if (/^\d{4}-\d{2}-\d{2}$/.test(pd) && pd > latestPayout) latestPayout = pd; });
 
               // Merged from the former loadMemberMeta() — same member document,
               // no need for a second separate Firestore read afterward.
@@ -230,6 +255,7 @@ export default function PaymentGridPage() {
       setMemberUserIds(collectedUserIds);
       setMemberAmounts(collectedAmounts);
       setMemberMeta(collectedMeta);
+      setSuggestedCycleEnd(latestPayout);
 
       setGrid(loadedGrid);
       setPendingPayments(loadedGrid.payments || {});
@@ -350,6 +376,9 @@ export default function PaymentGridPage() {
               uploadedBy: 'system',
               source: 'admin',
               visibleTo: [userId],
+              groupId: grid.groupId,
+              tontineCycleId: grid.cycleId,
+              tontineCycleNumber: grid.cycleNumber || 1,
               createdAt: serverTimestamp(),
             })
           );
@@ -378,7 +407,13 @@ export default function PaymentGridPage() {
           // Week index maps directly to a Register cycle number: W0 -> Cycle 1, W1 -> Cycle 2, etc.
           const cycleNumber = parseInt(weekIdx, 10) + 1;
           const memberAmount = memberAmounts[slot.memberId] ?? weeklyAmount;
-          const registerDocId = slot.memberId + '_cycle' + cycleNumber;
+          // Cycle 1 keeps its original document ids (existing receipts are
+          // untouched). From cycle 2 on, the tontine cycle id is part of the
+          // id, so a new cycle can never overwrite a previous cycle's record.
+          const tontineCycleNumber = grid.cycleNumber || 1;
+          const registerDocId = tontineCycleNumber > 1
+            ? slot.memberId + '_' + grid.cycleId + '_cycle' + cycleNumber
+            : slot.memberId + '_cycle' + cycleNumber;
           syncPromises.push(
             setDoc(
               doc(db, 'payments', registerDocId),
@@ -395,6 +430,9 @@ export default function PaymentGridPage() {
                 contributionType: 'Weekly Contribution',
                 notes: 'Auto-synced from Payment Grid (W' + weekIdx + ')',
                 recordedBy: 'system',
+                groupId: grid.groupId,
+                tontineCycleId: grid.cycleId,
+                tontineCycleNumber,
                 createdAt: serverTimestamp(),
               },
               { merge: true }
@@ -452,7 +490,7 @@ export default function PaymentGridPage() {
 
     setSavingStartDate(true);
     try {
-      const newWeeks: Record<string, string> = generateWeeksFromDate(gridStartInput);
+      const newWeeks: Record<string, string> = generateWeeksFromDate(gridStartInput, grid.cycleEndDate);
       const newStartYear = new Date(gridStartInput).getFullYear();
       await setDoc(doc(db, 'paymentGrids', gridId), { startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks }, { merge: true });
       setGrid((prev) => (prev ? { ...prev, startDate: gridStartInput, startYear: newStartYear, weeks: newWeeks } : prev));
@@ -462,6 +500,47 @@ export default function PaymentGridPage() {
       console.error(err);
     }
     setSavingStartDate(false);
+  }
+
+  async function handleSetCycleEnd() {
+    if (!grid || !cycleEndInput) return;
+    const start = grid.startDate || startOfGridDate(grid.weeks) || '';
+    if (start && cycleEndInput < start) {
+      alert('The cycle end date must be after the cycle start date (' + start + ').');
+      return;
+    }
+    const newWeeks = generateWeeksFromDate(start, cycleEndInput);
+    const keptIdx = new Set(Object.keys(newWeeks));
+    // Never hide weeks that already have recorded payments.
+    const paidOutside = Object.values(grid.payments || {}).some((byWeek) =>
+      Object.entries(byWeek || {}).some(([wIdx, paid]) => paid && !keptIdx.has(wIdx))
+    );
+    if (paidOutside) {
+      alert('Some payments are recorded after this date. Pick a later end date (on or after the last paid week).');
+      return;
+    }
+    if (JSON.stringify(pendingPayments) !== JSON.stringify(grid.payments)) {
+      alert('Save or discard your pending payment changes first.');
+      return;
+    }
+    if (!confirm('Set the end of cycle ' + (grid.cycleNumber || 1) + ' to ' + cycleEndInput + '? ' +
+      'The grid will stop at this date (' + Object.keys(newWeeks).length + ' weeks) and will no longer extend on its own.')) return;
+
+    setSavingCycleEnd(true);
+    try {
+      await setDoc(doc(db, 'paymentGrids', gridId), { cycleEndDate: cycleEndInput, weeks: newWeeks }, { merge: true });
+      const updated = { ...grid, cycleEndDate: cycleEndInput, weeks: newWeeks };
+      setGrid(updated);
+      // Members see the same end date right away.
+      const ids = Array.from(new Set(Object.values(grid.slots).map((s) => s.memberId))).filter(Boolean);
+      await Promise.all(ids.map((id) => syncMemberView(id, grid.slots, grid.payments || {}, newWeeks)));
+      setPageStart(0);
+      setShowCycleEndEditor(false);
+    } catch (err) {
+      console.error(err);
+      alert('Could not save the cycle end date. Please try again.');
+    }
+    setSavingCycleEnd(false);
   }
 
   function handleDiscardAll() {
@@ -893,6 +972,91 @@ export default function PaymentGridPage() {
               {savingStartDate ? 'Applying...' : 'Apply (regenerate full year)'}
             </button>
             <button onClick={() => setShowStartDateEditor(false)} style={btnStyle('ghost')}>
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {/* Tontine cycle bar */}
+        {(() => {
+          const cycleNo = grid.cycleNumber || 1;
+          const startLabel = grid.startDate || startOfGridDate(grid.weeks) || '-';
+          const endDate = grid.cycleEndDate || '';
+          const todayStr = new Date().toISOString().split('T')[0];
+          const isComplete = !!endDate && todayStr > endDate;
+          return (
+            <div
+              className="UNIMUNITY-no-print"
+              style={{
+                background: isComplete ? C.successBg : endDate ? C.ivoire : C.warningBg,
+                border: '1px solid ' + (isComplete ? C.success : endDate ? C.border : C.or),
+                borderRadius: 12,
+                padding: '10px 14px',
+                marginBottom: 12,
+                display: 'flex',
+                gap: 10,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.bordeaux }}>
+                🔄 Cycle {cycleNo}
+              </span>
+              <span style={{ fontSize: 12.5, color: C.texteFonce }}>
+                Start: <strong>{startLabel}</strong> · End: <strong>{endDate || 'not set'}</strong>
+              </span>
+              {isComplete && (
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: C.success }}>
+                  ✓ This cycle is complete.
+                </span>
+              )}
+              {!endDate && (
+                <span style={{ fontSize: 12, color: C.warning }}>
+                  No end date yet: the grid keeps extending to Dec 31 each year. Set the date of the last payout.
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setShowCycleEndEditor(!showCycleEndEditor);
+                  setCycleEndInput(endDate || suggestedCycleEnd || (weekEntries[weekEntries.length - 1]?.[1] ?? ''));
+                }}
+                style={{ ...btnStyle('ghost'), marginLeft: 'auto' }}
+              >
+                {endDate ? '✎ Change cycle end' : '⚙ Set cycle end date'}
+              </button>
+            </div>
+          );
+        })()}
+
+        {showCycleEndEditor && (
+          <div
+            className="UNIMUNITY-no-print"
+            style={{
+              background: C.warningBg,
+              border: '1px solid ' + C.or,
+              borderRadius: 12,
+              padding: '12px 16px',
+              marginBottom: 12,
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span style={{ fontSize: 12.5, color: C.texteFonce }}>
+              Date of the last payout of this cycle
+              {suggestedCycleEnd ? ' (latest member payout date: ' + suggestedCycleEnd + ')' : ''}:
+            </span>
+            <input
+              type="date"
+              value={cycleEndInput}
+              onChange={(e) => setCycleEndInput(e.target.value)}
+              style={dateInputStyle}
+            />
+            <button onClick={handleSetCycleEnd} disabled={savingCycleEnd || !cycleEndInput} style={btnStyle('primary', savingCycleEnd || !cycleEndInput)}>
+              {savingCycleEnd ? 'Saving...' : 'Save cycle end'}
+            </button>
+            <button onClick={() => setShowCycleEndEditor(false)} style={btnStyle('ghost')}>
               Cancel
             </button>
           </div>
