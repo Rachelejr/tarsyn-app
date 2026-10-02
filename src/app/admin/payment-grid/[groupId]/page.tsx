@@ -6,6 +6,7 @@ import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
+import DateTimeWeather from '@/components/DateTimeWeather';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -1001,9 +1002,9 @@ export default function PaymentGridPage() {
   function btnStyle(variant: 'primary' | 'secondary' | 'ghost', disabled?: boolean) {
     const base: React.CSSProperties = {
       borderRadius: 10,
-      padding: '9px 15px',
-      fontSize: 13.5,
-      fontWeight: 600,
+      padding: '7px 13px',
+      fontSize: 12.5,
+      fontWeight: 700,
       cursor: disabled ? 'not-allowed' : 'pointer',
       display: 'flex',
       alignItems: 'center',
@@ -1012,16 +1013,16 @@ export default function PaymentGridPage() {
       whiteSpace: 'nowrap',
     };
     if (variant === 'primary') {
-      return { ...base, background: C.bordeaux, color: C.ivoire, border: 'none' };
+      return { ...base, background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FFFFFF', border: 'none', boxShadow: disabled ? 'none' : '0 4px 12px rgba(107,45,78,0.22)' };
     }
     if (variant === 'ghost') {
       return {
         ...base,
-        background: 'transparent',
+        background: '#FFFFFF',
         color: C.texteFonce,
-        border: '1px solid ' + C.border,
-        padding: '7px 12px',
-        fontSize: 12.5,
+        border: '1px solid #F0E4D6',
+        padding: '6px 11px',
+        fontSize: 12,
       };
     }
     return {
@@ -1033,12 +1034,12 @@ export default function PaymentGridPage() {
   }
 
   const dateInputStyle: React.CSSProperties = {
-    border: '1px solid ' + C.border,
+    border: '1.5px solid #EAD9BE',
     borderRadius: 10,
-    padding: '8px 12px',
+    padding: '6px 11px',
     fontSize: 13,
     color: C.texteFonce,
-    background: C.ivoire,
+    background: '#FFFDF9',
     outline: 'none',
   };
 
@@ -1078,7 +1079,7 @@ export default function PaymentGridPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '28px 20px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .UNIMUNITY-cell { transition: all 0.15s ease; }
         .UNIMUNITY-cell:hover .UNIMUNITY-box {
@@ -1105,40 +1106,33 @@ export default function PaymentGridPage() {
         @media print {
           .UNIMUNITY-no-print { display: none !important; }
         }
+        .pg-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .pg-back:hover { background: #FBEEDD; }
+        .UNIMUNITY-hdr-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-shimmer-admin 4s linear infinite;
+        }
       `}</style>
 
-      <div style={{ maxWidth: 1360, width: '100%', margin: '0 auto', background: C.ivoire, borderRadius: 20, border: '1px solid ' + C.border, boxShadow: '0 4px 24px rgba(107,45,78,0.06)', padding: '0 28px 20px', overflow: 'hidden', flex: 1 }}>
-        {/* Header */}
-        <div
-          className="UNIMUNITY-no-print"
-          style={{
-            background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-            boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-            padding: '16px 28px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            margin: '0 -28px 20px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
-          </div>
-          <div style={{ textAlign: 'center', flex: 1 }}>
-            <h1 style={{ color: '#FBEEDD', fontSize: 20, fontWeight: 800, margin: 0 }}>
-              Payment Grid -{' '}<span className="UNIMUNITY-group-name-admin" style={{ marginLeft: 6 }}>{groupName}</span>
-            </h1>
-            <p style={{ color: 'rgba(251,238,221,0.75)', margin: '3px 0 0', fontSize: 12 }}>
-              Track every member&apos;s weekly contributions.
-            </p>
-          </div>
-          <div style={{ flex: 1 }} />
+      {/* Header */}
+      <div className="UNIMUNITY-no-print" style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start', cursor: 'pointer' }} />
+        <div style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
+          <h1 style={{ color: '#FBEEDD', fontSize: 18, fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>
+            Payment Grid -{' '}<span className="UNIMUNITY-group-name-admin" style={{ marginLeft: 4 }}>{groupName}</span>
+          </h1>
+          <p className="UNIMUNITY-hdr-sub" style={{ margin: 0, fontSize: 11.5, fontWeight: 500 }}>Track every member&apos;s weekly contributions.</p>
         </div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
+      </div>
 
+      <div style={{ flex: 1, maxWidth: 1360, width: '100%', margin: '0 auto', padding: '14px 24px 20px', boxSizing: 'border-box' }}>
         {/* Primary action bar */}
-        <div className="UNIMUNITY-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: 16 }}>
-          <button onClick={() => router.push('/dashboard')} style={btnStyle('secondary')}>
-            ← Dashboard
+        <div className="UNIMUNITY-no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+          <button onClick={() => router.push('/dashboard')} className="pg-back" style={{ marginRight: 'auto' }}>
+            Back to Dashboard
           </button>
           <button
             onClick={handleSaveAll}
@@ -1194,11 +1188,12 @@ export default function PaymentGridPage() {
         {/* Info card */}
         <div
           style={{
-            background: C.ivoire,
-            border: '1px solid ' + C.border,
-            borderRadius: 12,
-            padding: '12px 16px',
-            marginBottom: 16,
+            background: '#FFFFFF',
+            border: '1px solid #F0E4D6',
+            borderRadius: 16,
+            padding: '10px 16px',
+            marginBottom: 12,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             display: 'flex',
             gap: 10,
             alignItems: 'flex-start',
@@ -1531,11 +1526,12 @@ export default function PaymentGridPage() {
             <div
               key={item.label}
               style={{
-                background: C.ivoire,
-                border: '1px solid ' + C.border,
-                borderRadius: 10,
+                background: '#FFFFFF',
+                border: '1px solid #F0E4D6',
+                borderRadius: 12,
                 padding: '8px 14px',
-                fontSize: 12.5,
+                fontSize: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 color: C.texteGris,
                 display: 'flex',
                 gap: 6,
@@ -1603,11 +1599,11 @@ export default function PaymentGridPage() {
         {/* Table */}
         <div
           style={{
-            background: C.ivoire,
-            borderRadius: 14,
-            border: '1px solid ' + C.border,
+            background: '#FFFFFF',
+            borderRadius: 18,
+            border: '1px solid #F0E4D6',
             overflow: 'auto',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            boxShadow: '0 2px 14px rgba(107,45,78,0.06)',
           }}
         >
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
