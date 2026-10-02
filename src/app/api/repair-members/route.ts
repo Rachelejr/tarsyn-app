@@ -1,5 +1,24 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
+
+// Only signed-in platform admins may scan or repair member records.
+// Returns null when allowed, or an error response to send back.
+async function requireAdmin(req: Request): Promise<NextResponse | null> {
+  const authHeader = req.headers.get('authorization') || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!idToken) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+  try {
+    const { uid } = await adminAuth.verifyIdToken(idToken);
+    const userDoc = await adminDb.collection('users').doc(uid).get();
+    const role = userDoc.exists ? userDoc.data()?.role : null;
+    if (role !== 'admin' && role !== 'superadmin') {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+    return null;
+  } catch (e) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+  }
+}
 
 function computeNewTynId(fullName: string, sequence: number): string {
   const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
@@ -78,7 +97,9 @@ async function scanMembers() {
   return { broken, total: membersSnap.size };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const { broken, total } = await scanMembers();
     return NextResponse.json({ broken, total });
@@ -88,7 +109,9 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(req: Request) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const { broken } = await scanMembers();
     const fixed: any[] = [];
