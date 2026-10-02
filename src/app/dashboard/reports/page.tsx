@@ -12,7 +12,7 @@ const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
   or: '#E9C77B', orLight: '#F0DCA8',
   creme: '#FBEEDD', blanc: '#FFFFFF',
-  text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb',
+  text: '#3A2F1F', muted: '#8A7B6C', border: '#F0E4D6',
 };
 
 interface Contribution { id: string; memberName: string; amount: number; method?: string; date?: string; status: string; receiptNumber?: string; memberId?: string; }
@@ -54,6 +54,7 @@ function ReportsContent() {
   const [period, setPeriod] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [planTier, setPlanTier] = useState<PlanTier>('free');
+  const [memberShow, setMemberShow] = useState('10');
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -177,193 +178,293 @@ function ReportsContent() {
     const a = document.createElement('a'); a.href = url; a.download = 'UNIMUNITY-report.csv'; a.click();
   };
 
-  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5 };
-  const selectStyle = { padding: '8px 12px', borderRadius: 9, border: '1.5px solid ' + C.border, fontSize: 13, color: C.text, background: C.blanc, cursor: 'pointer', outline: 'none' };
+  const inputStyle = {
+    padding: '7px 11px', borderRadius: 10, border: '1.5px solid #EAD9BE', fontSize: 13.5, color: C.text,
+    background: '#FFFDF9', outline: 'none', boxSizing: 'border-box' as const, fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+  };
+  const smallLabel = { fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase' as const, letterSpacing: 0.8 };
+  const cardStyle = { background: C.blanc, borderRadius: 16, border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' };
+
+  const periodLabel: Record<string, string> = { all: 'All time', month: 'This month', quarter: 'This quarter', year: 'This year' };
+  const statusLabel: Record<string, string> = { all: 'All', confirmed: 'Confirmed', pending: 'Pending' };
+  const groupLabel = groupId === ALL_GROUPS ? 'All Groups (Combined)' : (currentGroup?.name || 'No group selected');
+  const visibleMembers = memberShow === 'all' ? byMember : byMember.slice(0, parseInt(memberShow));
+
+  const kpis = [
+    { label: 'Collected', value: '$' + totalCollected.toFixed(2), sub: confirmedCount + ' confirmed', top: '#E9C77B', color: C.bordeauxDark },
+    { label: 'Pending', value: '$' + totalPending.toFixed(2), sub: pendingCount + ' payment' + (pendingCount === 1 ? '' : 's'), top: '#E8A45C', color: '#92400e' },
+    { label: 'Confirmed', value: String(confirmedCount), sub: 'payments', top: '#66BB6A', color: '#065f46' },
+    { label: 'Expected', value: '$' + expectedTotal.toFixed(2), sub: 'per round, ' + members.length + ' member' + (members.length === 1 ? '' : 's'), top: '#B39DDB', color: C.text },
+  ];
+
+  const LockedCard = ({ title, plan }: { title: string; plan: string }) => (
+    <div className="rp-card" style={{ ...cardStyle, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, opacity: 0.85 }}>
+      <span className="rp-ico" style={{ background: '#EFE6DA', boxShadow: 'none' }}>{'\u{1F512}'}</span>
+      <div style={{ flex: 1 }}>
+        <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: '#4A1F38' }}>{title}</p>
+        <p style={{ margin: '2px 0 0', fontSize: 12, color: C.muted }}>Available from the {plan} plan.</p>
+      </div>
+      <button onClick={() => router.push('/dashboard/subscription')}
+        style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+        Upgrade
+      </button>
+    </div>
+  );
 
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @media (max-width: 900px) {
+          .rp-grid { grid-template-columns: 1fr !important; }
+          .rp-kpis { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        .rp-card { border: 1px solid #F0E4D6 !important; border-radius: 18px !important; box-shadow: 0 2px 14px rgba(107,45,78,0.06) !important; transition: box-shadow 0.25s ease; }
+        .rp-card:hover { box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important; }
+        .rp-head { display: flex; align-items: center; gap: 11px; }
+        .rp-ico { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(74,31,56,0.18); }
+        .rp-title { margin: 0; font-size: 15px; font-weight: 800; color: #4A1F38; }
+        .rp-form select { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+        .rp-form select:focus { border-color: #E9C77B !important; box-shadow: 0 0 0 3px rgba(233,199,123,0.25); background: #FFFFFF !important; }
+        .rp-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .rp-back:hover { background: #FBEEDD; }
+        .rp-tr:hover td { background: #FFFBF5 !important; }
+        .rp-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+        .rp-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        .UNIMUNITY-hdr-shimmer-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
+        @media print {
+          .rp-no-print { display: none !important; }
+          .rp-grid { grid-template-columns: 1fr !important; }
+          .rp-card { box-shadow: none !important; }
+        }
+      `}</style>
       <div style={{ flex: 1 }}>
-      <div style={{
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '16px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap' as const,
-        rowGap: '10px',
-      }}>
-        <div>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
-          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+
+      <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start' }} />
+        <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Reports Center</h1>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Financial reports and exports for your groups.</p>
         </div>
-        <div style={{ textAlign: 'right' as const }}>
-          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-        </div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px' }}>
+      <div className="rp-form" style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 20px' }}>
 
-        <div style={{ marginBottom: 20 }}>
-          <button onClick={() => router.push('/dashboard' + (groupId ? '?groupId=' + groupId : ''))}
-            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
-            Back to Dashboard
-          </button>
+        <div className="rp-no-print" style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push('/dashboard' + (groupId ? '?groupId=' + groupId : ''))} className="rp-back">Back to Dashboard</button>
         </div>
 
-        <div style={{ marginBottom: 24, textAlign: 'center' as const }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Reports Center</h1>
-          <p style={{ fontSize: 13, color: C.muted, margin: '3px 0 0' }}>Financial reports and exports</p>
-          <span
-            onClick={planTier !== 'enterprise' ? () => router.push('/dashboard/subscription') : undefined}
-            title={planTier !== 'enterprise' ? 'See plans and upgrade' : undefined}
-            style={{
-              display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: C.bordeaux,
-              background: C.creme, border: '1px solid ' + C.orLight, borderRadius: 20, padding: '4px 12px',
-              cursor: planTier !== 'enterprise' ? 'pointer' : 'default',
-            }}>
-            {reportLevelLabel}
-            {planTier !== 'enterprise' && (
-              <span style={{ marginLeft: 6, fontWeight: 800, textDecoration: 'underline' }}>Upgrade &rarr;</span>
-            )}
-          </span>
-        </div>
+        <div className="rp-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
 
-        {groups.length === 0 ? (
-          <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, textAlign: 'center' as const, marginBottom: 24 }}>
-            <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
-              You have no groups yet.{' '}
-              <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>
-                Create a group first
-              </span>
-            </p>
-          </div>
-        ) : (
-          <div style={{ background: C.blanc, borderRadius: 16, padding: '16px 22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 24 }}>
-            <p style={labelStyle}>Group</p>
-            <select style={selectStyle} value={groupId} onChange={e => setGroupId(e.target.value)}>
-              <option value="">Choose a group...</option>
-              {hasAdvancedAdmin && groups.length > 1 && (
-                <option value={ALL_GROUPS}>All Groups (Combined)</option>
+            {/* Group + filters toolbar */}
+            <div className="rp-card rp-no-print" style={{ ...cardStyle, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' as const }}>
+              <div className="rp-head" style={{ flexShrink: 0 }}>
+                <span className="rp-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)' }}>{'\u{1F4CA}'}</span>
+                <h2 className="rp-title">Group</h2>
+              </div>
+              {groups.length === 0 ? (
+                <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>
+                  You have no groups yet.{' '}
+                  <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create a group first</span>
+                </p>
+              ) : (
+                <>
+                  <select style={{ ...inputStyle, flex: 1, minWidth: 180 }} value={groupId} onChange={e => setGroupId(e.target.value)}>
+                    <option value="">Choose a group...</option>
+                    {hasAdvancedAdmin && groups.length > 1 && <option value={ALL_GROUPS}>All Groups (Combined)</option>}
+                    {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  </select>
+                  <select style={inputStyle} value={period} onChange={e => setPeriod(e.target.value)} disabled={!groupId} title="Period">
+                    <option value="all">All time</option>
+                    <option value="month">This month</option>
+                    <option value="quarter">This quarter</option>
+                    <option value="year">This year</option>
+                  </select>
+                  <select style={inputStyle} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} disabled={!groupId} title="Status">
+                    <option value="all">All statuses</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </>
               )}
-              {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {!groupId ? (
-          groups.length > 0 && (
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '40px', border: '1px solid ' + C.border, textAlign: 'center' as const }}>
-              <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>Select a group above to view its reports.</p>
-            </div>
-          )
-        ) : loading ? (
-          <div style={{ background: C.blanc, borderRadius: 16, padding: '40px', border: '1px solid ' + C.border, textAlign: 'center' as const }}>
-            <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>Loading reports...</p>
-          </div>
-        ) : (
-          <>
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '18px 22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 24, display: 'flex', gap: 16, flexWrap: 'wrap' as const, alignItems: 'flex-end' }}>
-              <div>
-                <p style={labelStyle}>Period</p>
-                <select style={selectStyle} value={period} onChange={e => setPeriod(e.target.value)}>
-                  <option value="all">All time</option>
-                  <option value="month">This month</option>
-                  <option value="quarter">This quarter</option>
-                  <option value="year">This year</option>
-                </select>
-              </div>
-              <div>
-                <p style={labelStyle}>Status</p>
-                <select style={selectStyle} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                  <option value="all">All</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-                <button onClick={exportCSV}
-                  style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {canExport ? '' : '\u{1F512} '}Export CSV
-                </button>
-                <button onClick={() => window.print()}
-                  style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  Print
-                </button>
-              </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-              {[
-                { label: 'Total Collected', value: '$' + totalCollected.toFixed(2), color: C.or },
-                { label: 'Total Pending', value: '$' + totalPending.toFixed(2), color: '#92400e' },
-                { label: 'Confirmed', value: String(confirmedCount), color: '#065f46' },
-                { label: 'Expected', value: '$' + expectedTotal.toFixed(2), color: C.text },
-              ].map(k => (
-                <div key={k.label} style={{ background: C.blanc, borderRadius: 16, padding: '18px 20px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                  <p style={{ fontSize: 11, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.8, margin: '0 0 8px' }}>{k.label}</p>
-                  <p style={{ fontSize: 26, fontWeight: 800, color: k.color, margin: 0, letterSpacing: -0.5 }}>{k.value}</p>
+            {!groupId ? (
+              groups.length > 0 && (
+                <div className="rp-card" style={{ ...cardStyle, padding: '40px', textAlign: 'center' as const }}>
+                  <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>Select a group above to view its reports.</p>
                 </div>
-              ))}
+              )
+            ) : loading ? (
+              <div className="rp-card" style={{ ...cardStyle, padding: '40px', textAlign: 'center' as const }}>
+                <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>Loading reports...</p>
+              </div>
+            ) : (
+              <>
+                {/* KPI cards */}
+                <div className="rp-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                  {kpis.map(k => (
+                    <div key={k.label} style={{ ...cardStyle, borderTop: '3px solid ' + k.top, padding: '12px 16px' }}>
+                      <p style={{ ...smallLabel, margin: '0 0 4px' }}>{k.label}</p>
+                      <p style={{ fontSize: 21, fontWeight: 800, color: k.color, margin: 0, letterSpacing: -0.4 }}>{k.value}</p>
+                      <p style={{ fontSize: 11, color: C.muted, margin: '2px 0 0' }}>{k.sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* By member */}
+                {hasAdvancedReports ? (
+                  <div className="rp-card" style={{ ...cardStyle, overflow: 'hidden' }}>
+                    <div style={{ padding: '12px 20px', borderBottom: '1px solid #F3E6D8', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div className="rp-head">
+                        <span className="rp-ico" style={{ background: 'linear-gradient(135deg,#FCE4EC,#F4B6C7)' }}>{'\u{1F465}'}</span>
+                        <h2 className="rp-title">Breakdown by Member <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>({byMember.length})</span></h2>
+                      </div>
+                      {byMember.length > 5 && (
+                        <div className="rp-no-print" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Show:</span>
+                          <select value={memberShow} onChange={e => setMemberShow(e.target.value)} style={{ ...inputStyle, padding: '5px 9px', fontSize: 12.5 }}>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="all">All</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                    {byMember.length === 0 ? (
+                      <p style={{ fontSize: 13, color: C.muted, margin: 0, padding: '24px 20px', textAlign: 'center' as const }}>No contributions in this period.</p>
+                    ) : (
+                      <div style={{ overflowX: 'auto' as const }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)' }}>
+                              {['#', 'Member', 'Confirmed Payments', 'Total Collected'].map(h => (
+                                <th key={h} style={{ padding: '9px 16px', textAlign: (h === 'Member' || h === '#') ? 'left' as const : 'right' as const, fontSize: 11, fontWeight: 700, color: '#FBEEDD', textTransform: 'uppercase' as const, letterSpacing: 0.6 }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {visibleMembers.map((m, i) => (
+                              <tr key={m.memberId} className="rp-tr">
+                                <td style={{ padding: '9px 16px', fontSize: 12.5, color: C.muted, borderBottom: '1px solid #F7EEE3', background: i % 2 ? '#FFFDF9' : C.blanc, width: 40 }}>{i + 1}</td>
+                                <td style={{ padding: '9px 16px', fontSize: 13, fontWeight: 700, color: C.text, borderBottom: '1px solid #F7EEE3', background: i % 2 ? '#FFFDF9' : C.blanc }}>
+                                  <span style={{ display: 'inline-flex', width: 26, height: 26, borderRadius: '50%', background: '#F6E3C4', color: C.bordeauxDark, fontSize: 11, fontWeight: 800, alignItems: 'center', justifyContent: 'center', marginRight: 10, verticalAlign: 'middle' }}>{(m.name || '?').trim().charAt(0).toUpperCase()}</span>
+                                  {m.name}
+                                </td>
+                                <td style={{ padding: '9px 16px', fontSize: 13, color: C.muted, textAlign: 'right' as const, borderBottom: '1px solid #F7EEE3', background: i % 2 ? '#FFFDF9' : C.blanc }}>{m.count}</td>
+                                <td style={{ padding: '9px 16px', fontSize: 13, fontWeight: 800, color: C.bordeaux, textAlign: 'right' as const, borderBottom: '1px solid #F7EEE3', background: i % 2 ? '#FFFDF9' : C.blanc }}>${m.collected.toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {visibleMembers.length < byMember.length && (
+                          <div className="rp-no-print" style={{ padding: '10px 20px', textAlign: 'center' as const, fontSize: 12, color: C.muted }}>
+                            Showing {visibleMembers.length} of {byMember.length}.{' '}
+                            <span onClick={() => setMemberShow('all')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Show all</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rp-no-print"><LockedCard title="Breakdown by Member" plan="Pro" /></div>
+                )}
+
+                {/* By method */}
+                {hasAdvancedAdmin ? (
+                  <div className="rp-card" style={{ ...cardStyle, padding: '14px 20px' }}>
+                    <div className="rp-head" style={{ marginBottom: 12 }}>
+                      <span className="rp-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F4B3}'}</span>
+                      <h2 className="rp-title">Breakdown by Payment Method</h2>
+                    </div>
+                    {byMethod.length === 0 ? (
+                      <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>No confirmed payments in this period.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+                        {byMethod.map(m => {
+                          const share = totalCollected > 0 ? Math.round((m.total / totalCollected) * 100) : 0;
+                          return (
+                            <div key={m.method} style={{ background: C.creme, borderRadius: 12, padding: '10px 14px', border: '1px solid ' + C.orLight }}>
+                              <p style={{ fontSize: 11, color: C.muted, textTransform: 'capitalize' as const, margin: '0 0 3px', fontWeight: 700 }}>{m.method}</p>
+                              <p style={{ fontSize: 16, fontWeight: 800, color: C.bordeauxDark, margin: 0 }}>${m.total.toFixed(2)}</p>
+                              <p style={{ fontSize: 10.5, color: C.muted, margin: '2px 0 6px' }}>{m.count} payment{m.count === 1 ? '' : 's'} · {share}%</p>
+                              <div style={{ height: 4, background: '#EFE2CC', borderRadius: 4, overflow: 'hidden' }}>
+                                <div style={{ width: share + '%', height: '100%', background: 'linear-gradient(90deg,#E9C77B,#6B2D4E)' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rp-no-print"><LockedCard title="Breakdown by Payment Method" plan="Business" /></div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Right column - summary + actions */}
+          <div className="rp-card rp-no-print" style={{ ...cardStyle, padding: '22px', position: 'sticky' as const, top: 24 }}>
+            <div style={{ textAlign: 'center' as const, margin: '-22px -22px 14px', padding: '14px 16px 12px', background: 'linear-gradient(160deg,#FBE3E8 0%,#FDF6EC 55%,#EAF3E3 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid ' + C.border }}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#3A1F2E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{groupLabel}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: '#C9974D', textTransform: 'uppercase' as const, letterSpacing: 1.2 }}>Report Summary</p>
+            </div>
+            {[
+              { label: 'Period', value: periodLabel[period] || period },
+              { label: 'Status', value: statusLabel[statusFilter] || statusFilter },
+              { label: 'Members', value: groupId ? String(members.length) : '-' },
+              { label: 'Payments shown', value: groupId ? String(filtered.length) : '-' },
+              { label: 'Confirmed', value: groupId ? String(confirmedCount) : '-', color: '#065f46' },
+              { label: 'Pending', value: groupId ? String(pendingCount) : '-', color: '#92400e' },
+              { label: 'Collected', value: groupId ? '$' + totalCollected.toFixed(2) : '-', color: C.bordeaux },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 2px', borderBottom: '1px dashed #F3E6D8' }}>
+                <span style={{ fontSize: 12, color: C.muted }}>{item.label}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: item.color || C.text }}>{item.value}</span>
+              </div>
+            ))}
+
+            <div
+              onClick={planTier !== 'enterprise' ? () => router.push('/dashboard/subscription') : undefined}
+              title={planTier !== 'enterprise' ? 'See plans and upgrade' : undefined}
+              style={{ marginTop: 14, padding: '10px 12px', background: 'linear-gradient(135deg,#FBEEDD,#F6E3C4)', borderRadius: 12, border: '1px solid ' + C.orLight, textAlign: 'center' as const, cursor: planTier !== 'enterprise' ? 'pointer' : 'default' }}>
+              <p style={{ fontSize: 10.5, color: '#A08B7D', margin: 0, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' as const }}>Report Level</p>
+              <p style={{ fontSize: 13.5, color: '#4A1F38', margin: '2px 0 0', fontWeight: 800 }}>{reportLevelLabel}</p>
+              {planTier !== 'enterprise' && (
+                <p style={{ fontSize: 11.5, color: C.bordeaux, margin: '3px 0 0', fontWeight: 800, textDecoration: 'underline' }}>Upgrade &rarr;</p>
+              )}
             </div>
 
-            {hasAdvancedReports && (
-              <div style={{ background: C.blanc, borderRadius: 16, padding: '18px 22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 24 }}>
-                <h2 style={{ fontSize: 14, fontWeight: 700, color: C.text, margin: '0 0 14px' }}>Breakdown by Member</h2>
-                {byMember.length === 0 ? (
-                  <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>No contributions in this period.</p>
-                ) : (
-                  <div className="rtable-wrap">
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f9fafb' }}>
-                        {['Member', 'Confirmed Payments', 'Total Collected'].map(h => (
-                          <th key={h} style={{ padding: '10px 14px', textAlign: h === 'Member' ? 'left' as const : 'right' as const, fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {byMember.map((m, i) => (
-                        <tr key={m.memberId} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? C.blanc : '#fdfcfb' }}>
-                          <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 600, color: C.text }}>{m.name}</td>
-                          <td style={{ padding: '10px 14px', fontSize: 13, color: C.muted, textAlign: 'right' as const }}>{m.count}</td>
-                          <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.bordeaux, textAlign: 'right' as const }}>${m.collected.toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {hasAdvancedAdmin && (
-              <div style={{ background: C.blanc, borderRadius: 16, padding: '18px 22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 24 }}>
-                <h2 style={{ fontSize: 14, fontWeight: 700, color: C.text, margin: '0 0 14px' }}>Breakdown by Payment Method</h2>
-                {byMethod.length === 0 ? (
-                  <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>No confirmed payments in this period.</p>
-                ) : (
-                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
-                    {byMethod.map(m => (
-                      <div key={m.method} style={{ background: C.creme, borderRadius: 12, padding: '12px 16px', minWidth: 140 }}>
-                        <p style={{ fontSize: 11, color: C.muted, textTransform: 'capitalize' as const, margin: '0 0 4px' }}>{m.method}</p>
-                        <p style={{ fontSize: 16, fontWeight: 800, color: C.bordeauxDark, margin: 0 }}>${m.total.toFixed(2)}</p>
-                        <p style={{ fontSize: 10.5, color: C.muted, margin: '2px 0 0' }}>{m.count} payment{m.count === 1 ? '' : 's'}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
+            <button onClick={exportCSV} disabled={!groupId} className="rp-btn"
+              style={{ width: '100%', marginTop: 14, padding: '11px', background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: C.blanc, border: 'none', borderRadius: 14, fontSize: 14.5, fontWeight: 800, letterSpacing: 0.3, cursor: groupId ? 'pointer' : 'not-allowed', opacity: groupId ? 1 : 0.55, boxShadow: '0 8px 22px rgba(107,45,78,0.28)' }}>
+              {canExport ? '\u{1F4E5}  Export CSV' : '\u{1F512}  Export CSV'}
+            </button>
+            <button onClick={() => window.print()} disabled={!groupId} className="rp-btn"
+              style={{ width: '100%', marginTop: 8, padding: '10px', background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800, cursor: groupId ? 'pointer' : 'not-allowed', opacity: groupId ? 1 : 0.55 }}>
+              {'\u{1F5A8}\uFE0F'}  Print
+            </button>
+          </div>
+        </div>
 
       </div>
 
       </div>
-      <Footer />
+      <div className="rp-no-print"><Footer /></div>
     </div>
   );
 }
