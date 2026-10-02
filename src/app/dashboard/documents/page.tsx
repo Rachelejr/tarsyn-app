@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -50,6 +50,7 @@ export default function DocumentsPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('details');
+  const [docShow, setDocShow] = useState('10');
 
   const [reviews, setReviews] = useState<any[]>([]);
   const [myRating, setMyRating] = useState(0);
@@ -264,235 +265,288 @@ export default function DocumentsPage() {
     </div>
   );
 
-  return (
-    <div className="UNIMUNITY-docs-root" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
-      <style dangerouslySetInnerHTML={{__html: `
-        .doc-row{transition:all .15s ease;cursor:pointer;}
-        .doc-row:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(74,31,56,0.10);}
-        .doc-row.active{border-color:${C.bleu} !important;background:${C.creme} !important;}
-        .tab-btn{transition:all .15s ease;cursor:pointer;}
-        .cat-pill{transition:all .15s ease;cursor:pointer;}
-        .star{cursor:pointer;transition:transform .1s ease;}
-        .star:hover{transform:scale(1.2);}
-        .scroll-thin::-webkit-scrollbar{width:6px;}
-        .scroll-thin::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px;}
-        @media (max-width: 900px) {
-          .UNIMUNITY-docs-root { height: auto !important; min-height: 100vh; overflow: visible !important; }
-          .UNIMUNITY-docs-main { flex-direction: column !important; height: auto !important; overflow: visible !important; }
-          .UNIMUNITY-docs-list { width: 100% !important; max-height: 320px; }
-          .UNIMUNITY-docs-detail { min-height: 400px; }
-        }
-        @media (max-width: 600px) {
-          .UNIMUNITY-docs-topbar { padding: 12px 16px !important; }
-          .UNIMUNITY-docs-topbar h1 { font-size: 15px !important; }
-          .UNIMUNITY-docs-actions { flex-wrap: wrap !important; }
-        }
-      `}} />
+  const cardStyle = { background: C.blanc, borderRadius: 16, border: '1px solid #F0E4D6', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' };
+  const fieldStyle = { width: '100%', padding: '7px 11px', borderRadius: 10, border: '1.5px solid #EAD9BE', fontSize: 13, color: C.texteFonce, background: '#FFFDF9', outline: 'none', boxSizing: 'border-box' as const, fontFamily: 'Inter, sans-serif' };
+  const smallLabel = { fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase' as const, letterSpacing: 0.8 };
+  const visibleDocs = docShow === 'all' ? filteredDocs : filteredDocs.slice(0, parseInt(docShow));
+  const totalSize = docs.reduce((s, d) => s + (d.size || 0), 0);
+  const totalDownloads = docs.reduce((s, d) => s + (d.downloadCount || 0), 0);
+  const actionBtn = { padding: '7px 13px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', textDecoration: 'none', display: 'inline-block' };
 
-      {/* TOP BAR - group info */}
-      <div className="UNIMUNITY-docs-topbar" style={{
-        flexShrink: 0,
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '14px 28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+  return (
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 900px) {
+          .dc-grid { grid-template-columns: 1fr !important; }
+          .dc-details { grid-template-columns: 1fr 1fr !important; }
+        }
+        .dc-card { border: 1px solid #F0E4D6 !important; border-radius: 18px !important; box-shadow: 0 2px 14px rgba(107,45,78,0.06) !important; transition: box-shadow 0.25s ease; }
+        .dc-card:hover { box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important; }
+        .dc-head { display: flex; align-items: center; gap: 11px; }
+        .dc-ico { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(74,31,56,0.18); }
+        .dc-title { margin: 0; font-size: 15px; font-weight: 800; color: #4A1F38; }
+        .dc-form input:focus, .dc-form select:focus { border-color: #E9C77B !important; box-shadow: 0 0 0 3px rgba(233,199,123,0.25); background: #FFFFFF !important; }
+        .dc-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .dc-back:hover { background: #FBEEDD; }
+        .doc-row { transition: background .15s ease, border-color .15s ease; cursor: pointer; }
+        .doc-row:hover { background: #FFFBF5 !important; }
+        .doc-row.active { border-color: #6B2D4E !important; background: #FBEEDD !important; }
+        .tab-btn { transition: all .15s ease; cursor: pointer; }
+        .cat-pill { transition: all .15s ease; cursor: pointer; }
+        .star { cursor: pointer; transition: transform .1s ease; }
+        .star:hover { transform: scale(1.2); }
+        .dc-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+        .dc-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+        .scroll-thin::-webkit-scrollbar { width: 6px; }
+        .scroll-thin::-webkit-scrollbar-thumb { background: #EAD9BE; border-radius: 3px; }
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        .UNIMUNITY-hdr-shimmer-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
+      `}} />
+      <div style={{ flex: 1 }}>
+
+      <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start', cursor: 'pointer' }} />
+        <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Document Center</h1>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Store, share and track your group documents.</p>
         </div>
-        <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ color: C.creme, fontSize: '17px', fontWeight: 800, margin: 0 }}>Document Center</h1>
-          <p style={{ color: 'rgba(251,238,221,0.75)', fontSize: '12px', margin: 0 }}>{groupName || 'Your Group'} - {docs.length} document{docs.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
-          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-            style={{ background: 'transparent', border: '1px solid rgba(233,199,123,0.5)', color: C.or, padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-            Sign Out
-          </button>
-        </div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </div>
 
-      {/* MAIN ROW - list (left) + selected doc (right) */}
-      <div className="UNIMUNITY-docs-main" style={{ flex: 1, display: 'flex', minHeight: 0, padding: '16px', gap: '16px' }}>
+      <div className="dc-form" style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 20px' }}>
 
-        {/* LEFT - Documents list */}
-        <div className="UNIMUNITY-docs-list" style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-              style={{ border: `2px dashed ${isDragging ? C.bleu : C.border}`, background: isDragging ? C.creme : C.ivoire, borderRadius: '12px', padding: '16px', textAlign: 'center', cursor: 'pointer', marginBottom: '10px' }}>
-              <div style={{ fontSize: '20px' }}>+</div>
-              <p style={{ color: C.bleuFonce, fontWeight: 700, fontSize: '12px', margin: '2px 0 0' }}>Drop file or click to upload</p>
-              <input ref={fileInputRef} type="file" onChange={handleUpload} disabled={uploading} style={{ display: 'none' }} />
-            </div>
-            {uploading && (
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ background: C.creme, borderRadius: '999px', height: '6px' }}>
-                  <div style={{ background: C.bleu, width: `${progress}%`, height: '6px', borderRadius: '999px', transition: 'width .3s' }} />
-                </div>
-              </div>
-            )}
-            <select value={category} onChange={e => setCategory(e.target.value)}
-              style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: `1px solid ${C.border}`, fontSize: '12px', background: 'white', marginBottom: '8px' }}>
-              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-            </select>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search files..."
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: `1px solid ${C.border}`, fontSize: '12px', outline: 'none', boxSizing: 'border-box', marginBottom: '8px' }} />
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-              {['All', ...CATEGORIES].map(c => (
-                <span key={c} className="cat-pill" onClick={() => setFilterCat(c)}
-                  style={{ padding: '3px 9px', borderRadius: '20px', fontSize: '10.5px', fontWeight: 700,
-                    background: filterCat === c ? C.bleu : C.ivoire, color: filterCat === c ? 'white' : C.texteGris,
-                    border: `1px solid ${filterCat === c ? C.bleu : C.border}` }}>
-                  {c}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="scroll-thin" style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-            {filteredDocs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 10px', color: C.texteGris, fontSize: '13px' }}>No documents match.</div>
-            ) : filteredDocs.map(d => {
-              const icon = getFileIcon(d.type);
-              return (
-                <div key={d.id} onClick={() => { setSelectedId(d.id); setActiveTab('details'); }}
-                  className={'doc-row' + (selectedId === d.id ? ' active' : '')}
-                  style={{ border: `1px solid ${C.border}`, borderRadius: '10px', padding: '10px', marginBottom: '8px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: C.ivoire, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: icon.color, flexShrink: 0 }}>{icon.label}</div>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ color: C.texteFonce, fontWeight: 700, fontSize: '12.5px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</p>
-                    <p style={{ color: C.texteGris, fontSize: '11px', margin: '2px 0 0' }}>{formatSize(d.size)} - {d.category}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push('/dashboard')} className="dc-back">Back to Dashboard</button>
         </div>
 
-        {/* RIGHT - Selected document + tabs */}
-        <div className="UNIMUNITY-docs-detail" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, gap: '16px' }}>
+        <div className="dc-grid" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 16, alignItems: 'start' }}>
 
-          {!selectedDoc ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)' }}>
-              <p style={{ color: C.texteGris, fontSize: '14px' }}>Select a document to view details.</p>
+          {/* LEFT - upload + list */}
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+            <div className="dc-card" style={{ ...cardStyle, padding: '14px 18px' }}>
+              <div className="dc-head" style={{ marginBottom: 12, paddingBottom: 9, borderBottom: '1px solid #F3E6D8' }}>
+                <span className="dc-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)' }}>{'\u{1F4E4}'}</span>
+                <h2 className="dc-title">Upload</h2>
+              </div>
+              <div
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                style={{ border: `2px dashed ${isDragging ? C.bleu : '#EAD9BE'}`, background: isDragging ? C.creme : '#FFFDF9', borderRadius: 12, padding: '14px', textAlign: 'center' as const, cursor: uploading ? 'not-allowed' : 'pointer', marginBottom: 10 }}>
+                <div style={{ fontSize: 20, color: C.bleu, fontWeight: 800, lineHeight: 1 }}>+</div>
+                <p style={{ color: C.bleuFonce, fontWeight: 700, fontSize: 12.5, margin: '4px 0 0' }}>{uploading ? 'Uploading... ' + progress + '%' : 'Drop a file or click to upload'}</p>
+                <input ref={fileInputRef} type="file" onChange={handleUpload} disabled={uploading} style={{ display: 'none' }} />
+              </div>
+              {uploading && (
+                <div style={{ background: C.creme, borderRadius: 999, height: 6, marginBottom: 10 }}>
+                  <div style={{ background: 'linear-gradient(90deg,#E9C77B,#6B2D4E)', width: `${progress}%`, height: 6, borderRadius: 999, transition: 'width .3s' }} />
+                </div>
+              )}
+              <label style={{ ...smallLabel, display: 'block', marginBottom: 4 }}>Category for new upload</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} style={fieldStyle}>
+                {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+              </select>
             </div>
-          ) : (
-            <>
-              {/* Selected doc panel */}
-              <div className="UNIMUNITY-docs-panel" style={{ flexShrink: 0, background: C.blanc, borderRadius: '16px', padding: '18px 22px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: getFileIcon(selectedDoc.type).color, flexShrink: 0 }}>
-                  {getFileIcon(selectedDoc.type).label}
+
+            <div className="dc-card" style={{ ...cardStyle, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 18px', borderBottom: '1px solid #F3E6D8', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="dc-head">
+                  <span className="dc-ico" style={{ background: 'linear-gradient(135deg,#FCE4EC,#F4B6C7)' }}>{'\u{1F4C1}'}</span>
+                  <h2 className="dc-title">Documents <span style={{ fontSize: 12, fontWeight: 600, color: C.texteGris }}>({docs.length})</span></h2>
                 </div>
-                <div style={{ flex: 1, minWidth: '160px' }}>
-                  <p style={{ color: C.texteFonce, fontWeight: 800, fontSize: '15px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedDoc.name}</p>
-                  <p style={{ color: C.texteGris, fontSize: '12px', margin: '3px 0 0' }}>{formatSize(selectedDoc.size)} - {selectedDoc.category} - v{selectedDoc.version || 1}</p>
-                </div>
-                <div className="UNIMUNITY-docs-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <a href={selectedDoc.url} target="_blank" rel="noreferrer" onClick={() => logAction('Previewed')}
-                    style={{ background: C.ivoire, color: C.bleuFonce, border: `1.5px solid ${C.bleu}`, padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
-                  <button onClick={handleDownload} style={{ background: C.bleu, color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Download</button>
-                  <button onClick={handlePrint} style={{ background: C.ivoire, color: C.bleuFonce, border: `1.5px solid ${C.or}`, padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Print</button>
-                  <button onClick={handleShare} style={{ background: C.ivoire, color: C.bleuFonce, border: `1.5px solid ${C.border}`, padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Share</button>
-                  <button onClick={() => handleDelete(selectedDoc)} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Delete</button>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: C.texteGris, fontWeight: 600 }}>Show:</span>
+                  <select value={docShow} onChange={e => setDocShow(e.target.value)} style={{ ...fieldStyle, width: 'auto', padding: '4px 8px', fontSize: 12.5 }}>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="all">All</option>
+                  </select>
                 </div>
               </div>
-
-              {/* Tabs */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: C.blanc, borderRadius: '16px', boxShadow: '0 2px 12px rgba(74,31,56,0.08)', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-                  {TABS.map(t => (
-                    <div key={t.key} className="tab-btn" onClick={() => setActiveTab(t.key)}
-                      style={{ padding: '13px 22px', fontSize: '13px', fontWeight: 700,
-                        color: activeTab === t.key ? C.bleuFonce : C.texteGris,
-                        borderBottom: activeTab === t.key ? `2.5px solid ${C.bleu}` : '2.5px solid transparent' }}>
-                      {t.label}
-                    </div>
+              <div style={{ padding: '10px 18px', borderBottom: '1px solid #F3E6D8', background: '#FFFCF7' }}>
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search files..." style={{ ...fieldStyle, marginBottom: 8 }} />
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
+                  {['All', ...CATEGORIES].map(c => (
+                    <span key={c} className="cat-pill" onClick={() => setFilterCat(c)}
+                      style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                        background: filterCat === c ? C.bleu : C.blanc, color: filterCat === c ? 'white' : '#8A7B6C',
+                        border: `1px solid ${filterCat === c ? C.bleu : '#EAD9BE'}` }}>
+                      {c}
+                    </span>
                   ))}
                 </div>
-
-                <div className="scroll-thin" style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-
-                  {activeTab === 'details' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '600px' }}>
-                      {[
-                        ['Name', selectedDoc.name],
-                        ['Type', selectedDoc.type || '-'],
-                        ['Size', formatSize(selectedDoc.size)],
-                        ['Category', selectedDoc.category],
-                        ['Uploaded', formatDate(selectedDoc.createdAt)],
-                        ['Last modified', formatDate(selectedDoc.updatedAt || selectedDoc.createdAt)],
-                        ['Downloads', String(selectedDoc.downloadCount || 0)],
-                        ['Version', 'v' + (selectedDoc.version || 1)],
-                      ].map(([label, value]) => (
-                        <div key={label}>
-                          <p style={{ color: C.texteGris, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '.05em', margin: '0 0 3px' }}>{label}</p>
-                          <p style={{ color: C.texteFonce, fontWeight: 600, fontSize: '13.5px', margin: 0, wordBreak: 'break-word' }}>{value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {activeTab === 'reviews' && (
-                    <div style={{ maxWidth: '420px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
-                        <span style={{ fontSize: '26px', letterSpacing: '2px' }}>{[1, 2, 3, 4, 5].map(n => (<span key={n} style={{ color: n <= Math.round(avgRating) ? C.or : C.border }}>{'\u2605'}</span>))}</span>
-                        <div>
-                          <p style={{ fontWeight: 800, fontSize: '18px', color: C.texteFonce, margin: 0 }}>{avgRating.toFixed(1)} / 5</p>
-                          <p style={{ fontSize: '12px', color: C.texteGris, margin: 0 }}>{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
-                        </div>
+              </div>
+              <div className="scroll-thin" style={{ maxHeight: 460, overflowY: 'auto' as const, padding: '10px 12px' }}>
+                {filteredDocs.length === 0 ? (
+                  <div style={{ textAlign: 'center' as const, padding: '26px 10px', color: '#8A7B6C', fontSize: 13 }}>{docs.length === 0 ? 'No documents yet. Upload your first file above.' : 'No documents match.'}</div>
+                ) : visibleDocs.map(d => {
+                  const icon = getFileIcon(d.type);
+                  return (
+                    <div key={d.id} onClick={() => { setSelectedId(d.id); setActiveTab('details'); }}
+                      className={'doc-row' + (selectedId === d.id ? ' active' : '')}
+                      style={{ border: '1px solid #F0E4D6', background: C.blanc, borderRadius: 11, padding: '9px 10px', marginBottom: 7, display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 9, background: '#FBF4EA', border: '1px solid #F0E4D6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8.5, fontWeight: 800, color: icon.color, flexShrink: 0 }}>{icon.label}</div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ color: C.texteFonce, fontWeight: 700, fontSize: 12.5, margin: 0, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</p>
+                        <p style={{ color: '#8A7B6C', fontSize: 11, margin: '2px 0 0' }}>{formatSize(d.size)} · {d.category}</p>
                       </div>
-
-                      {editingReview ? (
-                        <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                          {[1, 2, 3, 4, 5].map(n => (
-                            <span key={n} className="star" onClick={() => submitReview(n)}
-                              style={{ fontSize: '26px', color: n <= myRating ? C.or : C.border }}>{'\u2605'}</span>
-                          ))}
-                        </div>
-                      ) : (
-                        <button onClick={() => setEditingReview(true)}
-                          style={{ background: C.bleu, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                          {myRating > 0 ? 'Edit my review' : 'Add a review'}
-                        </button>
-                      )}
                     </div>
-                  )}
+                  );
+                })}
+                {visibleDocs.length < filteredDocs.length && (
+                  <div style={{ padding: '6px 0 2px', textAlign: 'center' as const, fontSize: 12, color: '#8A7B6C' }}>
+                    Showing {visibleDocs.length} of {filteredDocs.length}.{' '}
+                    <span onClick={() => setDocShow('all')} style={{ color: C.bleu, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Show all</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-                  {activeTab === 'comments' && (
-                    <DocumentComments documentId={selectedDoc.id} currentUserName="Admin" currentUserRole="admin" />
-                  )}
+          {/* RIGHT - stats + selected document */}
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12, minWidth: 0 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {[
+                { label: 'Documents', value: String(docs.length), sub: 'files stored', top: '#E9C77B' },
+                { label: 'Storage', value: formatSize(totalSize), sub: 'total size', top: '#B39DDB' },
+                { label: 'Downloads', value: String(totalDownloads), sub: 'all documents', top: '#66BB6A' },
+              ].map(k => (
+                <div key={k.label} style={{ ...cardStyle, borderTop: '3px solid ' + k.top, padding: '11px 16px' }}>
+                  <p style={{ ...smallLabel, margin: '0 0 3px' }}>{k.label}</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: C.bleuFonce, margin: 0 }}>{k.value}</p>
+                  <p style={{ fontSize: 11, color: '#8A7B6C', margin: '2px 0 0' }}>{k.sub}</p>
+                </div>
+              ))}
+            </div>
 
-                  {activeTab === 'history' && (
-                    <div>
-                      {history.length === 0 ? (
-                        <p style={{ color: C.texteGris, fontSize: '13px' }}>No history recorded for this document yet.</p>
+            {!selectedDoc ? (
+              <div className="dc-card" style={{ ...cardStyle, padding: '50px 20px', textAlign: 'center' as const }}>
+                <p style={{ color: '#8A7B6C', fontSize: 14, margin: 0 }}>Select a document to view its details.</p>
+              </div>
+            ) : (
+              <>
+                <div className="dc-card" style={{ ...cardStyle, overflow: 'hidden' }}>
+                  <div style={{ padding: '14px 20px', background: 'linear-gradient(160deg,#FBE3E8 0%,#FDF6EC 55%,#EAF3E3 100%)', borderBottom: '1px solid #F0E4D6', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' as const }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: C.blanc, border: '1px solid #F0E4D6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: getFileIcon(selectedDoc.type).color, flexShrink: 0 }}>
+                      {getFileIcon(selectedDoc.type).label}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 160 }}>
+                      <p style={{ color: '#3A1F2E', fontWeight: 800, fontSize: 15, margin: 0, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedDoc.name}</p>
+                      <p style={{ color: '#C9974D', fontSize: 11, fontWeight: 700, margin: '3px 0 0', textTransform: 'uppercase' as const, letterSpacing: 1 }}>{selectedDoc.category} · v{selectedDoc.version || 1} · {formatSize(selectedDoc.size)}</p>
+                    </div>
+                  </div>
+                  <div style={{ padding: '12px 20px', display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
+                    <a href={selectedDoc.url} target="_blank" rel="noreferrer" onClick={() => logAction('Previewed')} className="dc-btn"
+                      style={{ ...actionBtn, background: C.creme, color: C.bleu, border: '1.5px solid #F0DCA8' }}>{'\u{1F441}\uFE0F'} Preview</a>
+                    <button onClick={handleDownload} className="dc-btn" style={{ ...actionBtn, background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: 'white', border: 'none', boxShadow: '0 4px 12px rgba(107,45,78,0.22)' }}>{'\u{1F4E5}'} Download</button>
+                    <button onClick={handlePrint} className="dc-btn" style={{ ...actionBtn, background: C.or, color: C.bleuFonce, border: 'none' }}>{'\u{1F5A8}\uFE0F'} Print</button>
+                    <button onClick={handleShare} className="dc-btn" style={{ ...actionBtn, background: C.blanc, color: C.bleuFonce, border: '1.5px solid #EAD9BE' }}>{'\u{1F517}'} Share</button>
+                    <button onClick={() => handleDelete(selectedDoc)} className="dc-btn" style={{ ...actionBtn, background: '#FFEBEE', color: '#C62828', border: 'none', marginLeft: 'auto' }}>Delete</button>
+                  </div>
+                </div>
+
+                <div className="dc-card" style={{ ...cardStyle, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', borderBottom: '1px solid #F3E6D8', padding: '0 8px', background: '#FFFCF7' }}>
+                    {TABS.map(t => (
+                      <div key={t.key} className="tab-btn" onClick={() => setActiveTab(t.key)}
+                        style={{ padding: '12px 18px', fontSize: 13, fontWeight: 800,
+                          color: activeTab === t.key ? C.bleuFonce : '#A08B7D',
+                          borderBottom: activeTab === t.key ? `2.5px solid ${C.bleu}` : '2.5px solid transparent' }}>
+                        {t.label}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="scroll-thin" style={{ padding: '18px 20px', minHeight: 220, maxHeight: 460, overflowY: 'auto' as const }}>
+                    {activeTab === 'details' && (
+                      <div className="dc-details" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px 18px' }}>
+                        {[
+                          ['Name', selectedDoc.name],
+                          ['Type', selectedDoc.type || '-'],
+                          ['Size', formatSize(selectedDoc.size)],
+                          ['Category', selectedDoc.category],
+                          ['Uploaded', formatDate(selectedDoc.createdAt)],
+                          ['Last modified', formatDate(selectedDoc.updatedAt || selectedDoc.createdAt)],
+                          ['Downloads', String(selectedDoc.downloadCount || 0)],
+                          ['Version', 'v' + (selectedDoc.version || 1)],
+                        ].map(([label, value]) => (
+                          <div key={label} style={{ borderBottom: '1px dashed #F3E6D8', paddingBottom: 8 }}>
+                            <p style={{ ...smallLabel, margin: '0 0 3px' }}>{label}</p>
+                            <p style={{ color: C.texteFonce, fontWeight: 600, fontSize: 13, margin: 0, wordBreak: 'break-word' as const }}>{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeTab === 'reviews' && (
+                      <div style={{ maxWidth: 420 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                          <span style={{ fontSize: 26, letterSpacing: 2 }}>{[1, 2, 3, 4, 5].map(n => (<span key={n} style={{ color: n <= Math.round(avgRating) ? C.or : '#EAD9BE' }}>{'\u2605'}</span>))}</span>
+                          <div>
+                            <p style={{ fontWeight: 800, fontSize: 18, color: C.texteFonce, margin: 0 }}>{avgRating.toFixed(1)} / 5</p>
+                            <p style={{ fontSize: 12, color: '#8A7B6C', margin: 0 }}>{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+                          </div>
+                        </div>
+                        {editingReview ? (
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            {[1, 2, 3, 4, 5].map(n => (
+                              <span key={n} className="star" onClick={() => submitReview(n)}
+                                style={{ fontSize: 26, color: n <= myRating ? C.or : '#EAD9BE' }}>{'\u2605'}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <button onClick={() => setEditingReview(true)} className="dc-btn"
+                            style={{ ...actionBtn, background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: 'white', border: 'none' }}>
+                            {myRating > 0 ? 'Edit my review' : 'Add a review'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'comments' && (
+                      <DocumentComments documentId={selectedDoc.id} currentUserName="Admin" currentUserRole="admin" />
+                    )}
+
+                    {activeTab === 'history' && (
+                      history.length === 0 ? (
+                        <p style={{ color: '#8A7B6C', fontSize: 13, margin: 0 }}>No history recorded for this document yet.</p>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' as const }}>
                           {history.map((h: any) => (
-                            <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}`, paddingBottom: '8px' }}>
-                              <span style={{ fontSize: '13px', color: C.texteFonce, fontWeight: 600 }}>{h.action}</span>
-                              <span style={{ fontSize: '12px', color: C.texteGris }}>{formatDate(h.createdAt)}</span>
+                            <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #F3E6D8', padding: '8px 2px' }}>
+                              <span style={{ fontSize: 13, color: C.texteFonce, fontWeight: 700 }}>
+                                <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: C.or, marginRight: 9, verticalAlign: 'middle' }} />
+                                {h.action}
+                              </span>
+                              <span style={{ fontSize: 12, color: '#8A7B6C' }}>{formatDate(h.createdAt)}</span>
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  )}
-
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
+
       </div>
 
+      </div>
       <Footer />
     </div>
   );
