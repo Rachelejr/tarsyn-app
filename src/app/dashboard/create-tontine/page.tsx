@@ -122,23 +122,23 @@ const TABS = [
   { key: 'invite', label: 'Invite' },
 ];
 const inp: React.CSSProperties = {
-  width: '100%', padding: '11px 14px',
-  border: `1.5px solid #D9C0CC`, borderRadius: '12px',
-  fontSize: '14px', color: '#4A1F38', background: '#FBEEDD',
+  width: '100%', padding: '7px 11px',
+  border: `1.5px solid #EAD9BE`, borderRadius: '10px',
+  fontSize: '13.5px', color: '#3A2F1F', background: '#FFFDF9',
   boxSizing: 'border-box', outline: 'none',
   transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
 };
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#4A1F38', marginBottom: '8px', letterSpacing: '0.1px' }}>
+    <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#A08B7D', marginBottom: '4px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
       {label} {required && <span style={{ color: '#DC2626', fontSize: '12px' }}>*</span>}
     </label>
   );
 }
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#FDFAF8', border: `1px solid ${C.roseClair}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
-      <p style={{ fontSize: '12px', fontWeight: '700', color: C.bordeaux, textTransform: 'uppercase', letterSpacing: '1.2px', margin: '0 0 14px' }}>{title}</p>
+    <div style={{ background: '#FFFFFF', border: '1px solid #F0E4D6', borderRadius: '16px', padding: '14px 18px', marginBottom: '12px', boxShadow: '0 2px 10px rgba(107,45,78,0.05)' }}>
+      <p style={{ fontSize: '15px', fontWeight: '800', color: '#4A1F38', margin: '0 0 12px', paddingBottom: '9px', borderBottom: '1px solid #F3E6D8' }}>{title}</p>
       {children}
     </div>
   );
@@ -438,6 +438,21 @@ export default function CreateTontinePage() {
       .UNIMUNITY-privacy-card { transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease; }
       .UNIMUNITY-privacy-card:hover { transform: translateY(-1px); }
       .UNIMUNITY-tab { transition: background 0.2s ease, color 0.2s ease; }
+      .ct-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+      .ct-back:hover { background: #FBEEDD; }
+      .UNIMUNITY-hdr-shimmer-title{
+        background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+        background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; display: block;
+        animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+      }
+      .UNIMUNITY-hdr-shimmer-sub{
+        background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+        background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; display: block;
+        animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+      }
+      @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
       @media (min-width: 769px) {
         .UNIMUNITY-live-summary { position: sticky; top: 24px; }
       }
@@ -546,43 +561,31 @@ export default function CreateTontinePage() {
     </div>
   );
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, padding: '18px 16px' , display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1 }}>
-      <div style={{
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '14px 28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '18px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
+      <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start', cursor: 'pointer' }} />
+        <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Launch your community savings group in minutes.</p>
         </div>
-        <div style={{ textAlign: 'center', flex: 1 }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
-          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-        </div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </div>
       {sharedStyles}
-      <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', alignItems: 'start' }}>
+      <div style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 0' }}>
+        <button onClick={() => router.push('/dashboard')} className="ct-back">Back to Dashboard</button>
+      </div>
+      <div className="UNIMUNITY-tontine-grid" style={{ maxWidth: 1220, margin: '0 auto', padding: '12px 24px 20px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: '16px', alignItems: 'start' }}>
         <div>
-          <div style={{ background: '#fff', borderRadius: '20px', border: `1px solid ${C.roseMoyen}`, boxShadow: '0 12px 48px rgba(107,45,78,0.08)', overflow: 'hidden' }}>
-            <div style={{ background: C.creme, padding: '20px 28px', borderBottom: `1px solid ${C.roseMoyen}` }}>
-              <div style={{ textAlign: 'center' }}>
-                <h1 className="UNIMUNITY-title-shimmer" style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 8px', letterSpacing: '-0.3px' }}>Create a Tontine</h1>
-                <p style={{ color: C.texteGris, fontSize: '16px', fontWeight: 700, margin: 0, opacity: 0.9 }}>Launch your community savings group in minutes</p>
-              </div>
-            </div>
-            <div className="UNIMUNITY-tabs" style={{ display: 'flex', gap: '4px', padding: '10px 28px 0', borderBottom: `1px solid ${C.roseClair}` }}>
+          <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', overflow: 'hidden' }}>
+            <div className="UNIMUNITY-tabs" style={{ display: 'flex', gap: '4px', padding: '4px 20px 0', borderBottom: '1px solid #F3E6D8', background: '#FFFCF7' }}>
               {TABS.map(t => (
                 <button key={t.key} className="UNIMUNITY-tab" onClick={() => setActiveTab(t.key)}
                   style={{
-                    padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer',
+                    padding: '12px 14px', border: 'none', background: 'none', cursor: 'pointer',
                     fontSize: '13px', fontWeight: activeTab === t.key ? '800' : '700',
                     color: activeTab === t.key ? C.bordeaux : C.texteGris,
-                    borderBottom: activeTab === t.key ? `2px solid ${C.bordeaux}` : '2px solid transparent',
+                    borderBottom: activeTab === t.key ? `2.5px solid ${C.bordeaux}` : '2.5px solid transparent',
                     whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px',
                   }}>
                   {tabCompletion[t.key] && <CheckCircle2 size={13} color={activeTab === t.key ? C.bordeaux : '#2E7D32'} />}
@@ -590,7 +593,7 @@ export default function CreateTontinePage() {
                 </button>
               ))}
             </div>
-            <div style={{ padding: '20px 28px' }}>
+            <div style={{ padding: '16px 20px', background: '#FBF6EF' }}>
               {activeTab === 'identity' && (
                 <Card title="Region & Identity">
                   <div className="UNIMUNITY-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -881,7 +884,7 @@ export default function CreateTontinePage() {
                   ))}
                 </div>
                 <button className="UNIMUNITY-btn" onClick={handleReview} disabled={!isFormValid || saving}
-                  style={{ padding: '13px 26px', background: !isFormValid ? '#E8DCC8' : C.bordeaux, color: !isFormValid ? '#9C8F78' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  style={{ padding: '11px 24px', background: !isFormValid ? '#E8DCC8' : 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: !isFormValid ? '#9C8F78' : 'white', border: 'none', borderRadius: '18px', fontSize: '15px', fontWeight: '700', cursor: !isFormValid ? 'not-allowed' : 'pointer', boxShadow: !isFormValid ? 'none' : `0 4px 20px rgba(107,45,78,0.35)`, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {saving ? 'Creating...' : <>Create Tontine <ArrowRight size={16} /></>}
                 </button>
               </div>
@@ -892,8 +895,11 @@ export default function CreateTontinePage() {
           </div>
         </div>
         <div className="UNIMUNITY-live-summary">
-          <div style={{ background: 'white', borderRadius: '24px', padding: '20px', boxShadow: '0 8px 32px rgba(107,45,78,0.14), 0 2px 8px rgba(107,45,78,0.06)', border: `1px solid ${C.roseClair}` }}>
-            <h3 style={{ color: C.bordeaux, fontSize: '15px', fontWeight: '800', margin: '0 0 10px', letterSpacing: '-0.1px' }}>Live Summary</h3>
+          <div style={{ background: 'white', borderRadius: '18px', padding: '22px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', border: '1px solid #F0E4D6' }}>
+            <div style={{ textAlign: 'center', margin: '-22px -22px 14px', padding: '14px 16px 12px', background: 'linear-gradient(160deg,#FBE3E8 0%,#FDF6EC 55%,#EAF3E3 100%)', borderRadius: '18px 18px 0 0', borderBottom: '1px solid #F0E4D6' }}>
+              <p style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#3A1F2E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customName || selectedRegion?.name || 'New Tontine'}</p>
+              <p style={{ margin: '2px 0 0', fontSize: '11px', fontWeight: 700, color: '#C9974D', textTransform: 'uppercase', letterSpacing: '1.2px' }}>Live Summary</p>
+            </div>
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: C.texteGris, marginBottom: '6px' }}>
                 <span>Step {currentStepIndex + 1} of {TABS.length}</span>
@@ -915,9 +921,9 @@ export default function CreateTontinePage() {
               { label: 'Start Date', value: startDate || '—' },
               { label: 'Estimated End Date', value: estimatedEndDate },
             ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.roseClair}` }}>
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 2px', borderBottom: '1px dashed #F3E6D8' }}>
                 <span style={{ color: C.texteGris, fontSize: '12px' }}>{item.label}</span>
-                <span className="UNIMUNITY-summary-value" style={{ color: (item as any).gold ? C.dore : C.texteFonce, fontWeight: (item as any).gold ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
+                <span className="UNIMUNITY-summary-value" style={{ color: (item as any).gold ? '#A8742A' : C.texteFonce, fontWeight: (item as any).gold ? '800' : '600', fontSize: '12px' }}>{item.value}</span>
               </div>
             ))}
             {totalPool > 0 && (
