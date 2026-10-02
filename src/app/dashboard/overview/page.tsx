@@ -39,8 +39,9 @@ function StatCard({ label, value, icon, gradient, glow, delay }: { label: string
       style={{
         background: '#FFFFFF',
         borderRadius: '16px',
-        padding: '16px 18px',
-        boxShadow: '0 4px 16px rgba(107,45,78,0.08)',
+        padding: '12px 16px',
+        border: '1px solid #F0E4D6',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
@@ -49,8 +50,8 @@ function StatCard({ label, value, icon, gradient, glow, delay }: { label: string
     >
       <div
         style={{
-          width: '42px',
-          height: '42px',
+          width: '36px',
+          height: '36px',
           borderRadius: '12px',
           background: gradient,
           display: 'flex',
@@ -64,7 +65,7 @@ function StatCard({ label, value, icon, gradient, glow, delay }: { label: string
         {icon}
       </div>
       <div>
-        <p style={{ color: '#C4748E', fontSize: '10px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '1.1px', fontWeight: 700 }}>{label}</p>
+        <p style={{ color: '#A08B7D', fontSize: '11px', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>{label}</p>
         <p style={{ color: '#4A1F38', fontSize: '21px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
           {isNumeric ? animated : value}
         </p>
@@ -90,6 +91,8 @@ function OverviewContent() {
   const [memberEditName, setMemberEditName] = useState('');
   const [memberEditPayoutDate, setMemberEditPayoutDate] = useState('');
   const [savingMember, setSavingMember] = useState(false);
+  const [memberShow, setMemberShow] = useState('10');
+  const [paymentShow, setPaymentShow] = useState('10');
 
   useEffect(() => {
     let unsubMembers: (() => void) | null = null;
@@ -251,6 +254,32 @@ function OverviewContent() {
         .modal-fade {
           animation: fadeUp 0.25s ease forwards;
         }
+        .rc-card { display: flex; flex-direction: column; }
+        .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: size; overflow-y: auto; }
+        .rc-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #F3E6D8; }
+        .rc-ico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .rc-group { background: linear-gradient(135deg, #FFFDF9 0%, #FBEEDD 100%); border: 1px solid #F0E0CC; border-radius: 13px; padding: 13px; margin-bottom: 10px; }
+        .rc-group:last-child { margin-bottom: 0; }
+        @media (max-width: 1100px) {
+          .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
+          .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: none; overflow: visible; }
+        }
+        .ov-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .ov-back:hover { background: #FBEEDD; }
+        .ov-show { padding: 4px 8px; border-radius: 10px; border: 1.5px solid #EAD9BE; font-size: 12.5px; background: #FFFDF9; color: #3A2F1F; outline: none; }
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        .UNIMUNITY-hdr-shimmer-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
         @media (max-width: 700px) {
           .UNIMUNITY-ov-nav { grid-template-columns: 1fr auto !important; padding: 10px 14px !important; }
           .UNIMUNITY-ov-nav-title { display: none !important; }
@@ -286,14 +315,14 @@ function OverviewContent() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(44,16,32,0.45)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="modal-fade" style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '18px', fontWeight: 700, margin: '0 0 16px' }}>Edit Member</h3>
-            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Name</label>
+            <label style={{ display: 'block', color: '#8A7B6C', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Name</label>
             <input
               value={memberEditName}
               onChange={e => setMemberEditName(e.target.value)}
               placeholder="Member name..."
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
             />
-            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Payout Date</label>
+            <label style={{ display: 'block', color: '#8A7B6C', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Payout Date</label>
             <input
               type="date"
               value={memberEditPayoutDate}
@@ -314,38 +343,21 @@ function OverviewContent() {
         </div>
       )}
 
-      <nav className="UNIMUNITY-ov-nav" style={{
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        padding: '20px 40px',
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        alignItems: 'center',
-        columnGap: '16px',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-      }}>
-        <div onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
-          <div>
-            <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
-            <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic' }}>YOUR COMMUNITY. YOUR POWER.</div>
-          </div>
+      <div className="UNIMUNITY-ov-nav" style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start', cursor: 'pointer' }} />
+        <div className="UNIMUNITY-ov-nav-title" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Overview</h1>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
+        </div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
+      </div>
+
+      <div className="UNIMUNITY-ov-container" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px 24px 20px' }}>
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push('/dashboard')} className="ov-back">Back to Dashboard</button>
         </div>
 
-        <div className="UNIMUNITY-ov-nav-title fade-up" style={{ textAlign: 'center', justifySelf: 'center', whiteSpace: 'nowrap' }}>
-          <h1 style={{ color: '#FBEEDD', fontSize: '17px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>UNIMUNITY Handles the Rest</h1>
-          <p style={{ color: 'rgba(251,238,221,0.65)', fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Rotation, reminders, reports - all automatic.</p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', justifySelf: 'end' }}>
-          <DateTimeWeather />
-          <button onClick={() => { window.location.href = '/dashboard'; }} className="btn-action" style={{ background: 'rgba(233,199,123,0.08)', border: '1px solid rgba(233,199,123,0.5)', color: '#E9C77B', padding: '5px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' }}>
-            &lt;- Dashboard
-          </button>
-        </div>
-      </nav>
-
-      <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 24px 20px', background: '#FFFDF7', borderRadius: '20px', border: '1px solid #EAD9BE', boxShadow: '0 4px 24px rgba(107,45,78,0.06)' }}>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '12px' }}>
           <StatCard label="Total Members" value={members.length} icon="👥" gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
           <StatCard label="Active Members" value={activeMembers} icon="✅" gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
           <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon="💰" gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
@@ -353,55 +365,65 @@ function OverviewContent() {
           <StatCard label="Pending Payments" value={pendingPayments} icon="⏳" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
 
-        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>🏘️ My Groups</h3>
-          {groups.length === 0 ? (
-            <p style={{ color: '#C4748E', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '10px' }}>
-              {groups.map((g, i) => (
-                <div key={i} style={{ background: '#FBEEDD', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                  <div>
-                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: '0 0 2px' }}>{g.name}</p>
-                    <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{g.frequency} - {g.status}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
-                      style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                      💳 Payment Grid
-                    </button>
-                    <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
-                      style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '8px', padding: '5px 11px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                      ✏️ Edit
-                    </button>
-                  </div>
+        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 320px', gap: '16px', alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-ov-sidebar" style={{ background: '#FFFFFF', borderRadius: '18px', padding: '16px 18px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', display: 'flex', flexDirection: 'column', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#C9974D', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 12px', paddingBottom: '10px', borderBottom: '1px solid #F3E6D8' }}>Quick Actions</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, justifyContent: 'space-between' }}>
+            {[
+            { title: 'Record Payment', icon: '💵', path: '/dashboard/record-contribution' },
+            { title: 'Add Member', icon: '➕', path: '/dashboard/add-member' },
+            { title: 'Referrals', icon: '🤝', path: '/dashboard/referrals' },
+            { title: 'Digital Register', icon: '📖', path: '/dashboard/contribution-log' },
+            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
+            { title: 'Connect Payments', icon: '🏦', path: '/dashboard/payments-setup' },
+            { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
+            { title: 'Audit Log', icon: '📋', path: '/dashboard/audit-log' },
+            { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
+            { title: 'Security', icon: '🔒', path: '/dashboard/security' },
+            { title: 'White Label', icon: '🎨', path: '/dashboard/branding' },
+            { title: 'Leave a Review', icon: '⭐', path: '/leave-review' },
+            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '🔧', path: '/admin/repair-members' }] : []),
+            ].map((a, i) => (
+              <div key={i} className="action-card" onClick={() => router.push(a.path)}
+                style={{ background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)', border: '1px solid #E8D5C0', borderRadius: '10px', padding: '4px 10px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(233,199,123,0.15)', display: 'flex', alignItems: 'center', gap: '9px' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '9px', background: 'linear-gradient(135deg,#E9C77B,#C9974D)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', boxShadow: '0 3px 8px rgba(233,199,123,0.4)', flexShrink: 0 }}>
+                  {a.icon}
                 </div>
-              ))}
-            </div>
-          )}
+                <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12.5px', margin: 0 }}>{a.title}</p>
+              </div>
+            ))}
+          </div>
         </div>
-
-        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>👤 Member Management</h3>
+        <div>
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '18px', padding: '14px 20px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', margin: '0 0 12px', paddingBottom: '9px', borderBottom: '1px solid #F3E6D8' }}>
+            <h3 style={{ color: '#4A1F38', fontSize: '15px', fontWeight: 800, margin: 0 }}>👤 Member Management <span style={{ fontSize: 12, fontWeight: 600, color: '#8A7B6C' }}>({members.length})</span></h3>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#8A7B6C', fontWeight: 600 }}>Show:</span>
+              <select className="ov-show" value={memberShow} onChange={e => setMemberShow(e.target.value)}>
+                <option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="all">All</option>
+              </select>
+            </div>
+          </div>
           {members.length === 0 ? (
-            <p style={{ color: '#C4748E', fontSize: '13px' }}>No members yet.</p>
+            <p style={{ color: '#8A7B6C', fontSize: '13px' }}>No members yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #FBEEDD' }}>
+                  <tr style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)' }}>
                     {['#', 'TYN-ID', 'Name', 'Payout Date', 'Status', 'Actions'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#C4748E', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
+                      <th key={h} style={{ textAlign: 'left', padding: '9px 10px', color: '#FBEEDD', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {members.sort((a, b) => a.position - b.position).map((m, i) => (
+                  {[...members].sort((a, b) => a.position - b.position).slice(0, memberShow === 'all' ? undefined : parseInt(memberShow)).map((m, i) => (
                     <tr key={m.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
                       <td style={{ padding: '10px 10px', color: '#6B2D4E', fontWeight: 700, fontSize: '13px' }}>#{m.position}</td>
-                      <td style={{ padding: '10px 10px', color: '#C4748E', fontFamily: 'monospace', fontSize: '12px' }}>{m.tynId}</td>
+                      <td style={{ padding: '10px 10px', color: '#8A7B6C', fontFamily: 'monospace', fontSize: '12px' }}>{m.tynId}</td>
                       <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{m.name || m.fullName || '-'}</td>
-                      <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{m.payoutDate || '-'}</td>
+                      <td style={{ padding: '10px 10px', color: '#8A7B6C', fontSize: '12px' }}>{m.payoutDate || '-'}</td>
                       <td style={{ padding: '10px 10px' }}>
                         <span className="pill" style={{
                           background: m.status === 'active' ? '#E8F5E9' : m.status === 'paused' ? '#E3F2FD' : '#FFF3E0',
@@ -445,15 +467,15 @@ function OverviewContent() {
         </div>
 
         {pendingProofs.length > 0 && (
-          <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
+          <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '18px', padding: '14px 20px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '12px' }}>
             <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>🧾 Payment Proofs</h3>
-            <p style={{ color: '#C4748E', fontSize: '12px', margin: '0 0 12px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
+            <p style={{ color: '#8A7B6C', fontSize: '12px', margin: '0 0 12px' }}>{pendingProofs.length} proof(s) waiting for validation</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {pendingProofs.map((p, i) => (
                 <div key={p.id} style={{ background: '#FBEEDD', borderRadius: '12px', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
                     <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '13px', margin: '0 0 2px' }}>{getPaymentMemberName(p)}</p>
-                    <p style={{ color: '#C4748E', fontSize: '11px', margin: 0 }}>{p.amount} {p.currency} - {p.paymentDate} - {p.paymentMethod}</p>
+                    <p style={{ color: '#8A7B6C', fontSize: '11px', margin: 0 }}>{p.amount} {p.currency} - {p.paymentDate} - {p.paymentMethod}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="btn-action pill"
@@ -475,22 +497,30 @@ function OverviewContent() {
           </div>
         )}
 
-        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '15px', fontWeight: 700, margin: '0 0 12px' }}>💵 Recent Contributions</h3>
+        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '18px', padding: '14px 20px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', margin: '0 0 12px', paddingBottom: '9px', borderBottom: '1px solid #F3E6D8' }}>
+            <h3 style={{ color: '#4A1F38', fontSize: '15px', fontWeight: 800, margin: 0 }}>💵 Recent Contributions <span style={{ fontSize: 12, fontWeight: 600, color: '#8A7B6C' }}>({payments.length})</span></h3>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#8A7B6C', fontWeight: 600 }}>Show:</span>
+              <select className="ov-show" value={paymentShow} onChange={e => setPaymentShow(e.target.value)}>
+                <option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="all">All</option>
+              </select>
+            </div>
+          </div>
           {payments.length === 0 ? (
-            <p style={{ color: '#C4748E', fontSize: '13px' }}>No payments recorded yet.</p>
+            <p style={{ color: '#8A7B6C', fontSize: '13px' }}>No payments recorded yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #FBEEDD' }}>
+                  <tr style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)' }}>
                     {['Receipt', 'Member', 'Amount', 'Method', 'Date', 'Status'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#C4748E', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>{h}</th>
+                      <th key={h} style={{ textAlign: 'left', padding: '9px 10px', color: '#FBEEDD', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.slice(0, 10).map((p, i) => (
+                  {payments.slice(0, paymentShow === 'all' ? undefined : parseInt(paymentShow)).map((p, i) => (
                     <tr key={p.id} className="row-hover" style={{ borderBottom: '1px solid #FBEEDD', transition: 'background 0.15s ease' }}>
                       <td style={{ padding: '10px 10px' }}>
                         <a href={`/receipt/${p.receiptNumber}`} target="_blank" rel="noreferrer"
@@ -500,8 +530,8 @@ function OverviewContent() {
                       </td>
                       <td style={{ padding: '10px 10px', color: '#4A1F38', fontWeight: 600, fontSize: '13px' }}>{getPaymentMemberName(p)}</td>
                       <td style={{ padding: '10px 10px', color: '#2E7D32', fontWeight: 700, fontSize: '13px' }}>{p.amount} {p.currency}</td>
-                      <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{p.paymentMethod}</td>
-                      <td style={{ padding: '10px 10px', color: '#C4748E', fontSize: '12px' }}>{p.paymentDate}</td>
+                      <td style={{ padding: '10px 10px', color: '#8A7B6C', fontSize: '12px' }}>{p.paymentMethod}</td>
+                      <td style={{ padding: '10px 10px', color: '#8A7B6C', fontSize: '12px' }}>{p.paymentDate}</td>
                       <td style={{ padding: '10px 10px' }}>
                         <span className="pill" style={{ background: p.status === 'confirmed' ? '#E8F5E9' : p.status === 'pending' ? '#FFF3E0' : '#FFEBEE', color: p.status === 'confirmed' ? '#2E7D32' : p.status === 'pending' ? '#E65100' : '#C62828' }}>
                           {p.status || 'confirmed'}
@@ -515,51 +545,44 @@ function OverviewContent() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', paddingBottom: '24px' }}>
-          {[
-            { title: 'Record Payment', icon: '💵', path: '/dashboard/record-contribution' },
-            { title: 'Add Member', icon: '➕', path: '/dashboard/add-member' },
-            { title: 'Referrals', icon: '🤝', path: '/dashboard/referrals' },
-            { title: 'Digital Register', icon: '📖', path: '/dashboard/contribution-log' },
-            { title: 'Send Reminder', icon: '🔔', path: '/dashboard/reminders' },
-            { title: 'Connect Payments', icon: '🏦', path: '/dashboard/payments-setup' },
-            { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
-            { title: 'Audit Log', icon: '📋', path: '/dashboard/audit-log' },
-            { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
-            { title: 'Security', icon: '🔒', path: '/dashboard/security' },
-            { title: 'White Label', icon: '🎨', path: '/dashboard/branding' },
-            { title: 'Leave a Review', icon: '⭐', path: '/leave-review' },
-            ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '🔧', path: '/admin/repair-members' }] : []),
-          ].map((a, i) => (
-            <div key={i} className="action-card" onClick={() => router.push(a.path)}
-              style={{
-                background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)',
-                border: '1px solid #E8D5C0',
-                borderRadius: '16px',
-                padding: '18px',
-                cursor: 'pointer',
-                boxShadow: '0 3px 14px rgba(233,199,123,0.18)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg,#E9C77B,#C9974D)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                boxShadow: '0 4px 12px rgba(233,199,123,0.4)',
-                flexShrink: 0,
-              }}>
-                {a.icon}
+        </div>
+
+        <div className="UNIMUNITY-ov-right" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '12px' }}>
+          <div className="panel-card fade-up rc-card" style={{ background: 'white', borderRadius: '18px', padding: '18px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+            <div className="rc-head">
+              <span className="rc-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)', boxShadow: '0 4px 10px rgba(201,151,77,0.35)' }}>{'\u{1F3D8}\uFE0F'}</span>
+              <div>
+                <h3 style={{ color: '#4A1F38', fontSize: '15px', fontWeight: 800, margin: 0 }}>My Groups</h3>
+                <p style={{ color: '#A08B7D', fontSize: '11px', margin: '2px 0 0' }}>{groups.length} {groups.length === 1 ? 'group' : 'groups'}</p>
               </div>
-              <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '14px', margin: 0 }}>{a.title}</p>
             </div>
-          ))}
+            {groups.length === 0 ? (
+              <p style={{ color: '#8A7B6C', fontSize: '13px', margin: 0 }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create one</span></p>
+            ) : groups.map((g, i) => (
+              <div key={i} className="rc-group">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                  <p style={{ color: '#4A1F38', fontWeight: 800, fontSize: '14px', margin: 0 }}>{g.name}</p>
+                  <span className="pill" style={{ background: g.status === 'active' ? '#E8F5E9' : '#FFF3E0', color: g.status === 'active' ? '#2E7D32' : '#E65100', padding: '3px 9px', fontSize: '10px', textTransform: 'capitalize' }}>
+                    {'\u25CF'} {g.status || 'active'}
+                  </span>
+                </div>
+                <p style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 10px' }}>
+                  {g.frequency || 'Weekly'}{(g.contribution || g.amountPerMember) ? ' \u00B7 ' + (g.contribution || g.amountPerMember) + ' ' + (g.currency || 'USD') : ''}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' }}>
+                  <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
+                    style={{ background: 'linear-gradient(135deg,#E9C77B,#D9AE5E)', color: '#4A1F38', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    {'\u{1F4CA}'} Payment Grid
+                  </button>
+                  <button onClick={() => { setEditingGroup(g); setNewGroupName(g.name); }} className="btn-action"
+                    style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    {'\u270F\uFE0F'} Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
         </div>
       </div>
 
