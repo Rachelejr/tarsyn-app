@@ -12,7 +12,7 @@ const C = {
   bordeaux: '#6B2D4E', bordeauxDark: '#4A1F38',
   or: '#E9C77B', orLight: '#F0DCA8',
   creme: '#FBEEDD', blanc: '#FFFFFF',
-  text: '#1a1a1a', muted: '#6b7280', border: '#e5e7eb',
+  text: '#3A2F1F', muted: '#8A7B6C', border: '#F0E4D6',
 };
 
 interface AuditEntry {
@@ -49,6 +49,7 @@ function AuditLogContent() {
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [canExport, setCanExport] = useState(true);
+  const [showCount, setShowCount] = useState('25');
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -105,134 +106,154 @@ function AuditLogContent() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'audit-log.csv'; a.click();
   };
 
+  const cardStyle = { background: C.blanc, borderRadius: 16, border: '1px solid #F0E4D6', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' };
+  const fieldStyle = { padding: '7px 11px', borderRadius: 10, border: '1.5px solid #EAD9BE', fontSize: 13, color: C.text, background: '#FFFDF9', outline: 'none', boxSizing: 'border-box' as const, fontFamily: 'Inter, sans-serif' };
+  const smallLabel = { fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase' as const, letterSpacing: 0.8 };
+  const visible = showCount === 'all' ? filtered : filtered.slice(0, parseInt(showCount));
+  const countCat = (c: string) => entries.filter(e => e.category === c).length;
+  // Fixed categories first, then any other category found in the log (e.g. "Church Member").
+  const categoryOptions = Array.from(new Set([...CATEGORIES, ...entries.map(e => e.category).filter(Boolean)]));
+  const kpis = [
+    { label: 'Total Events', value: entries.length, top: '#E9C77B' },
+    { label: 'Payments', value: countCat('Payment'), top: '#66BB6A' },
+    { label: 'Members', value: countCat('Member'), top: '#64B5F6' },
+    { label: 'Documents', value: countCat('Document'), top: '#F4B6C7' },
+    { label: 'Auth Events', value: countCat('Auth'), top: '#B39DDB' },
+  ];
+
   return (
-    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' , display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1 }}>
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <style>{`
+        @media (max-width: 900px) { .al-kpis { grid-template-columns: repeat(2, 1fr) !important; } }
+        .al-card { border: 1px solid #F0E4D6 !important; border-radius: 18px !important; box-shadow: 0 2px 14px rgba(107,45,78,0.06) !important; transition: box-shadow 0.25s ease; }
+        .al-card:hover { box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important; }
+        .al-head { display: flex; align-items: center; gap: 11px; }
+        .al-ico { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(74,31,56,0.18); }
+        .al-title { margin: 0; font-size: 15px; font-weight: 800; color: #4A1F38; }
+        .al-form input:focus, .al-form select:focus { border-color: #E9C77B !important; box-shadow: 0 0 0 3px rgba(233,199,123,0.25); background: #FFFFFF !important; }
+        .al-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .al-back:hover { background: #FBEEDD; }
+        .al-tr:hover td { background: #FFFBF5 !important; }
+        .al-pill { transition: all .15s ease; cursor: pointer; }
+        .al-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+        .al-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
         .UNIMUNITY-hdr-shimmer-title{
           background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          display: block;
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
           animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
         }
         .UNIMUNITY-hdr-shimmer-sub{
           background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          display: block;
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
           animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
         }
-        @keyframes UNIMUNITY-hdr-shimmer {
-          0% { background-position: 0% center; }
-          100% { background-position: -200% center; }
-        }
+        @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
       `}</style>
-      <div style={{
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '16px 32px',
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        alignItems: 'center',
-        columnGap: '16px',
-      }}>
-        <div style={{ justifySelf: 'start' }}>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
-          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
-        </div>
+      <div style={{ flex: 1 }}>
+
+      <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start' }} />
         <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
           <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Audit Log</h1>
-          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Complete traceability of all actions</p>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Complete traceability of all actions.</p>
         </div>
-        <div style={{ textAlign: 'right' as const, justifySelf: 'end' }}>
-          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-        </div>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px' }}>
+      <div className="al-form" style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 20px' }}>
 
-        <div style={{ marginBottom: 20, textAlign: 'center' as const }}>
-          <button onClick={() => router.push('/dashboard?groupId=' + groupId)}
-            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
-            Back to Dashboard
-          </button>
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push('/dashboard' + (groupId ? '?groupId=' + groupId : ''))} className="al-back">Back to Dashboard</button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-          {[
-            { label: 'Total Events', value: String(entries.length) },
-            { label: 'Payments', value: String(entries.filter(e => e.category === 'Payment').length) },
-            { label: 'Members', value: String(entries.filter(e => e.category === 'Member').length) },
-            { label: 'Auth Events', value: String(entries.filter(e => e.category === 'Auth').length) },
-          ].map(k => (
-            <div key={k.label} style={{ background: C.blanc, borderRadius: 14, padding: '16px 20px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <p style={{ fontSize: 11, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.8, margin: '0 0 6px' }}>{k.label}</p>
-              <p style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: 0 }}>{k.value}</p>
+        <div className="al-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 12 }}>
+          {kpis.map(k => (
+            <div key={k.label} style={{ ...cardStyle, borderTop: '3px solid ' + k.top, padding: '11px 16px' }}>
+              <p style={{ ...smallLabel, margin: '0 0 3px' }}>{k.label}</p>
+              <p style={{ fontSize: 21, fontWeight: 800, color: C.bordeauxDark, margin: 0 }}>{k.value}</p>
             </div>
           ))}
         </div>
 
-        <div style={{ background: C.blanc, borderRadius: 14, padding: '16px 20px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }} placeholder="Search actions, users..."
-            style={{ padding: '8px 14px', borderRadius: 9, border: '1.5px solid ' + C.border, fontSize: 13, color: C.text, outline: 'none', flex: 1, minWidth: 200 }} />
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
-            {CATEGORIES.map(cat => (
-              <button key={cat} onClick={() => setCategory(cat)}
-                style={{ padding: '7px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1.5px solid ' + (category === cat ? C.or : C.border), background: category === cat ? C.or : C.blanc, color: category === cat ? C.bordeauxDark : C.muted }}>
-                {cat}
+        <div className="al-card" style={{ ...cardStyle, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid #F3E6D8', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' as const }}>
+            <div className="al-head">
+              <span className="al-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)' }}>{'\u{1F4DC}'}</span>
+              <h2 className="al-title">Event History <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>({filtered.length})</span></h2>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Show:</span>
+              <select value={showCount} onChange={e => setShowCount(e.target.value)} style={{ ...fieldStyle, padding: '4px 8px', fontSize: 12.5 }}>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="all">All</option>
+              </select>
+              <button onClick={exportCSV} className="al-btn"
+                style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: C.blanc, border: 'none', borderRadius: 10, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(107,45,78,0.22)' }}>
+                {canExport ? '\u{1F4E5} ' : '\u{1F512} '}Export CSV
               </button>
-            ))}
+            </div>
           </div>
-          <button onClick={exportCSV}
-            style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 9, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-            {canExport ? '' : '\u{1F512} '}Export CSV
-          </button>
-        </div>
 
-        <div style={{ background: C.blanc, borderRadius: 14, border: '1px solid ' + C.border, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 24 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid ' + C.border, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: 0 }}>Event History</h2>
-            <span style={{ fontSize: 12, color: C.muted }}>{filtered.length} events</span>
+          <div style={{ padding: '10px 20px', borderBottom: '1px solid #F3E6D8', background: '#FFFCF7', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const }}>
+            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }} placeholder="Search actions, users, details..."
+              style={{ ...fieldStyle, flex: 1, minWidth: 200 }} />
+            <select value={category} onChange={e => setCategory(e.target.value)}
+              style={{ ...fieldStyle, minWidth: 190, cursor: 'pointer', fontWeight: 600 }}>
+              {categoryOptions.map(cat => (
+                <option key={cat} value={cat}>
+                  {cat === 'All' ? 'All categories (' + entries.length + ')' : cat + ' (' + countCat(cat) + ')'}
+                </option>
+              ))}
+            </select>
           </div>
+
           {filtered.length === 0 ? (
-            <div style={{ padding: '60px', textAlign: 'center' }}>
-              <p style={{ fontSize: 16, color: C.muted, margin: '0 0 8px' }}>No audit events yet</p>
-              <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>Actions like payments, member changes, and logins will appear here automatically.</p>
+            <div style={{ padding: '50px 20px', textAlign: 'center' as const }}>
+              <p style={{ fontSize: 15, color: C.text, fontWeight: 700, margin: '0 0 6px' }}>{entries.length === 0 ? 'No audit events yet' : 'No events match your filters'}</p>
+              <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>{entries.length === 0 ? 'Actions like payments, member changes, and logins will appear here automatically.' : 'Try another category or search term.'}</p>
             </div>
           ) : (
-            <div className="rtable-wrap">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  {['Date & Time', 'Category', 'Action', 'User', 'Details'].map(h => (
-                    <th key={h} style={{ padding: '11px 18px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((e, i) => {
-                  const cc = categoryColor(e.category);
-                  return (
-                    <tr key={e.id} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? C.blanc : '#fdfcfb' }}>
-                      <td style={{ padding: '12px 18px', fontSize: 12, fontWeight: 600, color: C.bordeaux, whiteSpace: 'nowrap' as const }}>
-                        {e.createdAt ? new Date(e.createdAt.seconds * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
-                      </td>
-                      <td style={{ padding: '12px 18px' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cc.bg, color: cc.color }}>{e.category || '-'}</span>
-                      </td>
-                      <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 600, color: C.text }}>{e.action || '-'}</td>
-                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted }}>{e.user || '-'}</td>
-                      <td style={{ padding: '12px 18px', fontSize: 12, color: C.muted, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{e.details || '-'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div style={{ overflowX: 'auto' as const }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)' }}>
+                    {['#', 'Date & Time', 'Category', 'Action', 'User', 'Details'].map(h => (
+                      <th key={h} style={{ padding: '9px 16px', textAlign: 'left' as const, fontSize: 11, fontWeight: 700, color: '#FBEEDD', textTransform: 'uppercase' as const, letterSpacing: 0.6, whiteSpace: 'nowrap' as const }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((e, i) => {
+                    const cc = categoryColor(e.category);
+                    const bg = i % 2 ? '#FFFDF9' : C.blanc;
+                    const td = { padding: '9px 16px', borderBottom: '1px solid #F7EEE3', background: bg };
+                    return (
+                      <tr key={e.id} className="al-tr">
+                        <td style={{ ...td, fontSize: 12, color: C.muted, width: 36 }}>{i + 1}</td>
+                        <td style={{ ...td, fontSize: 12, fontWeight: 700, color: C.bordeaux, whiteSpace: 'nowrap' as const }}>
+                          {e.createdAt ? new Date(e.createdAt.seconds * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                        </td>
+                        <td style={td}>
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cc.bg, color: cc.color, whiteSpace: 'nowrap' as const }}>{e.category || '-'}</span>
+                        </td>
+                        <td style={{ ...td, fontSize: 13, fontWeight: 700, color: C.text }}>{e.action || '-'}</td>
+                        <td style={{ ...td, fontSize: 12, color: C.muted, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }} title={e.user || ''}>{e.user || '-'}</td>
+                        <td style={{ ...td, fontSize: 12, color: C.muted, maxWidth: 340, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }} title={e.details || ''}>{e.details || '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {visible.length < filtered.length && (
+                <div style={{ padding: '10px 20px', textAlign: 'center' as const, fontSize: 12, color: C.muted }}>
+                  Showing {visible.length} of {filtered.length}.{' '}
+                  <span onClick={() => setShowCount('all')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Show all</span>
+                </div>
+              )}
             </div>
           )}
         </div>
