@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
+import { getUidFromRequest, isUnreachableAccountError, clearStaleAccount } from '../_shared';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function GET(req: NextRequest) {
-  try {
-    const uid = req.nextUrl.searchParams.get('uid');
-    if (!uid) {
-      return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
-    }
+  const uidOrError = await getUidFromRequest(req);
+  if (typeof uidOrError !== 'string') return uidOrError;
+  const uid = uidOrError;
 
+  try {
     const userRef = adminDb.collection('users').doc(uid);
     const userSnap = await userRef.get();
     const userData = userSnap.exists ? userSnap.data() : null;
@@ -20,7 +20,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ connected: false });
     }
 
-    const account = await stripe.accounts.retrieve(accountId);
+    let account: Stripe.Account;
+    try {
+      account = await stripe.accounts.retrieve(accountId);
+    } catch (err: any) {
+      if (isUnreachableAccountError(err)) {
+        // The saved account belongs to other Stripe keys or was deleted:
+        // forget it so the organizer can simply connect again.
+        await clearStaleAccount(uid, accountId);
+        return NextResponse.json({ connected: false, reset: true });
+      }
+      throw err;
+    }
 
     const status = {
       connected: true,
@@ -43,6 +54,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(status);
   } catch (err: any) {
     console.error('[stripe-connect/status] error:', err);
-    return NextResponse.json({ error: err?.message || 'Failed to fetch status' }, { status: 500 });
+    return NextResponse.json({ error: 'Could not check your payment setup status. Please try again.' }, { status: 500 });
   }
 }

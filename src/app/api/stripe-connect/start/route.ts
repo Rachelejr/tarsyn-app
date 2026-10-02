@@ -1,26 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { getUidFromRequest, isUnreachableAccountError, clearStaleAccount } from '../_shared';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
-  try {
-    const { uid, email } = await req.json();
-    if (!uid) {
-      return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
-    }
+  const uidOrError = await getUidFromRequest(req);
+  if (typeof uidOrError !== 'string') return uidOrError;
+  const uid = uidOrError;
 
+  try {
     const userRef = adminDb.collection('users').doc(uid);
     const userSnap = await userRef.get();
     const userData = userSnap.exists ? userSnap.data() : null;
 
     let accountId = userData?.stripeConnect?.accountId as string | undefined;
 
+    // A saved account the current key can't reach is useless: drop it and
+    // create a fresh one below.
+    if (accountId) {
+      try {
+        await stripe.accounts.retrieve(accountId);
+      } catch (err: any) {
+        if (!isUnreachableAccountError(err)) throw err;
+        await clearStaleAccount(uid, accountId);
+        accountId = undefined;
+      }
+    }
+
     if (!accountId) {
+      const authUser = await adminAuth.getUser(uid);
       const account = await stripe.accounts.create({
         type: 'express',
-        email: email || userData?.email || undefined,
+        email: authUser.email || userData?.email || undefined,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
@@ -51,6 +64,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: accountLink.url });
   } catch (err: any) {
     console.error('[stripe-connect/start] error:', err);
-    return NextResponse.json({ error: err?.message || 'Failed to start onboarding' }, { status: 500 });
+    return NextResponse.json({ error: 'Could not start the bank connection. Please try again.' }, { status: 500 });
   }
 }

@@ -41,26 +41,27 @@ function PaymentsSetupContent() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
+  const [resetNotice, setResetNotice] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  const loadStatus = async (currentUid: string) => {
+  // The Stripe routes identify the organizer from this token, never from a uid in the URL.
+  const authHeaders = async (): Promise<Record<string, string>> => {
+    const token = await auth.currentUser?.getIdToken();
+    return token ? { Authorization: 'Bearer ' + token } : {};
+  };
+
+  const loadStatus = async (_currentUid: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/stripe-connect/status?uid=' + encodeURIComponent(currentUid));
+      const res = await fetch('/api/stripe-connect/status', { headers: await authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load status');
       setStatus(data);
+      if (data.reset) setResetNotice(true);
     } catch (e: any) {
-      const msg = String(e?.message || '');
-      // Stripe's raw message includes a masked API key and account id - show a
-      // friendly explanation instead of exposing that on screen.
-      if (/does not have access to account|No such account|account does not exist/i.test(msg)) {
-        setError('The Stripe account saved for you can no longer be reached with the current Stripe keys (it may have been created with different keys or removed). Contact support to reset your payment connection.');
-      } else {
-        setError(msg || 'Could not check your payment setup status.');
-      }
+      setError(String(e?.message || '') || 'Could not check your payment setup status.');
     }
     setLoading(false);
   };
@@ -83,8 +84,8 @@ function PaymentsSetupContent() {
     try {
       const res = await fetch('/api/stripe-connect/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid, email }),
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to start onboarding');
@@ -161,6 +162,11 @@ function PaymentsSetupContent() {
         {cameFromStripe && loading && (
           <div style={{ background: C.warningBg, color: C.warning, borderRadius: 14, padding: '12px 18px', fontSize: 13, fontWeight: 600, marginBottom: 12, border: '1px solid #EBD9A8' }}>
             Checking your latest status with Stripe...
+          </div>
+        )}
+        {resetNotice && (
+          <div style={{ background: C.warningBg, color: C.warning, borderRadius: 14, padding: '12px 18px', fontSize: 13, fontWeight: 600, marginBottom: 12, border: '1px solid #EBD9A8' }}>
+            Your previous Stripe connection could no longer be reached, so it was reset. Click "Connect Your Bank Account" to set it up again.
           </div>
         )}
         {error && (
