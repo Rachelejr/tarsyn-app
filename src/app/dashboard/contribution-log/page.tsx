@@ -73,11 +73,11 @@ function DonutChart({ data }: { data: { status: PaymentStatus; count: number }[]
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'center' }}>
       <div style={{
-        width: '110px', height: '110px', borderRadius: '50%',
+        width: '78px', height: '78px', borderRadius: '50%',
         background: `conic-gradient(${stops})`,
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
-        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '15px' }}>{total}</span>
         </div>
       </div>
@@ -111,6 +111,7 @@ function RegisterContent() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [cycleFilter, setCycleFilter] = useState<string>('All');
   const [periodFilter, setPeriodFilter] = useState<string>('All Time');
+  const [rowShowCount, setRowShowCount] = useState<number | 'all'>(5);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState('');
@@ -381,7 +382,7 @@ function RegisterContent() {
   const topMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
 
   return (
-    <div style={{ minHeight: '100vh', background: C.cream, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .fade-up { opacity: 0; animation: fadeUp 0.4s ease forwards; }
@@ -393,37 +394,23 @@ function RegisterContent() {
         .side-item { transition: all 0.15s ease; cursor: pointer; }
         .side-item:hover { background: rgba(255,255,255,0.08); }
         @media print { .no-print { display: none !important; } }
+        .dr-stat { background: #FFFFFF; border: 1px solid #F0E4D6; border-top: 3px solid #E9C77B; border-radius: 16px; padding: 12px 14px; box-shadow: 0 2px 12px rgba(107,45,78,0.06); }
+        .dr-stats .dr-stat:nth-child(2) { border-top-color: #8FB3D9; }
+        .dr-stats .dr-stat:nth-child(3) { border-top-color: #66BB6A; }
+        .dr-stats .dr-stat:nth-child(4) { border-top-color: #F0A868; }
+        .dr-stats .dr-stat:nth-child(5) { border-top-color: #B0525F; }
+        .dr-stats .dr-stat:nth-child(6) { border-top-color: #9575CD; }
+        .dr-stats .dr-stat:nth-child(7) { border-top-color: #6B2D4E; }
+        @media (max-width: 1100px) { .dr-stats { grid-template-columns: repeat(4, 1fr) !important; } }
+        @media (max-width: 640px) { .dr-stats { grid-template-columns: repeat(2, 1fr) !important; } }
+        .am-card { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 18px; box-shadow: 0 2px 14px rgba(107,45,78,0.06); padding: 14px 18px; }
+        .am-ico { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(74,31,56,0.15); }
+        .am-form input:focus, .am-form select:focus { border-color: #E9C77B !important; box-shadow: 0 0 0 3px rgba(233,199,123,0.25); background: #FFFFFF !important; }
+        .am-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); display: inline-block; }
+        .am-back:hover { background: #FBEEDD; }
       `}</style>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-      <div className="no-print" style={{ width: '210px', background: C.burgundyDark, flexShrink: 0, padding: '20px 14px', display: 'flex', flexDirection: 'column' }}>
-        <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' as const, cursor: 'pointer', marginBottom: '28px' }}>
-          <p style={{ color: C.goldLight, fontWeight: 800, fontSize: '13.5px', margin: 0, lineHeight: 1.1 }}>
-            {group?.officialName || group?.name || 'Your Org'}
-          </p>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '9px', margin: '2px 0 0' }}>Powered by UNIMUNITYTM</p>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          {SIDEBAR_ITEMS.map(item => (
-            <div key={item.label} className="side-item" onClick={() => router.push(item.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px',
-                background: item.active ? 'rgba(233,199,123,0.18)' : 'transparent',
-                color: item.active ? C.gold : 'rgba(255,255,255,0.75)', fontSize: '13px', fontWeight: item.active ? 700 : 600,
-              }}>
-              <span style={{ fontSize: '18px' }}>{item.icon}</span> {item.label}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '9px', margin: 0, textAlign: 'center', lineHeight: 1.5 }}>
-            A product of Ma Production Luxenn Zara LLC<br />(c) 2026 - v1.0.0
-          </p>
-        </div>
-      </div>
-
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="no-print" style={{
           background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
@@ -445,39 +432,42 @@ function RegisterContent() {
           </div>
         </div>
 
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px 28px 50px' }}>
-          <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+        <div className="am-form" style={{ maxWidth: '1400px', margin: '0 auto', padding: '16px 28px 40px' }}>
+          <div className="no-print" style={{ marginBottom: '12px' }}>
+            <span onClick={() => router.push('/dashboard')} className="am-back">Back to Dashboard</span>
+          </div>
+          <div className="fade-up dr-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px', marginBottom: '16px' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Collected</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{totalCollected.toLocaleString()}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>{payments[0]?.currency || ''}</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Expected</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{expected.toLocaleString()}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>{payments[0]?.currency || ''}</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Paid (Cycle {currentCycle})</p>
               <p style={{ color: C.gold, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{paidThisCycle}/{members.length}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>members</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Pending</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{pendingCount}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>payments</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Late</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{lateCount}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>payments</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Commission</p>
               <p style={{ color: C.burgundyDark, fontSize: '18px', fontWeight: 800, margin: '4px 0 0' }}>{commission.toFixed(2)}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>{group?.commissionRate || 1}%</p>
             </div>
-            <div style={{ background: C.white, borderRadius: '12px', padding: '14px 12px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
+            <div className="dr-stat">
               <p style={{ color: C.gray, fontSize: '10.5px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Top Method</p>
               <p style={{ color: C.burgundyDark, fontSize: '16px', fontWeight: 800, margin: '4px 0 0', textTransform: 'capitalize' }}>{topMethod}</p>
               <p style={{ color: C.gray, fontSize: '9.5px', margin: '2px 0 0' }}>payment type</p>
@@ -491,13 +481,14 @@ function RegisterContent() {
             </div>
           )}
 
-          <div className="fade-up no-print" style={{ background: C.white, borderRadius: '12px', padding: '16px 18px', marginBottom: '16px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="fade-up no-print am-card" style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <span className="am-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)' }}>{'\u{1F50D}'}</span>
             <input
               type="text" placeholder="Search by name or TYN-ID..." value={search} onChange={e => setSearch(e.target.value)}
-              style={{ flex: 1, minWidth: '200px', padding: '9px 14px', borderRadius: '8px', border: `1px solid ${C.lightGray}`, fontSize: '13px', outline: 'none' }}
+              style={{ flex: 1, minWidth: '200px', padding: '9px 14px', borderRadius: '10px', border: '1.5px solid #EAD9BE', background: '#FFFDF9', fontSize: '13px', outline: 'none' }}
             />
             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              style={{ padding: '9px 12px', borderRadius: '8px', border: `1px solid ${C.lightGray}`, fontSize: '13px', color: C.burgundyDark, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 12px', borderRadius: '10px', border: '1.5px solid #EAD9BE', background: '#FFFDF9', fontSize: '13px', color: C.burgundyDark, fontWeight: 600, cursor: 'pointer' }}>
               <option value="All">All Statuses</option>
               <option value="paid">Paid</option>
               <option value="pending">Pending</option>
@@ -506,12 +497,12 @@ function RegisterContent() {
               <option value="missed">Missed</option>
             </select>
             <select value={cycleFilter} onChange={e => setCycleFilter(e.target.value)}
-              style={{ padding: '9px 12px', borderRadius: '8px', border: `1px solid ${C.lightGray}`, fontSize: '13px', color: C.burgundyDark, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 12px', borderRadius: '10px', border: '1.5px solid #EAD9BE', background: '#FFFDF9', fontSize: '13px', color: C.burgundyDark, fontWeight: 600, cursor: 'pointer' }}>
               <option value="All">All Cycles</option>
               {cycles.map(c => <option key={c} value={String(c)}>Cycle {c}</option>)}
             </select>
             <select value={periodFilter} onChange={e => setPeriodFilter(e.target.value)}
-              style={{ padding: '9px 12px', borderRadius: '8px', border: `1px solid ${C.lightGray}`, fontSize: '13px', color: C.burgundyDark, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 12px', borderRadius: '10px', border: '1.5px solid #EAD9BE', background: '#FFFDF9', fontSize: '13px', color: C.burgundyDark, fontWeight: 600, cursor: 'pointer' }}>
               <option value="All Time">All Time</option>
               <option value="This Month">This Month</option>
               <option value="This Quarter">This Quarter</option>
@@ -519,32 +510,45 @@ function RegisterContent() {
             </select>
           </div>
 
-          <div className="fade-up no-print" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <div className="fade-up no-print" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
             <button className="btn-action" onClick={handleExportExcel}
-              style={{ background: C.gold, color: C.white, border: 'none', borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-              {canExport ? '' : '\u{1F512} '}Export Excel
+              style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)', color: '#4A1F38', border: 'none', borderRadius: '10px', padding: '9px 16px', boxShadow: '0 2px 8px rgba(74,31,56,0.08)', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+              {canExport ? '\u{1F4CA} ' : '\u{1F512} '}Export Excel
             </button>
             <button className="btn-action" onClick={handleExportCSV}
-              style={{ background: C.burgundy, color: C.white, border: 'none', borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-              {canExport ? '' : '\u{1F512} '}Export CSV
+              style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: C.white, border: 'none', borderRadius: '10px', padding: '9px 16px', boxShadow: '0 2px 8px rgba(74,31,56,0.08)', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+              {canExport ? '\u{1F4C4} ' : '\u{1F512} '}Export CSV
             </button>
             <button className="btn-action" onClick={handlePrint}
-              style={{ background: C.white, color: C.burgundyDark, border: `1px solid ${C.lightGray}`, borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-               Print
+              style={{ background: C.white, color: C.burgundyDark, border: '1px solid #F0E4D6', borderRadius: '10px', padding: '9px 16px', boxShadow: '0 2px 8px rgba(74,31,56,0.08)', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+              {'\u{1F5A8}\uFE0F'} Print
             </button>
             <button className="btn-action" onClick={() => fileInputRef.current?.click()} disabled={importing}
-              style={{ background: C.white, color: C.burgundyDark, border: `1px solid ${C.lightGray}`, borderRadius: '8px', padding: '9px 16px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
-              {importing ? ' Importing...' : ' Import Excel'}
+              style={{ background: C.white, color: C.burgundyDark, border: '1px solid #F0E4D6', borderRadius: '10px', padding: '9px 16px', boxShadow: '0 2px 8px rgba(74,31,56,0.08)', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+              {importing ? 'Importing...' : '\u{1F4E5} Import Excel'}
             </button>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImportFile} style={{ display: 'none' }} />
             {importMsg && <span style={{ fontSize: '12px', color: C.burgundyDark, fontWeight: 600 }}>{importMsg}</span>}
           </div>
 
-          <div className="fade-up" style={{ background: C.white, borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(74,31,56,0.06)', marginBottom: '24px' }}>
+          <div className="fade-up" style={{ background: C.white, borderRadius: '18px', overflow: 'hidden', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '16px' }}>
+            <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #F3E6D8' }}>
+              <span style={{ color: '#4A1F38', fontSize: '14px', fontWeight: 800 }}>Members <span style={{ color: '#A08B7D', fontWeight: 600, fontSize: '12px' }}>({filteredMembers.length})</span></span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#A08B7D', fontWeight: 600 }}>
+                Show:
+                <select value={rowShowCount} onChange={(e) => setRowShowCount(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  style={{ padding: '5px 8px', borderRadius: '8px', border: '1.5px solid #EAD9BE', background: '#FFFDF9', fontSize: '12.5px', color: '#4A1F38', fontWeight: 600, cursor: 'pointer' }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value="all">All</option>
+                </select>
+              </label>
+            </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
                 <thead>
-                  <tr style={{ background: C.burgundyDark }}>
+                  <tr style={{ background: 'linear-gradient(90deg,#6B2D4E,#4A1F38)' }}>
                     <th style={{ padding: '12px 10px', textAlign: 'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>#</th>
                     <th style={{ padding: '12px 10px', textAlign: 'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>Member</th>
                     <th style={{ padding: '12px 10px', textAlign: 'left', color: C.goldLight, fontWeight: 700, fontSize: '10.5px', textTransform: 'uppercase' }}>TYN-ID</th>
@@ -557,7 +561,7 @@ function RegisterContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredMembers.sort((a, b) => (a.position || 0) - (b.position || 0)).map((m, idx) => (
+                  {filteredMembers.sort((a, b) => (a.position || 0) - (b.position || 0)).slice(0, rowShowCount === 'all' ? undefined : rowShowCount).map((m, idx) => (
                     <tr key={m.id} className="reg-row" onClick={() => setSelectedMember(m)}
                       style={{ borderBottom: `1px solid ${C.cream}`, background: idx % 2 === 0 ? C.white : C.cream }}>
                       <td style={{ padding: '10px 10px', color: C.gray, fontWeight: 600 }}>{m.position || idx + 1}</td>
@@ -605,36 +609,36 @@ function RegisterContent() {
             </div>
           </div>
 
-          <div className="fade-up no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
-              <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 14px' }}>Financial Summary</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div className="fade-up no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '14px' }}>
+            <div style={{ background: C.white, borderRadius: '16px', padding: '12px 16px', border: '1px solid #F0E4D6', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
+              <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 8px' }}>Financial Summary</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                 <span style={{ color: C.gray, fontSize: '12px' }}>Total Collected</span>
                 <span style={{ color: C.burgundyDark, fontWeight: 700, fontSize: '12.5px' }}>{totalCollected.toLocaleString()}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                 <span style={{ color: C.gray, fontSize: '12px' }}>Total Expected</span>
                 <span style={{ color: C.burgundyDark, fontWeight: 700, fontSize: '12.5px' }}>{expected.toLocaleString()}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                 <span style={{ color: C.gray, fontSize: '12px' }}>Commission ({group?.commissionRate || 1}%)</span>
                 <span style={{ color: C.burgundyDark, fontWeight: 700, fontSize: '12.5px' }}>{commission.toFixed(2)}</span>
               </div>
-              <div style={{ height: '1px', background: C.cream, margin: '12px 0' }} />
+              <div style={{ height: '1px', background: '#F3E6D8', margin: '7px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: C.burgundyDark, fontSize: '13px', fontWeight: 800 }}>Net Balance</span>
                 <span style={{ color: C.gold, fontWeight: 800, fontSize: '14px' }}>{(totalCollected - commission).toLocaleString()}</span>
               </div>
             </div>
 
-            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
-              <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 14px', textAlign: 'center' }}>Participation</p>
+            <div style={{ background: C.white, borderRadius: '16px', padding: '12px 16px', border: '1px solid #F0E4D6', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
+              <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 8px', textAlign: 'center' }}>Participation</p>
               <DonutChart data={statusCounts} />
             </div>
 
-            <div style={{ background: C.white, borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 10px rgba(74,31,56,0.06)' }}>
-              <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 14px' }}>Recent Activity</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto' }}>
+            <div style={{ background: C.white, borderRadius: '16px', padding: '12px 16px', border: '1px solid #F0E4D6', boxShadow: '0 2px 12px rgba(107,45,78,0.06)' }}>
+              <p style={{ color: C.burgundyDark, fontWeight: 800, fontSize: '14px', margin: '0 0 8px' }}>Recent Activity</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '88px', overflowY: 'auto' }}>
                 {recentActivity.length === 0 && <p style={{ color: C.gray, fontSize: '12px' }}>No recent activity.</p>}
                 {recentActivity.map((a, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
@@ -650,23 +654,23 @@ function RegisterContent() {
           </div>
 
           <div className="fade-up no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ background: C.creamAccent, borderRadius: '12px', padding: '12px 14px' }}>
+            <div style={{ background: C.white, border: '1px solid #F0E4D6', borderRadius: '14px', padding: '9px 14px' }}>
               <p style={{ color: C.gray, fontSize: '10px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Members</p>
               <p style={{ color: C.burgundyDark, fontSize: '15px', fontWeight: 800, margin: '3px 0 0' }}>{members.length}</p>
             </div>
-            <div style={{ background: C.creamAccent, borderRadius: '12px', padding: '12px 14px' }}>
+            <div style={{ background: C.white, border: '1px solid #F0E4D6', borderRadius: '14px', padding: '9px 14px' }}>
               <p style={{ color: C.gray, fontSize: '10px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Cycles</p>
               <p style={{ color: C.burgundyDark, fontSize: '15px', fontWeight: 800, margin: '3px 0 0' }}>{cycles.length}</p>
             </div>
-            <div style={{ background: C.creamAccent, borderRadius: '12px', padding: '12px 14px' }}>
+            <div style={{ background: C.white, border: '1px solid #F0E4D6', borderRadius: '14px', padding: '9px 14px' }}>
               <p style={{ color: C.gray, fontSize: '10px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Current Cycle</p>
               <p style={{ color: C.burgundyDark, fontSize: '15px', fontWeight: 800, margin: '3px 0 0' }}>{currentCycle}</p>
             </div>
-            <div style={{ background: C.creamAccent, borderRadius: '12px', padding: '12px 14px' }}>
+            <div style={{ background: C.white, border: '1px solid #F0E4D6', borderRadius: '14px', padding: '9px 14px' }}>
               <p style={{ color: C.gray, fontSize: '10px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Currency</p>
               <p style={{ color: C.burgundyDark, fontSize: '15px', fontWeight: 800, margin: '3px 0 0' }}>{payments[0]?.currency || '-'}</p>
             </div>
-            <div style={{ background: C.creamAccent, borderRadius: '12px', padding: '12px 14px' }}>
+            <div style={{ background: C.white, border: '1px solid #F0E4D6', borderRadius: '14px', padding: '9px 14px' }}>
               <p style={{ color: C.gray, fontSize: '10px', fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>Frequency</p>
               <p style={{ color: C.burgundyDark, fontSize: '15px', fontWeight: 800, margin: '3px 0 0' }}>{group?.paymentFrequency || '-'}</p>
             </div>
