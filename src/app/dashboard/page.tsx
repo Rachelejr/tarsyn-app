@@ -373,6 +373,13 @@ function OverviewContent() {
         .btn-action:active {
           transform: scale(0.96);
         }
+        .rc-card { display: flex; flex-direction: column; }
+        .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: size; overflow-y: auto; }
+        .UNIMUNITY-ov-right .rc-answers { flex: 1; min-height: 0; overflow-y: auto; }
+        .rc-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #F3E6D8; }
+        .rc-ico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .rc-group { background: linear-gradient(135deg, #FFFDF9 0%, #FBEEDD 100%); border: 1px solid #F0E0CC; border-radius: 13px; padding: 13px; margin-bottom: 10px; }
+        .rc-group:last-child { margin-bottom: 0; }
         .modal-fade {
           animation: fadeUp 0.25s ease forwards;
         }
@@ -382,6 +389,11 @@ function OverviewContent() {
           .UNIMUNITY-ov-container { padding: 14px 14px !important; }
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
           .UNIMUNITY-ov-sidebar { position: static !important; }
+        }
+        @media (max-width: 1200px) {
+          .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
+          .UNIMUNITY-ov-sidebar .action-card { padding: 9px 10px !important; }
+          .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: none; overflow: visible; }
         }
       `}</style>
 
@@ -620,113 +632,75 @@ function OverviewContent() {
         <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </nav>
 
-      <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1320px', margin: '0 auto', padding: '20px 24px' }}>
-        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
-        <div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px', marginBottom: '18px' }}>
+      <div className="UNIMUNITY-ov-container" style={{ maxWidth: '1560px', margin: '0 auto', padding: '20px 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', marginBottom: '20px' }}>
           <StatCard label="Total Members" value={members.length} icon={'\ud83d\udc65'} gradient="linear-gradient(135deg,#6B2D4E,#4A1F38)" glow="rgba(107,45,78,0.35)" delay={0} />
           <StatCard label="Active Members" value={activeMembers} icon={'\u2705'} gradient="linear-gradient(135deg,#43A047,#2E7D32)" glow="rgba(46,125,50,0.3)" delay={50} />
           <StatCard label="Total Collected" value={`${totalPaid} ${payments[0]?.currency || ''}`} icon={'\ud83d\udcb0'} gradient="linear-gradient(135deg,#E9C77B,#C9974D)" glow="rgba(233,199,123,0.35)" delay={100} />
           <StatCard label="Confirmed Payments" value={confirmedPayments} icon={'\u2714\ufe0f'} gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
           <StatCard label="Pending Payments" value={pendingPayments} icon={'\u23f3'} gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
-
-        <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
-          <h3 style={{ color: '#6B2D4E', fontSize: '14px', fontWeight: 700, margin: '0 0 10px' }}>{'\ud83c\udfd8\ufe0f'} My Groups</h3>
-          {groups.length === 0 ? (
-            <p style={{ color: '#C4748E', fontSize: '13px' }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '8px' }}>
-              {groups.map((g, i) => (
-                <div key={i} style={{ background: '#FBEEDD', borderRadius: '10px', padding: '9px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                  <div>
-                    <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12px', margin: '0 0 2px' }}>{g.name}</p>
-                    <p style={{ color: '#C4748E', fontSize: '10px', margin: 0 }}>{g.frequency} - {g.status}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
-                      style={{ background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '7px', padding: '4px 9px', fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>
-                      {'\ud83d\udcca'} Payment Grid
-                    </button>
-                    <button onClick={() => {
-                      setEditingGroup(g);
-                      setGroupEditName(g.name || '');
-                      setGroupEditFrequency(g.frequency || 'Weekly');
-                      setGroupEditAmount(String(g.contribution || g.amountPerMember || ''));
-                      setGroupEditCurrency(g.currency || 'USD');
-                      setGroupEditRegion(g.region || '');
-                      setGroupEditStartDate(g.startDate || '');
-                      setGroupEditStatus(g.status || 'active');
-                      setGroupEditDescription(g.description || '');
-                    }} className="btn-action"
-                      style={{ background: '#6B2D4E', color: '#FBEEDD', border: 'none', borderRadius: '7px', padding: '4px 9px', fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>
-                      {'\u270f\ufe0f'} Edit
-                    </button>
-                  </div>
+        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 340px', gap: '20px', alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-ov-sidebar" style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          padding: '18px 20px',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          display: 'flex',
+          flexDirection: 'column',
+          marginBottom: '14px',
+        }}>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#E9C77B', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 14px', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>Quick Actions</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, justifyContent: 'space-between' }}>
+            {[
+              { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
+              { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
+              { title: 'Referrals', icon: '\ud83e\udd1d', path: '/dashboard/referrals' },
+              { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
+              { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
+              { title: 'Connect Payments', icon: '\ud83c\udfe6', path: '/dashboard/payments-setup' },
+              { title: 'Reports', icon: '\ud83d\udcca', path: '/dashboard/reports' },
+              { title: 'Audit Log', icon: '\ud83d\udcdc', path: '/dashboard/audit-log' },
+              { title: 'Documents', icon: '\ud83d\udcc1', path: '/dashboard/documents' },
+              { title: 'Security', icon: '\ud83d\udd12', path: '/dashboard/security' },
+              { title: 'White Label', icon: '\ud83c\udfa8', path: '/dashboard/branding' },
+              { title: 'Leave a Review', icon: '\u2b50', path: '/leave-review' },
+              ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '\ud83d\udee0\ufe0f', path: '/admin/repair-members' }] : []),
+            ].map((a, i) => (
+              <div key={i} className="action-card" onClick={() => router.push(a.path)}
+                style={{
+                  background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)',
+                  border: '1px solid #E8D5C0',
+                  borderRadius: '10px',
+                  padding: '4px 10px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(233,199,123,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                }}>
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '9px',
+                  background: 'linear-gradient(135deg,#E9C77B,#C9974D)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  boxShadow: '0 3px 8px rgba(233,199,123,0.4)',
+                  flexShrink: 0,
+                }}>
+                  {a.icon}
                 </div>
-              ))}
-            </div>
-          )}
+                <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12.5px', margin: 0 }}>{a.title}</p>
+              </div>
+            ))}
+          </div>
         </div>
+        <div>
 
-        {/* Next cycle answers: what members replied from their page (live). */}
-        {(() => {
-          const blocks = groups.map((g) => {
-            const gc = gridCycles[g.id];
-            if (!gc) return null;
-            const nextNo = gc.cycleNumber + 1;
-            const groupMembers = members.filter((m) => m.groupId === g.id);
-            const answered = groupMembers
-              .filter((m) => m.nextCycleFor === nextNo && ['yes', 'pause', 'no'].includes(m.nextCycleResponse))
-              .sort((a, b) => (b.nextCycleRespondedAt?.seconds || 0) - (a.nextCycleRespondedAt?.seconds || 0));
-            if (gc.askedFor !== nextNo && answered.length === 0) return null;
-            const answeredIds = new Set(answered.map((m) => m.id));
-            const waiting = gc.memberIds.filter((id) => !answeredIds.has(id)).length;
-            const count = (k: string) => answered.filter((m) => m.nextCycleResponse === k).length;
-            return { g, nextNo, answered, waiting, yes: count('yes'), pause: count('pause'), no: count('no') };
-          }).filter(Boolean) as any[];
-          if (blocks.length === 0) return null;
-          const tag = (r: string) => r === 'yes'
-            ? { t: '\u2713 Continue', c: '#2E7D32', b: '#E8F5E9' }
-            : r === 'pause' ? { t: '\u23f8 Pause', c: '#9C7A2E', b: '#FBF0D9' } : { t: '\u2717 No', c: '#B0525F', b: '#F5E4E6' };
-          return (
-            <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '14px', padding: '14px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px', border: '1.5px solid #E9C77B' }}>
-              <h3 style={{ color: '#6B2D4E', fontSize: '14px', fontWeight: 700, margin: '0 0 10px' }}>{'\ud83d\udd01'} Next Cycle Answers</h3>
-              {blocks.map((bk) => (
-                <div key={bk.g.id} style={{ marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                    <span style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12.5px' }}>{bk.g.name} - cycle {bk.nextNo}</span>
-                    <span style={{ fontSize: '11px', color: '#2E7D32', fontWeight: 600 }}>{bk.yes} continue</span>
-                    <span style={{ fontSize: '11px', color: '#9C7A2E', fontWeight: 600 }}>{bk.pause} pause</span>
-                    <span style={{ fontSize: '11px', color: '#B0525F', fontWeight: 600 }}>{bk.no} no</span>
-                    <span style={{ fontSize: '11px', color: '#8A7B6C' }}>{bk.waiting} no answer yet</span>
-                    <button onClick={() => router.push(`/admin/payment-grid/${bk.g.id}`)} className="btn-action"
-                      style={{ marginLeft: 'auto', background: '#E9C77B', color: '#4A1F38', border: 'none', borderRadius: '7px', padding: '4px 9px', fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>
-                      {'\ud83d\udcca'} Open grid
-                    </button>
-                  </div>
-                  {bk.answered.length === 0 ? (
-                    <p style={{ fontSize: '11.5px', color: '#8A7B6C', margin: 0 }}>Question sent. No answers yet.</p>
-                  ) : bk.answered.map((m: any) => {
-                    const tg = tag(m.nextCycleResponse);
-                    const when = m.nextCycleRespondedAt?.toDate ? m.nextCycleRespondedAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                    return (
-                      <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#FFFDF7', marginBottom: '4px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: tg.c, background: tg.b, borderRadius: '6px', padding: '2px 7px', whiteSpace: 'nowrap' }}>{tg.t}</span>
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#3A2F1F' }}>{m.fullName || m.name}</span>
-                        {m.nextCycleNote && (
-                          <span style={{ fontSize: '11.5px', color: '#5A4A3A', fontStyle: 'italic', flex: '1 1 200px' }}>{'\u201C' + m.nextCycleNote + '\u201D'}</span>
-                        )}
-                        <span style={{ fontSize: '10.5px', color: '#8A7B6C', marginLeft: 'auto' }}>{when}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          );
-        })()}
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
@@ -901,64 +875,140 @@ function OverviewContent() {
 
         </div>
 
-        <div className="UNIMUNITY-ov-sidebar" style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          padding: '22px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          position: 'sticky',
-          top: '24px',
-        }}>
-          <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#E9C77B', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 16px', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>Quick Actions</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-            {[
-              { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
-              { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },
-              { title: 'Referrals', icon: '\ud83e\udd1d', path: '/dashboard/referrals' },
-              { title: 'Digital Register', icon: '\ud83d\udccb', path: '/dashboard/contribution-log' },
-              { title: 'Send Reminder', icon: '\ud83d\udd14', path: '/dashboard/reminders' },
-              { title: 'Connect Payments', icon: '\ud83c\udfe6', path: '/dashboard/payments-setup' },
-              { title: 'Reports', icon: '\ud83d\udcca', path: '/dashboard/reports' },
-              { title: 'Audit Log', icon: '\ud83d\udcdc', path: '/dashboard/audit-log' },
-              { title: 'Documents', icon: '\ud83d\udcc1', path: '/dashboard/documents' },
-              { title: 'Security', icon: '\ud83d\udd12', path: '/dashboard/security' },
-              { title: 'White Label', icon: '\ud83c\udfa8', path: '/dashboard/branding' },
-              { title: 'Leave a Review', icon: '\u2b50', path: '/leave-review' },
-              ...(isPlatformAdmin ? [{ title: 'Repair Members', icon: '\ud83d\udee0\ufe0f', path: '/admin/repair-members' }] : []),
-            ].map((a, i) => (
-              <div key={i} className="action-card" onClick={() => router.push(a.path)}
-                style={{
-                  background: 'linear-gradient(135deg, #FBEEDD 0%, #F3E4D4 100%)',
-                  border: '1px solid #E8D5C0',
-                  borderRadius: '11px',
-                  padding: '9px 10px',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(233,199,123,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '9px',
-                }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '9px',
-                  background: 'linear-gradient(135deg,#E9C77B,#C9974D)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '13px',
-                  boxShadow: '0 3px 8px rgba(233,199,123,0.4)',
-                  flexShrink: 0,
-                }}>
-                  {a.icon}
+        <div className="UNIMUNITY-ov-right" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '14px' }}>
+          {/* My Groups */}
+          <div className="panel-card fade-up rc-card" style={{ background: 'white', borderRadius: '16px', padding: '18px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+            <div className="rc-head">
+              <span className="rc-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)', boxShadow: '0 4px 10px rgba(201,151,77,0.35)' }}>{'\ud83c\udfd8\ufe0f'}</span>
+              <div>
+                <h3 style={{ color: '#4A1F38', fontSize: '15px', fontWeight: 800, margin: 0 }}>My Groups</h3>
+                <p style={{ color: '#A08B7D', fontSize: '11px', margin: '2px 0 0' }}>{groups.length} {groups.length === 1 ? 'group' : 'groups'}</p>
+              </div>
+            </div>
+            {groups.length === 0 ? (
+              <p style={{ color: '#C4748E', fontSize: '13px', margin: 0 }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
+            ) : groups.map((g, i) => (
+              <div key={i} className="rc-group">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                  <p style={{ color: '#4A1F38', fontWeight: 800, fontSize: '14px', margin: 0 }}>{g.name}</p>
+                  <span className="pill" style={{ background: g.status === 'active' ? '#E8F5E9' : '#FFF3E0', color: g.status === 'active' ? '#2E7D32' : '#E65100', padding: '3px 9px', fontSize: '10px', textTransform: 'capitalize' }}>
+                    {'\u25cf'} {g.status || 'active'}
+                  </span>
                 </div>
-                <p style={{ color: '#6B2D4E', fontWeight: 700, fontSize: '12.5px', margin: 0 }}>{a.title}</p>
+                <p style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 10px' }}>
+                  {g.frequency || 'Weekly'}{(g.contribution || g.amountPerMember) ? ' \u00b7 ' + (g.contribution || g.amountPerMember) + ' ' + (g.currency || 'USD') : ''}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' }}>
+                  <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
+                    style={{ background: 'linear-gradient(135deg,#E9C77B,#D9AE5E)', color: '#4A1F38', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    {'\ud83d\udcca'} Payment Grid
+                  </button>
+                  <button onClick={() => {
+                    setEditingGroup(g);
+                    setGroupEditName(g.name || '');
+                    setGroupEditFrequency(g.frequency || 'Weekly');
+                    setGroupEditAmount(String(g.contribution || g.amountPerMember || ''));
+                    setGroupEditCurrency(g.currency || 'USD');
+                    setGroupEditRegion(g.region || '');
+                    setGroupEditStartDate(g.startDate || '');
+                    setGroupEditStatus(g.status || 'active');
+                    setGroupEditDescription(g.description || '');
+                  }} className="btn-action"
+                    style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    {'\u270f\ufe0f'} Edit
+                  </button>
+                </div>
               </div>
             ))}
           </div>
-        </div>
 
+          {/* Next cycle answers: what members replied from their page (live). */}
+          {(() => {
+            const blocks = groups.map((g) => {
+              const gc = gridCycles[g.id];
+              if (!gc) return null;
+              const nextNo = gc.cycleNumber + 1;
+              const groupMembers = members.filter((m) => m.groupId === g.id);
+              const answered = groupMembers
+                .filter((m) => m.nextCycleFor === nextNo && ['yes', 'pause', 'no'].includes(m.nextCycleResponse))
+                .sort((a, b) => (b.nextCycleRespondedAt?.seconds || 0) - (a.nextCycleRespondedAt?.seconds || 0));
+              if (gc.askedFor !== nextNo && answered.length === 0) return null;
+              const answeredIds = new Set(answered.map((m) => m.id));
+              const waiting = gc.memberIds.filter((id) => !answeredIds.has(id)).length;
+              const count = (k: string) => answered.filter((m) => m.nextCycleResponse === k).length;
+              return { g, nextNo, answered, waiting, yes: count('yes'), pause: count('pause'), no: count('no') };
+            }).filter(Boolean) as any[];
+            const tag = (r: string) => r === 'yes'
+              ? { t: '\u2713 Continue', c: '#2E7D32', b: '#E8F5E9' }
+              : r === 'pause' ? { t: '\u23f8 Pause', c: '#9C7A2E', b: '#FBF0D9' } : { t: '\u2717 No', c: '#B0525F', b: '#F5E4E6' };
+            return (
+              <div className="panel-card fade-up rc-card rc-answers" style={{ background: 'white', borderRadius: '16px', padding: '18px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+                <div className="rc-head">
+                  <span className="rc-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)', boxShadow: '0 4px 10px rgba(46,125,50,0.3)' }}>{'\ud83d\udd01'}</span>
+                  <div>
+                    <h3 style={{ color: '#4A1F38', fontSize: '15px', fontWeight: 800, margin: 0 }}>Next Cycle Answers</h3>
+                    <p style={{ color: '#A08B7D', fontSize: '11px', margin: '2px 0 0' }}>Live answers from your members</p>
+                  </div>
+                </div>
+                {blocks.length === 0 ? (
+                  <p style={{ color: '#A08B7D', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>
+                    No question sent yet. Members are asked automatically 30 days before a cycle ends, or use {'\u201c'}Ask members{'\u201d'} on the payment grid.
+                  </p>
+                ) : blocks.map((bk) => {
+                  const total = bk.answered.length + bk.waiting;
+                  const pct = total > 0 ? Math.round((bk.answered.length / total) * 100) : 0;
+                  return (
+                    <div key={bk.g.id} className="rc-group">
+                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+                        <p style={{ color: '#4A1F38', fontWeight: 800, fontSize: '14px', margin: 0 }}>{bk.g.name}</p>
+                        <span style={{ color: '#A08B7D', fontSize: '11px', fontWeight: 600 }}>Cycle {bk.nextNo}</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                        {[
+                          { n: bk.yes, l: 'Continue', c: '#2E7D32', b: '#E8F5E9' },
+                          { n: bk.pause, l: 'Pause', c: '#9C7A2E', b: '#FBF0D9' },
+                          { n: bk.no, l: 'No', c: '#B0525F', b: '#F5E4E6' },
+                          { n: bk.waiting, l: 'Waiting', c: '#8A7B6C', b: '#F3EEE8' },
+                        ].map((x) => (
+                          <div key={x.l} style={{ background: x.b, borderRadius: '10px', padding: '7px 4px', textAlign: 'center' }}>
+                            <div style={{ color: x.c, fontSize: '17px', fontWeight: 800, lineHeight: 1.1 }}>{x.n}</div>
+                            <div style={{ color: x.c, fontSize: '9.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{x.l}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ height: '6px', background: '#F0E4D6', borderRadius: '4px', overflow: 'hidden', marginBottom: '4px' }}>
+                        <div style={{ width: pct + '%', height: '100%', background: 'linear-gradient(90deg,#66BB6A,#2E7D32)', borderRadius: '4px', transition: 'width 0.4s ease' }} />
+                      </div>
+                      <p style={{ color: '#A08B7D', fontSize: '10.5px', margin: '0 0 10px' }}>{bk.answered.length} of {total} answered</p>
+                      {bk.answered.length === 0 ? (
+                        <p style={{ fontSize: '11.5px', color: '#A08B7D', margin: '0 0 10px', fontStyle: 'italic' }}>Question sent. Waiting for answers.</p>
+                      ) : bk.answered.map((m: any) => {
+                        const tg = tag(m.nextCycleResponse);
+                        const when = m.nextCycleRespondedAt?.toDate ? m.nextCycleRespondedAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                        return (
+                          <div key={m.id} style={{ background: 'white', border: '1px solid #F3E6D8', borderRadius: '9px', padding: '7px 9px', marginBottom: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                              <span style={{ fontSize: '10px', fontWeight: 700, color: tg.c, background: tg.b, borderRadius: '6px', padding: '2px 7px', whiteSpace: 'nowrap' }}>{tg.t}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#3A2F1F', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.fullName || m.name}</span>
+                              <span style={{ fontSize: '10px', color: '#A08B7D' }}>{when}</span>
+                            </div>
+                            {m.nextCycleNote && (
+                              <p style={{ fontSize: '11.5px', color: '#5A4A3A', fontStyle: 'italic', margin: '5px 0 0' }}>{'\u201c' + m.nextCycleNote + '\u201d'}</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <button onClick={() => router.push(`/admin/payment-grid/${bk.g.id}`)} className="btn-action"
+                        style={{ width: '100%', marginTop: '4px', background: 'linear-gradient(135deg,#E9C77B,#D9AE5E)', color: '#4A1F38', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                        {'\ud83d\udcca'} Open grid
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
         </div>
       </div>
 
