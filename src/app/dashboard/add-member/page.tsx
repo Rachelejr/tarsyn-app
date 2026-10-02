@@ -15,18 +15,18 @@ const C = {
   orLight: '#F0DCA8',
   creme: '#FBEEDD',
   blanc: '#FFFFFF',
-  text: '#1a1a1a',
-  muted: '#6b7280',
-  border: '#e5e7eb',
+  text: '#3A2F1F',
+  muted: '#8A7B6C',
+  border: '#F0E4D6',
 };
 
 const inputStyle = {
-  width: '100%', padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + C.border,
-  fontSize: 14, color: C.text, background: C.blanc, outline: 'none', boxSizing: 'border-box' as const,
+  width: '100%', padding: '11px 13px', borderRadius: 10, border: '1.5px solid #EAD9BE',
+  fontSize: 14, color: C.text, background: '#FFFDF9', outline: 'none', boxSizing: 'border-box' as const,
   fontFamily: 'Inter, sans-serif',
 };
 
-const labelStyle = { fontSize: 12, fontWeight: 600, color: C.muted, textTransform: 'uppercase' as const, letterSpacing: 0.5, display: 'block', marginBottom: 6 };
+const labelStyle = { fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase' as const, letterSpacing: 0.8, display: 'block', marginBottom: 6 };
 
 // Reads a group's normal per-share contribution amount from whichever field
 // it happens to be stored under (this mirrors the fallback chain used by
@@ -307,7 +307,29 @@ function AddMemberContent() {
           .UNIMUNITY-addmember-grid {
             grid-template-columns: 1fr !important;
           }
+          .am-two { grid-template-columns: 1fr !important; }
         }
+        .am-card { border: 1px solid #F0E4D6 !important; border-radius: 18px !important; box-shadow: 0 2px 14px rgba(107,45,78,0.06) !important; transition: box-shadow 0.25s ease; }
+        .am-card:hover { box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important; }
+        .am-head { display: flex; align-items: center; gap: 11px; margin: 0 0 18px; padding-bottom: 13px; border-bottom: 1px solid #F3E6D8; }
+        .am-ico { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(74,31,56,0.18); }
+        .am-title { margin: 0; font-size: 15px; font-weight: 800; color: #4A1F38; }
+        .am-form input, .am-form select, .am-form textarea { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+        .am-form input:focus, .am-form select:focus, .am-form textarea:focus { border-color: #E9C77B !important; box-shadow: 0 0 0 3px rgba(233,199,123,0.25); background: #FFFFFF !important; }
+        .am-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .am-back:hover { background: #FBEEDD; }
+        /* compact layout: the whole page fits on one screen */
+        .am-card { padding: 16px 20px !important; }
+        .am-head { margin-bottom: 11px !important; padding-bottom: 9px !important; }
+        .am-ico { width: 30px; height: 30px; font-size: 15px; border-radius: 9px; }
+        .am-form label { margin-bottom: 4px !important; }
+        .am-form input, .am-form select, .am-form textarea { padding: 7px 11px !important; font-size: 13.5px !important; }
+        .am-group { display: flex; align-items: center; gap: 18px; padding: 12px 20px !important; }
+        .am-group .am-head { margin: 0 !important; padding: 0 !important; border: none; flex-shrink: 0; }
+        .am-group > div:last-child { flex: 1; }
+        .am-group label { display: none !important; }
+        .am-submit { transition: transform 0.15s ease, filter 0.15s ease; }
+        .am-submit:hover { filter: brightness(1.06); transform: translateY(-1px); }
         .UNIMUNITY-hdr-shimmer-title{
           background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
           background-size: 200% auto;
@@ -342,22 +364,22 @@ function AddMemberContent() {
         <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
       </div>
 
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 24px' }}>
+      <div className="am-form" style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 20px' }}>
 
-        <div style={{ marginBottom: 20 }}>
-          <button onClick={() => router.push('/dashboard')}
-            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => router.push('/dashboard')} className="am-back">
             Back to Dashboard
           </button>
         </div>
 
-        <div className="UNIMUNITY-addmember-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 18 }}>
+        <div className="UNIMUNITY-addmember-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
 
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
-                Group
-              </h2>
+            <div className="am-card am-group" style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div className="am-head">
+                <span className="am-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)' }}>{'\ud83c\udfd8\ufe0f'}</span>
+                <h2 className="am-title">Group</h2>
+              </div>
               {groupsLoading ? (
                 <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>Loading your groups...</p>
               ) : groups.length === 0 ? (
@@ -380,12 +402,13 @@ function AddMemberContent() {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'stretch' }}>
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
-                Personal Information
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="am-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'stretch' }}>
+            <div className="am-card" style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const }}>
+              <div className="am-head">
+                <span className="am-ico" style={{ background: 'linear-gradient(135deg,#FCE4EC,#F4B6C7)' }}>{'\ud83d\udc64'}</span>
+                <h2 className="am-title">Personal Information</h2>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 12px' }}>
                 <div>
                   <label style={labelStyle}>First Name *</label>
                   <input style={inputStyle} placeholder="First name" value={form.firstName} onChange={e => set('firstName', e.target.value)} />
@@ -466,11 +489,12 @@ function AddMemberContent() {
               </p>
             </div>
 
-            <div style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 18px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
-                Contribution & Rotation
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="am-card" style={{ background: C.blanc, borderRadius: 16, padding: '24px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const }}>
+              <div className="am-head">
+                <span className="am-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\ud83d\udcb0'}</span>
+                <h2 className="am-title">Contribution & Rotation</h2>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px 12px' }}>
                 <div>
                   <label style={labelStyle}>Position *</label>
                   <input style={inputStyle} type="number" min="1" value={form.position} onChange={e => set('position', e.target.value)} />
@@ -565,8 +589,9 @@ function AddMemberContent() {
 
             <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
               <button onClick={handleSubmit} disabled={loading}
-                style={{ width: '100%', padding: '14px', background: C.bordeaux, color: C.blanc, border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-                {loading ? 'Adding member...' : 'Add Member'}
+                className="am-submit"
+                style={{ width: '100%', padding: '11px', background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: C.blanc, border: 'none', borderRadius: 14, fontSize: 15.5, fontWeight: 800, letterSpacing: 0.3, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 22px rgba(107,45,78,0.28)' }}>
+                {loading ? 'Adding member...' : '\u2795  Add Member'}
               </button>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
                 <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>Cancel</button>
@@ -576,10 +601,11 @@ function AddMemberContent() {
 
           </div>
 
-          <div style={{ background: C.blanc, borderRadius: 16, padding: '22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky' as const, top: 24 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: C.or, textTransform: 'uppercase' as const, letterSpacing: 1, margin: '0 0 16px', paddingBottom: 12, borderBottom: '1px solid ' + C.border }}>
-              Member Summary
-            </h3>
+          <div className="am-card" style={{ background: C.blanc, borderRadius: 16, padding: '22px', border: '1px solid ' + C.border, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky' as const, top: 24 }}>
+            <div style={{ textAlign: 'center' as const, margin: '-22px -22px 14px', padding: '14px 16px 12px', background: 'linear-gradient(160deg,#FBE3E8 0%,#FDF6EC 55%,#EAF3E3 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid ' + C.border }}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#3A1F2E' }}>{(form.firstName + ' ' + form.lastName).trim() || 'New member'}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: '#C9974D', textTransform: 'uppercase' as const, letterSpacing: 1.2 }}>Member Summary</p>
+            </div>
             {[
               { label: 'Group', value: groups.find(g => g.id === selectedGroupId)?.name || '-' },
               { label: 'Name', value: (form.firstName + ' ' + form.lastName).trim() || '-' },
@@ -599,13 +625,14 @@ function AddMemberContent() {
               { label: 'Status', value: form.status.charAt(0).toUpperCase() + form.status.slice(1) },
               { label: 'Role', value: form.role.charAt(0).toUpperCase() + form.role.slice(1) },
             ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f9f9f9' }}>
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 2px', borderBottom: '1px dashed #F3E6D8' }}>
                 <span style={{ fontSize: 12, color: C.muted }}>{item.label}</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.text, maxWidth: 140, textAlign: 'right' as const, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{item.value}</span>
               </div>
             ))}
-            <div style={{ marginTop: 14, padding: '10px 14px', background: C.creme, borderRadius: 10, border: '1px solid ' + C.orLight }}>
-              <p style={{ fontSize: 11, color: C.muted, margin: 0, lineHeight: 1.6 }}>TYN-ID: <strong style={{ color: C.text }}>{tynId}</strong></p>
+            <div style={{ marginTop: 14, padding: '10px 14px', background: 'linear-gradient(135deg,#FBEEDD,#F6E3C4)', borderRadius: 12, border: '1px solid ' + C.orLight, textAlign: 'center' as const }}>
+              <p style={{ fontSize: 10.5, color: '#A08B7D', margin: 0, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' as const }}>TYN-ID</p>
+              <p style={{ fontSize: 15, color: '#4A1F38', margin: '2px 0 0', fontWeight: 800, fontFamily: 'monospace', letterSpacing: 1 }}>{tynId || '-'}</p>
             </div>
           </div>
         </div>
