@@ -171,6 +171,7 @@ export default function PaymentGridPage() {
   const [dateTo, setDateTo] = useState('');
 
   const [pageStart, setPageStart] = useState<number | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
   const gridId = groupId + '_current';
 
@@ -964,7 +965,12 @@ export default function PaymentGridPage() {
   const canGoPrev = effectivePageStart > 0;
   const canGoNext = effectivePageStart + WEEKS_PER_PAGE < activeWeekEntries.length;
 
-  const focusWeekIdx = visibleWeeks[0]?.[0] ?? weekEntries[0]?.[0] ?? '0';
+  // The focus week drives the summary and the week actions. It is the week
+  // the organizer clicked, as long as it is on the current page, otherwise
+  // the first week shown.
+  const focusWeekIdx = (selectedWeek && visibleWeeks.some(([idx]) => idx === selectedWeek))
+    ? selectedWeek
+    : (visibleWeeks[0]?.[0] ?? weekEntries[0]?.[0] ?? '0');
 
   const focusSlotNums = allSlotEntries.map(([slotNum]) => slotNum);
   const focusPaid = focusSlotNums.filter(
@@ -1507,92 +1513,76 @@ export default function PaymentGridPage() {
           );
         })()}
 
-        {/* Compact summary bar */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            flexWrap: 'wrap',
-            marginBottom: 14,
-          }}
-        >
-          {[
-            { label: 'Members', value: String(totalMembers) },
-            { label: 'Week', value: 'W' + focusWeekIdx },
-            { label: 'Paid', value: String(focusPaid) },
-            { label: 'Missing', value: String(focusMissing) },
-            { label: 'Completion', value: focusCompletion + '%' },
-          ].map((item) => (
-            <div
-              key={item.label}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #F0E4D6',
-                borderRadius: 12,
-                padding: '8px 14px',
-                fontSize: 12,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                color: C.texteGris,
-                display: 'flex',
-                gap: 6,
-                alignItems: 'baseline',
-              }}
-            >
-              <span>{item.label}:</span>
-              <strong style={{ color: C.bordeaux, fontSize: 14 }}>{item.value}</strong>
-            </div>
-          ))}
-        </div>
-
-        {/* Week navigation + quick actions */}
-        <div
-          className="UNIMUNITY-no-print"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 10,
-            marginBottom: 10,
-          }}
-        >
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {/* Week toolbar: navigation, focus-week summary, week actions */}
+        <div style={{ background: '#FFFFFF', border: '1px solid #F0E4D6', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 12, overflow: 'hidden' }}>
+          {/* Row 1: week navigation */}
+          <div className="UNIMUNITY-no-print" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 16px', borderBottom: '1px solid #F3E6D8', background: '#FFFCF7' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase', letterSpacing: 0.8 }}>Weeks</span>
             <button
-              onClick={() =>
-                setPageStart(Math.max(0, effectivePageStart - WEEKS_PER_PAGE))
-              }
+              onClick={() => { setPageStart(Math.max(0, effectivePageStart - WEEKS_PER_PAGE)); setSelectedWeek(null); }}
               disabled={!canGoPrev}
               style={btnStyle('ghost', !canGoPrev)}
+              title="Previous weeks"
             >
-              ◀ Previous
+              {'\u25C0'}
             </button>
-            <span style={{ fontSize: 12.5, color: C.texteGris }}>
-              {visibleWeeks.map(([idx]) => 'W' + idx).join(' · ')}
-            </span>
+            <div style={{ display: 'flex', background: C.creme, borderRadius: 10, padding: 3, border: '1px solid ' + C.orLight, gap: 2, flexWrap: 'wrap' }}>
+              {visibleWeeks.map(([idx, date]) => {
+                const active = idx === focusWeekIdx;
+                return (
+                  <button key={idx} onClick={() => setSelectedWeek(idx)} title={date}
+                    style={{ border: 'none', borderRadius: 8, padding: '4px 11px', cursor: 'pointer', background: active ? '#FFFFFF' : 'transparent', boxShadow: active ? '0 1px 4px rgba(74,31,56,0.14)' : 'none', textAlign: 'center' }}>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 800, color: active ? C.bordeaux : C.texteGris }}>W{idx}</span>
+                    <span style={{ display: 'block', fontSize: 9.5, color: active ? C.bordeaux : '#A08B7D' }}>{String(date).slice(5)}</span>
+                  </button>
+                );
+              })}
+            </div>
             <button
-              onClick={() => setPageStart(effectivePageStart + WEEKS_PER_PAGE)}
+              onClick={() => { setPageStart(effectivePageStart + WEEKS_PER_PAGE); setSelectedWeek(null); }}
               disabled={!canGoNext}
               style={btnStyle('ghost', !canGoNext)}
+              title="Next weeks"
             >
-              Next ▶
+              {'\u25B6'}
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => markAllPaidForWeek(focusWeekIdx, focusSlotNums)}
-              style={btnStyle('ghost')}
-            >
-              ☑ Mark All Paid (W{focusWeekIdx})
-            </button>
-            <button
-              onClick={() => clearWeekPayments(focusWeekIdx, focusSlotNums)}
-              style={btnStyle('ghost')}
-            >
-              ☐ Clear Week
-            </button>
-            <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle('ghost')}>
-              📄 Export Week
-            </button>
+
+          {/* Row 2: focus week summary + actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 12, borderRight: '1px solid #F3E6D8' }}>
+              <span style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', fontSize: 12.5, fontWeight: 800, padding: '5px 11px', borderRadius: 9 }}>W{focusWeekIdx}</span>
+              <span style={{ fontSize: 12, color: C.texteGris }}>{grid.weeks[focusWeekIdx] || ''}</span>
+            </div>
+            {[
+              { label: 'Members', value: String(totalMembers), color: C.bordeauxDark },
+              { label: 'Paid', value: String(focusPaid), color: C.success },
+              { label: 'Missing', value: String(focusMissing), color: focusMissing > 0 ? C.danger : C.texteGris },
+            ].map((item) => (
+              <div key={item.label} style={{ textAlign: 'center', minWidth: 58 }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: item.color, lineHeight: 1.1 }}>{item.value}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase', letterSpacing: 0.6 }}>{item.label}</div>
+              </div>
+            ))}
+            <div style={{ minWidth: 150, flex: '0 1 200px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4 }}>
+                <span>Completion</span><span style={{ color: C.bordeaux }}>{focusCompletion}%</span>
+              </div>
+              <div style={{ height: 6, background: '#F0E4D6', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: focusCompletion + '%', height: '100%', background: focusCompletion === 100 ? 'linear-gradient(90deg,#66BB6A,#2E7D32)' : 'linear-gradient(90deg,#E9C77B,#6B2D4E)', transition: 'width .3s' }} />
+              </div>
+            </div>
+            <div className="UNIMUNITY-no-print" style={{ display: 'flex', gap: 6, marginLeft: 'auto', flexWrap: 'wrap' }}>
+              <button onClick={() => markAllPaidForWeek(focusWeekIdx, focusSlotNums)} style={btnStyle('ghost')}>
+                {'\u2611'} Mark All Paid
+              </button>
+              <button onClick={() => clearWeekPayments(focusWeekIdx, focusSlotNums)} style={btnStyle('ghost')}>
+                {'\u2610'} Clear Week
+              </button>
+              <button onClick={() => handleExportWeek(focusWeekIdx)} style={btnStyle('ghost')}>
+                {'\u{1F4C4}'} Export Week
+              </button>
+            </div>
           </div>
         </div>
 
