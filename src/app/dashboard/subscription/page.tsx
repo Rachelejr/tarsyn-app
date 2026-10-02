@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import Footer from '@/components/Footer';
 import { PRICE_ID_TO_PLAN as PLAN_LIMITS_PRICE_MAP } from '@/lib/planLimits';
 
 type BillingPeriod = 'monthly' | 'annual';
@@ -421,7 +422,8 @@ function SubscriptionContent() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1 }}>
       <style>{`
         @media (max-width: 860px) {
           .UNIMUNITY-plans-grid {
@@ -453,34 +455,32 @@ function SubscriptionContent() {
         .UNIMUNITY-price-value {
           transition: opacity 0.2s ease;
         }
+        .sb-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .sb-back:hover { background: #FBEEDD; }
+        .sb-card { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 18px; box-shadow: 0 2px 14px rgba(107,45,78,0.06); }
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        .UNIMUNITY-hdr-shimmer-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
       `}</style>
 
-      <nav style={{
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '14px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap' as const,
-        rowGap: '10px',
-      }}>
-        <div onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
-          <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
-          <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
+      <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+        <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start', cursor: 'pointer' }} />
+        <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
+          <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Subscription</h1>
+          <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>Manage your plan and billing.</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-          <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
-            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid rgba(251,238,221,0.35)', background: 'rgba(255,255,255,0.1)', color: '#FBEEDD', fontSize: '12.5px', cursor: 'pointer', outline: 'none', fontWeight: 500, maxWidth: '180px' }}>
-            {LANGUAGES.map((l) => (<option key={l.code} value={l.code} style={{ color: '#4A1F38' }}>{l.label}</option>))}
-          </select>
-          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
-            style={{ background: 'transparent', border: '1px solid rgba(251,238,221,0.5)', color: '#FBEEDD', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-            Sign Out
-          </button>
-        </div>
-      </nav>
+        <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
+      </div>
 
       {showLangModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -504,7 +504,14 @@ function SubscriptionContent() {
       )}
 
 
-      <div className="UNIMUNITY-page-container" style={{ maxWidth: '1300px', width: '92%', margin: '0 auto', padding: '40px 24px' }}>
+      <div className="UNIMUNITY-page-container" style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' as const }}>
+          <button onClick={() => router.push('/dashboard')} className="sb-back">Back to Dashboard</button>
+          <select value={lang} onChange={(e) => { if (e.target.value === 'other') { setShowLangModal(true); } else { setLang(e.target.value); } }}
+            style={{ padding: '6px 11px', borderRadius: 10, border: '1.5px solid #EAD9BE', background: '#FFFDF9', color: '#4A1F38', fontSize: 12.5, cursor: 'pointer', outline: 'none', fontWeight: 600 }}>
+            {LANGUAGES.map((l) => (<option key={l.code} value={l.code}>{l.label}</option>))}
+          </select>
+        </div>
         {showSuccess && (
           <div style={{ background: '#E8F5E9', borderRadius: '12px', padding: '12px 18px', marginBottom: '12px', color: '#2E7D32', fontWeight: 600, fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <span>Subscription activated successfully. Welcome to UNIMUNITY.</span>
@@ -524,11 +531,11 @@ function SubscriptionContent() {
           </div>
         )}
 
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ color: '#4A1F38', fontSize: '32px', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+          <h2 style={{ color: '#4A1F38', fontSize: '24px', fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.4px' }}>
             {st(lang, 'title')}
-          </h1>
-          <p style={{ color: '#6B2D4E', fontSize: '15px', margin: '0 0 16px' }}>
+          </h2>
+          <p style={{ color: '#6B2D4E', fontSize: '14px', margin: '0 0 12px' }}>
             {st(lang, 'subtitle')}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#6B2D4E', fontWeight: 600 }}>
@@ -538,20 +545,29 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        {(subscription?.status === 'active' || subscription?.status === 'trialing') && (
-          <div style={{ background: 'white', borderRadius: '10px', padding: '8px 14px', marginBottom: '10px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
-            <p style={{ color: '#2E7D32', fontSize: '13px', fontWeight: 700, margin: '0 0 2px' }}>
-              {subscription.status === 'trialing' ? 'Free Trial Active' : 'Subscription Active'}
-            </p>
-            <p style={{ color: '#6B2D4E', fontSize: '11px', margin: 0 }}>
-              {subscription.status === 'trialing'
-                ? `Trial ends: ${new Date(subscription.trialEnd).toLocaleDateString()}`
-                : `Renews: ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
-            </p>
+        <div className="sb-card" style={{ padding: '12px 20px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' as const }}>
+          <span style={{ width: 30, height: 30, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, background: 'linear-gradient(135deg,#E9C77B,#C9974D)', boxShadow: '0 4px 10px rgba(74,31,56,0.18)', flexShrink: 0 }}>{'\u{1F4B3}'}</span>
+          <div style={{ flex: 1, minWidth: 180 }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase' as const, letterSpacing: 0.8 }}>Your current plan</p>
+            <p style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800, color: '#4A1F38' }}>{PLANS.find(p => p.id === activePlanId)?.name || 'Free'}</p>
           </div>
-        )}
+          {(subscription?.status === 'active' || subscription?.status === 'trialing') ? (
+            <div style={{ textAlign: 'right' as const }}>
+              <span style={{ display: 'inline-block', background: '#E8F5E9', color: '#2E7D32', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20 }}>
+                {subscription.status === 'trialing' ? 'Free Trial Active' : subscription.cancelAtPeriodEnd ? 'Cancels at period end' : 'Subscription Active'}
+              </span>
+              <p style={{ color: '#8A7B6C', fontSize: 11.5, margin: '4px 0 0' }}>
+                {subscription.status === 'trialing'
+                  ? `Trial ends: ${new Date(subscription.trialEnd).toLocaleDateString()}`
+                  : `${subscription.cancelAtPeriodEnd ? 'Ends' : 'Renews'}: ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
+              </p>
+            </div>
+          ) : (
+            <span style={{ display: 'inline-block', background: '#F3EEE7', color: '#8A7B6C', fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20 }}>No active subscription</span>
+          )}
+        </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '26px' }}>
           <div style={{ display: 'inline-flex', background: 'white', borderRadius: '12px', padding: '4px', boxShadow: '0 4px 16px rgba(107,45,78,0.10)' }}>
             <button
               onClick={() => setBillingPeriod('monthly')}
@@ -596,9 +612,9 @@ function SubscriptionContent() {
 
             return (
               <div key={plan.id} className="UNIMUNITY-plan-card" style={{
-                background: 'white', borderRadius: '22px', padding: '26px 20px',
+                background: 'white', borderRadius: '18px', padding: '24px 18px',
                 boxShadow: plan.badge ? '0 12px 40px rgba(107,45,78,0.16)' : '0 4px 20px rgba(0,0,0,0.05)',
-                border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '2px solid #F0E4D0'),
+                border: isCurrent ? '2px solid #2E7D32' : (plan.badge ? `2px solid ${plan.color}` : '1px solid #F0E4D6'),
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -757,7 +773,7 @@ function SubscriptionContent() {
           })}
         </div>
 
-        <div style={{ marginTop: '10px', background: 'white', borderRadius: '12px', padding: '10px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        <div className="sb-card" style={{ marginTop: '16px', padding: '12px', textAlign: 'center' }}>
           <h3 style={{ color: '#6B2D4E', fontSize: '12px', fontWeight: 800, margin: '0 0 2px' }}>Need Enterprise pricing?</h3>
           <p style={{ color: '#6B2D4E', fontSize: '10px', margin: '0 0 6px' }}>Contact UNIMUNITY Sales Team</p>
           <button
@@ -777,16 +793,16 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        <div style={{ marginTop: '32px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'compare')}</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'compareSub')}</p>
-          <div style={{ overflowX: 'auto', background: 'white', borderRadius: '14px', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
+        <div style={{ marginTop: '28px' }}>
+          <h2 style={{ color: '#4A1F38', fontSize: '20px', fontWeight: 800, textAlign: 'center', margin: '0 0 4px' }}>{st(lang, 'compare')}</h2>
+          <p style={{ color: '#8A7B6C', fontSize: '13px', textAlign: 'center', margin: '0 0 16px' }}>{st(lang, 'compareSub')}</p>
+          <div className="sb-card" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #EAD9BE' }}>
-                  <th style={{ textAlign: 'left', padding: '14px 16px', fontSize: '12px', color: '#6B2D4E', fontWeight: 700 }}>Feature</th>
+                <tr style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)' }}>
+                  <th style={{ textAlign: 'left', padding: '11px 16px', fontSize: '11px', color: '#FBEEDD', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>Feature</th>
                   {PLANS.map((p) => (
-                    <th key={p.id} style={{ textAlign: 'center', padding: '14px 10px', fontSize: '12px', color: p.color, fontWeight: 800 }}>
+                    <th key={p.id} style={{ textAlign: 'center', padding: '11px 10px', fontSize: '12px', color: activePlanId === p.id ? '#E9C77B' : '#FBEEDD', fontWeight: 800 }}>
                       {p.icon} {p.name}
                     </th>
                   ))}
@@ -843,9 +859,9 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        <div style={{ marginTop: '32px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'why')}</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'whySub')}</p>
+        <div style={{ marginTop: '28px' }}>
+          <h2 style={{ color: '#4A1F38', fontSize: '20px', fontWeight: 800, textAlign: 'center', margin: '0 0 4px' }}>{st(lang, 'why')}</h2>
+          <p style={{ color: '#8A7B6C', fontSize: '13px', textAlign: 'center', margin: '0 0 16px' }}>{st(lang, 'whySub')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             {[
               { icon: '\ud83c\udf0d', title: 'Built for Communities', desc: 'Designed specifically for tontines, sols, and sou-sous - with the app available in English, French, Haitian Creole, Spanish, Portuguese, and more.' },
@@ -862,9 +878,9 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        <div style={{ marginTop: '32px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'reviewsTitle')}</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 20px' }}>{st(lang, 'reviewsSub')}</p>
+        <div style={{ marginTop: '28px' }}>
+          <h2 style={{ color: '#4A1F38', fontSize: '20px', fontWeight: 800, textAlign: 'center', margin: '0 0 4px' }}>{st(lang, 'reviewsTitle')}</h2>
+          <p style={{ color: '#8A7B6C', fontSize: '13px', textAlign: 'center', margin: '0 0 16px' }}>{st(lang, 'reviewsSub')}</p>
           <div style={{ maxWidth: '520px', margin: '0 auto', background: 'white', borderRadius: '14px', padding: '28px', textAlign: 'center', boxShadow: '0 2px 16px rgba(107,45,78,0.08)' }}>
             <div style={{ fontSize: '30px', marginBottom: '10px' }}>{'\ud83d\udcac'}</div>
             <p style={{ color: '#4A1F38', fontSize: '13.5px', margin: '0 0 18px', lineHeight: 1.6 }}>{st(lang, 'reviewCta')}</p>
@@ -874,9 +890,9 @@ function SubscriptionContent() {
           </div>
         </div>
 
-        <div style={{ marginTop: '32px' }}>
-          <h2 style={{ color: '#6B2D4E', fontSize: '24px', fontWeight: 800, textAlign: 'center', margin: '0 0 6px' }}>{st(lang, 'faqTitle')}</h2>
-          <p style={{ color: '#8B5A73', fontSize: '13px', textAlign: 'center', margin: '0 0 24px' }}>{st(lang, 'faqSub')}</p>
+        <div style={{ marginTop: '28px' }}>
+          <h2 style={{ color: '#4A1F38', fontSize: '20px', fontWeight: 800, textAlign: 'center', margin: '0 0 4px' }}>{st(lang, 'faqTitle')}</h2>
+          <p style={{ color: '#8A7B6C', fontSize: '13px', textAlign: 'center', margin: '0 0 16px' }}>{st(lang, 'faqSub')}</p>
           <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {FAQ_ITEMS.map((item, i) => (
               <div key={item.key} style={{ background: 'white', borderRadius: '10px', boxShadow: '0 1px 6px rgba(107,45,78,0.06)', overflow: 'hidden' }}>
@@ -905,11 +921,8 @@ function SubscriptionContent() {
         </div>
       </div>
 
-      <footer style={{ background: '#6B2D4E', textAlign: 'center', padding: '14px', color: 'rgba(251,238,221,0.6)', fontSize: '12px' }}>
-        <span style={{ color: '#E9C77B', fontWeight: 700 }}>UNIMUNITY&trade;</span>{' '}
-        <span>A product of <strong style={{ color: 'rgba(251,238,221,0.9)' }}>Ma Production Luxenn Zara LLC</strong></span>
-        {' '}&middot; &copy; 2026 All Rights Reserved &middot; Version 1.0.0
-      </footer>
+      </div>
+      <Footer />
     </div>
   );
 }

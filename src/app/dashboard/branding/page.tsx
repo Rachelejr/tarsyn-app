@@ -18,8 +18,8 @@ const C = {
   creme: '#FBEEDD',
   ivoire: '#FFFDF7',
   blanc: '#FFFFFF',
-  text: '#1a1a1a',
-  muted: '#6b7280',
+  text: '#3A2F1F',
+  muted: '#8A7B6C',
   green: '#2E7D32',
   greenBg: '#E8F5E9',
   border: '#EAD9BE',
@@ -71,7 +71,6 @@ export default function BrandingPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [showRemoveBtn, setShowRemoveBtn] = useState(false);
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
 
   const [groups, setGroups] = useState<Group[]>([]);
@@ -244,403 +243,300 @@ export default function BrandingPage() {
     </div>
   );
 
-  if (!hasWhiteLabel) {
-    return (
-      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-        <style>{`
-          .UNIMUNITY-hdr-shimmer-title{
-            background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: block;
-            animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
-          }
-          @keyframes UNIMUNITY-hdr-shimmer {
-            0% { background-position: 0% center; }
-            100% { background-position: -200% center; }
-          }
-        `}</style>
-        <div style={{
-          background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-          boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-          padding: '16px 32px',
-          display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
-          alignItems: 'center',
-          columnGap: '16px',
-        }}>
-          <div style={{ justifySelf: 'start' }}>
-            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
-            <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
-          </div>
+  const cardStyle = { background: C.blanc, borderRadius: 16, border: '1px solid #F0E4D6', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' };
+  const groupInitial = (selectedGroup?.name || 'G').trim().charAt(0).toUpperCase();
+
+  const shell = (subtitle: string, body: React.ReactNode) => (
+    <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@400;700;800&family=Montserrat:wght@400;600;700;800&family=Lato:wght@400;700;800&family=Merriweather:wght@400;700;800&family=Oswald:wght@400;600;700&family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;700;800&family=Poppins:wght@400;600;700;800&display=swap');
+        @media (max-width: 900px) { .bs-grid { grid-template-columns: 1fr !important; } .bs-bar { flex-wrap: wrap; } }
+        .bs-card { border: 1px solid #F0E4D6 !important; border-radius: 18px !important; box-shadow: 0 2px 14px rgba(107,45,78,0.06) !important; transition: box-shadow 0.25s ease; }
+        .bs-card:hover { box-shadow: 0 6px 22px rgba(107,45,78,0.10) !important; }
+        .bs-head { display: flex; align-items: center; gap: 11px; margin-bottom: 11px; padding-bottom: 9px; border-bottom: 1px solid #F3E6D8; }
+        .bs-ico { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(74,31,56,0.18); }
+        .bs-title { margin: 0; font-size: 15px; font-weight: 800; color: #4A1F38; }
+        .bs-input, .bs-select { width: 100%; padding: 7px 11px; border: 1.5px solid #EAD9BE; border-radius: 10px; font-size: 13px; outline: none; box-sizing: border-box; background: #FFFDF9; color: #3A2F1F; font-family: Inter, sans-serif; transition: border-color .15s ease, box-shadow .15s ease; }
+        .bs-input:focus, .bs-select:focus { border-color: #E9C77B; box-shadow: 0 0 0 3px rgba(233,199,123,0.25); background: #FFFFFF; }
+        .bs-label { color: #A08B7D; font-size: 11px; font-weight: 700; margin: 0 0 4px; display: block; text-transform: uppercase; letter-spacing: 0.8px; }
+        .bs-section { margin-bottom: 12px; }
+        .bs-section:last-child { margin-bottom: 0; }
+        .bs-help { color: #8A7B6C; font-size: 11px; margin: 4px 0 0; line-height: 1.5; }
+        .bs-swatch { width: 38px; height: 34px; border: 1.5px solid #EAD9BE; border-radius: 9px; cursor: pointer; padding: 2px; background: #fff; flex-shrink: 0; }
+        .bs-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
+        .bs-back:hover { background: #FBEEDD; }
+        .bs-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+        .bs-btn:not(:disabled):hover { filter: brightness(1.06); transform: translateY(-1px); }
+        .UNIMUNITY-hdr-shimmer-title{
+          background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        .UNIMUNITY-hdr-shimmer-sub{
+          background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
+          background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; display: block;
+          animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
+        }
+        @keyframes UNIMUNITY-hdr-shimmer { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
+      `}} />
+      <div style={{ flex: 1 }}>
+        <div style={{ background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', padding: '14px 32px', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 16 }}>
+          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', justifySelf: 'start', cursor: 'pointer' }} />
           <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
-            <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>Branding Studio</h1>
+            <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Branding Studio</h1>
+            <p className="UNIMUNITY-hdr-shimmer-sub" style={{ fontSize: '11.5px', fontWeight: 500, margin: 0 }}>{subtitle}</p>
           </div>
-          <div style={{ textAlign: 'right' as const, justifySelf: 'end' }}>
-            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
+          <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
+        </div>
+        <div style={{ maxWidth: 1220, margin: '0 auto', padding: '14px 24px 20px' }}>
+          <div style={{ marginBottom: 12 }}>
+            <button onClick={() => router.push('/dashboard')} className="bs-back">Back to Dashboard</button>
           </div>
-        </div>
-        <div style={{ maxWidth: '480px', margin: '28px auto 0', padding: '0 24px' }}>
-          <button onClick={() => router.push('/dashboard')}
-            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
-            Back to Dashboard
-          </button>
-        </div>
-        <div style={{ maxWidth: '480px', margin: '20px auto 60px', textAlign: 'center', background: C.blanc, borderRadius: '16px', padding: '36px 28px', border: `1.5px solid ${C.border}` }}>
-          <div style={{ fontSize: '40px', marginBottom: '10px' }}>{'\u{1F512}'}</div>
-          <h2 style={{ color: C.bordeauxDark, fontSize: '18px', fontWeight: 800, margin: '0 0 10px' }}>White Label isn&apos;t included in your {planDisplayName || 'current'} plan</h2>
-          <p style={{ color: C.muted, fontSize: '13.5px', lineHeight: 1.6, margin: '0 0 20px' }}>
-            Custom logos, colors, and slogans for your groups are available starting with the Pro plan. Upgrade to unlock Branding Studio.
-          </p>
-          <button onClick={() => router.push('/dashboard/subscription')} style={{ background: C.bordeaux, color: C.orLight, border: 'none', borderRadius: '10px', padding: '11px 22px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer' }}>
-            View Plans
-          </button>
+          {body}
         </div>
       </div>
-    );
+      <Footer />
+    </div>
+  );
+
+  if (!hasWhiteLabel) {
+    return shell('Your logo, colors and slogan on your member portal.', (
+      <div className="bs-card" style={{ ...cardStyle, maxWidth: 520, margin: '24px auto', textAlign: 'center' as const, padding: '34px 28px' }}>
+        <div style={{ fontSize: 38, marginBottom: 10 }}>{'\u{1F512}'}</div>
+        <h2 style={{ color: C.bordeauxDark, fontSize: 18, fontWeight: 800, margin: '0 0 10px' }}>White Label isn&apos;t included in your {planDisplayName || 'current'} plan</h2>
+        <p style={{ color: C.muted, fontSize: 13.5, lineHeight: 1.6, margin: '0 0 20px' }}>
+          Custom logos, colors, and slogans for your groups are available starting with the Pro plan. Upgrade to unlock Branding Studio.
+        </p>
+        <button onClick={() => router.push('/dashboard/subscription')} className="bs-btn"
+          style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: C.blanc, border: 'none', borderRadius: 12, padding: '11px 24px', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 22px rgba(107,45,78,0.28)' }}>
+          View Plans
+        </button>
+      </div>
+    ));
   }
 
   if (groups.length === 0) {
-    return (
-      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-        <style>{`
-          .UNIMUNITY-hdr-shimmer-title{
-            background: linear-gradient(90deg, #FBEEDD 0%, #FFFFFF 20%, #FBEEDD 40%, #FBEEDD 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: block;
-            animation: UNIMUNITY-hdr-shimmer 4s linear infinite;
-          }
-          @keyframes UNIMUNITY-hdr-shimmer {
-            0% { background-position: 0% center; }
-            100% { background-position: -200% center; }
-          }
-        `}</style>
-        <div style={{
-          background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-          boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-          padding: '16px 32px',
-          display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
-          alignItems: 'center',
-          columnGap: '16px',
-        }}>
-          <div style={{ justifySelf: 'start' }}>
-            <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} />
-            <div style={{ color: '#C4748E', fontSize: '9px', letterSpacing: '2px', fontStyle: 'italic', marginTop: '2px' }}>YOUR COMMUNITY. YOUR POWER.</div>
-          </div>
-          <div style={{ textAlign: 'center' as const, justifySelf: 'center', whiteSpace: 'nowrap' as const }}>
-            <h1 className="UNIMUNITY-hdr-shimmer-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>Branding Studio</h1>
-          </div>
-          <div style={{ textAlign: 'right' as const, justifySelf: 'end' }}>
-            <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-          </div>
-        </div>
-        <div style={{ maxWidth: '500px', margin: '28px auto 0', padding: '0 24px' }}>
-          <button onClick={() => router.push('/dashboard')}
-            style={{ background: 'none', border: 'none', color: C.muted, fontSize: 13, cursor: 'pointer', padding: 0 }}>
-            Back to Dashboard
-          </button>
-        </div>
-        <div style={{ maxWidth: '500px', margin: '40px auto 60px', textAlign: 'center' }}>
-          <p style={{ color: C.muted, fontSize: '14px' }}>Create a group first to configure its branding.</p>
-        </div>
+    return shell('Your logo, colors and slogan on your member portal.', (
+      <div className="bs-card" style={{ ...cardStyle, maxWidth: 520, margin: '24px auto', textAlign: 'center' as const, padding: '34px 28px' }}>
+        <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
+          Create a group first to configure its branding.{' '}
+          <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: C.bordeaux, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create a group</span>
+        </p>
       </div>
-    );
+    ));
   }
 
-  return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.ivoire, fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@400;700;800&family=Montserrat:wght@400;600;700;800&family=Lato:wght@400;700;800&family=Merriweather:wght@400;700;800&family=Oswald:wght@400;600;700&family=Raleway:wght@400;600;700;800&family=Roboto:wght@400;700;800&display=swap');
-        .bs-input, .bs-select { width: 100%; padding: 9px 12px; border: 1.5px solid ${C.border}; border-radius: 10px; font-size: 13px; outline: none; box-sizing: border-box; background: white; }
-        .bs-label { color: ${C.bordeaux}; font-size: 12px; font-weight: 700; margin: 0 0 6px; display: block; text-transform: uppercase; letter-spacing: 0.04em; }
-        .bs-section { margin-bottom: 22px; }
-        .bs-help { color: ${C.muted}; font-size: 11.5px; margin: 4px 0 0; line-height: 1.5; }
-        @media (max-width: 1100px) {
-          .bs-grid { grid-template-columns: 280px 1fr !important; }
-          .bs-advanced { grid-column: 1 / -1 !important; border-top: 1px solid ${C.border}; }
-        }
-        @media (max-width: 700px) {
-          .bs-root { height: auto !important; overflow: visible !important; }
-          .bs-grid { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
-          .bs-col { overflow: visible !important; max-height: none !important; }
-        }
-      `}} />
+  const colorField = (label: string, value: string, set: (v: string) => void, help?: string) => (
+    <div className="bs-section">
+      <label className="bs-label">{label}</label>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input type="color" className="bs-swatch" value={value} onChange={e => set(e.target.value)} />
+        <input className="bs-input" value={value} onChange={e => set(e.target.value)} style={{ fontFamily: 'monospace' }} />
+      </div>
+      {help && <p className="bs-help">{help}</p>}
+    </div>
+  );
 
-      <div style={{
-        flexShrink: 0,
-        background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-        padding: '14px 28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <img onClick={() => router.push('/dashboard')} src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block', cursor: 'pointer' }} />
-        </div>
-        <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ color: C.creme, fontSize: '17px', fontWeight: 700, margin: 0 }}>Branding Studio</h1>
-          {groups.length > 1 && (
-            <select value={selectedGroupId} onChange={e => handleGroupChange(e.target.value)}
-              style={{ marginTop: '4px', background: 'rgba(251,238,221,0.1)', color: C.creme, border: '1px solid rgba(251,238,221,0.3)', borderRadius: '6px', fontSize: '11px', padding: '2px 8px' }}>
-              {groups.map(g => <option key={g.id} value={g.id} style={{ color: '#000' }}>{g.name}</option>)}
-            </select>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, justifyContent: 'flex-end' }}>
-          <DateTimeWeather textColor="rgba(251,238,221,0.85)" />
-          {viewMode === 'edit' ? (
-            <button onClick={handleSave} disabled={saving}
-              style={{ background: C.or, color: C.bordeauxDark, border: 'none', padding: '9px 22px', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
-              {saving ? 'Saving...' : saved ? 'Saved!' : 'Save branding'}
-            </button>
-          ) : (
-            <button onClick={() => setViewMode('edit')}
-              style={{ background: 'rgba(255,255,255,0.1)', color: C.orLight, border: `1px solid ${C.or}`, padding: '9px 22px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>
-              Edit branding
-            </button>
-          )}
-        </div>
+  const preview = (
+    <div className="bs-card" style={{ ...cardStyle, padding: '16px 20px', position: viewMode === 'edit' ? 'sticky' as const : 'static' as const, top: 24 }}>
+      <div className="bs-head">
+        <span className="bs-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u{1F441}\uFE0F'}</span>
+        <h2 className="bs-title">Live Preview</h2>
+        <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: enabled ? C.greenBg : '#F3EEE7', color: enabled ? C.green : C.muted }}>{enabled ? 'White Label on' : 'White Label off'}</span>
       </div>
 
-      <div className="bs-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: viewMode === 'edit' ? '300px 1fr 300px' : '1fr', minHeight: 0 }}>
+      {enabled && (
+        <div style={{ background: '#FBF0D9', color: '#9C7A2E', borderRadius: 10, padding: '8px 12px', fontSize: 11.5, fontWeight: 700, marginBottom: 12, border: '1px solid #EBD9A8' }}>
+          {'\u26A0'} Shows your real group data. This is a mockup layout, not the exact member portal design.
+        </div>
+      )}
 
-        {viewMode === 'edit' && (
-          <div className="bs-col" style={{ borderRight: `1px solid ${C.border}`, padding: '22px', overflowY: 'auto' }}>
-            <p style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 18px' }}>Settings</p>
-
-            <div className="bs-section">
-              <label className="bs-label">Slogan</label>
-              <input className="bs-input" value={slogan} onChange={e => setSlogan(e.target.value)} placeholder="Building wealth together" />
-              <p className="bs-help">Shown under your group name on the member portal.</p>
+      {!enabled ? (
+        <div style={{ background: C.creme, borderRadius: 14, padding: '40px 20px', textAlign: 'center' as const }}>
+          <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>White Label is disabled for this group. Members see the default UNIMUNITY experience.</p>
+        </div>
+      ) : (
+        <div style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.10)', fontFamily: `'${fontFamily}', sans-serif`, border: '1px solid #F0E4D6' }}>
+          <div style={{ background: primaryColor, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" style={{ maxHeight: 50, maxWidth: 190, objectFit: 'contain' as const }} />
+            ) : (
+              <div style={{ width: 42, height: 42, borderRadius: '50%', background: secondaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 800, color: primaryColor }}>{groupInitial}</div>
+            )}
+            <div>
+              <div style={{ color: secondaryColor, fontWeight: 800, fontSize: 20, lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
+              {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: 4 }}>{slogan}</div>}
             </div>
-
-            <div className="bs-section">
-              <label className="bs-label">Slogan color</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="color" value={sloganColor} onChange={e => setSloganColor(e.target.value)}
-                  style={{ width: '40px', height: '38px', border: `1.5px solid ${C.border}`, borderRadius: '8px', cursor: 'pointer', padding: '2px' }} />
-                <input className="bs-input" value={sloganColor} onChange={e => setSloganColor(e.target.value)} style={{ fontFamily: 'monospace' }} />
+          </div>
+          <div style={{ display: 'flex', minHeight: 300 }}>
+            <div style={{ width: 120, background: C.creme, borderRight: '1px solid #F0E4D6', padding: '16px 12px', flexShrink: 0 }}>
+              {['Home', 'Members', 'Payments', 'Docs'].map((item, i) => (
+                <div key={item} style={{ padding: '8px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, color: i === 0 ? primaryColor : C.muted, background: i === 0 ? secondaryColor + '33' : 'transparent', marginBottom: 5 }}>{item}</div>
+              ))}
+            </div>
+            <div style={{ flex: 1, padding: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+                {[
+                  ['Members', statsLoading ? '...' : String(groupStats?.memberCount ?? 0)],
+                  ['Collected', statsLoading ? '...' : `${groupStats?.currency || 'USD'} ${(groupStats?.totalCollected ?? 0).toFixed(0)}`],
+                ].map(([label, val]) => (
+                  <div key={label} style={{ background: C.creme, borderRadius: 10, padding: 13 }}>
+                    <p style={{ fontSize: 10.5, color: C.muted, margin: 0, textTransform: 'uppercase' as const }}>{label}</p>
+                    <p style={{ fontSize: 19, fontWeight: 800, color: primaryColor, margin: '3px 0 0' }}>{val}</p>
+                  </div>
+                ))}
+              </div>
+              <div style={{ border: '1px solid #F0E4D6', borderRadius: 10, overflow: 'hidden' }}>
+                {statsLoading ? (
+                  <div style={{ padding: 14, fontSize: 12, color: C.muted, textAlign: 'center' as const }}>Loading members...</div>
+                ) : groupStats && groupStats.sampleMembers.length > 0 ? (
+                  groupStats.sampleMembers.map((m, i) => (
+                    <div key={m.name + i} style={{ padding: '10px 14px', fontSize: 12, color: C.text, borderBottom: i === 0 && groupStats.sampleMembers.length > 1 ? '1px solid #F0E4D6' : 'none', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{m.name}</span>
+                      <span style={{ color: m.active ? secondaryColor : C.muted, fontWeight: 700 }}>{m.active ? 'Active' : 'Paused'}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ padding: 14, fontSize: 12, color: C.muted, textAlign: 'center' as const }}>No members yet</div>
+                )}
               </div>
             </div>
-
-            <div className="bs-section">
-              <label className="bs-label">Slogan size</label>
-              <select className="bs-select" value={sloganFontSize} onChange={e => setSloganFontSize(Number(e.target.value))}>
-                {SLOGAN_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
+          </div>
+          {showUNIMUNITYBadge && (
+            <div style={{ textAlign: 'center' as const, padding: '9px 0', borderTop: '1px solid #F0E4D6' }}>
+              <span style={{ color: C.muted, fontSize: 10.5 }}>Powered by UNIMUNITY</span>
             </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
-            <div className="bs-section">
-              <label className="bs-label">Logo</label>
-              {logoUrl ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <img
-                    src={logoUrl}
-                    alt="Logo"
-                    onClick={() => setShowRemoveBtn(prev => !prev)}
-                    style={{ maxHeight: '36px', maxWidth: '100px', cursor: 'pointer' }}
-                  />
-                  {showRemoveBtn && (
-                    <button
-                      onClick={() => { setLogoUrl(''); setShowRemoveBtn(false); }}
-                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-                    >
+  return shell('Your logo, colors and slogan on your member portal.', (
+    <>
+      {/* Group + actions bar */}
+      <div className="bs-card bs-bar" style={{ ...cardStyle, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexShrink: 0 }}>
+          <span className="bs-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)' }}>{'\u{1F3A8}'}</span>
+          <h2 className="bs-title">Group</h2>
+        </div>
+        <select className="bs-select" value={selectedGroupId} onChange={e => handleGroupChange(e.target.value)} style={{ flex: 1, minWidth: 180, width: 'auto' }}>
+          {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
+        <div style={{ display: 'flex', background: C.creme, borderRadius: 10, padding: 3, border: '1px solid ' + C.orLight, flexShrink: 0 }}>
+          {(['edit', 'preview'] as const).map(m => (
+            <button key={m} onClick={() => setViewMode(m)}
+              style={{ border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', background: viewMode === m ? C.blanc : 'transparent', color: viewMode === m ? C.bordeaux : C.muted, boxShadow: viewMode === m ? '0 1px 4px rgba(74,31,56,0.12)' : 'none' }}>
+              {m === 'edit' ? 'Edit' : 'Preview'}
+            </button>
+          ))}
+        </div>
+        <button onClick={handleSave} disabled={saving} className="bs-btn"
+          style={{ background: saved ? C.green : 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: C.blanc, border: 'none', padding: '8px 20px', borderRadius: 12, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13.5, fontWeight: 800, opacity: saving ? 0.6 : 1, boxShadow: '0 6px 16px rgba(107,45,78,0.24)', flexShrink: 0 }}>
+          {saving ? 'Saving...' : saved ? '\u2713 Saved' : 'Save Branding'}
+        </button>
+      </div>
+
+      {viewMode === 'preview' ? preview : (
+        <div className="bs-grid" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 16, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+
+            <div className="bs-card" style={{ ...cardStyle, padding: '14px 18px' }}>
+              <div className="bs-head">
+                <span className="bs-ico" style={{ background: 'linear-gradient(135deg,#FCE4EC,#F4B6C7)' }}>{'\u{1F3F7}\uFE0F'}</span>
+                <h2 className="bs-title">Identity</h2>
+              </div>
+              <div className="bs-section">
+                <label className="bs-label">Logo</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 54, height: 40, borderRadius: 9, border: '1px dashed #EAD9BE', background: '#FFFDF9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                    {logoUrl ? <img src={logoUrl} alt="Logo" style={{ maxHeight: 34, maxWidth: 50, objectFit: 'contain' as const }} /> : <span style={{ fontSize: 10, color: C.muted }}>None</span>}
+                  </div>
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="bs-btn"
+                    style={{ flex: 1, background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, padding: '8px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer' }}>
+                    {uploading ? 'Uploading...' : logoUrl ? 'Replace' : 'Upload logo'}
+                  </button>
+                  {logoUrl && (
+                    <button onClick={() => setLogoUrl('')}
+                      style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '8px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                       Remove
                     </button>
                   )}
                 </div>
-              ) : (
-                <p className="bs-help" style={{ margin: '0 0 10px' }}>No custom logo - default UNIMUNITY mark shown.</p>
-              )}
-              <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                style={{ width: '100%', background: C.creme, color: C.bordeaux, border: `1.5px solid ${C.border}`, padding: '9px', borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer' }}>
-                {uploading ? 'Uploading...' : logoUrl ? 'Replace logo' : 'Upload logo'}
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
-            </div>
-
-            <div className="bs-section">
-              <label className="bs-label">Primary color</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)}
-                  style={{ width: '40px', height: '38px', border: `1.5px solid ${C.border}`, borderRadius: '8px', cursor: 'pointer', padding: '2px' }} />
-                <input className="bs-input" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} style={{ fontFamily: 'monospace' }} />
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
+                {!logoUrl && <p className="bs-help">No custom logo: the group initial is shown.</p>}
               </div>
-            </div>
-
-            <div className="bs-section">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: canHideBadge ? 'pointer' : 'not-allowed' }}>
-                <input type="checkbox" checked={canHideBadge ? showUNIMUNITYBadge : true} disabled={!canHideBadge}
-                  onChange={e => setShowUNIMUNITYBadge(e.target.checked)}
-                  style={{ width: '16px', height: '16px', cursor: canHideBadge ? 'pointer' : 'not-allowed', accentColor: C.bordeaux, opacity: canHideBadge ? 1 : 0.6 }} />
-                <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px', opacity: canHideBadge ? 1 : 0.6 }}>Show &quot;Powered by UNIMUNITY&quot;</span>
-              </label>
-              {!canHideBadge && (
-                <p className="bs-help" style={{ margin: '4px 0 0' }}>Hiding this badge is available from the Business plan.</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="bs-col" style={{ padding: viewMode === 'preview' ? '32px 40px' : '22px', overflowY: 'auto', background: C.creme, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '100%', maxWidth: viewMode === 'preview' ? '1000px' : 'none' }}>
-            <p style={{
-              color: viewMode === 'preview' ? C.bordeaux : C.muted,
-              fontSize: viewMode === 'preview' ? '18px' : '11px',
-              fontWeight: 700,
-              textTransform: viewMode === 'preview' ? 'none' : 'uppercase',
-              letterSpacing: viewMode === 'preview' ? 'normal' : '0.05em',
-              margin: '0 0 14px',
-              textAlign: viewMode === 'preview' ? 'center' : 'left',
-            }}>
-              Live preview
-            </p>
-
-            {enabled && (
-              <div style={{
-                background: '#FBF0D9',
-                color: '#9C7A2E',
-                borderRadius: '10px',
-                padding: '10px 16px',
-                fontSize: '12px',
-                fontWeight: 700,
-                marginBottom: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: viewMode === 'preview' ? 'center' : 'flex-start',
-                gap: '6px',
-                width: viewMode === 'preview' ? '100%' : 'auto',
-                boxSizing: 'border-box',
-                textAlign: 'left',
-              }}>
-                {'\u26A0'} Preview - shows your real group data. This is a mockup layout, not the exact member portal design.
+              <div className="bs-section">
+                <label className="bs-label">Slogan</label>
+                <input className="bs-input" value={slogan} onChange={e => setSlogan(e.target.value)} placeholder="Building wealth together" />
+                <p className="bs-help">Shown under your group name on the member portal.</p>
               </div>
-            )}
-
-            {!enabled ? (
-              <div style={{ background: 'white', borderRadius: '14px', padding: '40px 20px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                <p style={{ color: C.muted, fontSize: '13px' }}>White Label is disabled for this group. Members see the default UNIMUNITY experience.</p>
-              </div>
-            ) : (
-              <div style={{
-                background: 'white',
-                borderRadius: '14px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
-                fontFamily: `'${fontFamily}', sans-serif`,
-                width: '100%',
-              }}>
-                <div style={{ background: primaryColor, padding: '20px 28px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" style={{ maxHeight: '52px', maxWidth: '200px', objectFit: 'contain' }} />
-                  ) : (
-                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: secondaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px', fontWeight: 800, color: primaryColor }}>T</div>
-                  )}
-                  <div>
-                    <div style={{ color: secondaryColor, fontWeight: 800, fontSize: '20px', lineHeight: 1 }}>{selectedGroup?.name || 'Your Group'}</div>
-                    {slogan && <div style={{ color: sloganColor, fontSize: `${sloganFontSize}px`, marginTop: '4px' }}>{slogan}</div>}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="bs-section">
+                  <label className="bs-label">Slogan color</label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input type="color" className="bs-swatch" value={sloganColor} onChange={e => setSloganColor(e.target.value)} />
+                    <input className="bs-input" value={sloganColor} onChange={e => setSloganColor(e.target.value)} style={{ fontFamily: 'monospace', fontSize: 12 }} />
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', minHeight: '340px' }}>
-                  <div style={{ width: '120px', background: C.creme, borderRight: `1px solid ${C.border}`, padding: '18px 12px', flexShrink: 0 }}>
-                    {['Home', 'Members', 'Payments', 'Docs'].map((item, i) => (
-                      <div key={item} style={{ padding: '9px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, color: i === 0 ? primaryColor : C.muted, background: i === 0 ? secondaryColor + '33' : 'transparent', marginBottom: '5px' }}>{item}</div>
-                    ))}
-                  </div>
-                  <div style={{ flex: 1, padding: '22px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
-                      {[
-                        ['Members', statsLoading ? '...' : String(groupStats?.memberCount ?? 0)],
-                        ['Collected', statsLoading ? '...' : `${groupStats?.currency || 'USD'} ${(groupStats?.totalCollected ?? 0).toFixed(0)}`],
-                      ].map(([label, val]) => (
-                        <div key={label} style={{ background: C.creme, borderRadius: '10px', padding: '14px' }}>
-                          <p style={{ fontSize: '10.5px', color: C.muted, margin: 0, textTransform: 'uppercase' }}>{label}</p>
-                          <p style={{ fontSize: '19px', fontWeight: 800, color: primaryColor, margin: '3px 0 0' }}>{val}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ border: `1px solid ${C.border}`, borderRadius: '10px', overflow: 'hidden' }}>
-                      {statsLoading ? (
-                        <div style={{ padding: '14px', fontSize: '12px', color: C.muted, textAlign: 'center' }}>Loading members...</div>
-                      ) : groupStats && groupStats.sampleMembers.length > 0 ? (
-                        groupStats.sampleMembers.map((m, i) => (
-                          <div key={m.name + i} style={{ padding: '10px 14px', fontSize: '12px', color: C.text, borderBottom: i === 0 && groupStats.sampleMembers.length > 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>{m.name}</span>
-                            <span style={{ color: m.active ? secondaryColor : C.muted, fontWeight: 700 }}>{m.active ? 'Active' : 'Paused'}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ padding: '14px', fontSize: '12px', color: C.muted, textAlign: 'center' }}>No members yet</div>
-                      )}
-                    </div>
-                  </div>
+                <div className="bs-section">
+                  <label className="bs-label">Slogan size</label>
+                  <select className="bs-select" value={sloganFontSize} onChange={e => setSloganFontSize(Number(e.target.value))}>
+                    {SLOGAN_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
                 </div>
-
-                {showUNIMUNITYBadge && (
-                  <div style={{ textAlign: 'center', padding: '10px 0', borderTop: `1px solid ${C.border}` }}>
-                    <span style={{ color: C.muted, fontSize: '10.5px' }}>Powered by UNIMUNITY</span>
-                  </div>
-                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {viewMode === 'edit' && (
-          <div className="bs-col bs-advanced" style={{ borderLeft: `1px solid ${C.border}`, padding: '22px', overflowY: 'auto' }}>
-            <p style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 18px' }}>Advanced</p>
-
-            <div className="bs-section">
-              <label className="bs-label">Secondary color</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="color" value={secondaryColor} onChange={e => setSecondaryColor(e.target.value)}
-                  style={{ width: '40px', height: '38px', border: `1.5px solid ${C.border}`, borderRadius: '8px', cursor: 'pointer', padding: '2px' }} />
-                <input className="bs-input" value={secondaryColor} onChange={e => setSecondaryColor(e.target.value)} style={{ fontFamily: 'monospace' }} />
+            <div className="bs-card" style={{ ...cardStyle, padding: '14px 18px' }}>
+              <div className="bs-head">
+                <span className="bs-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F58C}\uFE0F'}</span>
+                <h2 className="bs-title">Colors &amp; Font</h2>
               </div>
-              <p className="bs-help">Used for accents and highlights.</p>
+              {colorField('Primary color', primaryColor, setPrimaryColor, 'Header background.')}
+              {colorField('Secondary color', secondaryColor, setSecondaryColor, 'Used for accents and highlights.')}
+              <div className="bs-section">
+                <label className="bs-label">Font</label>
+                <select className="bs-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={{ fontFamily: `'${fontFamily}', sans-serif` }}>
+                  {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
             </div>
 
-            <div className="bs-section">
-              <label className="bs-label">Font</label>
-              <select className="bs-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)}>
-                {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
-              </select>
-            </div>
-
-            <div className="bs-section">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)}
-                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: C.bordeaux }} />
-                <span style={{ color: C.bordeaux, fontWeight: 600, fontSize: '12.5px' }}>Enable White Label</span>
-              </label>
-              <p className="bs-help">Turn off to revert this group to the default UNIMUNITY look.</p>
-            </div>
-
-            <div className="bs-section">
+            <div className="bs-card" style={{ ...cardStyle, padding: '14px 18px' }}>
+              <div className="bs-head">
+                <span className="bs-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u2699\uFE0F'}</span>
+                <h2 className="bs-title">Options</h2>
+              </div>
+              <div className="bs-section">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: C.bordeaux }} />
+                  <span style={{ color: C.bordeauxDark, fontWeight: 700, fontSize: 13 }}>Enable White Label</span>
+                </label>
+                <p className="bs-help">Turn off to revert this group to the default UNIMUNITY look.</p>
+              </div>
+              <div className="bs-section">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: canHideBadge ? 'pointer' : 'not-allowed' }}>
+                  <input type="checkbox" checked={canHideBadge ? showUNIMUNITYBadge : true} disabled={!canHideBadge}
+                    onChange={e => setShowUNIMUNITYBadge(e.target.checked)}
+                    style={{ width: 16, height: 16, cursor: canHideBadge ? 'pointer' : 'not-allowed', accentColor: C.bordeaux, opacity: canHideBadge ? 1 : 0.6 }} />
+                  <span style={{ color: C.bordeauxDark, fontWeight: 700, fontSize: 13, opacity: canHideBadge ? 1 : 0.6 }}>Show &quot;Powered by UNIMUNITY&quot;</span>
+                </label>
+                {!canHideBadge && <p className="bs-help">Hiding this badge is available from the Business plan.</p>}
+              </div>
               <button onClick={handleReset}
-                style={{ width: '100%', background: '#FFEBEE', color: '#C62828', border: 'none', padding: '9px', borderRadius: '10px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ width: '100%', background: '#FFEBEE', color: '#C62828', border: 'none', padding: '8px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
                 Reset to UNIMUNITY default
               </button>
-            </div>
-
-            <div style={{ background: C.creme, borderRadius: '10px', padding: '12px 14px', marginTop: '10px' }}>
-              <p style={{ color: C.bordeaux, fontSize: '11.5px', fontWeight: 700, margin: '0 0 4px' }}>About branding</p>
-              <p style={{ color: C.muted, fontSize: '11px', margin: 0, lineHeight: 1.6 }}>Changes apply only to this group&apos;s member portal. Other groups you manage keep their own independent branding.</p>
+              <p className="bs-help" style={{ marginTop: 10 }}>Changes apply only to this group&apos;s member portal. Each group keeps its own branding.</p>
             </div>
           </div>
-        )}
 
-      </div>
-
-      <Footer />
-    </div>
-  );
+          {preview}
+        </div>
+      )}
+    </>
+  ));
 }

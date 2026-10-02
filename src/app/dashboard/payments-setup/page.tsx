@@ -53,7 +53,14 @@ function PaymentsSetupContent() {
       if (!res.ok) throw new Error(data.error || 'Failed to load status');
       setStatus(data);
     } catch (e: any) {
-      setError(e?.message || 'Could not check your payment setup status.');
+      const msg = String(e?.message || '');
+      // Stripe's raw message includes a masked API key and account id - show a
+      // friendly explanation instead of exposing that on screen.
+      if (/does not have access to account|No such account|account does not exist/i.test(msg)) {
+        setError('The Stripe account saved for you can no longer be reached with the current Stripe keys (it may have been created with different keys or removed). Contact support to reset your payment connection.');
+      } else {
+        setError(msg || 'Could not check your payment setup status.');
+      }
     }
     setLoading(false);
   };
