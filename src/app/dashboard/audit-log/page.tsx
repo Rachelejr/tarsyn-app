@@ -67,7 +67,13 @@ function AuditLogContent() {
           orderBy('createdAt', 'desc')
         );
         const snap = await getDocs(q);
-        setEntries(snap.docs.map(d => ({ id: d.id, ...d.data() } as AuditEntry)));
+        // The church module writes to the same audit_logs collection. Its
+        // events belong to the church workspace, not to this tontine log.
+        const isChurchEvent = (e: AuditEntry) =>
+          /^church/i.test(e.category || '') || /church/i.test(e.action || '');
+        setEntries(snap.docs
+          .map(d => ({ id: d.id, ...d.data() } as AuditEntry))
+          .filter(e => !isChurchEvent(e)));
       } catch (e) {
         console.error(e);
         setEntries([]);
@@ -111,7 +117,7 @@ function AuditLogContent() {
   const smallLabel = { fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase' as const, letterSpacing: 0.8 };
   const visible = showCount === 'all' ? filtered : filtered.slice(0, parseInt(showCount));
   const countCat = (c: string) => entries.filter(e => e.category === c).length;
-  // Fixed categories first, then any other category found in the log (e.g. "Church Member").
+  // Fixed categories first, then any other category found in the log.
   const categoryOptions = Array.from(new Set([...CATEGORIES, ...entries.map(e => e.category).filter(Boolean)]));
   const kpis = [
     { label: 'Total Events', value: entries.length, top: '#E9C77B' },
