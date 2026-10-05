@@ -57,13 +57,19 @@ export async function POST(req: NextRequest) {
     // owes it, so every NEW member going forward gets flagged as required,
     // and immediately marked paid if a sibling membership already covers it.
     try {
-      const priorPaidSnap = await adminDb.collection('members')
+      // The account is already covered when ANY of its other memberships
+      // has paid the fee, or was created before the fee existed (no
+      // accessFeeRequired flag) - those members are never charged later.
+      const siblingsSnap = await adminDb.collection('members')
         .where('userId', '==', userId)
-        .where('accessFeePaid', '==', true)
-        .limit(1)
         .get();
+      const covered = siblingsSnap.docs.some(d => {
+        if (d.id === memberId) return false;
+        const m = d.data();
+        return m.accessFeePaid === true || m.accessFeeRequired !== true;
+      });
       updateData.accessFeeRequired = true;
-      updateData.accessFeePaid = !priorPaidSnap.empty;
+      updateData.accessFeePaid = covered;
     } catch (feeCheckErr) {
       console.error('join-confirm: access fee pre-check failed (defaulting to required, unpaid):', feeCheckErr);
       updateData.accessFeeRequired = true;

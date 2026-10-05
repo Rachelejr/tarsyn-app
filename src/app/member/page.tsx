@@ -801,7 +801,11 @@ function MemberContent() {
   const weekKeysSorted = myPayments ? Object.keys(myPayments.weeks).sort((a, b) => Number(a) - Number(b)) : [];
 
   const needsCommissionSignature = !!(activeMember && groupCommissionTiers.length > 0 && !activeMember?.commissionAgreement?.member?.signedAt);
-  const needsAccessFeePayment = !!(activeMember && activeMember.accessFeeRequired && !activeMember.accessFeePaid);
+  // The access fee is paid once per ACCOUNT, never per group: any other
+  // membership that paid it, or that predates the fee, covers this one.
+  const accessFeeCoveredElsewhere = !!activeMember && allMemberships.some((m: any) =>
+    m.id !== activeMember.id && (m.accessFeePaid === true || m.accessFeeRequired !== true));
+  const needsAccessFeePayment = !!(activeMember && activeMember.accessFeeRequired && !activeMember.accessFeePaid && !accessFeeCoveredElsewhere);
 
   if (needsCommissionSignature) {
     return (
