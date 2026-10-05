@@ -204,6 +204,53 @@ export default function PaymentGridPage() {
 
       if (gridSnap.exists()) {
         loadedGrid = gridSnap.data() as Grid;
+
+        // Members added to the group AFTER the grid was first created were
+        // never given a row. Add a slot (one per share) for every member of
+        // the group that is not in the grid yet, in position order, and save.
+        // Existing slots, payments and history are never changed.
+        const groupMembersSnap = await getDocs(query(collection(db, 'members'), where('groupId', '==', groupId)));
+        const inGrid = new Set(Object.values(loadedGrid.slots || {}).map((sl) => sl.memberId));
+        const missing = groupMembersSnap.docs
+          .filter((m) => !inGrid.has(m.id))
+          .sort((a, b) => (Number(a.data().position) || 9999) - (Number(b.data().position) || 9999));
+        if (missing.length > 0) {
+          const nextSlots: Record<string, Slot> = { ...(loadedGrid.slots || {}) };
+          let slotCounter = Object.keys(nextSlots).reduce((max, k) => Math.max(max, Number(k) || 0), 0) + 1;
+          const added: { userId?: string; memberName: string; slotNums: string[] }[] = [];
+          missing.forEach((m) => {
+            const data = m.data();
+            const shares = Math.max(1, parseInt(data.shares) || 1);
+            const displayName = data.fullName || data.name || '(no name)';
+            const slotNums: string[] = [];
+            for (let sh = 0; sh < shares; sh++) {
+              const num = String(slotCounter++);
+              nextSlots[num] = {
+                slotNumber: num,
+                memberId: m.id,
+                memberName: shares > 1 ? `${displayName} (part ${sh + 1}/${shares})` : displayName,
+              };
+              slotNums.push(num);
+            }
+            added.push({ userId: data.userId, memberName: displayName, slotNums });
+          });
+          loadedGrid = { ...loadedGrid, slots: nextSlots };
+          await setDoc(doc(db, 'paymentGrids', gridId), { slots: nextSlots }, { merge: true });
+          // Registered members also get their read-only view right away, so the
+          // member portal shows their grid without waiting for a payment save.
+          await Promise.all(added.filter((a) => a.userId).map((a) =>
+            setDoc(doc(db, 'paymentGrids', gridId, 'memberViews', a.userId as string), {
+              memberName: a.memberName,
+              slots: a.slotNums,
+              weeks: loadedGrid.weeks || {},
+              payments: {},
+              cycleNumber: loadedGrid.cycleNumber || 1,
+              cycleStart: loadedGrid.startDate || '',
+              cycleEnd: loadedGrid.cycleEndDate || null,
+              cycleHistory: loadedGrid.cycleHistory || [],
+            }, { merge: true }).catch(() => undefined)
+          ));
+        }
       } else {
         const membersQuery = query(
           collection(db, 'members'),
