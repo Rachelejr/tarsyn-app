@@ -380,8 +380,8 @@ function OverviewContent() {
           transform: scale(0.96);
         }
         .rc-card { display: flex; flex-direction: column; }
-        .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: size; overflow-y: auto; }
-        .UNIMUNITY-ov-right .rc-answers { flex: 1; min-height: 0; overflow-y: auto; }
+        /* Side columns keep their own height, whatever the centre column shows. */
+        .UNIMUNITY-ov-right .rc-answers { max-height: 420px; overflow-y: auto; }
         .rc-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #F3E6D8; }
         .rc-ico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
         .rc-group { background: linear-gradient(135deg, #FFFDF9 0%, #FBEEDD 100%); border: 1px solid #F0E0CC; border-radius: 13px; padding: 13px; margin-bottom: 10px; }
@@ -399,7 +399,6 @@ function OverviewContent() {
         @media (max-width: 1200px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
           .UNIMUNITY-ov-sidebar .action-card { padding: 9px 10px !important; }
-          .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: none; overflow: visible; }
         }
       `}</style>
 
@@ -656,7 +655,7 @@ function OverviewContent() {
           <StatCard label="Confirmed Payments" value={confirmedPayments} icon={'\u2714\ufe0f'} gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
           <StatCard label="Pending Payments" value={pendingPayments} icon={'\u23f3'} gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
-        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 340px', gap: '20px', alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 340px', gap: '20px', alignItems: 'start' }}>
         <div className="UNIMUNITY-ov-sidebar" style={{
           background: '#FFFFFF',
           borderRadius: '16px',
@@ -668,7 +667,7 @@ function OverviewContent() {
           marginBottom: '14px',
         }}>
           <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#E9C77B', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 14px', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>Quick Actions</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {[
               { title: 'Record Payment', icon: '\ud83d\udcb0', path: '/dashboard/record-contribution' },
               { title: 'Add Member', icon: '\ud83d\udc64', path: '/dashboard/add-member' },

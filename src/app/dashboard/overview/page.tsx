@@ -255,14 +255,13 @@ function OverviewContent() {
           animation: fadeUp 0.25s ease forwards;
         }
         .rc-card { display: flex; flex-direction: column; }
-        .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: size; overflow-y: auto; }
+        /* Side columns keep their own height, whatever the centre column shows. */
         .rc-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #F3E6D8; }
         .rc-ico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
         .rc-group { background: linear-gradient(135deg, #FFFDF9 0%, #FBEEDD 100%); border: 1px solid #F0E0CC; border-radius: 13px; padding: 13px; margin-bottom: 10px; }
         .rc-group:last-child { margin-bottom: 0; }
         @media (max-width: 1100px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
-          .UNIMUNITY-ov-sidebar, .UNIMUNITY-ov-right { contain: none; overflow: visible; }
         }
         .ov-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
         .ov-back:hover { background: #FBEEDD; }
@@ -365,10 +364,10 @@ function OverviewContent() {
           <StatCard label="Pending Payments" value={pendingPayments} icon="⏳" gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
 
-        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 320px', gap: '16px', alignItems: 'stretch' }}>
+        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 320px', gap: '16px', alignItems: 'start' }}>
         <div className="UNIMUNITY-ov-sidebar" style={{ background: '#FFFFFF', borderRadius: '18px', padding: '16px 18px', border: '1px solid #F0E4D6', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', display: 'flex', flexDirection: 'column', marginBottom: '12px' }}>
           <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#C9974D', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 12px', paddingBottom: '10px', borderBottom: '1px solid #F3E6D8' }}>Quick Actions</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {[
             { title: 'Record Payment', icon: '💵', path: '/dashboard/record-contribution' },
             { title: 'Add Member', icon: '➕', path: '/dashboard/add-member' },
