@@ -597,6 +597,9 @@ function MemberContent() {
               if (!m.groupId) return true;
               try {
                 const gSnap = await getDoc(doc(db, 'groups', m.groupId));
+                // Name each membership after its group, so a member of several
+                // groups (same or different organizers) can tell them apart.
+                if (gSnap.exists() && !m.groupName) m.groupName = gSnap.data()?.name || '';
                 return !(gSnap.exists() && gSnap.data()?.hiddenFromMembers === true);
               } catch (e) { return true; }
             })

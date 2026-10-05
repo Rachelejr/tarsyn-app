@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db, memberAuth } from '@/lib/firebase';
+import { onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
@@ -35,7 +35,7 @@ export default function SwitchWorkspacePage() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/login'); return; }
       try {
-        const [byOrganizer, byAdmin, churchesSnap, churchesByEmail] = await Promise.all([
+        const [byOrganizer, byAdmin, churchesSnap, churchesByEmail, myMemberships] = await Promise.all([
           getDocs(query(collection(db, 'groups'), where('organizerId', '==', u.uid))),
           getDocs(query(collection(db, 'groups'), where('adminId', '==', u.uid))),
           getDocs(query(collection(db, 'churches'), where('organizerId', '==', u.uid))),
@@ -45,6 +45,8 @@ export default function SwitchWorkspacePage() {
           u.email
             ? getDocs(query(collection(db, 'churches'), where('adminEmail', '==', u.email)))
             : Promise.resolve({ empty: true, size: 0, docs: [] } as any),
+          // Groups this same account belongs to as a MEMBER (any organizer).
+          getDocs(query(collection(db, 'members'), where('userId', '==', u.uid))),
         ]);
         const hasTontine = !byOrganizer.empty || !byAdmin.empty;
         const hasChurch = !churchesSnap.empty || !churchesByEmail.empty;
@@ -72,6 +74,17 @@ export default function SwitchWorkspacePage() {
           });
         }
 
+        if (!myMemberships.empty) {
+          const n = myMemberships.size;
+          found.push({
+            key: 'member',
+            icon: '👤',
+            title: 'My Member Space',
+            subtitle: `Groups you belong to as a member (${n} ${n === 1 ? 'group' : 'groups'})`,
+            href: '/member',
+          });
+        }
+
         // Brand-new admin with nothing set up yet: nothing to choose from,
         // so send them straight to module selection instead of showing an
         // empty screen.
@@ -91,6 +104,30 @@ export default function SwitchWorkspacePage() {
     });
     return () => unsub();
   }, [router]);
+
+  // The member portal uses its own sign-in (memberAuth). Open it for this
+  // same account with a short-lived token from the server, so one email and
+  // one password give access to both the organizer and the member spaces.
+  const [memberError, setMemberError] = useState('');
+  const openMemberSpace = async () => {
+    setMemberError('');
+    try {
+      const user = auth.currentUser;
+      if (!user) { router.push('/login'); return; }
+      if (memberAuth.currentUser?.uid !== user.uid) {
+        const res = await fetch('/api/auth/member-session', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + (await user.getIdToken()) },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.token) { setMemberError(data.error || 'Could not open your member space.'); return; }
+        await signInWithCustomToken(memberAuth, data.token);
+      }
+      router.push('/member');
+    } catch {
+      setMemberError('Could not open your member space.');
+    }
+  };
 
   if (loading) {
     return (
@@ -132,7 +169,7 @@ export default function SwitchWorkspacePage() {
         {workspaces.map(w => (
           <button
             key={w.key}
-            onClick={() => router.push(w.href)}
+            onClick={() => (w.key === 'member' ? openMemberSpace() : router.push(w.href))}
             className="ws-card"
             style={{
               background: C.blanc,
@@ -167,6 +204,10 @@ export default function SwitchWorkspacePage() {
           </button>
         ))}
       </div>
+
+      {memberError && (
+        <p style={{ maxWidth: '680px', margin: '16px auto 0', padding: '0 24px', textAlign: 'center', color: '#C62828', fontSize: '13px', fontWeight: 600 }}>{memberError}</p>
+      )}
 
       <div style={{ maxWidth: '680px', margin: '28px auto 0', padding: '0 24px', textAlign: 'center' }}>
         <button onClick={() => router.push('/workspace/select-module')}
