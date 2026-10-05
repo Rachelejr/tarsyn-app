@@ -90,6 +90,7 @@ function OverviewContent() {
   const [groupEditStartDate, setGroupEditStartDate] = useState('');
   const [groupEditStatus, setGroupEditStatus] = useState('active');
   const [groupEditDescription, setGroupEditDescription] = useState('');
+  const [groupEditVisible, setGroupEditVisible] = useState(true);
   const [savingGroup, setSavingGroup] = useState(false);
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
@@ -167,6 +168,8 @@ function OverviewContent() {
         startDate: groupEditStartDate || null,
         status: groupEditStatus,
         description: groupEditDescription.trim(),
+        // Members only see the group in their space when this is false.
+        hiddenFromMembers: !groupEditVisible,
       };
       await updateDoc(doc(db, 'groups', editingGroup.id), updates);
       setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, ...updates } : g));
@@ -437,6 +440,16 @@ function OverviewContent() {
                 </select>
               </div>
             </div>
+
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: groupEditVisible ? '#E8F5E9' : '#FBF0D9', border: '1px solid ' + (groupEditVisible ? '#C8E6C8' : '#EBD9A8'), borderRadius: '10px', padding: '10px 12px', marginBottom: '14px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={groupEditVisible} onChange={e => setGroupEditVisible(e.target.checked)} style={{ width: 16, height: 16, marginTop: 2, accentColor: '#6B2D4E', cursor: 'pointer' }} />
+              <span>
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#4A1F38' }}>Visible to members</span>
+                <span style={{ display: 'block', fontSize: '11.5px', color: '#8A7B6C', marginTop: '2px' }}>
+                  {groupEditVisible ? 'Members see this group in their member space.' : 'Hidden: members of this group do not see it in their member space.'}
+                </span>
+              </span>
+            </label>
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px', marginBottom: '14px' }}>
               <div>
@@ -903,6 +916,9 @@ function OverviewContent() {
                   <span className="pill" style={{ background: g.status === 'active' ? '#E8F5E9' : '#FFF3E0', color: g.status === 'active' ? '#2E7D32' : '#E65100', padding: '3px 9px', fontSize: '10px', textTransform: 'capitalize' }}>
                     {'\u25cf'} {g.status || 'active'}
                   </span>
+                  {g.hiddenFromMembers === true && (
+                    <span className="pill" title="Members do not see this group in their member space. Change it with Edit." style={{ background: '#FBF0D9', color: '#9C7A2E', padding: '3px 9px', fontSize: '10px' }}>Hidden from members</span>
+                  )}
                 </div>
                 <p style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 10px' }}>
                   {g.frequency || 'Weekly'}{(g.contribution || g.amountPerMember) ? ' \u00b7 ' + (g.contribution || g.amountPerMember) + ' ' + (g.currency || 'USD') : ''}
@@ -922,6 +938,7 @@ function OverviewContent() {
                     setGroupEditStartDate(g.startDate || '');
                     setGroupEditStatus(g.status || 'active');
                     setGroupEditDescription(g.description || '');
+                    setGroupEditVisible(g.hiddenFromMembers !== true);
                   }} className="btn-action"
                     style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                     {'\u270f\ufe0f'} Edit
