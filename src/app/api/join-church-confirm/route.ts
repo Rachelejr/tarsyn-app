@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,6 +12,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: NextRequest) {
   try {
     const { memberId, userId, name, email } = await req.json();
+    // The caller must be signed in, and can only act for their own account.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
+    if (userId !== authedUid) return forbidden('You can only do this for your own account.');
 
     if (!memberId || !userId) {
       return NextResponse.json({ error: 'Missing memberId or userId' }, { status: 400 });

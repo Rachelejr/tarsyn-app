@@ -1,6 +1,7 @@
-﻿﻿import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { buildCommissionAgreementDoc } from '@/lib/commission-agreement-doc';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // One-time (safe to re-run) backfill: creates the archived, two-signature
 // commission agreement document for members who signed BEFORE the
@@ -8,6 +9,8 @@ import { buildCommissionAgreementDoc } from '@/lib/commission-agreement-doc';
 // Idempotent - a member who already has one is skipped, so visiting this
 // URL more than once never creates duplicates.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const membersSnap = await adminDb.collection('members').get();
     const signedMembers = membersSnap.docs

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -16,6 +17,8 @@ const STRIPE_FIXED_CENTS = 30;
 const VALID_TYPES = ['tithe', 'offering', 'donation', 'seed'];
 
 export async function POST(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const { memberId, churchId, givingType, amount } = await req.json();
 

@@ -9,6 +9,7 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import * as XLSX from 'xlsx';
 import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   cream: '#F8F4EC',
@@ -319,7 +320,7 @@ function RegisterContent() {
       const inviteLink = 'https://unimunity.com/join/' + code;
       const res = await fetch('/api/send-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({
           emails: [m.email],
           tontineName: group?.name,

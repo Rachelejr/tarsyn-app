@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { getAuthedUid } from '@/lib/apiAuth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
     const { emails, tontineName, region, contribution, currency, frequency, startDate, inviteLink, groupLogo } = await req.json();
+    // Only signed-in users may send invitation / reminder emails.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
 
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json({ error: 'No emails provided' }, { status: 400 });

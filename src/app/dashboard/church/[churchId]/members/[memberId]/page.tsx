@@ -19,6 +19,7 @@ import ChurchSidebar from '@/components/church/ChurchSidebar';
 import ChurchPageHeader from '@/components/church/ChurchPageHeader';
 import { useChurchBrand } from '@/components/church/useChurchBrand';
 import { ChurchUiStyles, ChurchAvatar, ChurchStatusBadge, ChurchEmptyState, statusLabel } from '@/components/church/churchUi';
+import { authHeaders } from '@/lib/authFetch';
 
 const STATUS_OPTIONS = ['Active', 'Inactive', 'New', 'Pending', 'Transferred', 'Visitor', 'Suspended', 'Deceased', 'Other'];
 
@@ -163,7 +164,7 @@ export default function MemberProfilePage() {
     try {
       const res = await fetch('/api/send-church-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({ emails: [m.email], churchName: brand.name || 'your church', inviteLink: 'https://unimunity.com/join-church/' + m.inviteCode, churchId }),
       });
       const data = await res.json();

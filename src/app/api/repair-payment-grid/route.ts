@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { requireMaintenance } from '@/lib/apiAuth';
 
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupName = req.nextUrl.searchParams.get("groupName");
     let groupId = req.nextUrl.searchParams.get("groupId");
@@ -48,6 +51,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const body = await req.json();
     const groupId = body.groupId;

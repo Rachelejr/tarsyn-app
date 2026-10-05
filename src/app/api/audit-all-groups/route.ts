@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Read-only diagnostic endpoint: scans EVERY group on the platform and
 // flags any member whose expectedAmount looks corrupted relative to that
@@ -7,6 +8,8 @@ import { adminDb } from '@/lib/firebase-admin';
 // version of /api/audit-member-amounts, used to find out how widespread
 // this data issue is instead of checking one group at a time.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupsSnap = await adminDb.collection('groups').get();
     const results: any[] = [];

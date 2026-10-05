@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -90,7 +91,7 @@ export default function SecurityCenterPage() {
     try {
       const res = await fetch('/api/revoke-sessions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({ userId: user.uid }),
       });
       const data = await res.json();

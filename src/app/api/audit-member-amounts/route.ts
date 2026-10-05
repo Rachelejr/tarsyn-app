@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Read-only diagnostic endpoint: compares each member's expectedAmount
 // against the group's normal per-part contribution amount, flagging
 // anything that looks like a data-entry mistake (e.g. 6200 instead of 200).
 // Nothing is modified - call this by pasting the URL in a browser.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   const groupId = req.nextUrl.searchParams.get('groupId');
   if (!groupId) {
     return NextResponse.json({ error: 'Missing groupId query parameter' }, { status: 400 });

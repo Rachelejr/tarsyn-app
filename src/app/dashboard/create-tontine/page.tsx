@@ -12,6 +12,7 @@ import {
 import { DEFAULT_COMMISSION_TIERS, CommissionTier } from '../commission-settings/page';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { authHeaders } from '@/lib/authFetch';
 const C = {
   bordeaux:   '#6B2D4E',
   dore:       '#E9C77B',
@@ -376,10 +377,11 @@ export default function CreateTontinePage() {
             console.error('Could not create pending member for', email, memberErr);
           }
         }
+        const inviteAuth = await authHeaders('admin');
         await Promise.allSettled(memberInvites.map(m =>
           fetch('/api/send-invite', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...inviteAuth },
             body: JSON.stringify({
               emails: [m.email],
               tontineName: customName || selectedRegion?.name,

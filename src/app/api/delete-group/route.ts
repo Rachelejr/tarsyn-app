@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Deletes a group and its members. Defaults to PREVIEW mode (no writes) —
 // pass &confirm=true to actually perform the deletion.
@@ -10,6 +11,8 @@ import { adminDb } from '@/lib/firebase-admin';
 // on a group with real data in those collections, extend this endpoint
 // first rather than assuming it's safe.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupId = req.nextUrl.searchParams.get('groupId');
     const confirm = req.nextUrl.searchParams.get('confirm') === 'true';

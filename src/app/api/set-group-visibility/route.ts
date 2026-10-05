@@ -1,10 +1,13 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // GET ?groupId=...&hidden=true|false - toggles whether a group is visible
 // to its members in the member portal (/member). The admin dashboard is
 // never affected by this flag - it only filters the member-facing view.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupId = req.nextUrl.searchParams.get("groupId");
     const hiddenParam = req.nextUrl.searchParams.get("hidden");

@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { buildCommissionAgreementDoc } from '@/lib/commission-agreement-doc';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 
 // Lets an already-registered member sign the organizer's commission
 // agreement after logging in - for members whose account was created
@@ -10,6 +11,10 @@ import { buildCommissionAgreementDoc } from '@/lib/commission-agreement-doc';
 export async function POST(req: NextRequest) {
   try {
     const { memberId, userId, name } = await req.json();
+    // The caller must be signed in, and can only act for their own account.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
+    if (userId !== authedUid) return forbidden('You can only do this for your own account.');
     if (!memberId || !userId || !name || !String(name).trim()) {
       return NextResponse.json({ error: 'Missing memberId, userId or name' }, { status: 400 });
     }

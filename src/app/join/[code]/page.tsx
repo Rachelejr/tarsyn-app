@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { memberAuth as auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -107,7 +108,7 @@ function JoinContent() {
 
       const confirmRes = await fetch('/api/join-confirm', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('member')) },
         body: JSON.stringify({
           memberId: lookup.memberId, userId, name: lookup.fullName || fullName.trim(), email,
           commissionSignatureName: needsCommissionSignature ? commissionSignatureName.trim() : undefined,

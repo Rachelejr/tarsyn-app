@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Outil de diagnostic temporaire : affiche le contenu BRUT d'un membre dans
 // Firestore, sans passer par la Console web. A supprimer une fois le
@@ -8,6 +9,8 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const tynId = req.nextUrl.searchParams.get('tynId');
     const groupId = req.nextUrl.searchParams.get('groupId');

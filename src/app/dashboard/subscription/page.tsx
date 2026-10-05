@@ -8,6 +8,7 @@ import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/fires
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import { PRICE_ID_TO_PLAN as PLAN_LIMITS_PRICE_MAP } from '@/lib/planLimits';
+import { authHeaders } from '@/lib/authFetch';
 
 type BillingPeriod = 'monthly' | 'annual';
 
@@ -325,7 +326,7 @@ function SubscriptionContent() {
     try {
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({
           priceId,
           userId: user.uid,
@@ -354,7 +355,7 @@ function SubscriptionContent() {
     try {
       const res = await fetch('/api/cancel-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({ userId: user.uid }),
       });
       const data = await res.json();
@@ -390,7 +391,7 @@ function SubscriptionContent() {
     try {
       const res = await fetch('/api/update-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({ userId: user.uid, newPriceId }),
       });
       const data = await res.json();

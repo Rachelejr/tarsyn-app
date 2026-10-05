@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bleu: '#6E93AC', bleuFonce: '#4A6B85', or: '#E9C77B',
@@ -55,7 +56,7 @@ export default function MigrateTynIdPage() {
     setScanning(true);
     setResult(null);
     try {
-      const res = await fetch('/api/migrate-tyn-id');
+      const res = await fetch('/api/migrate-tyn-id', { headers: await authHeaders('admin') });
       const data = await res.json();
       setPreview(data.preview || []);
     } catch (e) {
@@ -71,7 +72,7 @@ export default function MigrateTynIdPage() {
     if (!confirm('This will update TYN-IDs for ' + preview.length + ' member(s). Continue?')) return;
     setMigrating(true);
     try {
-      const res = await fetch('/api/migrate-tyn-id', { method: 'POST' });
+      const res = await fetch('/api/migrate-tyn-id', { method: 'POST', headers: await authHeaders('admin') });
       const data = await res.json();
       setResult(data);
       await scanPreview();

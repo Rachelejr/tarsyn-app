@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Read-only diagnostic endpoint: for a given groupId, scans every collection
 // that plausibly stores group-linked data and reports how many documents
@@ -7,6 +8,8 @@ import { adminDb } from '@/lib/firebase-admin';
 // which collections/subcollections need to be cleaned up and don't leave
 // orphaned data behind.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupId = req.nextUrl.searchParams.get('groupId');
     if (!groupId) {

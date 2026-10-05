@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Read-only diagnostic: lists every group with its name and organizerId,
 // so we can compare against the uid of the account that's being tested.
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupsSnap = await adminDb.collection('groups').get();
     const groups = groupsSnap.docs.map((d) => ({

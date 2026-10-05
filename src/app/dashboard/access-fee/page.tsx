@@ -6,6 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { loadStripe } from '@stripe/stripe-js';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = { bordeaux: '#6B2D4E', creme: '#FBEEDD', dore: '#E9C77B', text: '#4A1F38', muted: '#8A7B6C' };
 
@@ -35,7 +36,7 @@ export default function AccessFeePage() {
     try {
       const res = await fetch('/api/create-access-fee-payment-intent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({ role: 'organizer', uid, email }),
       });
       const data = await res.json();

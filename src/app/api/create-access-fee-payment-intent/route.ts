@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -23,6 +24,10 @@ const AMOUNTS_CENTS: Record<'organizer' | 'member', number> = {
 export async function POST(req: NextRequest) {
   try {
     const { role, uid, email, memberId } = await req.json();
+    // The caller must be signed in, and can only act for their own account.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
+    if (uid !== authedUid) return forbidden('You can only do this for your own account.');
 
     if (role !== 'organizer' && role !== 'member') {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });

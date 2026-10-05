@@ -52,6 +52,7 @@ import { addDoc } from 'firebase/firestore';
 import ChurchSidebar from '@/components/church/ChurchSidebar';
 import ChurchPageHeader from '@/components/church/ChurchPageHeader';
 import { useChurchBrand } from '@/components/church/useChurchBrand';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   pink: '#FDE2E4',
@@ -601,7 +602,7 @@ function AddChurchMemberContent() {
         try {
           const inviteRes = await fetch('/api/send-church-invite', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
             body: JSON.stringify({ emails: [form.email], churchName: churchName || brand.name || 'your church', inviteLink, churchId }),
           });
           const inviteData = await inviteRes.json();

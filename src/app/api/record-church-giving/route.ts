@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -10,6 +11,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 // before writing anything to Firestore - important since this creates a
 // real financial record (a tithe/offering/donation/seed gift).
 export async function POST(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const { paymentIntentId } = await req.json();
     if (!paymentIntentId) {

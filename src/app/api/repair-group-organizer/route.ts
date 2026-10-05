@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 async function scanGroups() {
   const groupsSnap = await adminDb.collection('groups').get();
@@ -25,7 +26,9 @@ async function scanGroups() {
 
 // GET = read-only preview, lists every group that has adminId but no organizerId.
 // Nothing is changed until POST is called.
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const { broken, total } = await scanGroups();
     return NextResponse.json({ broken, brokenCount: broken.length, total });
@@ -37,7 +40,9 @@ export async function GET() {
 
 // POST = actually backfill organizerId = adminId on every affected group.
 // Safe to run more than once - it only touches groups missing organizerId.
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const { broken } = await scanGroups();
     const fixed: any[] = [];

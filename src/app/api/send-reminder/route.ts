@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { getAuthedUid } from '@/lib/apiAuth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
     const { memberEmail, memberName, groupName, amount, dueDate, adminName, groupLogo } = await req.json();
+    // Only signed-in users may send invitation / reminder emails.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
 
     if (!memberEmail || !memberName || !groupName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

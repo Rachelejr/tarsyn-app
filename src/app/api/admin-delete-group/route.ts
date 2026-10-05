@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { requireMaintenance } from '@/lib/apiAuth';
 
 async function buildReport(groupId: string) {
   const groupRef = adminDb.collection("groups").doc(groupId);
@@ -50,6 +51,8 @@ async function buildReport(groupId: string) {
 // a link in the browser address bar, no console/POST needed.
 // Without &confirm=true it is a pure dry run (nothing is deleted).
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const groupId = req.nextUrl.searchParams.get("groupId");
     const confirm = req.nextUrl.searchParams.get("confirm") === "true";
@@ -86,6 +89,8 @@ export async function GET(req: NextRequest) {
 // POST body: { groupId: string, confirm?: boolean } - same logic, for anyone
 // who prefers calling this from the browser console instead.
 export async function POST(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const body = await req.json();
     const groupId = body.groupId;

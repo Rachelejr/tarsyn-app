@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { adminDb } from '@/lib/firebase-admin';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -39,6 +40,13 @@ function isHttpsUrl(v: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const { emails, churchName: bodyChurchName, inviteLink, churchId } = await req.json();
+    // Only the church's organizer may send its invitations.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
+    if (churchId && typeof churchId === 'string') {
+      const ownerSnap = await adminDb.collection('churches').doc(churchId).get();
+      if (!ownerSnap.exists || ownerSnap.data()?.organizerId !== authedUid) return forbidden();
+    }
 
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json({ error: 'No emails provided' }, { status: 400 });

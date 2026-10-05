@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -209,7 +210,7 @@ function RemindersContent() {
       try {
         const res = await fetch('/api/send-reminder', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
           body: JSON.stringify({
             memberEmail: member.email,
             memberName: member.fullName,

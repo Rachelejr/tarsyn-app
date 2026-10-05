@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -21,6 +22,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 // update the webhook itself would have made. Visiting this URL again for
 // an already-repaired account is harmless - it just confirms and exits.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const { searchParams } = new URL(req.url);
     const uid = searchParams.get('uid');

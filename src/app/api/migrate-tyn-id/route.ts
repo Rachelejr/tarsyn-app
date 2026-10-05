@@ -1,5 +1,6 @@
-﻿import { NextResponse } from 'next/server';
+﻿import { NextResponse, NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 function computeNewTynId(fullName: string, sequence: number): string {
   const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
@@ -42,7 +43,9 @@ async function buildMigrationPlan() {
   }
   return plan;
 }
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const plan = await buildMigrationPlan();
     return NextResponse.json({ preview: plan });
@@ -52,7 +55,9 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const plan = await buildMigrationPlan();
     const migrated: any[] = [];

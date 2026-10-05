@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // One-time (safe to re-run) repair: a private chat's participantIds are
 // captured once, when the organizer first starts the conversation with a
@@ -20,6 +21,8 @@ import { adminDb } from '@/lib/firebase-admin';
 // already correct are skipped, so visiting this URL more than once never
 // causes harm.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   try {
     const chatsSnap = await adminDb.collection('chats').where('type', '==', 'private').get();
     const membersSnap = await adminDb.collection('members').get();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Read-only preview / delete endpoint: finds payment documents in the
 // 'payments' collection for a given group whose amount looks corrupted
@@ -8,6 +9,8 @@ import { adminDb } from '@/lib/firebase-admin';
 // fix-member-amounts). Without &confirm=true, this only PREVIEWS what
 // would be deleted - nothing is touched.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   const groupId = req.nextUrl.searchParams.get('groupId');
   const confirm = req.nextUrl.searchParams.get('confirm') === 'true';
   if (!groupId) {

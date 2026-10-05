@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { memberAuth as auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { authHeaders } from '@/lib/authFetch';
 
 // Church module pastel palette (Sept 2026 direction) — the same one used
 // across Ministries/Families/Events/Dashboard. Deliberately different from
@@ -108,7 +109,7 @@ function JoinChurchContent() {
 
       const confirmRes = await fetch('/api/join-church-confirm', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('member')) },
         body: JSON.stringify({ memberId: lookup.memberId, userId, name: lookup.fullName || fullName.trim(), email }),
       });
       if (!confirmRes.ok) {

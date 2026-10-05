@@ -32,6 +32,7 @@ import {
   ChurchUiStyles, ChurchSummaryCard, ChurchSearchBar, ChurchFilterBar, ChurchMemberList,
   ChurchEmptyState, statusLabel, type MemberRowData, type MemberMenuItem,
 } from '@/components/church/churchUi';
+import { authHeaders } from '@/lib/authFetch';
 
 interface ChurchMemberDoc extends MemberRowData {
   firstName?: string;
@@ -240,7 +241,7 @@ export default function ChurchMembersPage() {
     try {
       const res = await fetch('/api/send-church-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
         body: JSON.stringify({ emails: [m.email], churchName: brand.name || 'your church', inviteLink: 'https://unimunity.com/join-church/' + m.inviteCode, churchId }),
       });
       const data = await res.json();

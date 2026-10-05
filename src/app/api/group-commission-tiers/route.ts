@@ -1,5 +1,6 @@
-﻿﻿import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { getAuthedUid } from '@/lib/apiAuth';
 
 const DEFAULT_COMMISSION_TIERS = [
   { min: 0, max: 3000, rate: 5 },
@@ -18,6 +19,8 @@ const DEFAULT_COMMISSION_TIERS = [
 // to another user's private account document.
 export async function GET(req: NextRequest) {
   try {
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
     const groupId = req.nextUrl.searchParams.get('groupId');
     if (!groupId) {
       return NextResponse.json({ error: 'Missing groupId' }, { status: 400 });

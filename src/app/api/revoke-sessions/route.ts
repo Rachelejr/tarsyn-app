@@ -1,9 +1,14 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json();
+    // The caller must be signed in, and can only act for their own account.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
+    if (userId !== authedUid) return forbidden('You can only do this for your own account.');
     if (!userId) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }

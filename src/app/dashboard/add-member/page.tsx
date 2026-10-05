@@ -8,6 +8,7 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import QRCodeInvitation from '@/components/qr/QRCodeInvitation';
 import { getOrganizerPlanTier, getPlanLimits, countOrganizerMembers, planLimitMessage } from '@/lib/planLimits';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -226,7 +227,7 @@ function AddMemberContent() {
         try {
           const inviteRes = await fetch('/api/send-invite', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
             body: JSON.stringify({
               emails: [form.email],
               tontineName: selectedGroup?.name,

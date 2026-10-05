@@ -12,6 +12,7 @@ import TrialGuard from '@/components/TrialGuard';
 import DocumentComments from '@/components/DocumentComments';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -316,7 +317,7 @@ function MemberContent() {
       const weekIndexes = myPayments.missingWeeks.map((w) => w.replace(/^W/, ''));
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('member')) },
         body: JSON.stringify({ memberId: activeMember.id, groupId: activeMember.groupId, weekIndexes }),
       });
       const data = await res.json();
@@ -405,7 +406,7 @@ function MemberContent() {
   // so every member (old groups included) sees real tiers and signs them.
   const fetchCommissionTiers = async (groupId: string): Promise<{ tiers: any[]; currency: string }> => {
     try {
-      const res = await fetch('/api/group-commission-tiers?groupId=' + encodeURIComponent(groupId));
+      const res = await fetch('/api/group-commission-tiers?groupId=' + encodeURIComponent(groupId), { headers: await authHeaders('member') });
       if (!res.ok) return { tiers: [], currency: '' };
       const data = await res.json();
       return { tiers: Array.isArray(data.tiers) ? data.tiers : [], currency: data.currency || '' };
@@ -468,7 +469,7 @@ function MemberContent() {
     try {
       const res = await fetch('/api/sign-commission-agreement', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('member')) },
         body: JSON.stringify({ memberId: activeMember.id, userId: uid, name: commissionSignatureName.trim() }),
       });
       if (!res.ok) {
@@ -491,7 +492,7 @@ function MemberContent() {
     try {
       const res = await fetch('/api/create-access-fee-payment-intent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('member')) },
         body: JSON.stringify({ role: 'member', uid, memberId: activeMember.id, email: activeMember.email || '' }),
       });
       const data = await res.json();
@@ -756,7 +757,7 @@ function MemberContent() {
     try {
       const res = await fetch('/api/delete-document', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' , ...(await authHeaders('member')) },
         body: JSON.stringify({ documentId: d.id, userId: uid }),
       });
       if (!res.ok) {

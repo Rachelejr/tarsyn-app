@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -29,6 +30,10 @@ export async function POST(req: NextRequest) {
     if (!member.userId) {
       return NextResponse.json({ error: 'This member record is not linked to a user account yet. Contact your organizer.' }, { status: 400 });
     }
+    // Only the member who owns this record can pay for it.
+    const authedUid = await getAuthedUid(req);
+    if (typeof authedUid !== 'string') return authedUid;
+    if (member.userId !== authedUid) return forbidden('You can only pay for your own membership.');
 
     const organizerId = member.organizerId;
     if (!organizerId) {

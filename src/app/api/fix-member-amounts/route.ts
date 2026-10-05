@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireMaintenance } from '@/lib/apiAuth';
 
 // Bulk-fix endpoint: resets expectedAmount to the group's normal per-share
 // contribution amount for any member whose expectedAmount looks corrupted
 // (more than 3x or less than 0.34x the expected value based on shares).
 // Without &confirm=true, this only PREVIEWS the changes - nothing is written.
 export async function GET(req: NextRequest) {
+  const blocked = await requireMaintenance(req);
+  if (blocked) return blocked;
   const groupId = req.nextUrl.searchParams.get('groupId');
   const confirm = req.nextUrl.searchParams.get('confirm') === 'true';
   if (!groupId) {
