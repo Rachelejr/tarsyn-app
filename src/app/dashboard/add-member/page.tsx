@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import QRCodeInvitation from '@/components/qr/QRCodeInvitation';
 import { getOrganizerPlanTier, getPlanLimits, countOrganizerMembers, planLimitMessage } from '@/lib/planLimits';
 
 const C = {
@@ -65,6 +66,7 @@ function AddMemberContent() {
   const [payoutDates, setPayoutDates] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [addedInvite, setAddedInvite] = useState<{ code: string; name: string; groupName: string } | null>(null);
   const [inviteStatus, setInviteStatus] = useState<'sent' | 'failed' | 'no-email' | null>(null);
   const [tynId, setTynId] = useState('');
   const [nextPosition, setNextPosition] = useState(1);
@@ -244,6 +246,7 @@ function AddMemberContent() {
         }
       }
 
+      setAddedInvite({ code: memberInviteCode, name: fullName, groupName: groups.find(g => g.id === selectedGroupId)?.name || '' });
       setSuccess(true);
     } catch (e) { console.error(e); alert('Error adding member.'); }
     setLoading(false);
@@ -253,8 +256,8 @@ function AddMemberContent() {
 
   if (success) {
     return (
-      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: C.blanc, borderRadius: 18, padding: '48px 40px', textAlign: 'center', maxWidth: 480, width: '90%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}>
+        <div style={{ background: C.blanc, borderRadius: 18, padding: '36px 32px', textAlign: 'center', maxWidth: 480, width: '90%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           <div style={{ width: 64, height: 64, borderRadius: 16, background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 28 }}>+</div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 8px' }}>Member added successfully</h2>
           <p style={{ fontSize: 14, color: C.muted, margin: '0 0 16px', lineHeight: 1.6 }}>The member is now part of the active cycle.</p>
@@ -274,12 +277,22 @@ function AddMemberContent() {
               Member added, but the invitation email could not be sent. Try resending it from the group's member list.
             </div>
           )}
+          {addedInvite && (
+            <div style={{ background: '#FFFCF7', border: '1px solid #F0E4D6', borderRadius: 16, padding: '16px 14px', margin: '0 0 20px', textAlign: 'left' }}>
+              <QRCodeInvitation
+                invitationUrl={'https://unimunity.com/join/' + addedInvite.code}
+                groupName={addedInvite.groupName || 'UNIMUNITY'}
+                groupType="tontine"
+                personName={addedInvite.name}
+              />
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
             <button onClick={() => router.push('/dashboard/contribution-log?groupId=' + selectedGroupId)}
               style={{ background: C.or, color: C.bordeauxDark, border: 'none', borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               View Register
             </button>
-            <button onClick={() => { setSuccess(false); setInviteStatus(null); setExpectedAmountTouched(false); setForm({ firstName: '', lastName: '', address: '', phone: '', email: '', country: '', nationality: '', memberType: 'Regular', gender: '', colorTag: '', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
+            <button onClick={() => { setSuccess(false); setAddedInvite(null); setInviteStatus(null); setExpectedAmountTouched(false); setForm({ firstName: '', lastName: '', address: '', phone: '', email: '', country: '', nationality: '', memberType: 'Regular', gender: '', colorTag: '', role: 'member', position: String(nextPosition + 1), payoutDate: '', expectedAmount: '0', currency: 'USD', status: 'pending', notes: '', shares: '1' }); setPayoutDates(['']); }}
               style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.orLight, borderRadius: 10, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Add Another
             </button>

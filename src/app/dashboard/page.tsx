@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import QRCodeModal from '@/components/qr/QRCodeModal';
 
 function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
@@ -94,6 +95,7 @@ function OverviewContent() {
   const [validatingProof, setValidatingProof] = useState<string | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
+  const [qrMember, setQrMember] = useState<{ inviteCode?: string; groupId?: string; fullName?: string; name?: string } | null>(null);
   const [memberEditName, setMemberEditName] = useState('');
   const [memberEditPayoutDate, setMemberEditPayoutDate] = useState('');
   const [memberEditAmount, setMemberEditAmount] = useState('');
@@ -761,6 +763,12 @@ function OverviewContent() {
                               style={{ background: '#E3F2FD', color: '#1565C0', border: 'none', cursor: 'pointer' }}>
                               {'\u270f\ufe0f'} Edit
                             </button>
+                            {!m.userId && (
+                              <button onClick={() => setQrMember(m)} className="btn-action pill" title="Show this member's personal invitation QR code"
+                                style={{ background: '#FBEEDD', color: '#6B2D4E', border: '1px solid #F0DCA8', cursor: 'pointer' }}>
+                                {'\u25A3'} QR
+                              </button>
+                            )}
                             {m.status !== 'active' && (
                               <button onClick={() => handleUpdateStatus(m.id, 'active')} disabled={updatingMember === m.id} className="btn-action pill"
                                 style={{ background: '#E8F5E9', color: '#2E7D32', border: 'none', cursor: 'pointer' }}>
@@ -1013,6 +1021,14 @@ function OverviewContent() {
       </div>
 
       </div>
+      <QRCodeModal
+        open={!!qrMember}
+        onClose={() => setQrMember(null)}
+        invitationUrl={qrMember?.inviteCode ? 'https://unimunity.com/join/' + String(qrMember.inviteCode).trim() : ''}
+        groupName={groups.find(g => g.id === qrMember?.groupId)?.name || 'UNIMUNITY'}
+        groupType="tontine"
+        personName={qrMember?.fullName || qrMember?.name || ''}
+      />
       <Footer />
     </div>
   );

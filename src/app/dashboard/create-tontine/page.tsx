@@ -481,7 +481,6 @@ export default function CreateTontinePage() {
         <div style={{ background: C.creme, borderRadius: '16px', padding: '20px', marginBottom: '24px', textAlign: 'left' }}>
           {[
             { label: 'Tontine Code', value: savedGroup.tontineCode, mono: true },
-            { label: 'Invite Code', value: savedGroup.inviteCode, mono: true },
             { label: 'Region', value: savedGroup.region },
             { label: 'Contribution', value: `${savedGroup.contribution} / ${savedGroup.frequency}` },
             { label: 'Members', value: savedGroup.members },
@@ -493,15 +492,11 @@ export default function CreateTontinePage() {
               <span style={{ color: C.bordeaux, fontWeight: '700', fontSize: '13px', fontFamily: item.mono ? 'monospace' : 'inherit' }}>{item.value}</span>
             </div>
           ))}
-          <div style={{ marginTop: '8px' }}>
-            <p style={{ color: C.texteGris, fontSize: '12px', margin: '0 0 8px' }}>Invite Link</p>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <p style={{ color: C.bordeaux, fontSize: '12px', wordBreak: 'break-all', fontWeight: '600', flex: 1, margin: 0 }}>{savedGroup.inviteLink}</p>
-              <button className="UNIMUNITY-btn" onClick={() => copyLink(savedGroup.inviteLink)}
-                style={{ background: copied ? '#2E7D32' : C.bordeaux, color: 'white', border: 'none', borderRadius: '10px', padding: '6px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {copied ? <Check size={13} /> : <CopyIcon size={13} />} {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
+          <div style={{ marginTop: '8px', background: 'white', border: '1px solid #F0E4D6', borderRadius: '12px', padding: '12px 14px' }}>
+            <p style={{ color: C.bordeaux, fontSize: '13px', fontWeight: 800, margin: '0 0 4px' }}>Invite Members</p>
+            <p style={{ color: C.texteGris, fontSize: '12.5px', margin: 0, lineHeight: 1.55 }}>
+              Each member gets a personal invitation link by email. To show a member their QR code, open the Dashboard and click QR next to their name in Member Management.
+            </p>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
