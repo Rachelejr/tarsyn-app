@@ -8,6 +8,7 @@ import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, a
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import QRCodeModal from '@/components/qr/QRCodeModal';
+import JoinRequestsCard from '@/components/referral/JoinRequestsCard';
 
 function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
@@ -929,6 +930,9 @@ function OverviewContent() {
               </div>
             ))}
           </div>
+
+          {/* Join requests proposed by members (referral). */}
+          <JoinRequestsCard />
 
           {/* Next cycle answers: what members replied from their page (live). */}
           {(() => {

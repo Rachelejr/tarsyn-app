@@ -13,6 +13,7 @@ import DocumentComments from '@/components/DocumentComments';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import { authHeaders } from '@/lib/authFetch';
+import ReferralInviteButton from '@/components/referral/ReferralInviteButton';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -969,6 +970,7 @@ function MemberContent() {
           style={{ background: C.creme, color: C.bordeaux, border: `1.5px solid ${C.border}`, padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
           View Receipts ({receiptDocs.length})
         </button>
+        {activeMember?.id && activeMember?.userId && <ReferralInviteButton memberId={activeMember.id} />}
         <button className="qa-btn" onClick={() => router.push('/leave-review')}
           style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.border, padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
           Leave a Review
