@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
+import { buildReceiptHtml } from '@/lib/receiptHtml';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -239,16 +240,22 @@ export async function POST(req: NextRequest) {
             const contributionAmount = meta.contributionCents ? (parseInt(meta.contributionCents) / 100) : 0;
             const currencyLabel = (meta.currency || 'usd').toUpperCase();
             const weeksLabel = weekIdxList.map((w: string) => 'W' + w).join(', ');
-            const receiptHtml =
-              '<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">' +
-              '<h2 style="color:#6B2D4E;">UNIMUNITY Payment Receipt</h2>' +
-              '<p><strong>Member:</strong> ' + (memberData.fullName || memberData.name || '') + '</p>' +
-              '<p><strong>Weeks:</strong> ' + weeksLabel + '</p>' +
-              '<p><strong>Amount:</strong> ' + currencyLabel + ' ' + contributionAmount.toFixed(2) + '</p>' +
-              '<p><strong>Payment method:</strong> Card (via Stripe)</p>' +
-              '<p><strong>Status:</strong> Paid</p>' +
-              '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by UNIMUNITY(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
-              '</body></html>';
+            // Receipt issued under the group's own name (UNIMUNITY is only the tool).
+            const receiptGroupSnap = memberData.groupId ? await adminDb.collection('groups').doc(memberData.groupId).get() : null;
+            const receiptGroup = receiptGroupSnap && receiptGroupSnap.exists ? receiptGroupSnap.data() as any : {};
+            const receiptBrand = receiptGroup.groupBrand || {};
+            const receiptHtml = buildReceiptHtml({
+              groupName: receiptGroup.name || '',
+              logoUrl: receiptBrand.enabled !== false ? receiptBrand.logo : undefined,
+              showBadge: !(receiptBrand.enabled !== false && receiptBrand.showUNIMUNITYBadge === false),
+              rows: [
+                ['Member', memberData.fullName || memberData.name || ''],
+                ['Weeks', weeksLabel],
+                ['Amount', currencyLabel + ' ' + contributionAmount.toFixed(2)],
+                ['Payment method', 'Card (via Stripe)'],
+                ['Status', 'Paid'],
+              ],
+            });
             const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 
             await adminDb.collection('documents').add({

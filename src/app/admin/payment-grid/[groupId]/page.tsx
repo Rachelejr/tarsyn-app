@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
+import { buildReceiptHtml } from '@/lib/receiptHtml';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -143,6 +144,7 @@ export default function PaymentGridPage() {
   const [grid, setGrid] = useState<Grid | null>(null);
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState('');
+  const [groupBrand, setGroupBrand] = useState<{ logo?: string; enabled?: boolean; showUNIMUNITYBadge?: boolean } | null>(null);
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
   const [memberAmounts, setMemberAmounts] = useState<Record<string, number>>({});
@@ -196,6 +198,7 @@ export default function PaymentGridPage() {
       ]);
       if (groupSnap.exists()) {
         setGroupName(groupSnap.data().name || 'Group');
+        setGroupBrand(groupSnap.data().groupBrand || null);
         const amt = groupSnap.data().weeklyAmount || groupSnap.data().contributionAmount;
         if (typeof amt === 'number') setWeeklyAmount(amt);
       }
@@ -462,16 +465,18 @@ export default function PaymentGridPage() {
 
           const memberAmount = memberAmounts[slot.memberId] ?? weeklyAmount;
           const amountLabel = memberAmount ? '$' + memberAmount.toLocaleString() : 'Amount not set';
-          const receiptHtml =
-            '<html><body style="font-family:sans-serif;padding:32px;color:#4A1F38;">' +
-            '<h2 style="color:#6B2D4E;">UNIMUNITY Payment Receipt</h2>' +
-            '<p><strong>Group:</strong> ' + groupName + '</p>' +
-            '<p><strong>Member:</strong> ' + slot.memberName + '</p>' +
-            '<p><strong>Week:</strong> W' + weekIdx + ' (' + weekDate + ')</p>' +
-            '<p><strong>Amount:</strong> ' + amountLabel + '</p>' +
-            '<p><strong>Status:</strong> Paid</p>' +
-            '<hr/><p style="font-size:11px;color:#8A7B6C;">Powered by UNIMUNITY(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
-            '</body></html>';
+          // Receipt issued under the group's own name (UNIMUNITY is only the tool).
+          const receiptHtml = buildReceiptHtml({
+            groupName,
+            logoUrl: groupBrand?.enabled !== false ? groupBrand?.logo : undefined,
+            showBadge: !(groupBrand?.enabled !== false && groupBrand?.showUNIMUNITYBadge === false),
+            rows: [
+              ['Member', slot.memberName],
+              ['Week', 'W' + weekIdx + ' (' + weekDate + ')'],
+              ['Amount', amountLabel],
+              ['Status', 'Paid'],
+            ],
+          });
           const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 
           receiptPromises.push(

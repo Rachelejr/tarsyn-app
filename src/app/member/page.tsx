@@ -69,6 +69,7 @@ function MemberContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
+  const [hiddenNow, setHiddenNow] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('General');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -776,12 +777,38 @@ function MemberContent() {
     }
   };
 
+  // Remove an organizer-issued document from MY list only (never deleted).
+  const handleHideDoc = async (d: any) => {
+    if (!activeMember?.id) return;
+    if (!confirm('Remove "' + d.name + '" from your list? Your organizer keeps their copy.')) return;
+    setDeletingId(d.id);
+    try {
+      const res = await fetch('/api/member-hide-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders('member')) },
+        body: JSON.stringify({ memberId: activeMember.id, documentId: d.id }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Failed (${res.status})`);
+      }
+      setHiddenNow(h => [...h, d.id]);
+    } catch (e: any) {
+      setError('Could not remove this file: ' + (e?.message || 'unknown error'));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const handlePrint = (url: string) => {
     const w = window.open(url, '_blank');
     w?.addEventListener('load', () => w.print());
   };
 
+  // Documents this member removed from their own list (organizer copies stay).
+  const hiddenIds = new Set<string>([...((activeMember?.hiddenDocIds as string[]) || []), ...hiddenNow]);
   const filteredDocs = docs.filter(d => {
+    if (hiddenIds.has(d.id)) return false;
     const matchSearch = d.name?.toLowerCase().includes(search.toLowerCase());
     const matchCat = filterCat === 'All' || d.category === filterCat;
     return matchSearch && matchCat;
@@ -851,7 +878,29 @@ function MemberContent() {
 
   if (needsAccessFeePayment) {
     return (
-      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: 20 }}>
+      <div style={{ minHeight: '100vh', background: C.creme, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '76px 20px 20px' }}>
+        {/* Members of several groups can still switch to another group
+            (or sign out) from here instead of being stuck on this screen. */}
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: 'white', borderBottom: `1px solid ${C.border}`, padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {allMemberships.length > 1 && (
+            <>
+              <span style={{ color: C.texteGris, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>My Groups:</span>
+              {allMemberships.map((m: any) => (
+                <div key={m.id} onClick={() => selectMembership(m, uid)}
+                  style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                    background: activeMember?.id === m.id ? C.bordeaux : 'white',
+                    color: activeMember?.id === m.id ? 'white' : C.bordeaux,
+                    border: '1.5px solid ' + (activeMember?.id === m.id ? C.bordeaux : C.border) }}>
+                  {m.groupName || m.tynId || 'Group'}
+                </div>
+              ))}
+            </>
+          )}
+          <button onClick={() => auth.signOut().then(() => router.push('/login'))}
+            style={{ marginLeft: 'auto', background: 'transparent', border: `1px solid ${C.border}`, color: C.bordeaux, padding: '5px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+            Sign Out
+          </button>
+        </div>
         <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(107,45,78,0.10)', textAlign: 'center' }}>
           <h1 style={{ color: C.bordeaux, fontSize: 21, fontWeight: 800, margin: '0 0 8px' }}>One more step to activate your account</h1>
           <p style={{ color: C.texteGris, fontSize: 13, lineHeight: 1.6, margin: '0 0 6px' }}>
@@ -1070,16 +1119,12 @@ function MemberContent() {
           </div>
 
           <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>Filter documents</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <select value={filterCat} onChange={e => { setFilterCat(e.target.value); setSearch(''); documentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1.5px solid ' + C.border, background: 'white', color: C.bordeaux, fontSize: '13px', fontWeight: 700, outline: 'none', cursor: 'pointer' }}>
             {CATEGORIES.map(c => (
-              <span key={c} className="cat-pill" onClick={() => { setFilterCat(c); setSearch(''); documentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                style={{ padding: '7px 12px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700,
-                  background: filterCat === c ? C.bordeaux : 'transparent', color: filterCat === c ? 'white' : C.texteGris,
-                  border: '1.5px solid ' + (filterCat === c ? C.bordeaux : 'transparent') }}>
-                {c}
-              </span>
+              <option key={c} value={c}>{c === 'All' ? 'All documents' : c} ({c === 'All' ? docs.filter(d => !hiddenIds.has(d.id)).length : docs.filter(d => d.category === c && !hiddenIds.has(d.id)).length})</option>
             ))}
-          </div>
+          </select>
         </div>
 
         {/* CENTER - Documents (main) */}
@@ -1295,6 +1340,12 @@ function MemberContent() {
                         {d.uploadedBy === uid && (
                           <button onClick={() => handleDelete(d)} disabled={deletingId === d.id} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                             {deletingId === d.id ? '...' : 'Delete'}
+                          </button>
+                        )}
+                        {d.uploadedBy !== uid && (
+                          <button onClick={() => handleHideDoc(d)} disabled={deletingId === d.id} title="Remove from my list (your organizer keeps it)"
+                            style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                            {deletingId === d.id ? '...' : 'Remove'}
                           </button>
                         )}
 

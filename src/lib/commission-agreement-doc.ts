@@ -1,4 +1,4 @@
-﻿﻿// Builds a Word-openable (.doc) commission agreement document showing both
+﻿// Builds a Word-openable (.doc) commission agreement document showing both
 // the organizer's and the member's signature, so it can be dropped straight
 // into the "documents" collection as an archive the member (and organizer)
 // can preview/download/print. This is an HTML document served with the
@@ -38,8 +38,8 @@ export function buildCommissionAgreementDoc(p: BuildCommissionAgreementDocParams
 
   const html =
     '<html><head><meta charset="utf-8"></head><body style="font-family:Georgia, \'Times New Roman\', serif;padding:36px;color:#4A1F38;max-width:680px;margin:0 auto;">' +
-    '<h1 style="color:#6B2D4E;font-size:21px;margin:0 0 4px;">Organizer Commission Agreement</h1>' +
-    '<p style="font-size:12px;color:#8A7A88;margin:0 0 18px;">Group: <strong>' + p.groupName + '</strong></p>' +
+    '<h1 style="color:#4A1F38;font-size:22px;margin:0 0 2px;">' + p.groupName + '</h1>' +
+    '<p style="font-size:12px;color:#8A7A88;margin:0 0 18px;text-transform:uppercase;letter-spacing:1px;">Organizer Commission Agreement</p>' +
     '<p style="font-size:13px;line-height:1.6;margin:0 0 16px;">' +
     'This agreement confirms the commission structure applied to <strong>' + p.groupName + '</strong>. ' +
     'The commission below is deducted automatically before each payout is sent to the member receiving that cycle. ' +
@@ -63,7 +63,7 @@ export function buildCommissionAgreementDoc(p: BuildCommissionAgreementDocParams
     '</td>' +
     '</tr></table>' +
     '<hr style="margin-top:32px;border:none;border-top:1px solid #EAD9BE;"/>' +
-    '<p style="font-size:10px;color:#8A7A88;">Powered by UNIMUNITY(TM) - A product of Ma Production Luxenn Zara LLC</p>' +
+    '<p style="font-size:10px;color:#8A7A88;">Issued by ' + p.groupName + ' - Powered by UNIMUNITY</p>' +
     '</body></html>';
 
   const url = 'data:application/msword;charset=utf-8,' + encodeURIComponent(html);

@@ -188,8 +188,8 @@ export default function ReceiptPage() {
             <div style={{ background: 'white', borderRadius: '18px', padding: '28px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
                 <div>
-                  <h1 style={{ color: C.bordeaux, fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>Payment Receipt</h1>
-                  <p style={{ color: C.texteGris, fontSize: '12.5px', margin: 0 }}>{groupName}</p>
+                  <h1 style={{ color: C.bordeaux, fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>{groupName || 'Payment Receipt'}</h1>
+                  <p style={{ color: C.texteGris, fontSize: '12px', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Payment Receipt</p>
                 </div>
                 {(() => {
                   const sc = statusColors(payment.status);
