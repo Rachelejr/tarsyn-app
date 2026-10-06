@@ -8,6 +8,7 @@ import { collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import { authHeaders } from '@/lib/authFetch';
+import { computeDues, contributionPerPeriod } from '@/lib/dues';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -40,6 +41,7 @@ type OverdueMember = {
   phone: string;
   missingWeeksCount: number;
   amountOwed: number;
+  periodLabels?: string[];
   currency: string;
   earliestMissedDate: string;
 };
@@ -107,7 +109,8 @@ function RemindersContent() {
       setSendResults({});
       try {
         const gSnap = await getDoc(doc(db, 'groups', selectedGroupId));
-        setGroupName(gSnap.exists() ? (gSnap.data().name || 'Group') : 'Group');
+        const group = gSnap.exists() ? (gSnap.data() as any) : null;
+        setGroupName(group?.name || 'Group');
 
         const gridSnap = await getDoc(doc(db, 'paymentGrids', selectedGroupId + '_current'));
         if (!gridSnap.exists()) {
@@ -118,17 +121,11 @@ function RemindersContent() {
         }
         setGridExists(true);
         const grid = gridSnap.data() as any;
-        const weeks: Record<string, string> = grid.weeks || {};
         const slots: Record<string, any> = grid.slots || {};
-        const payments: Record<string, Record<string, boolean>> = grid.payments || {};
-
-        const today = new Date();
-        const elapsedWeekIdxs = Object.entries(weeks)
-          .filter(([, dateStr]) => new Date(dateStr as string) <= today)
-          .map(([idx]) => idx);
 
         const slotsByMember: Record<string, string[]> = {};
         Object.entries(slots).forEach(([slotNum, slot]: [string, any]) => {
+          if (!slot?.memberId) return;
           if (!slotsByMember[slot.memberId]) slotsByMember[slot.memberId] = [];
           slotsByMember[slot.memberId].push(slotNum);
         });
@@ -137,32 +134,34 @@ function RemindersContent() {
         const membersById: Record<string, any> = {};
         membersSnap.docs.forEach(d => { membersById[d.id] = { id: d.id, ...d.data() }; });
 
+        // Same calculation as the server and the automatic reminders:
+        // current cycle only, from the member's join date, per group frequency.
         const results: OverdueMember[] = [];
         Object.entries(slotsByMember).forEach(([memberId, slotNums]) => {
           const member = membersById[memberId];
           if (!member) return;
-          let missingSlotWeeks = 0;
-          const missingWeekIdxSet = new Set<string>();
-          slotNums.forEach(slotNum => {
-            elapsedWeekIdxs.forEach(wIdx => {
-              const paid = payments?.[slotNum]?.[wIdx];
-              if (!paid) {
-                missingSlotWeeks++;
-                missingWeekIdxSet.add(wIdx);
-              }
-            });
+          if (['paused', 'inactive', 'removed', 'left'].includes(String(member.status || '').toLowerCase())) return;
+          const dues = computeDues({
+            weeks: grid.weeks || {},
+            payments: grid.payments || {},
+            slotNums,
+            frequency: group?.frequency || group?.paymentFrequency,
+            cycleStart: grid.startDate,
+            cycleEnd: grid.cycleEndDate,
+            memberSince: member.createdAt,
+            amountPerPeriod: contributionPerPeriod(member, group),
           });
-          if (missingSlotWeeks > 0) {
-            const missedDates = Array.from(missingWeekIdxSet).map(idx => weeks[idx]).filter(Boolean).sort();
+          if (dues.unpaid.length > 0 && dues.amountOwed > 0) {
             results.push({
               memberId,
               fullName: member.fullName || member.name || '(no name)',
               email: member.email || '',
               phone: member.phone || '',
-              missingWeeksCount: missingWeekIdxSet.size,
-              amountOwed: (member.expectedAmount || 0) * missingSlotWeeks,
-              currency: member.currency || 'USD',
-              earliestMissedDate: missedDates[0] || '',
+              missingWeeksCount: dues.unpaid.length,
+              amountOwed: dues.amountOwed,
+              currency: String(member.currency || group?.currency || 'USD').toUpperCase(),
+              earliestMissedDate: dues.unpaid[0]?.period.dueDate || '',
+              periodLabels: dues.unpaid.map(u => u.period.label),
             });
           }
         });
@@ -211,14 +210,8 @@ function RemindersContent() {
         const res = await fetch('/api/send-reminder', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' , ...(await authHeaders('admin')) },
-          body: JSON.stringify({
-            memberEmail: member.email,
-            memberName: member.fullName,
-            groupName: groupName,
-            amount: member.amountOwed ? member.amountOwed.toFixed(2) : undefined,
-            dueDate: member.earliestMissedDate || undefined,
-            adminName: adminName,
-          }),
+          // The server recomputes the amount from the grid before sending.
+          body: JSON.stringify({ groupId: selectedGroupId, memberId: member.memberId }),
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
@@ -389,9 +382,14 @@ function RemindersContent() {
                           <div style={{ flex: 1, minWidth: 140 }}>
                             <p style={{ fontSize: 13.5, fontWeight: 700, color: C.text, margin: 0 }}>{m.fullName}</p>
                             <p style={{ fontSize: 11.5, color: m.email ? C.muted : C.danger, margin: '2px 0 0' }}>{m.email || 'No email on file'}{m.phone ? ' \u00b7 ' + m.phone : ''}</p>
+                            {m.periodLabels && m.periodLabels.length > 0 && (
+                              <p style={{ fontSize: 11, color: C.muted, margin: '2px 0 0' }} title={m.periodLabels.join(', ')}>
+                                Due: {m.periodLabels.slice(0, 4).join(', ')}{m.periodLabels.length > 4 ? ' +' + (m.periodLabels.length - 4) + ' more' : ''}
+                              </p>
+                            )}
                           </div>
                           <div style={{ textAlign: 'right' as const, minWidth: 110 }}>
-                            <span style={{ fontSize: 11, color: C.danger, fontWeight: 700, background: C.dangerBg, padding: '2px 8px', borderRadius: 8 }}>{m.missingWeeksCount} week{m.missingWeeksCount > 1 ? 's' : ''} missed</span>
+                            <span style={{ fontSize: 11, color: C.danger, fontWeight: 700, background: C.dangerBg, padding: '2px 8px', borderRadius: 8 }}>{m.missingWeeksCount} contribution{m.missingWeeksCount > 1 ? 's' : ''} due</span>
                             <p style={{ fontSize: 13.5, fontWeight: 800, color: C.text, margin: '4px 0 0' }}>{m.currency} {m.amountOwed.toFixed(2)}</p>
                           </div>
                           <div style={{ minWidth: 70, textAlign: 'right' as const }}>
@@ -438,7 +436,7 @@ function RemindersContent() {
 
             <div style={{ marginTop: 14, padding: '10px 12px', background: C.creme, borderRadius: 10, border: '1px solid ' + C.orLight }}>
               <p style={{ fontSize: 11.5, color: C.text, margin: 0, lineHeight: 1.55 }}>
-                Each selected member receives an email with the amount owed and the earliest missed date. Members without an email will be marked as failed.
+                Each selected member receives an email listing each unpaid contribution of the current cycle and the total. Amounts count only from the member's join date and follow the group's frequency.
               </p>
             </div>
 

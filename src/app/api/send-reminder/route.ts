@@ -1,66 +1,90 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Firestore documents are untyped here. */
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { getAuthedUid } from '@/lib/apiAuth';
+import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { getAuthedUid, forbidden } from '@/lib/apiAuth';
+import { computeDues, contributionPerPeriod } from '@/lib/dues';
+import { reminderEmailHtml } from '@/lib/reminderEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Sends a contribution reminder to ONE member of the caller's group.
+// The amount is always computed here, on the server, from the payment grid
+// (current cycle, from the member's join date, following the group's
+// frequency) - the browser never decides what a member is told they owe.
 export async function POST(req: NextRequest) {
   try {
-    const { memberEmail, memberName, groupName, amount, dueDate, adminName, groupLogo } = await req.json();
-    // Only signed-in users may send invitation / reminder emails.
-    const authedUid = await getAuthedUid(req);
-    if (typeof authedUid !== 'string') return authedUid;
+    const uid = await getAuthedUid(req);
+    if (typeof uid !== 'string') return uid;
 
-    if (!memberEmail || !memberName || !groupName) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const { groupId, memberId } = await req.json().catch(() => ({}));
+    if (!groupId || !memberId || typeof groupId !== 'string' || typeof memberId !== 'string') {
+      return NextResponse.json({ error: 'Missing groupId or memberId' }, { status: 400 });
     }
 
-    const { data, error } = await resend.emails.send({
-      from: 'UNIMUNITY <noreply@unimunity.com>',
-      to: memberEmail,
-      subject: `💰 Reminder: Contribution due — ${groupName}`,
-      html: `
-        <div style="font-family: Inter, sans-serif; max-width: 520px; margin: 0 auto; background: #FAF0E6; padding: 32px; border-radius: 16px;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            ${groupLogo ? `
-            <img src="${groupLogo}" alt="${groupName}" style="max-height: 56px; max-width: 220px; border-radius: 8px;" />
-            ` : `
-            <img src="https://unimunity.com/unimunity-logo.png" alt="UNIMUNITY" style="height: 48px; width: auto; max-width: 220px;" />
-            `}
-          </div>
-          <h2 style="color: #6B2D4E; font-size: 22px; font-weight: 800; margin: 0 0 8px;">
-            Hello ${memberName} 👋
-          </h2>
-          <p style="color: #7A5068; font-size: 15px; margin: 0 0 24px;">
-            This is a friendly reminder from <strong>${adminName}</strong> about your upcoming contribution.
-          </p>
-          <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Group</p>
-            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0 0 16px;">${groupName}</p>
-            ${amount ? `
-            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Amount Due</p>
-            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0 0 16px;">$${amount}</p>
-            ` : ''}
-            ${dueDate ? `
-            <p style="color: #7A5068; font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Due Date</p>
-            <p style="color: #6B2D4E; font-size: 18px; font-weight: 700; margin: 0;">${dueDate}</p>
-            ` : ''}
-          </div>
-          <p style="color: #7A5068; font-size: 13px; text-align: center; margin: 0;">
-            Please make your payment on time. Thank you for being part of the community!
-          </p>
-        </div>
-      `,
-    });
+    const groupSnap = await adminDb.collection('groups').doc(groupId).get();
+    if (!groupSnap.exists) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    const group = groupSnap.data() as any;
+    if (group.organizerId !== uid) return forbidden('You can only send reminders for your own groups.');
 
+    const memberSnap = await adminDb.collection('members').doc(memberId).get();
+    if (!memberSnap.exists || memberSnap.data()?.groupId !== groupId) {
+      return NextResponse.json({ error: 'Member not found in this group' }, { status: 404 });
+    }
+    const member = memberSnap.data() as any;
+    if (!member.email) return NextResponse.json({ error: 'No email on file' }, { status: 400 });
+
+    const gridSnap = await adminDb.collection('paymentGrids').doc(groupId + '_current').get();
+    if (!gridSnap.exists) return NextResponse.json({ error: 'This group has no payment grid yet' }, { status: 400 });
+    const grid = gridSnap.data() as any;
+
+    const slotNums = Object.entries(grid.slots || {})
+      .filter(([, sl]: [string, any]) => sl?.memberId === memberId)
+      .map(([n]) => n);
+    const dues = computeDues({
+      weeks: grid.weeks || {},
+      payments: grid.payments || {},
+      slotNums,
+      frequency: group.frequency || group.paymentFrequency,
+      cycleStart: grid.startDate,
+      cycleEnd: grid.cycleEndDate,
+      memberSince: member.createdAt,
+      amountPerPeriod: contributionPerPeriod(member, group),
+    });
+    if (dues.unpaid.length === 0 || dues.amountOwed <= 0) {
+      return NextResponse.json({ error: 'This member has nothing overdue in the current cycle' }, { status: 409 });
+    }
+
+    const organizer = await adminAuth.getUser(uid).catch(() => null);
+    const groupName = String(group.name || 'Your group');
+    const senderName = groupName.replace(/["<>,\r\n]/g, '').trim() || 'UNIMUNITY';
+    const currency = String(member.currency || group.currency || 'USD').toUpperCase();
+    const brand = group.groupBrand || {};
+
+    const { error } = await resend.emails.send({
+      from: senderName + ' <noreply@unimunity.com>',
+      to: member.email,
+      ...(organizer?.email ? { replyTo: organizer.email } : {}),
+      subject: 'Reminder: Contribution due - ' + groupName,
+      html: reminderEmailHtml({
+        groupName,
+        logoUrl: brand.enabled !== false ? brand.logo : undefined,
+        memberName: member.fullName || member.name || 'Member',
+        fromName: organizer?.displayName || undefined,
+        unpaidPeriods: dues.unpaid.map(u => u.period),
+        amountPerPeriod: dues.amountPerPeriod,
+        amountOwed: dues.amountOwed,
+        currency,
+      }),
+    });
     if (error) {
       console.error('Resend error:', error);
       return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, amountOwed: dues.amountOwed, currency, periods: dues.unpaid.length });
   } catch (err) {
-    console.error('Server error:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('send-reminder error:', err);
+    return NextResponse.json({ error: 'Failed to send reminder' }, { status: 500 });
   }
 }

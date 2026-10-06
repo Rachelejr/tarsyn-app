@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { getAuthedUid, forbidden } from '@/lib/apiAuth';
+import { computeDues, contributionPerPeriod } from '@/lib/dues';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -14,9 +15,11 @@ const STRIPE_FIXED_CENTS = 30;
 
 export async function POST(req: NextRequest) {
   try {
-    const { memberId, groupId, weekIndexes } = await req.json();
-    if (!memberId || !groupId || !Array.isArray(weekIndexes) || weekIndexes.length === 0) {
-      return NextResponse.json({ error: 'Missing memberId, groupId, or weekIndexes' }, { status: 400 });
+    // The weeks and the amount are decided HERE from the payment grid, never
+    // by the browser: the member pays exactly what is due in the current cycle.
+    const { memberId, groupId } = await req.json();
+    if (!memberId || !groupId) {
+      return NextResponse.json({ error: 'Missing memberId or groupId' }, { status: 400 });
     }
 
     const memberSnap = await adminDb.collection('members').doc(memberId).get();
@@ -49,11 +52,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Your organizer has not finished setting up payments yet. Please contact them or pay another way for now.' }, { status: 400 });
     }
 
-    const shares = Math.max(1, parseInt(member.shares) || 1);
-    const perWeekAmount = (member.expectedAmount || 0) * shares;
-    const currency = (member.currency || 'USD').toLowerCase();
+    const [groupSnap, gridSnap] = await Promise.all([
+      adminDb.collection('groups').doc(groupId).get(),
+      adminDb.collection('paymentGrids').doc(groupId + '_current').get(),
+    ]);
+    if (!gridSnap.exists) {
+      return NextResponse.json({ error: 'This group has no payment grid yet.' }, { status: 400 });
+    }
+    const group = groupSnap.exists ? (groupSnap.data() as any) : {};
+    const grid = gridSnap.data() as any;
+    const slotNums = Object.entries(grid.slots || {})
+      .filter(([, sl]: [string, any]) => sl?.memberId === memberId)
+      .map(([n]) => n);
+    const dues = computeDues({
+      weeks: grid.weeks || {},
+      payments: grid.payments || {},
+      slotNums,
+      frequency: group.frequency || group.paymentFrequency,
+      cycleStart: grid.startDate,
+      cycleEnd: grid.cycleEndDate,
+      memberSince: member.createdAt,
+      amountPerPeriod: contributionPerPeriod(member, group),
+    });
+    // One week index per unpaid period (its due week); the webhook ticks it for
+    // the member's slots, which marks the whole period as paid.
+    const weekIndexes = Array.from(new Set(dues.unpaid.map(u => u.period.weekIdxs[0])));
+    const currency = String(member.currency || group.currency || 'USD').toLowerCase();
 
-    const contributionAmount = Math.round(perWeekAmount * weekIndexes.length * 100) / 100;
+    const contributionAmount = dues.amountOwed;
     const contributionCents = Math.round(contributionAmount * 100);
 
     if (contributionCents <= 0) {

@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import { buildReceiptHtml } from '@/lib/receiptHtml';
 import { buildGridPeriods, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
+import { computeDues } from '@/lib/dues';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -145,6 +146,8 @@ export default function PaymentGridPage() {
   const [grid, setGrid] = useState<Grid | null>(null);
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState('');
+  const [groupFrequency, setGroupFrequency] = useState('');
+  const [memberSince, setMemberSince] = useState<Record<string, unknown>>({});
   const [groupBrand, setGroupBrand] = useState<{ logo?: string; enabled?: boolean; showUNIMUNITYBadge?: boolean } | null>(null);
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
@@ -200,6 +203,7 @@ export default function PaymentGridPage() {
       if (groupSnap.exists()) {
         setGroupName(groupSnap.data().name || 'Group');
         setGroupBrand(groupSnap.data().groupBrand || null);
+        setGroupFrequency(groupSnap.data().frequency || groupSnap.data().paymentFrequency || '');
         const amt = groupSnap.data().weeklyAmount || groupSnap.data().contributionAmount;
         if (typeof amt === 'number') setWeeklyAmount(amt);
       }
@@ -314,6 +318,7 @@ export default function PaymentGridPage() {
       const collectedUserIds: Record<string, string> = {};
       const collectedAmounts: Record<string, number> = {};
       const collectedMeta: Record<string, MemberMeta> = {};
+      const collectedSince: Record<string, unknown> = {};
       let latestPayout = '';
       await Promise.all(
         Object.entries(loadedGrid.slots).map(async ([slotNum, slot]) => {
@@ -343,6 +348,7 @@ export default function PaymentGridPage() {
                 joinedLabel = new Date(rawDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               }
               collectedMeta[slot.memberId] = { status, joinedLabel };
+              collectedSince[slot.memberId] = d.createdAt || null;
             }
           } catch {
             // Silent fail - keep the previously stored name.
@@ -359,6 +365,7 @@ export default function PaymentGridPage() {
       setMemberUserIds(collectedUserIds);
       setMemberAmounts(collectedAmounts);
       setMemberMeta(collectedMeta);
+      setMemberSince(collectedSince);
       setSuggestedCycleEnd(latestPayout);
 
       setGrid(loadedGrid);
@@ -1048,13 +1055,23 @@ export default function PaymentGridPage() {
 
   const elapsedWeekEntries = weekEntries.filter(([, d]) => new Date(d) <= today);
 
+  // Share of the contributions actually DUE that are paid: current cycle,
+  // from the member's join date, per group frequency (same rules as the
+  // reminders and the member portal). Nothing due yet counts as 100%.
   function contributionRateForSlot(slotNum: string) {
-    if (elapsedWeekEntries.length === 0) return 0;
-    let paid = 0;
-    elapsedWeekEntries.forEach(([wIdx]) => {
-      if (pendingPayments[slotNum]?.[wIdx]) paid++;
+    const memberId = grid?.slots?.[slotNum]?.memberId;
+    const dues = computeDues({
+      weeks: grid?.weeks || {},
+      payments: pendingPayments,
+      slotNums: [slotNum],
+      frequency: groupFrequency,
+      cycleStart: grid?.startDate,
+      cycleEnd: grid?.cycleEndDate,
+      memberSince: memberId ? memberSince[memberId] : null,
+      amountPerPeriod: 1,
     });
-    return Math.round((paid / elapsedWeekEntries.length) * 100);
+    if (dues.dueCount === 0) return 100;
+    return Math.round((dues.paidCount / dues.dueCount) * 100);
   }
 
   const totalCollectedLabel = weeklyAmount

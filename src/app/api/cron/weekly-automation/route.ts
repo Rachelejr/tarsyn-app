@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Firestore documents are untyped here. */
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 import { PLAN_LIMITS, getPlanTierFromPriceId, PlanTier } from '@/lib/planLimits';
+import { computeDues, contributionPerPeriod, payoutForPeriod, toDateOnly, DuePeriod } from '@/lib/dues';
+import { reminderEmailHtml } from '@/lib/reminderEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const DEFAULT_LOGO = 'https://unimunity.com/unimunity-logo.png';
 
 // Admin-SDK equivalent of planLimits.ts's getOrganizerPlanTier (that one
 // uses the client Firestore SDK, which isn't available in this server
@@ -54,25 +56,33 @@ function emailBranding(tier: PlanTier, groupName: string, groupBrand: any) {
   return { senderName, showBadge };
 }
 
-function logoBlock(logoUrl?: string) {
-  const src = logoUrl || DEFAULT_LOGO;
-  return '<div style="text-align: center; margin-bottom: 20px;">' +
-    '<img src="' + src + '" alt="UNIMUNITY" style="height: 48px; width: auto; max-width: 220px;" />' +
-    '</div>';
+function esc(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
 
-function computeOverdue(grid: any, members: Record<string, any>) {
-  const weeks: Record<string, string> = grid.weeks || {};
+// Email header: the group's logo when it has one, otherwise its name.
+// UNIMUNITY is only the tool - the email comes from the group.
+function headerBlock(groupName: string, logoUrl?: string) {
+  if (logoUrl && /^https:\/\//.test(logoUrl)) {
+    return '<div style="text-align: center; margin-bottom: 20px;">' +
+      '<img src="' + esc(logoUrl) + '" alt="' + esc(groupName) + '" style="height: 48px; width: auto; max-width: 220px;" />' +
+      '</div>';
+  }
+  return '<p style="text-align: center; margin: 0 0 20px; color: #4A1F38; font-size: 20px; font-weight: 800;">' + esc(groupName) + '</p>';
+}
+
+function money(amount: number, currency: string) {
+  return esc(currency) + ' ' + amount.toFixed(2);
+}
+
+// Members with these statuses are not asked for contributions.
+const NO_REMINDER_STATUSES = ['paused', 'inactive', 'removed', 'left'];
+
+function computeOverdue(grid: any, members: Record<string, any>, group: any) {
   const slots: Record<string, any> = grid.slots || {};
-  const payments: Record<string, Record<string, boolean>> = grid.payments || {};
-  const today = new Date();
-
-  const elapsedWeekIdxs = Object.entries(weeks)
-    .filter(([, dateStr]) => new Date(dateStr as string) <= today)
-    .map(([idx]) => idx);
-
   const slotsByMember: Record<string, string[]> = {};
   Object.entries(slots).forEach(([slotNum, slot]: [string, any]) => {
+    if (!slot?.memberId) return;
     if (!slotsByMember[slot.memberId]) slotsByMember[slot.memberId] = [];
     slotsByMember[slot.memberId].push(slotNum);
   });
@@ -81,91 +91,103 @@ function computeOverdue(grid: any, members: Record<string, any>) {
   Object.entries(slotsByMember).forEach(([memberId, slotNums]) => {
     const member = members[memberId];
     if (!member) return;
-    let missingSlotWeeks = 0;
-    const missingWeekIdxSet = new Set<string>();
-    slotNums.forEach((slotNum) => {
-      elapsedWeekIdxs.forEach((wIdx) => {
-        if (!payments?.[slotNum]?.[wIdx]) {
-          missingSlotWeeks++;
-          missingWeekIdxSet.add(wIdx);
-        }
-      });
+    if (NO_REMINDER_STATUSES.includes(String(member.status || '').toLowerCase())) return;
+    const dues = computeDues({
+      weeks: grid.weeks || {},
+      payments: grid.payments || {},
+      slotNums,
+      frequency: group?.frequency || group?.paymentFrequency,
+      cycleStart: grid.startDate,
+      cycleEnd: grid.cycleEndDate,
+      memberSince: member.createdAt,
+      amountPerPeriod: contributionPerPeriod(member, group),
     });
-    if (missingSlotWeeks > 0) {
+    if (dues.unpaid.length > 0 && dues.amountOwed > 0) {
       results.push({
         memberId,
         member,
-        missingWeeksCount: missingWeekIdxSet.size,
-        amountOwed: (member.expectedAmount || 0) * missingSlotWeeks,
+        unpaidPeriods: dues.unpaid.map(u => u.period),
+        amountPerPeriod: dues.amountPerPeriod,
+        amountOwed: dues.amountOwed,
+        currency: String(member.currency || group?.currency || 'USD').toUpperCase(),
       });
     }
   });
   return results;
 }
 
-async function sendReminderEmail(memberEmail: string, memberName: string, groupName: string, amount: number, adminName: string, logoUrl?: string, senderName: string = 'UNIMUNITY', showBadge: boolean = true) {
+async function sendReminderEmail(opts: {
+  memberEmail: string; memberName: string; groupName: string; logoUrl?: string; senderName: string;
+  unpaidPeriods: DuePeriod[]; amountPerPeriod: number; amountOwed: number; currency: string;
+}) {
   await resend.emails.send({
-    from: senderName + ' <noreply@unimunity.com>',
-    to: memberEmail,
-    subject: 'Reminder: Contribution due - ' + groupName,
-    html:
-      '<div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
-      logoBlock(logoUrl) +
-      '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Hello ' + memberName + '</h2>' +
-      '<p style="color: #7A5068; font-size: 14px; margin: 0 0 20px;">This is an automatic weekly reminder from ' + groupName + '. Your contribution is currently overdue.</p>' +
-      '<div style="background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">' +
-      '<p style="color: #7A5068; font-size: 12px; margin: 0 0 6px; text-transform: uppercase;">Amount Due</p>' +
-      '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">$' + amount.toFixed(2) + '</p>' +
-      '</div>' +
-      '<p style="color: #7A5068; font-size: 12.5px; margin: 0;">Please log in to UNIMUNITY to view your payment grid and pay online if available.</p>' +
-      (showBadge ? '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' : '') +
-      '</div>',
+    from: opts.senderName + ' <noreply@unimunity.com>',
+    to: opts.memberEmail,
+    subject: 'Reminder: Contribution due - ' + opts.groupName,
+    html: reminderEmailHtml({
+      groupName: opts.groupName,
+      logoUrl: opts.logoUrl,
+      memberName: opts.memberName,
+      unpaidPeriods: opts.unpaidPeriods,
+      amountPerPeriod: opts.amountPerPeriod,
+      amountOwed: opts.amountOwed,
+      currency: opts.currency,
+    }),
   });
 }
 
-async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[], logoUrl?: string) {
+async function sendOrganizerSummary(organizerEmail: string, groupsSummary: any[]) {
   const rows = groupsSummary.map((g) =>
-    '<tr><td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#4A1F38;">' + g.groupName + '</td>' +
+    '<tr><td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#4A1F38;">' + esc(g.groupName) + '</td>' +
     '<td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#3F7D5C;text-align:center;">' + g.paidCount + '</td>' +
     '<td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#B0525F;text-align:center;">' + g.overdueCount + '</td>' +
-    '<td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#4A1F38;text-align:right;">$' + g.totalOwed.toFixed(2) + '</td></tr>'
+    '<td style="padding:8px 12px;border-bottom:1px solid #EAD9BE;color:#4A1F38;text-align:right;">' + money(g.totalOwed, g.currency) + '</td></tr>'
   ).join('');
 
   await resend.emails.send({
     from: 'UNIMUNITY <noreply@unimunity.com>',
     to: organizerEmail,
-    subject: 'Your weekly UNIMUNITY summary',
+    subject: 'Your weekly summary',
     html:
       '<div style="font-family: Inter, sans-serif; max-width: 560px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
-      logoBlock(logoUrl) +
       '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 16px;">Your Weekly Summary</h2>' +
       '<table style="width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;">' +
       '<tr style="background:#6B2D4E;"><th style="padding:8px 12px;color:white;text-align:left;font-size:11px;">GROUP</th>' +
-      '<th style="padding:8px 12px;color:white;font-size:11px;">PAID</th><th style="padding:8px 12px;color:white;font-size:11px;">OVERDUE</th>' +
-      '<th style="padding:8px 12px;color:white;text-align:right;font-size:11px;">AMOUNT OWED</th></tr>' +
+      '<th style="padding:8px 12px;color:white;font-size:11px;">UP TO DATE</th><th style="padding:8px 12px;color:white;font-size:11px;">OVERDUE</th>' +
+      '<th style="padding:8px 12px;color:white;text-align:right;font-size:11px;">AMOUNT DUE</th></tr>' +
       rows +
       '</table>' +
-      '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' +
+      '<p style="color: #7A5068; font-size: 12px; margin: 14px 0 0;">Amounts count only the current cycle, from each member\'s join date, following each group\'s contribution frequency.</p>' +
       '</div>',
   });
 }
 
-async function sendUpcomingPayoutNotice(memberEmail: string, memberName: string, groupName: string, payoutDate: string, organizerEmail?: string, logoUrl?: string, senderName: string = 'UNIMUNITY', showBadge: boolean = true) {
+async function sendUpcomingPayoutNotice(opts: {
+  memberEmail: string; memberName: string; groupName: string; payoutDate: string; organizerEmail?: string;
+  logoUrl?: string; senderName: string; payout: { pool: number; commission: number; net: number; ratePercent: number }; currency: string;
+}) {
+  const amountBlock = opts.payout.pool > 0
+    ? '<p style="color: #7A5068; font-size: 12px; margin: 14px 0 6px; text-transform: uppercase;">Estimated amount you receive</p>' +
+      '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">' + money(opts.payout.net, opts.currency) + '</p>' +
+      '<p style="color: #7A5068; font-size: 12px; margin: 6px 0 0;">Total contributions ' + money(opts.payout.pool, opts.currency) +
+      (opts.payout.ratePercent > 0 ? ' - organizer commission ' + opts.payout.ratePercent + '% (' + money(opts.payout.commission, opts.currency) + ')' : '') +
+      '. Final amount depends on all members paying this period.</p>'
+    : '';
   await resend.emails.send({
-    from: senderName + ' <noreply@unimunity.com>',
-    to: memberEmail,
-    cc: organizerEmail ? [organizerEmail] : undefined,
-    subject: 'Your payout is coming up - ' + groupName,
+    from: opts.senderName + ' <noreply@unimunity.com>',
+    to: opts.memberEmail,
+    ...(opts.organizerEmail ? { replyTo: opts.organizerEmail } : {}),
+    subject: 'Your payout is coming up - ' + opts.groupName,
     html:
       '<div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; background: #FBEEDD; padding: 32px; border-radius: 16px;">' +
-      logoBlock(logoUrl) +
-      '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Good news, ' + memberName + '!</h2>' +
-      '<p style="color: #7A5068; font-size: 14px; margin: 0 0 20px;">Your turn to receive the pooled contribution in <strong>' + groupName + '</strong> is coming up soon.</p>' +
+      headerBlock(opts.groupName, opts.logoUrl) +
+      '<h2 style="color: #6B2D4E; font-size: 19px; font-weight: 800; margin: 0 0 12px;">Good news, ' + esc(opts.memberName) + '!</h2>' +
+      '<p style="color: #7A5068; font-size: 14px; margin: 0 0 20px;">Your turn to receive the pooled contribution in <strong>' + esc(opts.groupName) + '</strong> is coming up soon.</p>' +
       '<div style="background: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">' +
       '<p style="color: #7A5068; font-size: 12px; margin: 0 0 6px; text-transform: uppercase;">Payout Date</p>' +
-      '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">' + payoutDate + '</p>' +
+      '<p style="color: #6B2D4E; font-size: 20px; font-weight: 800; margin: 0;">' + esc(opts.payoutDate) + '</p>' +
+      amountBlock +
       '</div>' +
-      (showBadge ? '<p style="text-align:center; font-size: 10.5px; color: #A08B7D; margin-top: 24px;">Powered by UNIMUNITY(TM) - Ma Production Luxenn Zara LLC</p>' : '') +
       '</div>',
   });
 }
@@ -178,10 +200,10 @@ export async function GET(req: NextRequest) {
   // query parameter is also accepted.
   const authHeader = req.headers.get('authorization');
   const querySecret = req.nextUrl.searchParams.get('secret');
-  const isAuthorized =
-    !process.env.CRON_SECRET ||
-    authHeader === 'Bearer ' + process.env.CRON_SECRET ||
-    querySecret === process.env.CRON_SECRET;
+  // Fails closed: without CRON_SECRET configured nobody can trigger the
+  // emails (otherwise anyone could send reminders to every member).
+  const secret = process.env.CRON_SECRET || '';
+  const isAuthorized = !!secret && (authHeader === 'Bearer ' + secret || querySecret === secret);
   if (!isAuthorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -191,9 +213,10 @@ export async function GET(req: NextRequest) {
   try {
     const gridsSnap = await adminDb.collection('paymentGrids').get();
     const organizerSummaries: Record<string, any[]> = {};
-    const organizerLogos: Record<string, string | undefined> = {};
 
     for (const gridDoc of gridsSnap.docs) {
+      // Only the CURRENT cycle of each group (archived cycles are history).
+      if (!gridDoc.id.endsWith('_current')) continue;
       const groupId = gridDoc.id.replace(/_current$/, '');
       const grid = gridDoc.data() as any;
       if (!grid.organizerId) continue;
@@ -204,20 +227,28 @@ export async function GET(req: NextRequest) {
         const groupName = groupData?.name || 'Your Group';
         const logoUrl = groupData?.groupBrand?.logo || undefined;
         const organizerTier = await getOrganizerPlanTierAdmin(grid.organizerId);
-        const { senderName, showBadge } = emailBranding(organizerTier, groupName, groupData?.groupBrand);
+        const { senderName } = emailBranding(organizerTier, groupName, groupData?.groupBrand);
 
         const membersSnap = await adminDb.collection('members').where('groupId', '==', groupId).get();
         const membersById: Record<string, any> = {};
         membersSnap.docs.forEach((d) => { membersById[d.id] = { id: d.id, ...d.data() }; });
 
-        // --- 1. Automatic overdue reminders ---
-        const overdue = computeOverdue(grid, membersById);
+        // --- 1. Automatic overdue reminders (current cycle, from join date, per frequency) ---
+        const overdue = computeOverdue(grid, membersById, groupData);
         let totalOwed = 0;
         for (const item of overdue) {
           totalOwed += item.amountOwed;
           if (item.member.email) {
             try {
-              await sendReminderEmail(item.member.email, item.member.fullName || item.member.name || 'Member', groupName, item.amountOwed, 'your organizer', logoUrl, senderName, showBadge);
+              await sendReminderEmail({
+                memberEmail: item.member.email,
+                memberName: item.member.fullName || item.member.name || 'Member',
+                groupName, logoUrl, senderName,
+                unpaidPeriods: item.unpaidPeriods,
+                amountPerPeriod: item.amountPerPeriod,
+                amountOwed: item.amountOwed,
+                currency: item.currency,
+              });
               results.remindersSent++;
             } catch (e: any) {
               results.errors.push('reminder failed for ' + item.memberId + ': ' + e.message);
@@ -226,47 +257,50 @@ export async function GET(req: NextRequest) {
         }
 
         // --- 2. Track for organizer weekly summary ---
-        const paidCount = Object.keys(membersById).length - overdue.length;
+        const membersInGrid = new Set(Object.values(grid.slots || {}).map((sl: any) => sl?.memberId).filter(Boolean));
+        const paidCount = Math.max(0, membersInGrid.size - overdue.length);
         if (!organizerSummaries[grid.organizerId]) organizerSummaries[grid.organizerId] = [];
-        organizerSummaries[grid.organizerId].push({ groupName, paidCount, overdueCount: overdue.length, totalOwed });
-        // Remember the first available group logo per organizer, used for
-        // the weekly summary email header (an organizer may run several
-        // groups; we just need one representative logo, falling back to
-        // the default UNIMUNITY logo if none of their groups has one).
-        if (!organizerLogos[grid.organizerId] && logoUrl) {
-          organizerLogos[grid.organizerId] = logoUrl;
-        }
+        organizerSummaries[grid.organizerId].push({
+          groupName, paidCount, overdueCount: overdue.length, totalOwed: Math.round(totalOwed * 100) / 100,
+          currency: String(groupData?.currency || 'USD').toUpperCase(),
+        });
 
-        // --- 3. Upcoming payout notifications (within next 7 days, not yet notified) ---
-        const now = new Date();
-        const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        // --- 3. Upcoming payout notifications (next 7 days, once per payout date) ---
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const in7Str = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+        // Pool of one period: every active slot's contribution.
+        const slotContributions = Object.values(grid.slots || {}).map((sl: any) => {
+          const m = membersById[sl?.memberId];
+          if (!m || NO_REMINDER_STATUSES.includes(String(m.status || '').toLowerCase())) return 0;
+          return contributionPerPeriod(m, groupData);
+        });
+        const payout = payoutForPeriod({ slotContributions, commissionRatePercent: groupData?.commissionRate });
+        let organizerEmail: string | undefined;
         for (const member of Object.values(membersById) as any[]) {
-          const datesToCheck: string[] = Array.isArray(member.payoutDates) && member.payoutDates.length > 0
+          const dates: string[] = (Array.isArray(member.payoutDates) && member.payoutDates.length > 0
             ? member.payoutDates
-            : (member.payoutDate ? [member.payoutDate] : []);
-          const hasUpcoming = datesToCheck.some((d) => {
-            if (!d) return false;
-            const dt = new Date(d);
-            return dt >= now && dt <= in7Days;
-          });
-          if (hasUpcoming && member.email && !member.payoutReminderSent) {
-            try {
-              const organizerData = grid.organizerId ? await adminAuth.getUser(grid.organizerId).catch(() => null) : null;
-              await sendUpcomingPayoutNotice(
-                member.email,
-                member.fullName || member.name || 'Member',
-                groupName,
-                datesToCheck.find((d) => { const dt = new Date(d); return dt >= now && dt <= in7Days; }) || '',
-                organizerData?.email,
-                logoUrl,
-                senderName,
-                showBadge
-              );
-              await adminDb.collection('members').doc(member.id).update({ payoutReminderSent: true });
-              results.payoutNoticesSent++;
-            } catch (e: any) {
-              results.errors.push('payout notice failed for ' + member.id + ': ' + e.message);
+            : (member.payoutDate ? [member.payoutDate] : []))
+            .map((d: unknown) => toDateOnly(d))
+            .filter((d: string | null): d is string => !!d);
+          const upcoming = dates.find((d) => d >= todayStr && d <= in7Str);
+          const alreadySent: string[] = Array.isArray(member.payoutNoticeDates) ? member.payoutNoticeDates : [];
+          if (!upcoming || !member.email || alreadySent.includes(upcoming)) continue;
+          try {
+            if (organizerEmail === undefined) {
+              organizerEmail = (await adminAuth.getUser(grid.organizerId).catch(() => null))?.email || '';
             }
+            await sendUpcomingPayoutNotice({
+              memberEmail: member.email,
+              memberName: member.fullName || member.name || 'Member',
+              groupName, payoutDate: upcoming, organizerEmail: organizerEmail || undefined,
+              logoUrl, senderName, payout,
+              currency: String(groupData?.currency || member.currency || 'USD').toUpperCase(),
+            });
+            // Remember each payout date notified (a member can have several).
+            await adminDb.collection('members').doc(member.id).update({ payoutNoticeDates: [...alreadySent, upcoming] });
+            results.payoutNoticesSent++;
+          } catch (e: any) {
+            results.errors.push('payout notice failed for ' + member.id + ': ' + e.message);
           }
         }
       } catch (groupErr: any) {
@@ -279,7 +313,7 @@ export async function GET(req: NextRequest) {
       try {
         const organizerUser = await adminAuth.getUser(organizerId);
         if (organizerUser.email) {
-          await sendOrganizerSummary(organizerUser.email, groupsSummary, organizerLogos[organizerId]);
+          await sendOrganizerSummary(organizerUser.email, groupsSummary);
           results.summariesSent++;
         }
       } catch (e: any) {

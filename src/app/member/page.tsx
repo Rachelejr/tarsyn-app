@@ -17,6 +17,7 @@ import ReferralInviteButton from '@/components/referral/ReferralInviteButton';
 import { rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
 import { buildGridPeriods, defaultPeriodKey, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
 import { tontineStatus, TONTINE_STATUS_LABEL, TONTINE_STATUS_ORDER } from '@/lib/tontineStatus';
+import { computeDues, contributionPerPeriod } from '@/lib/dues';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -94,6 +95,10 @@ function MemberContent() {
     payments: Record<string, Record<string, boolean>>;
     slots: string[];
     memberName: string;
+    amountOwed?: number;
+    currency?: string;
+    duePeriodLabels?: string[];
+    unpaidWeekIdxs?: string[];
   } | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   // --- Tontine cycles (current + archived, read-only) ---
@@ -204,25 +209,34 @@ function MemberContent() {
       const slots: string[] = data.slots || [];
 
       const weekKeys = Object.keys(weeks).sort((a, b) => Number(a) - Number(b));
-      const today = new Date();
-      let paid = 0;
-      let total = 0;
-      const missingWeeks: string[] = [];
-
-      weekKeys.forEach((wIdx) => {
-        const weekDate = new Date(weeks[wIdx]);
-        if (weekDate > today) return; // only count elapsed weeks
-        slots.forEach((slotNum) => {
-          total++;
-          if (payments[slotNum]?.[wIdx]) {
-            paid++;
-          } else {
-            missingWeeks.push('W' + wIdx);
-          }
-        });
+      // Same rules as the reminders and the organizer: current cycle only,
+      // from the date this member joined, following the group's frequency.
+      let group: any = null;
+      try {
+        const gSnap = await getDoc(doc(db, 'groups', membership.groupId));
+        group = gSnap.exists() ? gSnap.data() : null;
+      } catch { /* group unreadable: amounts fall back to the member's own */ }
+      const dues = computeDues({
+        weeks,
+        payments,
+        slotNums: slots,
+        frequency: group?.frequency || group?.paymentFrequency,
+        cycleStart: data.cycleStart || weeks[weekKeys[0]],
+        cycleEnd: data.cycleEnd,
+        memberSince: membership?.createdAt,
+        amountPerPeriod: contributionPerPeriod(membership, group),
       });
-
-      setMyPayments({ paid, total, missingWeeks, weeks, payments, slots, memberName: data.memberName || membership?.fullName || 'You' });
+      const paid = dues.paidCount;
+      const total = dues.dueCount;
+      const missingWeeks = dues.unpaid.map(u => 'W' + u.period.weekIdxs[0]);
+      setMyPayments({
+        paid, total, missingWeeks, weeks, payments, slots,
+        memberName: data.memberName || membership?.fullName || 'You',
+        amountOwed: dues.amountOwed,
+        currency: String(membership?.currency || group?.currency || 'USD').toUpperCase(),
+        duePeriodLabels: dues.unpaid.map(u => u.period.label),
+        unpaidWeekIdxs: Array.from(dues.unpaidWeekIdxs),
+      });
       setCycleMeta({
         cycleNumber: typeof data.cycleNumber === 'number' ? data.cycleNumber : 1,
         cycleStart: data.cycleStart || weeks[weekKeys[0]] || '',
@@ -1123,7 +1137,10 @@ function MemberContent() {
                 </div>
                 {myPayments.missingWeeks.length > 0 ? (
                   <p style={{ fontSize: '11px', color: C.danger, margin: '0 0 10px' }}>
-                    Missing: {myPayments.missingWeeks.slice(0, 6).join(', ')}{myPayments.missingWeeks.length > 6 ? '...' : ''}
+                    Due: {(myPayments.duePeriodLabels || myPayments.missingWeeks).slice(0, 6).join(', ')}{(myPayments.duePeriodLabels || myPayments.missingWeeks).length > 6 ? '...' : ''}
+                    {typeof myPayments.amountOwed === 'number' && myPayments.amountOwed > 0 && (
+                      <strong style={{ display: 'block', marginTop: 2 }}>Total due: {myPayments.currency} {myPayments.amountOwed.toFixed(2)}</strong>
+                    )}
                   </p>
                 ) : (
                   <p style={{ fontSize: '11px', color: C.success, margin: '0 0 10px', fontWeight: 700 }}>All caught up!</p>
@@ -1180,7 +1197,7 @@ function MemberContent() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', gap: 10, flexWrap: 'wrap' }}>
                 <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>My Payment Grid</h2>
                 <span style={{ fontSize: '16px', color: C.bordeaux, fontWeight: 800 }}>
-                  {shown.paid}/{shown.total} weeks paid
+                  {shown.paid}/{shown.total} contributions paid
                 </span>
               </div>
 
@@ -1292,13 +1309,17 @@ function MemberContent() {
                         const isPaid = shown.payments[slotNum]?.[wIdx] || false;
                         const isFuture = !isArchive && new Date(shown.weeks[wIdx]) > new Date();
                         const weekColor = paidWeekColor(wIdx);
+                        // Red only for a contribution actually due and unpaid
+                        // (not before the member joined, not the extra weeks of
+                        // a monthly period).
+                        const isOverdue = !isPaid && !isFuture && (shown !== myPayments || (myPayments?.unpaidWeekIdxs || []).includes(wIdx));
                         return (
                           <div key={wIdx} style={{
                             borderRadius: 9, padding: '7px 8px', textAlign: 'center',
-                            background: isPaid ? weekColor : isFuture ? C.creme : C.dangerBg,
+                            background: isPaid ? weekColor : isOverdue ? C.dangerBg : C.creme,
                             border: '1.5px solid ' + (isPaid ? weekColor : C.border),
                           }}>
-                            <div style={{ color: isPaid ? C.dore : isFuture ? C.muted : C.danger, fontWeight: 800, fontSize: 11.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                            <div style={{ color: isPaid ? C.dore : isOverdue ? C.danger : C.muted, fontWeight: 800, fontSize: 11.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                               W{wIdx}{isPaid && <span>{'\u2713'}</span>}
                             </div>
                             <div style={{ color: isPaid ? 'rgba(255,255,255,0.85)' : C.muted, fontSize: 9, marginTop: 2 }}>
