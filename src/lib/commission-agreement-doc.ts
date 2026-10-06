@@ -63,7 +63,7 @@ export function buildCommissionAgreementDoc(p: BuildCommissionAgreementDocParams
     '</td>' +
     '</tr></table>' +
     '<hr style="margin-top:32px;border:none;border-top:1px solid #EAD9BE;"/>' +
-    '<p style="font-size:10px;color:#8A7A88;">Issued by ' + p.groupName + ' - Powered by UNIMUNITY</p>' +
+    '<p style="font-size:10px;color:#8A7A88;">Issued by ' + p.groupName + '</p>' +
     '</body></html>';
 
   const url = 'data:application/msword;charset=utf-8,' + encodeURIComponent(html);

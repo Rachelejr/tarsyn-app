@@ -8,6 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import { buildReceiptHtml } from '@/lib/receiptHtml';
+import { buildGridPeriods, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -1010,6 +1011,17 @@ export default function PaymentGridPage() {
 
   const effectivePageStart = pageStart !== null ? pageStart : 0;
 
+  // Half-year / year periods, to jump quickly in long tontines.
+  const gridPeriods = buildGridPeriods(grid.weeks);
+  const firstShownIdx = activeWeekEntries[effectivePageStart]?.[0];
+  const currentPeriodKey = gridPeriods.find(p => firstShownIdx !== undefined && p.weekIdxs.includes(firstShownIdx))?.key || '';
+  const jumpToPeriod = (key: string) => {
+    const period = gridPeriods.find(p => p.key === key);
+    if (!period) return;
+    const pos = activeWeekEntries.findIndex(([idx]) => period.weekIdxs.includes(idx));
+    if (pos >= 0) { setPageStart(pos); setSelectedWeek(activeWeekEntries[pos][0]); }
+  };
+
   const visibleWeeks = activeWeekEntries.slice(
     effectivePageStart,
     effectivePageStart + WEEKS_PER_PAGE
@@ -1569,6 +1581,15 @@ export default function PaymentGridPage() {
         <div style={{ background: '#FFFFFF', border: '1px solid #F0E4D6', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 12, overflow: 'hidden' }}>
           {/* Row 1: week navigation */}
           <div className="UNIMUNITY-no-print" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 16px', borderBottom: '1px solid #F3E6D8', background: '#FFFCF7' }}>
+            {gridPeriods.length > 1 && (
+              <select value={currentPeriodKey} onChange={e => jumpToPeriod(e.target.value)} title="Jump to a period"
+                style={{ padding: '6px 10px', borderRadius: 10, border: '1.5px solid #EAD9BE', background: '#FFFDF9', color: '#6B2D4E', fontSize: 12.5, fontWeight: 700, outline: 'none', cursor: 'pointer' }}>
+                {!currentPeriodKey && <option value="">Choose a period</option>}
+                {gridPeriods.map(p => (
+                  <option key={p.key} value={p.key}>{p.label} - {PERIOD_STATUS_LABEL[p.status]} ({p.weekIdxs.length} weeks)</option>
+                ))}
+              </select>
+            )}
             <span style={{ fontSize: 11, fontWeight: 700, color: '#A08B7D', textTransform: 'uppercase', letterSpacing: 0.8 }}>Weeks</span>
             <button
               onClick={() => { setPageStart(Math.max(0, effectivePageStart - WEEKS_PER_PAGE)); setSelectedWeek(null); }}

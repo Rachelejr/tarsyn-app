@@ -12,6 +12,7 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import DocumentComments from '@/components/DocumentComments';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
 
 const C = {
   bleu: '#6B2D4E',
@@ -44,6 +45,7 @@ export default function DocumentsPage() {
   const [userId, setUserId] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [groupName, setGroupName] = useState('');
+  const [groupNames, setGroupNames] = useState<Record<string, string>>({});
   const [category, setCategory] = useState('General');
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
@@ -66,10 +68,16 @@ export default function DocumentsPage() {
       const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
       const gsnap = await getDocs(gq);
       if (!gsnap.empty) setGroupName(gsnap.docs[0].data().name);
+      const names: Record<string, string> = {};
+      gsnap.docs.forEach(g => { names[g.id] = g.data().name || ''; });
+      setGroupNames(names);
       setLoading(false);
     });
     return () => unsub();
   }, [router]);
+
+  // Old receipts carried the UNIMUNITY name: show them under the group's name.
+  const docUrl = (d: any) => rebrandLegacyReceiptUrl(d?.url || '', groupNames[d?.groupId] || groupName);
 
   const loadDocs = async (uid: string) => {
     const q = query(collection(db, 'documents'), where('organizerId', '==', uid));
@@ -208,7 +216,7 @@ export default function DocumentsPage() {
 
   const handleDownload = async () => {
     if (!selectedDoc) return;
-    window.open(selectedDoc.url, '_blank');
+    window.open(docUrl(selectedDoc), '_blank');
     try {
       await updateDoc(doc(db, 'documents', selectedDoc.id), { downloadCount: increment(1) });
       setDocs(prev => prev.map(d => d.id === selectedDoc.id ? { ...d, downloadCount: (d.downloadCount || 0) + 1 } : d));
@@ -218,7 +226,7 @@ export default function DocumentsPage() {
 
   const handlePrint = () => {
     if (!selectedDoc) return;
-    const w = window.open(selectedDoc.url, '_blank');
+    const w = window.open(docUrl(selectedDoc), '_blank');
     w?.addEventListener('load', () => w.print());
     logAction('Printed');
   };
@@ -449,7 +457,7 @@ export default function DocumentsPage() {
                     </div>
                   </div>
                   <div style={{ padding: '12px 20px', display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
-                    <a href={selectedDoc.url} target="_blank" rel="noreferrer" onClick={() => logAction('Previewed')} className="dc-btn"
+                    <a href={docUrl(selectedDoc)} target="_blank" rel="noreferrer" onClick={() => logAction('Previewed')} className="dc-btn"
                       style={{ ...actionBtn, background: C.creme, color: C.bleu, border: '1.5px solid #F0DCA8' }}>{'\u{1F441}\uFE0F'} Preview</a>
                     <button onClick={handleDownload} className="dc-btn" style={{ ...actionBtn, background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: 'white', border: 'none', boxShadow: '0 4px 12px rgba(107,45,78,0.22)' }}>{'\u{1F4E5}'} Download</button>
                     <button onClick={handlePrint} className="dc-btn" style={{ ...actionBtn, background: C.or, color: C.bleuFonce, border: 'none' }}>{'\u{1F5A8}\uFE0F'} Print</button>

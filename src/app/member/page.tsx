@@ -14,6 +14,9 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import { authHeaders } from '@/lib/authFetch';
 import ReferralInviteButton from '@/components/referral/ReferralInviteButton';
+import { rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
+import { buildGridPeriods, defaultPeriodKey, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
+import { tontineStatus, TONTINE_STATUS_LABEL, TONTINE_STATUS_ORDER } from '@/lib/tontineStatus';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -69,6 +72,7 @@ function MemberContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
+  const [gridPeriod, setGridPeriod] = useState('');
   const [hiddenNow, setHiddenNow] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('General');
@@ -601,6 +605,15 @@ function MemberContent() {
                 // Name each membership after its group, so a member of several
                 // groups (same or different organizers) can tell them apart.
                 if (gSnap.exists() && !m.groupName) m.groupName = gSnap.data()?.name || '';
+                if (gSnap.exists()) {
+                  m.groupStart = gSnap.data()?.startDate || '';
+                  m.groupState = gSnap.data()?.status || '';
+                  // Current cycle end, from this member's own read-only view.
+                  try {
+                    const v = await getDoc(doc(db, 'paymentGrids', m.groupId + '_current', 'memberViews', u.uid));
+                    if (v.exists()) m.groupEnd = (v.data() as any)?.cycleEnd || '';
+                  } catch { /* no view yet */ }
+                }
                 return !(gSnap.exists() && gSnap.data()?.hiddenFromMembers === true);
               } catch (e) { return true; }
             })
@@ -1008,15 +1021,25 @@ function MemberContent() {
       {allMemberships.length > 1 && (
         <div style={{ flexShrink: 0, background: C.creme, padding: '8px 28px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', borderBottom: `1px solid ${C.border}` }}>
           <span style={{ color: C.texteGris, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>My Groups:</span>
-          {allMemberships.map((m: any) => (
-            <div key={m.id} className="group-tab" onClick={() => selectMembership(m, uid)}
-              style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
-                background: activeMember?.id === m.id ? C.bordeaux : 'white',
-                color: activeMember?.id === m.id ? 'white' : C.bordeaux,
-                border: '1.5px solid ' + (activeMember?.id === m.id ? C.bordeaux : C.border) }}>
-              {m.groupName || m.tynId || 'Group'}
-            </div>
-          ))}
+          {/* Tontines in progress first, then upcoming, then completed. */}
+          {TONTINE_STATUS_ORDER.map(st => {
+            const list = allMemberships.filter((m: any) => tontineStatus({ status: m.groupState, startDate: m.groupStart, endDate: m.groupEnd }) === st);
+            if (list.length === 0) return null;
+            return (
+              <div key={st} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: st === 'current' ? C.success : st === 'upcoming' ? '#9C7A2E' : C.texteGris, marginLeft: '6px' }}>{TONTINE_STATUS_LABEL[st]}</span>
+                {list.map((m: any) => (
+                  <div key={m.id} className="group-tab" onClick={() => selectMembership(m, uid)}
+                    style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, opacity: st === 'completed' && activeMember?.id !== m.id ? 0.7 : 1,
+                      background: activeMember?.id === m.id ? C.bordeaux : 'white',
+                      color: activeMember?.id === m.id ? 'white' : C.bordeaux,
+                      border: '1.5px solid ' + (activeMember?.id === m.id ? C.bordeaux : C.border) }}>
+                    {m.groupName || m.tynId || 'Group'}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -1133,7 +1156,13 @@ function MemberContent() {
           {/* My Payment Grid (full table, read-only, this member's rows only) */}
           {myPayments && (() => {
             const shown = (viewingArchiveId && archiveView) ? archiveView : myPayments;
-            const shownWeekKeys = Object.keys(shown.weeks).sort((a, b) => Number(a) - Number(b));
+            // Long tontines are split into half-years or years (dropdown below).
+            const periods = buildGridPeriods(shown.weeks);
+            const activePeriodKey = periods.some(p => p.key === gridPeriod) ? gridPeriod : defaultPeriodKey(periods);
+            const activePeriod = periods.find(p => p.key === activePeriodKey);
+            const shownWeekKeys = periods.length > 1 && activePeriod
+              ? activePeriod.weekIdxs
+              : Object.keys(shown.weeks).sort((a, b) => Number(a) - Number(b));
             const isArchive = !!viewingArchiveId;
             const todayStr = new Date().toISOString().split('T')[0];
             const daysToEnd = cycleMeta?.cycleEnd
@@ -1239,6 +1268,17 @@ function MemberContent() {
                   </div>
                 </div>
               )}
+              {periods.length > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: C.texteGris, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Period</span>
+                  <select value={activePeriodKey} onChange={e => setGridPeriod(e.target.value)}
+                    style={{ padding: '6px 10px', borderRadius: 8, border: '1.5px solid ' + C.border, fontSize: 12.5, fontWeight: 700, color: C.bordeaux, background: 'white', cursor: 'pointer' }}>
+                    {periods.map(p => (
+                      <option key={p.key} value={p.key}>{p.label} - {PERIOD_STATUS_LABEL[p.status]} ({p.weekIdxs.length} weeks)</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div style={{ background: C.ivoire, borderRadius: '14px', border: '1px solid ' + C.border, padding: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 {shown.slots.map((slotNum, i) => (
                   <div key={slotNum} style={{ marginBottom: i < shown.slots.length - 1 ? '16px' : 0 }}>
@@ -1334,9 +1374,9 @@ function MemberContent() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <a href={d.url} target="_blank" rel="noreferrer" style={{ background: 'white', color: C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
-                        <a href={d.url} download={d.name} style={{ background: C.bordeaux, color: 'white', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Download</a>
-                        <button onClick={() => handlePrint(d.url)} style={{ background: 'white', color: C.doreDark, border: '1.5px solid ' + C.dore, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Print</button>
+                        <a href={rebrandLegacyReceiptUrl(d.url, groupName)} target="_blank" rel="noreferrer" style={{ background: 'white', color: C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
+                        <a href={rebrandLegacyReceiptUrl(d.url, groupName)} download={d.name} style={{ background: C.bordeaux, color: 'white', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Download</a>
+                        <button onClick={() => handlePrint(rebrandLegacyReceiptUrl(d.url, groupName))} style={{ background: 'white', color: C.doreDark, border: '1.5px solid ' + C.dore, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Print</button>
                         {d.uploadedBy === uid && (
                           <button onClick={() => handleDelete(d)} disabled={deletingId === d.id} style={{ background: '#FFEBEE', color: '#C62828', border: 'none', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                             {deletingId === d.id ? '...' : 'Delete'}

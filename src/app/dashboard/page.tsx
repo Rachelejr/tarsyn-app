@@ -9,6 +9,7 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import QRCodeModal from '@/components/qr/QRCodeModal';
 import JoinRequestsCard from '@/components/referral/JoinRequestsCard';
+import { tontineStatus, TONTINE_STATUS_LABEL, TONTINE_STATUS_ORDER } from '@/lib/tontineStatus';
 
 function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
@@ -109,7 +110,7 @@ function OverviewContent() {
   const [memberShowCount, setMemberShowCount] = useState<number | 'all'>(5);
   const [paymentShowCount, setPaymentShowCount] = useState<number | 'all'>(5);
   // Current cycle of each group's payment grid (for the "next cycle answers" card).
-  const [gridCycles, setGridCycles] = useState<Record<string, { cycleNumber: number; askedFor: number; memberIds: string[] }>>({});
+  const [gridCycles, setGridCycles] = useState<Record<string, { cycleNumber: number; askedFor: number; memberIds: string[]; startDate?: string; endDate?: string }>>({});
 
   useEffect(() => {
     let unsubMembers: (() => void) | null = null;
@@ -127,14 +128,14 @@ function OverviewContent() {
 
         setGroups(gsnap.docs.map(d => ({ id: d.id, ...d.data() })));
         // Cycle info per group, for the members' next-cycle answers.
-        const cycles: Record<string, { cycleNumber: number; askedFor: number; memberIds: string[] }> = {};
+        const cycles: Record<string, { cycleNumber: number; askedFor: number; memberIds: string[]; startDate?: string; endDate?: string }> = {};
         await Promise.all(gsnap.docs.map(async (g) => {
           try {
             const gs = await getDoc(doc(db, 'paymentGrids', g.id + '_current'));
             if (!gs.exists()) return;
             const gd: any = gs.data();
             const ids = Array.from(new Set(Object.values(gd.slots || {}).map((s: any) => s.memberId))).filter(Boolean) as string[];
-            cycles[g.id] = { cycleNumber: gd.cycleNumber || 1, askedFor: gd.renewalAskedFor || 0, memberIds: ids };
+            cycles[g.id] = { cycleNumber: gd.cycleNumber || 1, askedFor: gd.renewalAskedFor || 0, memberIds: ids, startDate: gd.startDate || '', endDate: gd.cycleEndDate || '' };
           } catch { /* grid unreadable: no card for this group */ }
         }));
         setGridCycles(cycles);
@@ -908,8 +909,18 @@ function OverviewContent() {
             </div>
             {groups.length === 0 ? (
               <p style={{ color: '#C4748E', fontSize: '13px', margin: 0 }}>No groups yet. <span onClick={() => router.push('/dashboard/create-tontine')} style={{ color: '#6B2D4E', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Create your first group</span></p>
-            ) : groups.map((g, i) => (
-              <div key={i} className="rc-group">
+            ) : TONTINE_STATUS_ORDER.flatMap(st => {
+              // Tontines in progress first, then upcoming, then completed.
+              const list = groups.filter(g => tontineStatus({ status: g.status, startDate: gridCycles[g.id]?.startDate || g.startDate, endDate: gridCycles[g.id]?.endDate }) === st);
+              return list.map((g, idx) => ({ g, st, first: idx === 0 }));
+            }).map(({ g, st, first }, i) => (
+              <div key={g.id || i} style={{ marginBottom: '10px' }}>
+              {first && (
+                <p style={{ margin: i === 0 ? '0 0 8px' : '14px 0 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: st === 'current' ? '#2E7D32' : st === 'upcoming' ? '#9C7A2E' : '#8A7B6C' }}>
+                  {TONTINE_STATUS_LABEL[st]}
+                </p>
+              )}
+              <div className="rc-group" style={{ opacity: st === 'completed' ? 0.75 : 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                   <p style={{ color: '#4A1F38', fontWeight: 800, fontSize: '14px', margin: 0 }}>{g.name}</p>
                   <span className="pill" style={{ background: g.status === 'active' ? '#E8F5E9' : '#FFF3E0', color: g.status === 'active' ? '#2E7D32' : '#E65100', padding: '3px 9px', fontSize: '10px', textTransform: 'capitalize' }}>
@@ -943,6 +954,7 @@ function OverviewContent() {
                     {'\u270f\ufe0f'} Edit
                   </button>
                 </div>
+              </div>
               </div>
             ))}
           </div>
