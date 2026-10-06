@@ -15,6 +15,9 @@
 //  4. A period is due on its first week's date, and only once that date has
 //     passed (today included).
 //  5. Each share (slot) of a member owes one contribution per period.
+//  6. Weekly groups owe only on the grid's weekly dates (cycle start + 7k
+//     days); columns on another weekday (corrupted data) are ignored, and
+//     two columns on the same date count once.
 
 export type Frequency = 'Weekly' | 'Bi-weekly' | 'Monthly' | 'Quarterly' | 'Bi-annual' | 'Annual';
 
@@ -115,13 +118,30 @@ export function computeDues(opts: {
   const amountPerPeriod = Number.isFinite(opts.amountPerPeriod) && opts.amountPerPeriod > 0 ? opts.amountPerPeriod : 0;
 
   // 1. Weeks of the current cycle only, in date order.
-  const weeks = Object.entries(opts.weeks || {})
+  let weeks = Object.entries(opts.weeks || {})
     .filter(([, d]) => typeof d === 'string' && ISO.test(d))
     .filter(([, d]) => (!cycleStart || d >= cycleStart) && (!cycleEnd || d <= cycleEnd))
     .sort((a, b) => a[1].localeCompare(b[1]) || Number(a[0]) - Number(b[0]));
 
   // 3. Group weeks into periods following the group's frequency.
   const anchor = cycleStart || weeks[0]?.[1] || todayStr;
+  // The grid always creates weekly columns on the cycle start's weekday
+  // (start + 7 days, + 14 days...). A weekly group therefore only owes on
+  // those dates: columns that drifted to another weekday (corrupted data)
+  // are never counted as an extra contribution. Longer frequencies group
+  // weeks by calendar period, where such columns can't add anything.
+  if (freq === 'Weekly' && cycleStart) {
+    for (let k = weeks.length - 1; k >= 0; k--) {
+      const diffDays = Math.round((utc(weeks[k][1]) - utc(cycleStart)) / DAY);
+      if (diffDays % 7 !== 0) weeks.splice(k, 1);
+    }
+  }
+  if (freq === 'Weekly') {
+    // Two columns on the same date are the same contribution: merge them.
+    const seen = new Map<string, string[]>();
+    for (const [idx, date] of weeks) seen.set(date, [...(seen.get(date) || []), idx]);
+    weeks = Array.from(seen.entries()).map(([date, idxs]) => [idxs.join('|'), date] as [string, string]);
+  }
   const periods: DuePeriod[] = [];
   const byKey = new Map<string, DuePeriod>();
   for (const [idx, date] of weeks) {
@@ -132,7 +152,7 @@ export function computeDues(opts: {
       byKey.set(key, p);
       periods.push(p);
     }
-    p.weekIdxs.push(idx);
+    p.weekIdxs.push(...idx.split('|'));
   }
 
   // 2 + 4. Due once the due date has passed, and not before the member joined.
