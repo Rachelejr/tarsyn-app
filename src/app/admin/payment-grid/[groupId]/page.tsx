@@ -438,6 +438,20 @@ export default function PaymentGridPage() {
     });
   }
 
+  // Runs a batch of writes without stopping at the first refusal, and returns
+  // a short description of each write that failed (path + Firebase code).
+  async function settleWrites(items: { path: string; run: Promise<unknown> }[]): Promise<string[]> {
+    const results = await Promise.allSettled(items.map((i) => i.run));
+    const failed: string[] = [];
+    results.forEach((r, k) => {
+      if (r.status === 'rejected') {
+        const code = (r.reason as { code?: string })?.code || String(r.reason?.message || r.reason);
+        failed.push(items[k].path + ' (' + code + ')');
+      }
+    });
+    return failed;
+  }
+
   async function syncMemberView(
     memberId: string,
     slotsMap: Record<string, Slot>,
@@ -488,7 +502,7 @@ export default function PaymentGridPage() {
   ) {
     if (!grid) return;
 
-    const receiptPromises: Promise<any>[] = [];
+    const receiptPromises: { path: string; run: Promise<unknown> }[] = [];
 
     Object.entries(grid.slots).forEach(([slotNum, slot]) => {
       const weekEntriesLocal = Object.entries(grid.weeks);
@@ -515,7 +529,7 @@ export default function PaymentGridPage() {
           });
           const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 
-          receiptPromises.push(
+          receiptPromises.push({ path: 'documents (receipt W' + weekIdx + ', slot ' + slotNum + ')', run:
             addDoc(collection(db, 'documents'), {
               name: 'Receipt - W' + weekIdx + ' - ' + weekDate,
               type: 'text/html',
@@ -531,15 +545,12 @@ export default function PaymentGridPage() {
               tontineCycleId: grid.cycleId,
               tontineCycleNumber: grid.cycleNumber || 1,
               createdAt: serverTimestamp(),
-            })
-          );
+            }) });
         }
       });
     });
 
-    if (receiptPromises.length > 0) {
-      await Promise.all(receiptPromises);
-    }
+    return settleWrites(receiptPromises);
   }
 
   async function syncRegisterCycles(
@@ -547,7 +558,7 @@ export default function PaymentGridPage() {
     newPayments: Record<string, Record<string, boolean>>
   ) {
     if (!grid) return;
-    const syncPromises: Promise<any>[] = [];
+    const syncPromises: { path: string; run: Promise<unknown> }[] = [];
 
     Object.entries(grid.slots).forEach(([slotNum, slot]) => {
       const weekEntriesLocal = Object.entries(grid.weeks);
@@ -565,7 +576,7 @@ export default function PaymentGridPage() {
           const registerDocId = tontineCycleNumber > 1
             ? slot.memberId + '_' + grid.cycleId + '_cycle' + cycleNumber
             : slot.memberId + '_cycle' + cycleNumber;
-          syncPromises.push(
+          syncPromises.push({ path: 'payments/' + registerDocId, run:
             setDoc(
               doc(db, 'payments', registerDocId),
               {
@@ -587,43 +598,51 @@ export default function PaymentGridPage() {
                 createdAt: serverTimestamp(),
               },
               { merge: true }
-            )
-          );
+            ) });
         }
       });
     });
 
-    if (syncPromises.length > 0) {
-      await Promise.all(syncPromises);
-    }
+    return settleWrites(syncPromises);
   }
 
   async function handleSaveAll() {
     if (!grid) return;
     setSavingAll(true);
     try {
-      await setDoc(
-        doc(db, 'paymentGrids', gridId),
-        { payments: pendingPayments },
-        { merge: true }
-      );
+      // 1. The grid itself. If this fails, nothing is saved.
+      try {
+        await setDoc(doc(db, 'paymentGrids', gridId), { payments: pendingPayments }, { merge: true });
+      } catch (err) {
+        console.error('Error saving payments (grid paymentGrids/' + gridId + '):', err);
+        alert('The payments could not be saved: ' + ((err as { code?: string })?.code || 'unknown error') + '.\nNothing was changed. Please try again.');
+        return;
+      }
 
+      // 2. Member views, receipts and Register entries: each write is tried,
+      //    and every refusal is reported instead of silently stopping the save.
       const uniqueMemberIds = Array.from(
         new Set(Object.values(grid.slots).map((s) => s.memberId))
       ).filter(Boolean);
+      const viewFailures = await settleWrites(uniqueMemberIds.map((id) => ({
+        path: 'memberViews (member ' + id + ')',
+        run: syncMemberView(id, grid.slots, pendingPayments, grid.weeks),
+      })));
+      const receiptFailures = await generateReceiptsForNewlyPaid(grid.payments, pendingPayments);
+      const registerFailures = await syncRegisterCycles(grid.payments, pendingPayments);
 
-      await Promise.all(
-        uniqueMemberIds.map((id) =>
-          syncMemberView(id, grid.slots, pendingPayments, grid.weeks)
-        )
-      );
-
-      await generateReceiptsForNewlyPaid(grid.payments, pendingPayments);
-      await syncRegisterCycles(grid.payments, pendingPayments);
-
+      // The grid is saved: the "unsaved changes" banner goes away.
       setGrid((prev) => (prev ? { ...prev, payments: pendingPayments } : prev));
-    } catch (err) {
-      console.error('Error saving payments:', err);
+
+      const failures = [...viewFailures, ...(receiptFailures || []), ...(registerFailures || [])];
+      if (failures.length > 0) {
+        console.error('Payments saved, but some linked writes failed:', failures);
+        alert(
+          'Payments saved. But ' + failures.length + ' linked update(s) failed:\n\n' +
+          failures.slice(0, 8).join('\n') +
+          (failures.length > 8 ? '\n... and ' + (failures.length - 8) + ' more' : '')
+        );
+      }
     } finally {
       setSavingAll(false);
     }
