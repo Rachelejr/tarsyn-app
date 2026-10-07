@@ -456,9 +456,11 @@ export default function PaymentGridPage() {
       memberPayments[s.slotNumber] = paymentsMap[s.slotNumber] || {};
     });
 
-    await setDoc(
-      doc(db, 'paymentGrids', gridId, 'memberViews', userId),
-      {
+    // mergeFields (not merge: true): each field written here REPLACES the old
+    // one as a whole. With merge: true, Firestore merged the weeks/payments
+    // maps key by key, so columns removed from the grid stayed forever in the
+    // member's view (old W105+ columns, wrong counters).
+    const view: Record<string, unknown> = {
         memberName: memberSlots[0].memberName,
         slots: memberSlots.map((s) => s.slotNumber),
         weeks: weeksMap,
@@ -472,8 +474,11 @@ export default function PaymentGridPage() {
             }
           : {}),
         ...(cycleInfo || {}),
-      },
-      { merge: true }
+    };
+    await setDoc(
+      doc(db, 'paymentGrids', gridId, 'memberViews', userId),
+      view,
+      { mergeFields: Object.keys(view) }
     );
   }
 

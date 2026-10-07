@@ -41,24 +41,30 @@ export async function POST(req: NextRequest) {
       droppedTicks: health.droppedTicks.length,
       keptWeeks: Object.keys(health.weeks).length,
     };
-    if (!apply || !gridNeedsRepair(health)) {
-      return NextResponse.json({ needsRepair: gridNeedsRepair(health), report });
+    const needsRepair = gridNeedsRepair(health);
+    if (!apply) {
+      return NextResponse.json({ needsRepair, report });
     }
 
-    // 1. Full backup, never deleted automatically.
-    const backupRef = adminDb.collection('paymentGridBackups').doc();
-    await backupRef.set({
-      ...grid,
-      backupOf: gridId,
-      groupId,
-      organizerId: uid,
-      reason: 'grid-repair',
-      report,
-      backedUpAt: FieldValue.serverTimestamp(),
-    });
-
-    // 2. Repaired grid: weeks and payments replaced as a whole.
-    await gridRef.update({ weeks: health.weeks, payments: health.payments, lastRepairAt: FieldValue.serverTimestamp(), lastRepairBackupId: backupRef.id });
+    // 1 + 2. Only when columns are damaged: full backup (never deleted
+    // automatically), then weeks and payments replaced as a whole.
+    let backupId: string | null = null;
+    if (needsRepair) {
+      const backupRef = adminDb.collection('paymentGridBackups').doc();
+      await backupRef.set({
+        ...grid,
+        backupOf: gridId,
+        groupId,
+        organizerId: uid,
+        reason: 'grid-repair',
+        report,
+        backedUpAt: FieldValue.serverTimestamp(),
+      });
+      backupId = backupRef.id;
+      await gridRef.update({ weeks: health.weeks, payments: health.payments, lastRepairAt: FieldValue.serverTimestamp(), lastRepairBackupId: backupId });
+    }
+    // Even when the grid itself is clean, the member views are rebuilt below:
+    // they can still hold old columns from before.
 
     // 3. Rebuild every registered member's read-only view (full overwrite,
     //    so removed columns disappear from their portal too).
@@ -88,13 +94,17 @@ export async function POST(req: NextRequest) {
       });
     }));
 
+    if (!needsRepair) {
+      return NextResponse.json({ repaired: false, viewsRebuilt: true, report });
+    }
+
     await adminDb.collection('audit_logs').add({
       organizerId: uid, groupId, category: 'Group', action: 'Repaired payment grid',
-      user: '', details: `${report.outOfCycle} out-of-cycle, ${report.offCadence} wrong-weekday, ${report.duplicates} duplicate columns removed; ${report.movedTicks} payments moved, ${report.droppedTicks} out-of-cycle ticks removed (backup ${backupRef.id})`,
+      user: '', details: `${report.outOfCycle} out-of-cycle, ${report.offCadence} wrong-weekday, ${report.duplicates} duplicate columns removed; ${report.movedTicks} payments moved, ${report.droppedTicks} out-of-cycle ticks removed (backup ${backupId})`,
       createdAt: FieldValue.serverTimestamp(),
     }).catch(() => undefined);
 
-    return NextResponse.json({ repaired: true, report, backupId: backupRef.id });
+    return NextResponse.json({ repaired: true, report, backupId });
   } catch (err) {
     console.error('grid-repair error:', err);
     return NextResponse.json({ error: 'Could not repair this grid.' }, { status: 500 });

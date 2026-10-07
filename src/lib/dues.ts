@@ -156,23 +156,29 @@ export function computeDues(opts: {
   }
 
   // 2 + 4. Due once the due date has passed, and not before the member joined.
-  const duePeriods = periods.filter(p => p.dueDate <= todayStr && (!since || p.dueDate >= since));
+  // A period before the member's record was created still counts when the
+  // organizer ticked it as paid (member added to the app after joining the
+  // group): it is then paid, never owed.
+  const isPaid = (p: DuePeriod, slotNum: string) => p.weekIdxs.some(w => opts.payments?.[slotNum]?.[w] === true);
+  const beforeArrival = (p: DuePeriod) => !!since && p.dueDate < since;
+  const duePeriods = periods.filter(p => p.dueDate <= todayStr && (!beforeArrival(p) || opts.slotNums.some(n => isPaid(p, n))));
 
   // 5. One contribution per slot per period; paid if any week of it is ticked.
   const unpaid: { slotNum: string; period: DuePeriod }[] = [];
   const unpaidWeekIdxs = new Set<string>();
   let paidCount = 0;
+  let dueCount = 0;
   for (const p of duePeriods) {
     for (const slotNum of opts.slotNums) {
-      const paid = p.weekIdxs.some(w => opts.payments?.[slotNum]?.[w] === true);
-      if (paid) paidCount++;
-      else {
+      const paid = isPaid(p, slotNum);
+      if (paid) { paidCount++; dueCount++; }
+      else if (!beforeArrival(p)) {
+        dueCount++;
         unpaid.push({ slotNum, period: p });
         unpaidWeekIdxs.add(p.weekIdxs[0]);
       }
     }
   }
-  const dueCount = duePeriods.length * opts.slotNums.length;
 
   return {
     duePeriods,
