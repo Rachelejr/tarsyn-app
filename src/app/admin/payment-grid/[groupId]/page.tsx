@@ -185,13 +185,16 @@ export default function PaymentGridPage() {
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
   const gridId = groupId + '_current';
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         loadGrid();
       } else {
-        setLoading(false);
+        // Not signed in as an organizer in this browser: go to sign-in,
+        // then come back to this grid.
+        router.push('/login?redirect=' + encodeURIComponent('/admin/payment-grid/' + groupId));
       }
     });
     return () => unsubscribe();
@@ -377,8 +380,11 @@ export default function PaymentGridPage() {
 
       setGrid(loadedGrid);
       setPendingPayments(loadedGrid.payments || {});
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading grid:', err);
+      setLoadError(err?.code === 'permission-denied'
+        ? 'You do not have access to this grid. Sign in with the organizer account of this group.'
+        : 'Could not load payment grid. Please reload the page.');
     } finally {
       setLoading(false);
     }
@@ -1003,8 +1009,11 @@ export default function PaymentGridPage() {
 
   if (!grid) {
     return (
-      <div style={{ padding: 40, color: 'crimson' }}>
-        Could not load payment grid.
+      <div style={{ padding: 40, fontFamily: 'sans-serif' }}>
+        <p style={{ color: 'crimson', margin: '0 0 14px' }}>{loadError || 'Could not load payment grid.'}</p>
+        <button onClick={() => router.push('/dashboard')} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #EAD9BE', background: 'white', color: '#6B2D4E', fontWeight: 700, cursor: 'pointer' }}>
+          Back to Dashboard
+        </button>
       </div>
     );
   }
