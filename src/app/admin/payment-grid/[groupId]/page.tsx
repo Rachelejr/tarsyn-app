@@ -1874,12 +1874,12 @@ export default function PaymentGridPage() {
                                 marginLeft: 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6,
                                 padding: '7px 13px', borderRadius: 10, fontSize: 11.5, fontWeight: 800, letterSpacing: 0.2,
                                 cursor: 'pointer', whiteSpace: 'nowrap',
-                                border: allTicked ? '1.5px solid #E7B4B4' : 'none',
-                                background: allTicked ? '#FFFFFF' : 'linear-gradient(135deg,#66BB6A,#2E7D32)',
-                                color: allTicked ? '#C62828' : '#FFFFFF',
-                                boxShadow: allTicked ? 'none' : '0 4px 10px rgba(46,125,50,0.28)',
+                                border: allTicked ? '1.5px solid ' + C.border : '1.5px solid ' + C.bordeaux,
+                                background: allTicked ? C.ivoire : 'linear-gradient(135deg,' + C.bordeaux + ',' + C.bordeauxDark + ')',
+                                color: allTicked ? C.danger : C.ivoire,
+                                boxShadow: allTicked ? 'none' : '0 4px 10px rgba(107,45,78,0.22)',
                               }}>
-                              <span style={{ fontSize: 13, lineHeight: 1 }}>{allTicked ? '\u2717' : '\u2713'}</span>
+                              <span style={{ fontSize: 13, lineHeight: 1, color: allTicked ? C.danger : C.or }}>{allTicked ? '\u2717' : '\u2713'}</span>
                               {allTicked ? 'Untick all' : 'Tick all'}
                             </button>
                           );
