@@ -86,6 +86,15 @@ export default function NextCyclePlan({ cycleNumber, cycleEnd, daysToEnd, curren
     if (ok) { setEditing(false); setJustSent(true); }
   };
 
+  // The big confirmation only stays a few seconds, then shrinks to a chip.
+  const [fading, setFading] = useState(false);
+  useEffect(() => {
+    if (!justSent) return;
+    const t1 = setTimeout(() => setFading(true), 3500);
+    const t2 = setTimeout(() => { setJustSent(false); setFading(false); }, 4100);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [justSent]);
+
   const cancelEdit = () => {
     setChoice(currentAnswer);
     setNote(currentNote || '');
@@ -101,11 +110,39 @@ export default function NextCyclePlan({ cycleNumber, cycleEnd, daysToEnd, curren
     boxShadow: '0 2px 10px rgba(107,45,78,0.06)',
   };
 
-  // ---------- Answered: compact summary ----------
+  // ---------- Answered, settled: a small chip that leaves room for the grid ----------
+  if (!editing && currentAnswer && !justSent) {
+    const o = OPTIONS[currentAnswer];
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <span
+          title={currentNote ? '\u201C' + currentNote + '\u201D' : undefined}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 12px 5px 6px', borderRadius: 999,
+            background: o.tint, border: '1px solid ' + o.ring, fontSize: 12, fontWeight: 700, color: o.ink,
+          }}
+        >
+          <span aria-hidden style={{
+            width: 20, height: 20, borderRadius: '50%', background: o.ink, color: 'white',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800,
+          }}>{o.icon}</span>
+          Cycle {next}: {o.title}
+        </span>
+        <button
+          onClick={() => setEditing(true)}
+          style={{ border: 'none', background: 'transparent', padding: 0, color: P.muted, fontSize: 11.5, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}
+        >
+          Change
+        </button>
+      </div>
+    );
+  }
+
+  // ---------- Answered just now: confirmation, fades away after a few seconds ----------
   if (!editing && currentAnswer) {
     const o = OPTIONS[currentAnswer];
     return (
-      <div style={{ ...card, background: `linear-gradient(135deg, ${o.tint} 0%, ${P.ivoire} 75%)`, borderColor: o.ring }}>
+      <div style={{ ...card, background: `linear-gradient(135deg, ${o.tint} 0%, ${P.ivoire} 75%)`, borderColor: o.ring, transition: 'opacity .6s ease', opacity: fading ? 0 : 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <div aria-hidden style={{
             width: 42, height: 42, borderRadius: '50%', background: o.ink, color: 'white',
@@ -116,7 +153,7 @@ export default function NextCyclePlan({ cycleNumber, cycleEnd, daysToEnd, curren
               {o.summary} cycle {next}
             </div>
             <div style={{ fontSize: 12, color: P.muted, marginTop: 2 }}>
-              {justSent ? '✓ Sent to your organizer · ' : 'Your organizer has your answer · '}
+              ✓ Sent to your organizer · 
               you can change it until cycle {next} starts.
             </div>
           </div>
