@@ -210,3 +210,27 @@ export function payoutForPeriod(opts: {
   const commission = Math.round(pool * ratePercent) / 100;
   return { pool, commission, net: Math.round((pool - commission) * 100) / 100, ratePercent };
 }
+
+/**
+ * Contributions actually RECEIVED for some slots in the current cycle:
+ * every period of the cycle (past or prepaid) with a ticked week counts
+ * once per slot, on the same cadence rules as computeDues.
+ */
+export function paidPeriodsInCycle(opts: {
+  weeks: Record<string, string>;
+  payments: Record<string, Record<string, boolean>>;
+  slotNums: string[];
+  frequency?: unknown;
+  cycleStart?: unknown;
+  cycleEnd?: unknown;
+}): number {
+  // Everything up to the end of the cycle is "due" for this count, from the
+  // cycle start (no join-date limit: a payment received is a payment received).
+  const r = computeDues({
+    ...opts,
+    memberSince: null,
+    amountPerPeriod: 0,
+    today: new Date(Date.UTC(9999, 0, 1)),
+  });
+  return r.paidCount;
+}

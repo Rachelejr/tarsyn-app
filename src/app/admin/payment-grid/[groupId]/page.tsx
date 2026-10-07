@@ -9,7 +9,7 @@ import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import { buildReceiptHtml } from '@/lib/receiptHtml';
 import { buildGridPeriods, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
-import { computeDues } from '@/lib/dues';
+import { computeDues, contributionPerPeriod, paidPeriodsInCycle } from '@/lib/dues';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -147,6 +147,7 @@ export default function PaymentGridPage() {
   const [loading, setLoading] = useState(true);
   const [groupName, setGroupName] = useState('');
   const [groupFrequency, setGroupFrequency] = useState('');
+  const [groupCurrency, setGroupCurrency] = useState('USD');
   const [memberSince, setMemberSince] = useState<Record<string, unknown>>({});
   const [groupBrand, setGroupBrand] = useState<{ logo?: string; enabled?: boolean; showUNIMUNITYBadge?: boolean } | null>(null);
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
@@ -204,8 +205,10 @@ export default function PaymentGridPage() {
         setGroupName(groupSnap.data().name || 'Group');
         setGroupBrand(groupSnap.data().groupBrand || null);
         setGroupFrequency(groupSnap.data().frequency || groupSnap.data().paymentFrequency || '');
-        const amt = groupSnap.data().weeklyAmount || groupSnap.data().contributionAmount;
-        if (typeof amt === 'number') setWeeklyAmount(amt);
+        setGroupCurrency(String(groupSnap.data().currency || 'USD').toUpperCase());
+        // Group contribution per period (same lookup as everywhere else).
+        const amt = Number(groupSnap.data().weeklyAmount || groupSnap.data().contributionAmount) || contributionPerPeriod(null, groupSnap.data());
+        if (amt > 0) setWeeklyAmount(amt);
       }
 
       let loadedGrid: Grid;
@@ -329,7 +332,7 @@ export default function PaymentGridPage() {
               const d = memberSnap.data();
               displayName = d.fullName || d.name || '(no name)';
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
-              if (typeof d.expectedAmount === 'number') collectedAmounts[slot.memberId] = d.expectedAmount;
+              if (typeof d.expectedAmount === 'number' && d.expectedAmount > 0) collectedAmounts[slot.memberId] = d.expectedAmount;
               // Latest payout date among members = suggested end of the cycle.
               const payoutList: string[] = [
                 ...(typeof d.payoutDate === 'string' ? [d.payoutDate] : []),
@@ -472,7 +475,7 @@ export default function PaymentGridPage() {
           if (!userId) return;
 
           const memberAmount = memberAmounts[slot.memberId] ?? weeklyAmount;
-          const amountLabel = memberAmount ? '$' + memberAmount.toLocaleString() : 'Amount not set';
+          const amountLabel = memberAmount ? groupCurrency + ' ' + memberAmount.toFixed(2) : 'Amount not set';
           // Receipt issued under the group's own name (UNIMUNITY is only the tool).
           const receiptHtml = buildReceiptHtml({
             groupName,
@@ -1074,16 +1077,22 @@ export default function PaymentGridPage() {
     return Math.round((dues.paidCount / dues.dueCount) * 100);
   }
 
-  const totalCollectedLabel = weeklyAmount
-    ? '$' +
-      allSlotEntries
-        .reduce((sum, [slotNum]) => {
-          const paidCount = weekEntries.filter(
-            ([wIdx]) => pendingPayments[slotNum]?.[wIdx]
-          ).length;
-          return sum + paidCount * weeklyAmount;
-        }, 0)
-        .toLocaleString()
+  // Money received in the CURRENT cycle: each slot's paid periods (weekly
+  // cadence / monthly... per group frequency) x that member's contribution.
+  const totalCollected = allSlotEntries.reduce((sum, [slotNum, slot]) => {
+    const perPeriod = (memberAmounts[slot.memberId] ?? weeklyAmount) || 0;
+    const paidPeriods = paidPeriodsInCycle({
+      weeks: grid?.weeks || {},
+      payments: pendingPayments,
+      slotNums: [slotNum],
+      frequency: groupFrequency,
+      cycleStart: grid?.startDate,
+      cycleEnd: grid?.cycleEndDate,
+    });
+    return sum + paidPeriods * perPeriod;
+  }, 0);
+  const totalCollectedLabel = totalCollected > 0 || weeklyAmount
+    ? groupCurrency + ' ' + totalCollected.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : undefined;
 
   function btnStyle(variant: 'primary' | 'secondary' | 'ghost', disabled?: boolean) {
@@ -1832,7 +1841,7 @@ export default function PaymentGridPage() {
 
         {totalCollectedLabel && (
           <p style={{ marginTop: 10, fontSize: 12.5, color: C.texteGris }}>
-            Total collected to date: <strong style={{ color: C.bordeaux }}>{totalCollectedLabel}</strong>
+            Total collected this cycle: <strong style={{ color: C.bordeaux }}>{totalCollectedLabel}</strong>
           </p>
         )}
 
