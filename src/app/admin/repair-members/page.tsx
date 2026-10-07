@@ -95,6 +95,29 @@ export default function RepairMembersPage() {
     }
   };
 
+  // Empty shells (no name, no email, no account, no organizer) are deleted,
+  // with a copy kept in deletedMembers. Real members are never touched.
+  const emptyIds = broken.filter((m: any) => m.emptyRecord).map((m: any) => m.id);
+  const deleteEmpty = async () => {
+    if (emptyIds.length === 0) return;
+    if (!confirm(`Delete ${emptyIds.length} empty record(s)? They have no name, no email and no account. A copy is kept.`)) return;
+    setRepairing(true);
+    try {
+      const res = await fetch('/api/repair-members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ memberIds: emptyIds }),
+      });
+      const data = await res.json();
+      setResult({ fixedCount: 0, fixed: [], stillBrokenCount: (data.refused || []).length, stillBroken: (data.refused || []).map((id: string) => ({ fullName: id, reason: 'Not empty - kept' })), error: res.ok ? undefined : data.error });
+      await scan();
+    } catch (e) {
+      alert('Delete failed.');
+    } finally {
+      setRepairing(false);
+    }
+  };
+
   if (checking) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.creme }}>
       <p style={{ color: C.bordeaux, fontWeight: 600, fontSize: '14px' }}>Checking access...</p>
@@ -272,6 +295,12 @@ export default function RepairMembersPage() {
                     Repairing...
                   </>
                 ) : `Repair ${broken.length} member(s) now`}
+              </button>
+            )}
+            {emptyIds.length > 0 && (
+              <button onClick={deleteEmpty} disabled={repairing} className="rp2-btn"
+                style={{ width: '100%', marginTop: 8, background: '#FFEBEE', color: '#C62828', border: 'none', padding: 10, borderRadius: 14, fontSize: 13.5, fontWeight: 800, cursor: repairing ? 'not-allowed' : 'pointer' }}>
+                Delete {emptyIds.length} empty record(s)
               </button>
             )}
             <button onClick={scan} disabled={scanning} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#6B2D4E', fontSize: 12.5, fontWeight: 700, cursor: scanning ? 'not-allowed' : 'pointer', textDecoration: 'underline' }}>

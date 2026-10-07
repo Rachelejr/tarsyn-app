@@ -88,6 +88,8 @@ async function scanMembers() {
           newTynId,
           needsOrganizerFix,
           needsTynIdFix,
+          // Empty shell: no name, no account, no organizer - safe to delete.
+          emptyRecord: !m.name && !m.fullName && !m.userId && !m.organizerId && !m.email,
         });
       }
       seq++;
@@ -119,6 +121,11 @@ export async function POST(req: Request) {
     const groupCache: Record<string, string | null> = {};
 
     for (const item of broken) {
+      // Empty records are never "repaired" into fake members: delete them instead.
+      if (item.emptyRecord) {
+        stillBroken.push({ id: item.id, fullName: item.fullName, reason: 'Empty record (no name, no email): use "Delete empty records"' });
+        continue;
+      }
       const updates: Record<string, any> = {};
       let organizerId: string | null = null;
 
@@ -168,5 +175,37 @@ export async function POST(req: Request) {
   } catch (e: any) {
     console.error(e);
     return NextResponse.json({ error: e.message || 'Failed to repair members' }, { status: 500 });
+  }
+}
+
+// Deletes EMPTY member records only (no name, no account, no organizer, no
+// email). Anything else is refused. Each deleted record is copied to
+// deletedMembers first, so it can be restored if ever needed.
+export async function DELETE(req: Request) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
+  try {
+    const { memberIds } = await req.json().catch(() => ({}));
+    if (!Array.isArray(memberIds) || memberIds.length === 0 || memberIds.length > 100) {
+      return NextResponse.json({ error: 'Provide 1 to 100 memberIds' }, { status: 400 });
+    }
+    const deleted: string[] = [];
+    const refused: string[] = [];
+    for (const id of memberIds) {
+      if (typeof id !== 'string') continue;
+      const ref = adminDb.collection('members').doc(id);
+      const snap = await ref.get();
+      if (!snap.exists) continue;
+      const m = snap.data() || {};
+      const empty = !m.name && !m.fullName && !m.userId && !m.organizerId && !m.email;
+      if (!empty) { refused.push(id); continue; }
+      await adminDb.collection('deletedMembers').doc(id).set({ ...m, deletedAt: new Date().toISOString(), reason: 'empty record (repair-members)' });
+      await ref.delete();
+      deleted.push(id);
+    }
+    return NextResponse.json({ deleted, refused });
+  } catch (err) {
+    console.error('repair-members DELETE error:', err);
+    return NextResponse.json({ error: 'Could not delete records' }, { status: 500 });
   }
 }

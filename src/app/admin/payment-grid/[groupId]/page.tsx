@@ -10,6 +10,9 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 import { buildReceiptHtml } from '@/lib/receiptHtml';
 import { buildGridPeriods, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
 import { computeDues, contributionPerPeriod, paidPeriodsInCycle } from '@/lib/dues';
+import { analyzeGrid, gridNeedsRepair } from '@/lib/gridHealth';
+import { normalizeFrequency } from '@/lib/dues';
+import { authHeaders } from '@/lib/authFetch';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -148,6 +151,7 @@ export default function PaymentGridPage() {
   const [groupName, setGroupName] = useState('');
   const [groupFrequency, setGroupFrequency] = useState('');
   const [groupCurrency, setGroupCurrency] = useState('USD');
+  const [repairing, setRepairing] = useState(false);
   const [memberSince, setMemberSince] = useState<Record<string, unknown>>({});
   const [groupBrand, setGroupBrand] = useState<{ logo?: string; enabled?: boolean; showUNIMUNITYBadge?: boolean } | null>(null);
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
@@ -1021,6 +1025,33 @@ export default function PaymentGridPage() {
 
   const effectivePageStart = pageStart !== null ? pageStart : 0;
 
+  // Damaged columns (out of cycle, wrong weekday, duplicates) - see lib/gridHealth.
+  const gridHealth = analyzeGrid(grid, { weekly: normalizeFrequency(groupFrequency) === 'Weekly' });
+  const needsRepair = gridNeedsRepair(gridHealth);
+  const repairGrid = async () => {
+    const h = gridHealth;
+    const msg = 'Repair this grid?\n\n' +
+      '- ' + h.outOfCycle.length + ' column(s) outside the cycle dates will be removed' + (h.droppedTicks.length ? ' (with ' + h.droppedTicks.length + ' tick(s) on them)' : '') + '\n' +
+      '- ' + h.offCadence.length + ' column(s) on the wrong weekday and ' + h.duplicates.length + ' duplicate column(s) will be removed\n' +
+      '- ' + h.movedTicks.length + ' payment(s) ticked on those columns will be moved to the right week\n\n' +
+      'A full backup of the grid is saved first. Unsaved changes on this page are discarded.';
+    if (!confirm(msg)) return;
+    setRepairing(true);
+    try {
+      const res = await fetch('/api/grid-repair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders('admin')) },
+        body: JSON.stringify({ groupId, apply: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Repair failed');
+      window.location.reload();
+    } catch (e: any) {
+      alert('Could not repair the grid: ' + (e?.message || 'unknown error'));
+      setRepairing(false);
+    }
+  };
+
   // Half-year / year periods, to jump quickly in long tontines.
   const gridPeriods = buildGridPeriods(grid.weeks);
   const firstShownIdx = activeWeekEntries[effectivePageStart]?.[0];
@@ -1602,6 +1633,23 @@ export default function PaymentGridPage() {
             </div>
           );
         })()}
+
+        {needsRepair && (
+          <div className="UNIMUNITY-no-print" style={{ background: '#FBF0D9', border: '1px solid #EBD9A8', borderRadius: 16, padding: '12px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 260 }}>
+              <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: '#7A5A1E' }}>
+                Grid check: {gridHealth.outOfCycle.length + gridHealth.offCadence.length + gridHealth.duplicates.length} damaged column(s) found
+              </p>
+              <p style={{ margin: '3px 0 0', fontSize: 12, color: '#7A5A1E', lineHeight: 1.5 }}>
+                {gridHealth.outOfCycle.length} outside the cycle dates · {gridHealth.offCadence.length} on the wrong weekday · {gridHealth.duplicates.length} duplicate(s).
+                {' '}They are already ignored in amounts due. Repairing removes them from the grid (payments ticked on them are moved to the right week; a backup is saved).
+              </p>
+            </div>
+            <button onClick={repairGrid} disabled={repairing} style={btnStyle('primary', repairing)}>
+              {repairing ? 'Repairing...' : 'Repair grid'}
+            </button>
+          </div>
+        )}
 
         {/* Week toolbar: navigation, focus-week summary, week actions */}
         <div style={{ background: '#FFFFFF', border: '1px solid #F0E4D6', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 12, overflow: 'hidden' }}>
