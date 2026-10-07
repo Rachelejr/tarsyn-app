@@ -15,9 +15,13 @@ export function reminderEmailHtml(opts: {
   groupName: string; logoUrl?: string; memberName: string; fromName?: string;
   unpaidPeriods: DuePeriod[]; amountPerPeriod: number; amountOwed: number; currency: string;
 }): string {
-  const header = opts.logoUrl && /^https:\/\//.test(opts.logoUrl)
-    ? '<div style="text-align: center; margin-bottom: 20px;"><img src="' + esc(opts.logoUrl) + '" alt="' + esc(opts.groupName) + '" style="height: 48px; width: auto; max-width: 220px;" /></div>'
-    : '<p style="text-align: center; margin: 0 0 20px; color: #4A1F38; font-size: 20px; font-weight: 800;">' + esc(opts.groupName) + '</p>';
+  // Header: the group's logo (if any) AND its name in text, so the name is
+  // still shown when the mail app blocks images.
+  const header =
+    (opts.logoUrl && /^https:\/\//.test(opts.logoUrl)
+      ? '<div style="text-align: center; margin-bottom: 8px;"><img src="' + esc(opts.logoUrl) + '" alt="' + esc(opts.groupName) + '" style="height: 48px; width: auto; max-width: 220px;" /></div>'
+      : '') +
+    '<p style="text-align: center; margin: 0 0 20px; color: #4A1F38; font-size: 20px; font-weight: 800; letter-spacing: 0.04em;">' + esc(opts.groupName) + '</p>';
   const shown = opts.unpaidPeriods.slice(0, 12);
   const rows = shown.map(p =>
     '<tr><td style="padding:6px 0;color:#4A1F38;font-size:13px;">' + esc(p.label) + '</td>' +

@@ -60,15 +60,16 @@ function esc(value: unknown): string {
   return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
 
-// Email header: the group's logo when it has one, otherwise its name.
+// Email header: the group's logo (if any) AND its name in text, so the name
+// is still shown when the mail app blocks images.
 // UNIMUNITY is only the tool - the email comes from the group.
 function headerBlock(groupName: string, logoUrl?: string) {
-  if (logoUrl && /^https:\/\//.test(logoUrl)) {
-    return '<div style="text-align: center; margin-bottom: 20px;">' +
+  const logo = logoUrl && /^https:\/\//.test(logoUrl)
+    ? '<div style="text-align: center; margin-bottom: 8px;">' +
       '<img src="' + esc(logoUrl) + '" alt="' + esc(groupName) + '" style="height: 48px; width: auto; max-width: 220px;" />' +
-      '</div>';
-  }
-  return '<p style="text-align: center; margin: 0 0 20px; color: #4A1F38; font-size: 20px; font-weight: 800;">' + esc(groupName) + '</p>';
+      '</div>'
+    : '';
+  return logo + '<p style="text-align: center; margin: 0 0 20px; color: #4A1F38; font-size: 20px; font-weight: 800; letter-spacing: 0.04em;">' + esc(groupName) + '</p>';
 }
 
 function money(amount: number, currency: string) {
