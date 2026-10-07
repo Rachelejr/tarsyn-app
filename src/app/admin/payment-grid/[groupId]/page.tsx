@@ -1254,6 +1254,8 @@ export default function PaymentGridPage() {
         }
         .pg-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
         .pg-back:hover { background: #FBEEDD; }
+        .pg-row-btn { transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; }
+        .pg-row-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
         .UNIMUNITY-hdr-sub{
           background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
           background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
@@ -1857,22 +1859,31 @@ export default function PaymentGridPage() {
                             <span style={{ fontSize: 10.5, color: C.texteGris }}>
                               {rate}% paid
                             </span>
-                            {(() => {
-                              const shownIdxs = visibleWeeks.map(([w]) => w);
-                              const allTicked = shownIdxs.length > 0 && shownIdxs.every((w) => pendingPayments[slotNum]?.[w]);
-                              return (
-                                <button
-                                  className="UNIMUNITY-no-print"
-                                  onClick={() => setRowWeeks(slotNum, shownIdxs, !allTicked)}
-                                  title={allTicked ? 'Untick all the weeks shown for this member' : 'Tick all the weeks shown for this member'}
-                                  style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 8, cursor: 'pointer',
-                                    border: '1px solid ' + C.border, background: allTicked ? '#FFEBEE' : '#E8F5E9', color: allTicked ? '#C62828' : '#2E7D32' }}>
-                                  {allTicked ? '\u2717 Untick all' : '\u2713 Tick all'}
-                                </button>
-                              );
-                            })()}
                           </div>
                         </div>
+                        {(() => {
+                          // Tick / untick every week shown for this member (local until Save).
+                          const shownIdxs = visibleWeeks.map(([w]) => w);
+                          const allTicked = shownIdxs.length > 0 && shownIdxs.every((w) => pendingPayments[slotNum]?.[w]);
+                          return (
+                            <button
+                              className="UNIMUNITY-no-print pg-row-btn"
+                              onClick={() => setRowWeeks(slotNum, shownIdxs, !allTicked)}
+                              title={allTicked ? 'Untick all the weeks shown for this member' : 'Tick all the weeks shown for this member'}
+                              style={{
+                                marginLeft: 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6,
+                                padding: '7px 13px', borderRadius: 10, fontSize: 11.5, fontWeight: 800, letterSpacing: 0.2,
+                                cursor: 'pointer', whiteSpace: 'nowrap',
+                                border: allTicked ? '1.5px solid #E7B4B4' : 'none',
+                                background: allTicked ? '#FFFFFF' : 'linear-gradient(135deg,#66BB6A,#2E7D32)',
+                                color: allTicked ? '#C62828' : '#FFFFFF',
+                                boxShadow: allTicked ? 'none' : '0 4px 10px rgba(46,125,50,0.28)',
+                              }}>
+                              <span style={{ fontSize: 13, lineHeight: 1 }}>{allTicked ? '\u2717' : '\u2713'}</span>
+                              {allTicked ? 'Untick all' : 'Tick all'}
+                            </button>
+                          );
+                        })()}
                       </div>
                     </td>
                     {visibleWeeks.map(([weekIdx]) => {
