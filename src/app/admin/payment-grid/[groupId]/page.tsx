@@ -422,6 +422,16 @@ export default function PaymentGridPage() {
     });
   }
 
+  // Tick or untick, for ONE member row, all the weeks currently shown.
+  // Local only, like the other actions: nothing is saved until Save.
+  function setRowWeeks(slotNumber: string, weekIdxs: string[], value: boolean) {
+    setPendingPayments((prev) => {
+      const row = { ...(prev[slotNumber] || {}) };
+      weekIdxs.forEach((w) => { row[w] = value; });
+      return { ...prev, [slotNumber]: row };
+    });
+  }
+
   async function syncMemberView(
     memberId: string,
     slotsMap: Record<string, Slot>,
@@ -1838,6 +1848,20 @@ export default function PaymentGridPage() {
                             <span style={{ fontSize: 10.5, color: C.texteGris }}>
                               {rate}% paid
                             </span>
+                            {(() => {
+                              const shownIdxs = visibleWeeks.map(([w]) => w);
+                              const allTicked = shownIdxs.length > 0 && shownIdxs.every((w) => pendingPayments[slotNum]?.[w]);
+                              return (
+                                <button
+                                  className="UNIMUNITY-no-print"
+                                  onClick={() => setRowWeeks(slotNum, shownIdxs, !allTicked)}
+                                  title={allTicked ? 'Untick all the weeks shown for this member' : 'Tick all the weeks shown for this member'}
+                                  style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 8, cursor: 'pointer',
+                                    border: '1px solid ' + C.border, background: allTicked ? '#FFEBEE' : '#E8F5E9', color: allTicked ? '#C62828' : '#2E7D32' }}>
+                                  {allTicked ? '\u2717 Untick all' : '\u2713 Tick all'}
+                                </button>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
