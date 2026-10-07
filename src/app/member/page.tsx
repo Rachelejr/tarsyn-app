@@ -18,6 +18,7 @@ import { rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
 import { buildGridPeriods, defaultPeriodKey, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
 import { tontineStatus, TONTINE_STATUS_LABEL, TONTINE_STATUS_ORDER } from '@/lib/tontineStatus';
 import { computeDues, contributionPerPeriod } from '@/lib/dues';
+import NextCyclePlan from '@/components/member/NextCyclePlan';
 
 const C = {
   bordeaux: '#6B2D4E',
@@ -121,8 +122,6 @@ function MemberContent() {
   } | null>(null);
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [joinSaving, setJoinSaving] = useState(false);
-  const [joinNote, setJoinNote] = useState('');
-  const [joinSaved, setJoinSaved] = useState(false);
   // --- Pay Now (embedded Stripe Elements) state ---
   const [showPayModal, setShowPayModal] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
@@ -291,10 +290,9 @@ function MemberContent() {
 
   // "Join next cycle": the member's answer is stored on their member record,
   // and the organizer sees it in the Renew Cycle panel.
-  const answerNextCycle = async (answer: 'yes' | 'pause' | 'no') => {
-    if (!activeMember?.id || !cycleMeta) return;
+  const answerNextCycle = async (answer: 'yes' | 'pause' | 'no', note: string): Promise<boolean> => {
+    if (!activeMember?.id || !cycleMeta) return false;
     setJoinSaving(true);
-    setJoinSaved(false);
     try {
       const user = auth.currentUser;
       if (!user) throw new Error('Not signed in');
@@ -304,14 +302,15 @@ function MemberContent() {
       const res = await fetch('/api/cycles/answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
-        body: JSON.stringify({ memberId: activeMember.id, answer, note: joinNote }),
+        body: JSON.stringify({ memberId: activeMember.id, answer, note }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'failed');
-      setActiveMember({ ...activeMember, nextCycleResponse: answer, nextCycleFor: data.nextCycle ?? cycleMeta.cycleNumber + 1, nextCycleNote: joinNote.trim() });
-      setJoinSaved(true);
+      setActiveMember({ ...activeMember, nextCycleResponse: answer, nextCycleFor: data.nextCycle ?? cycleMeta.cycleNumber + 1, nextCycleNote: note });
+      return true;
     } catch {
       alert('Your answer could not be saved. Please try again.');
+      return false;
     } finally {
       setJoinSaving(false);
     }
@@ -1236,54 +1235,16 @@ function MemberContent() {
               )}
 
               {showJoin && (
-                <div style={{ background: C.ivoire, border: '1.5px solid ' + C.bordeaux, borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
-                  <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: C.bordeaux }}>
-                    {daysToEnd !== null && daysToEnd < 0
-                      ? 'Cycle ' + cycleMeta!.cycleNumber + ' has ended.'
-                      : cycleMeta!.cycleEnd
-                        ? 'Cycle ' + cycleMeta!.cycleNumber + ' ends on ' + cycleMeta!.cycleEnd + '.'
-                        : 'Cycle ' + cycleMeta!.cycleNumber + ' is coming to an end.'}
-                    {' '}What are your plans for cycle {cycleMeta!.cycleNumber + 1}?
-                  </p>
-                  <textarea
-                    value={joinNote}
-                    onChange={(e) => setJoinNote(e.target.value.slice(0, 500))}
-                    onFocus={() => { if (!joinNote && activeMember?.nextCycleNote) setJoinNote(activeMember.nextCycleNote); }}
-                    placeholder="Message to your organizer (optional) - e.g. I take a pause and come back in March"
-                    rows={2}
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + C.border, fontSize: 12.5, fontFamily: 'inherit', marginBottom: 8, resize: 'vertical', background: 'white' }}
-                  />
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    {([
-                      { key: 'yes', label: '✓ Continue', on: C.success },
-                      { key: 'pause', label: '⏸ Pause', on: '#9C7A2E' },
-                      { key: 'no', label: '✗ No', on: C.danger },
-                    ] as const).map((opt) => {
-                      const selected = myAnswer === opt.key;
-                      return (
-                        <button
-                          key={opt.key}
-                          onClick={() => answerNextCycle(opt.key)}
-                          disabled={joinSaving}
-                          style={{
-                            padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 12.5,
-                            border: '1.5px solid ' + (selected ? opt.on : C.border),
-                            background: selected ? opt.on : 'white',
-                            color: selected ? 'white' : C.texteFonce,
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      );
-                    })}
-                    <span style={{ fontSize: 11.5, color: C.texteGris }}>
-                      {joinSaved ? '\u2713 Sent to your organizer. ' : ''}
-                      {myAnswer
-                        ? 'Your answer: ' + (myAnswer === 'yes' ? 'Continue' : myAnswer === 'pause' ? 'Pause (you stay in the group)' : 'No (you leave the group)') + '. You can change it until the new cycle starts.'
-                        : 'Continue = I join the next cycle · Pause = I skip it but stay in the group · No = I leave the group.'}
-                    </span>
-                  </div>
-                </div>
+                <NextCyclePlan
+                  key={activeMember?.id || 'member'}
+                  cycleNumber={cycleMeta!.cycleNumber}
+                  cycleEnd={cycleMeta!.cycleEnd}
+                  daysToEnd={daysToEnd}
+                  currentAnswer={myAnswer || null}
+                  currentNote={myAnswer ? (activeMember?.nextCycleNote || '') : ''}
+                  saving={joinSaving}
+                  onSubmit={answerNextCycle}
+                />
               )}
               {periods.length > 1 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
