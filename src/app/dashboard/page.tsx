@@ -404,19 +404,13 @@ function OverviewContent() {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
           .UNIMUNITY-ov-sidebar { position: static !important; }
         }
-        /* Wide screens: the three columns fit the window - same height, no
-           page scroll. Anything longer scrolls inside its own card. */
+        /* Wide screens: the three columns end at the same height. The last
+           block of each column stretches to fill the remaining space. */
         @media (min-width: 1201px) {
-          .UNIMUNITY-ov-grid { align-items: stretch !important; height: calc(100vh - 300px); min-height: 480px; }
-          .UNIMUNITY-ov-grid > div { display: flex; flex-direction: column; min-height: 0; }
-          .UNIMUNITY-ov-grid > div > * { flex-shrink: 0; }
-          /* Left: Member Management keeps its size, Recent Contributions fills the rest and scrolls. */
-          .UNIMUNITY-ov-grid > div:not(.UNIMUNITY-ov-sidebar):not(.UNIMUNITY-ov-right) > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 0 !important; }
-          /* Middle: Quick Actions card fills the height, its list scrolls if needed. */
-          .UNIMUNITY-ov-sidebar { margin-bottom: 0 !important; }
-          .UNIMUNITY-ov-sidebar > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-          /* Right: the column scrolls on its own if its cards are taller than the window. */
-          .UNIMUNITY-ov-right { overflow-y: auto; margin-bottom: 0 !important; padding-right: 2px; }
+          .UNIMUNITY-ov-grid { align-items: stretch !important; }
+          .UNIMUNITY-ov-grid > div { display: flex; flex-direction: column; }
+          .UNIMUNITY-ov-grid > div > :last-child { flex: 1 1 auto; }
+          .UNIMUNITY-ov-sidebar > :last-child { justify-content: space-between; }
         }
         @media (max-width: 1200px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
