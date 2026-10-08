@@ -438,6 +438,20 @@ export default function PaymentGridPage() {
     });
   }
 
+  // Runs a batch of writes without stopping at the first refusal, and returns
+  // a short description of each write that failed (path + Firebase code).
+  async function settleWrites(items: { path: string; run: Promise<unknown> }[]): Promise<string[]> {
+    const results = await Promise.allSettled(items.map((i) => i.run));
+    const failed: string[] = [];
+    results.forEach((r, k) => {
+      if (r.status === 'rejected') {
+        const code = (r.reason as { code?: string })?.code || String(r.reason?.message || r.reason);
+        failed.push(items[k].path + ' (' + code + ')');
+      }
+    });
+    return failed;
+  }
+
   async function syncMemberView(
     memberId: string,
     slotsMap: Record<string, Slot>,
@@ -456,9 +470,11 @@ export default function PaymentGridPage() {
       memberPayments[s.slotNumber] = paymentsMap[s.slotNumber] || {};
     });
 
-    await setDoc(
-      doc(db, 'paymentGrids', gridId, 'memberViews', userId),
-      {
+    // mergeFields (not merge: true): each field written here REPLACES the old
+    // one as a whole. With merge: true, Firestore merged the weeks/payments
+    // maps key by key, so columns removed from the grid stayed forever in the
+    // member's view (old W105+ columns, wrong counters).
+    const view: Record<string, unknown> = {
         memberName: memberSlots[0].memberName,
         slots: memberSlots.map((s) => s.slotNumber),
         weeks: weeksMap,
@@ -472,8 +488,11 @@ export default function PaymentGridPage() {
             }
           : {}),
         ...(cycleInfo || {}),
-      },
-      { merge: true }
+    };
+    await setDoc(
+      doc(db, 'paymentGrids', gridId, 'memberViews', userId),
+      view,
+      { mergeFields: Object.keys(view) }
     );
   }
 
@@ -483,7 +502,7 @@ export default function PaymentGridPage() {
   ) {
     if (!grid) return;
 
-    const receiptPromises: Promise<any>[] = [];
+    const receiptPromises: { path: string; run: Promise<unknown> }[] = [];
 
     Object.entries(grid.slots).forEach(([slotNum, slot]) => {
       const weekEntriesLocal = Object.entries(grid.weeks);
@@ -510,7 +529,7 @@ export default function PaymentGridPage() {
           });
           const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 
-          receiptPromises.push(
+          receiptPromises.push({ path: 'documents (receipt W' + weekIdx + ', slot ' + slotNum + ')', run:
             addDoc(collection(db, 'documents'), {
               name: 'Receipt - W' + weekIdx + ' - ' + weekDate,
               type: 'text/html',
@@ -526,15 +545,12 @@ export default function PaymentGridPage() {
               tontineCycleId: grid.cycleId,
               tontineCycleNumber: grid.cycleNumber || 1,
               createdAt: serverTimestamp(),
-            })
-          );
+            }) });
         }
       });
     });
 
-    if (receiptPromises.length > 0) {
-      await Promise.all(receiptPromises);
-    }
+    return settleWrites(receiptPromises);
   }
 
   async function syncRegisterCycles(
@@ -542,7 +558,7 @@ export default function PaymentGridPage() {
     newPayments: Record<string, Record<string, boolean>>
   ) {
     if (!grid) return;
-    const syncPromises: Promise<any>[] = [];
+    const syncPromises: { path: string; run: Promise<unknown> }[] = [];
 
     Object.entries(grid.slots).forEach(([slotNum, slot]) => {
       const weekEntriesLocal = Object.entries(grid.weeks);
@@ -560,7 +576,7 @@ export default function PaymentGridPage() {
           const registerDocId = tontineCycleNumber > 1
             ? slot.memberId + '_' + grid.cycleId + '_cycle' + cycleNumber
             : slot.memberId + '_cycle' + cycleNumber;
-          syncPromises.push(
+          syncPromises.push({ path: 'payments/' + registerDocId, run:
             setDoc(
               doc(db, 'payments', registerDocId),
               {
@@ -582,43 +598,51 @@ export default function PaymentGridPage() {
                 createdAt: serverTimestamp(),
               },
               { merge: true }
-            )
-          );
+            ) });
         }
       });
     });
 
-    if (syncPromises.length > 0) {
-      await Promise.all(syncPromises);
-    }
+    return settleWrites(syncPromises);
   }
 
   async function handleSaveAll() {
     if (!grid) return;
     setSavingAll(true);
     try {
-      await setDoc(
-        doc(db, 'paymentGrids', gridId),
-        { payments: pendingPayments },
-        { merge: true }
-      );
+      // 1. The grid itself. If this fails, nothing is saved.
+      try {
+        await setDoc(doc(db, 'paymentGrids', gridId), { payments: pendingPayments }, { merge: true });
+      } catch (err) {
+        console.error('Error saving payments (grid paymentGrids/' + gridId + '):', err);
+        alert('The payments could not be saved: ' + ((err as { code?: string })?.code || 'unknown error') + '.\nNothing was changed. Please try again.');
+        return;
+      }
 
+      // 2. Member views, receipts and Register entries: each write is tried,
+      //    and every refusal is reported instead of silently stopping the save.
       const uniqueMemberIds = Array.from(
         new Set(Object.values(grid.slots).map((s) => s.memberId))
       ).filter(Boolean);
+      const viewFailures = await settleWrites(uniqueMemberIds.map((id) => ({
+        path: 'memberViews (member ' + id + ')',
+        run: syncMemberView(id, grid.slots, pendingPayments, grid.weeks),
+      })));
+      const receiptFailures = await generateReceiptsForNewlyPaid(grid.payments, pendingPayments);
+      const registerFailures = await syncRegisterCycles(grid.payments, pendingPayments);
 
-      await Promise.all(
-        uniqueMemberIds.map((id) =>
-          syncMemberView(id, grid.slots, pendingPayments, grid.weeks)
-        )
-      );
-
-      await generateReceiptsForNewlyPaid(grid.payments, pendingPayments);
-      await syncRegisterCycles(grid.payments, pendingPayments);
-
+      // The grid is saved: the "unsaved changes" banner goes away.
       setGrid((prev) => (prev ? { ...prev, payments: pendingPayments } : prev));
-    } catch (err) {
-      console.error('Error saving payments:', err);
+
+      const failures = [...viewFailures, ...(receiptFailures || []), ...(registerFailures || [])];
+      if (failures.length > 0) {
+        console.error('Payments saved, but some linked writes failed:', failures);
+        alert(
+          'Payments saved. But ' + failures.length + ' linked update(s) failed:\n\n' +
+          failures.slice(0, 8).join('\n') +
+          (failures.length > 8 ? '\n... and ' + (failures.length - 8) + ' more' : '')
+        );
+      }
     } finally {
       setSavingAll(false);
     }
@@ -1254,6 +1278,8 @@ export default function PaymentGridPage() {
         }
         .pg-back { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 800; color: #6B2D4E; cursor: pointer; box-shadow: 0 1px 4px rgba(74,31,56,0.05); }
         .pg-back:hover { background: #FBEEDD; }
+        .pg-row-btn { transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease; }
+        .pg-row-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
         .UNIMUNITY-hdr-sub{
           background: linear-gradient(90deg, rgba(251,238,221,0.65) 0%, rgba(251,238,221,1) 20%, rgba(251,238,221,0.65) 40%, rgba(251,238,221,0.65) 100%);
           background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
@@ -1857,22 +1883,31 @@ export default function PaymentGridPage() {
                             <span style={{ fontSize: 10.5, color: C.texteGris }}>
                               {rate}% paid
                             </span>
-                            {(() => {
-                              const shownIdxs = visibleWeeks.map(([w]) => w);
-                              const allTicked = shownIdxs.length > 0 && shownIdxs.every((w) => pendingPayments[slotNum]?.[w]);
-                              return (
-                                <button
-                                  className="UNIMUNITY-no-print"
-                                  onClick={() => setRowWeeks(slotNum, shownIdxs, !allTicked)}
-                                  title={allTicked ? 'Untick all the weeks shown for this member' : 'Tick all the weeks shown for this member'}
-                                  style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 8, cursor: 'pointer',
-                                    border: '1px solid ' + C.border, background: allTicked ? '#FFEBEE' : '#E8F5E9', color: allTicked ? '#C62828' : '#2E7D32' }}>
-                                  {allTicked ? '\u2717 Untick all' : '\u2713 Tick all'}
-                                </button>
-                              );
-                            })()}
                           </div>
                         </div>
+                        {(() => {
+                          // Tick / untick every week shown for this member (local until Save).
+                          const shownIdxs = visibleWeeks.map(([w]) => w);
+                          const allTicked = shownIdxs.length > 0 && shownIdxs.every((w) => pendingPayments[slotNum]?.[w]);
+                          return (
+                            <button
+                              className="UNIMUNITY-no-print pg-row-btn"
+                              onClick={() => setRowWeeks(slotNum, shownIdxs, !allTicked)}
+                              title={allTicked ? 'Untick all the weeks shown for this member' : 'Tick all the weeks shown for this member'}
+                              style={{
+                                marginLeft: 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6,
+                                padding: '7px 13px', borderRadius: 10, fontSize: 11.5, fontWeight: 800, letterSpacing: 0.2,
+                                cursor: 'pointer', whiteSpace: 'nowrap',
+                                border: allTicked ? '1.5px solid ' + C.border : '1.5px solid ' + C.bordeaux,
+                                background: allTicked ? C.ivoire : 'linear-gradient(135deg,' + C.bordeaux + ',' + C.bordeauxDark + ')',
+                                color: allTicked ? C.danger : C.ivoire,
+                                boxShadow: allTicked ? 'none' : '0 4px 10px rgba(107,45,78,0.22)',
+                              }}>
+                              <span style={{ fontSize: 13, lineHeight: 1, color: allTicked ? C.danger : C.or }}>{allTicked ? '\u2717' : '\u2713'}</span>
+                              {allTicked ? 'Untick all' : 'Tick all'}
+                            </button>
+                          );
+                        })()}
                       </div>
                     </td>
                     {visibleWeeks.map(([weekIdx]) => {
