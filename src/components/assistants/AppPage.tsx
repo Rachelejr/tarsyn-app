@@ -7,8 +7,8 @@ import Footer from '@/components/Footer';
 // The app's standard page frame (same header as Add Member / Record Payment):
 // cream-to-bordeaux bar, UNIMUNITY logo on the left, shimmering title in the
 // middle, date / time / weather on the right, then the page, then the footer.
-export default function AppPage({ title, subtitle, back, children }: {
-  title: string; subtitle?: string; back?: { label: string; href: string }; children: React.ReactNode;
+export default function AppPage({ title, subtitle, back, wide, children }: {
+  title: string; subtitle?: string; back?: { label: string; href: string }; wide?: boolean; children: React.ReactNode;
 }) {
   const router = useRouter();
   return (
@@ -46,7 +46,7 @@ export default function AppPage({ title, subtitle, back, children }: {
           </div>
           <div style={{ justifySelf: 'end' }}><DateTimeWeather textColor="rgba(251,238,221,0.85)" /></div>
         </div>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '14px 24px 28px' }}>
+        <div style={{ maxWidth: wide ? 1560 : 1100, margin: '0 auto', padding: wide ? '12px 24px 20px' : '14px 24px 28px' }}>
           {back && (
             <div style={{ marginBottom: 12 }}>
               <button className="ap-back" onClick={() => router.push(back.href)}>{back.label}</button>

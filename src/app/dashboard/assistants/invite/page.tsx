@@ -124,15 +124,22 @@ export default function InviteAssistantPage() {
   }
 
   return (
-    <AppPage title="Invite an Assistant" subtitle="Someone you trust who helps you manage your groups with their own account." back={{ label: 'Back to My Assistants', href: '/dashboard/assistants' }}>
+    <AppPage wide title="Invite an Assistant" subtitle="Someone you trust who helps you manage your groups with their own account." back={{ label: 'Back to My Assistants', href: '/dashboard/assistants' }}>
       <style>{`
-        .iv-grid { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 16px; align-items: start; }
+        .iv-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 290px; gap: 14px; align-items: start; }
+        .iv-grid .ap-card { padding: 14px 18px; }
+        .iv-grid .ap-head { margin-bottom: 10px; padding-bottom: 8px; }
+        .iv-grid .ap-ico { width: 28px; height: 28px; font-size: 14px; border-radius: 9px; }
+        .iv-grid .ap-in { height: 35px; }
+        .iv-grid textarea.ap-in { height: auto; }
+        .iv-grid .iv-rights { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 1250px) { .iv-grid { grid-template-columns: minmax(0,1fr) 290px; } .iv-grid > div:nth-child(2) { grid-column: 1; } }
         .iv-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
         .iv-three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 14px; }
         .iv-opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #F0E4D6; border-radius: 12px; cursor: pointer; }
         .iv-radio { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px solid #EAD9BE; border-radius: 11px; cursor: pointer; font-size: 13px; font-weight: 700; color: #4A1F38; background: #FFFDF9; }
         .iv-radio.on { border-color: #6B2D4E; background: #F8EEF3; }
-        @media (max-width: 900px) { .iv-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .iv-grid { grid-template-columns: 1fr !important; } .iv-grid .iv-rights { grid-template-columns: 1fr; } }
         @media (max-width: 560px) { .iv-two, .iv-three { grid-template-columns: 1fr; } }
       `}</style>
 
@@ -144,8 +151,8 @@ export default function InviteAssistantPage() {
         </div>
       ) : (
       <div className="iv-grid">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
+        {/* Column 1 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           {/* 1. Identity */}
           <div className="ap-card">
             <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#F4B6C7,#B0525F)' }}>{'\u{1F464}'}</span><h2 className="ap-title">1. Identity</h2></div>
@@ -197,11 +204,14 @@ export default function InviteAssistantPage() {
             </p>
             <GroupPicker groups={groups} value={f.groupIds} onChange={ids => set('groupIds', ids)} currentAssistantId={null} invalid={bad.includes('groups')} />
           </div>
+        </div>
 
+        {/* Column 2 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           {/* 4. Rights */}
           <div className="ap-card">
             <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F511}'}</span><h2 className="ap-title">4. Rights</h2></div>
-            <div className="iv-two" style={{ alignItems: 'start' }}>
+            <div className="iv-rights" style={{ alignItems: 'start' }}>
               <div>
                 <p className="ap-label" style={{ color: '#3F7D5C' }}>Always included</p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -240,7 +250,7 @@ export default function InviteAssistantPage() {
           {/* 6. Message */}
           <div className="ap-card">
             <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u{1F4AC}'}</span><h2 className="ap-title">6. Personal message <span style={{ fontWeight: 500, fontSize: 12, color: '#A08B7D' }}>(optional)</span></h2></div>
-            <textarea className="ap-in" rows={3} maxLength={500} value={f.message} onChange={e => set('message', e.target.value)} placeholder="e.g. Thank you for helping me with the group payments." />
+            <textarea className="ap-in" rows={2} maxLength={500} value={f.message} onChange={e => set('message', e.target.value)} placeholder="e.g. Thank you for helping me with the group payments." />
             <p style={{ margin: '4px 0 0', fontSize: 11, color: '#A08B7D', textAlign: 'right' }}>{f.message.length}/500</p>
           </div>
 
