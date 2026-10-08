@@ -378,6 +378,7 @@ function OverviewContent() {
             { title: 'Reports', icon: '📊', path: '/dashboard/reports' },
             { title: 'Audit Log', icon: '📋', path: '/dashboard/audit-log' },
             { title: 'Documents', icon: '📁', path: '/dashboard/documents' },
+              { title: 'My Assistants', icon: '\ud83d\udc65', path: '/dashboard/assistants' },
             { title: 'Security', icon: '🔒', path: '/dashboard/security' },
             { title: 'White Label', icon: '🎨', path: '/dashboard/branding' },
             { title: 'Leave a Review', icon: '⭐', path: '/leave-review' },
