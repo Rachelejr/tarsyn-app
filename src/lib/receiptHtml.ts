@@ -72,7 +72,10 @@ export function buildReceiptHtml(opts: {
     ...(opts.rows || []),
   ];
 
-  const logo = opts.logoUrl && /^https:\/\//.test(opts.logoUrl)
+  // A logo sits on the light left part of the header, with no box behind it
+  // (its own transparent background shows). Without a logo: bordeaux header.
+  const hasLogo = !!(opts.logoUrl && /^https:\/\//.test(opts.logoUrl));
+  const logo = hasLogo
     ? '<img class="logo" src="' + esc(opts.logoUrl) + '" alt=""/>'
     : '<div class="mono">' + esc(group.trim().charAt(0).toUpperCase() || 'R') + '</div>';
 
@@ -111,12 +114,14 @@ export function buildReceiptHtml(opts: {
     '<style>' +
     '*{box-sizing:border-box}body{margin:0;background:#FBEEDD;font-family:Inter,Arial,sans-serif;color:#3A2F1F;padding:36px 16px}' +
     '.rc{position:relative;max-width:640px;margin:0 auto;background:#fff;border:1px solid #F0E4D6;border-radius:22px;overflow:hidden;box-shadow:0 14px 44px rgba(107,45,78,.13)}' +
-    '.top{background:linear-gradient(135deg,#6B2D4E 0%,#4A1F38 100%);padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px}' +
+    '.top{background:linear-gradient(110deg,#FBEEDD 0%,#FBEEDD 30%,#9A5A78 46%,#6B2D4E 58%,#4A1F38 100%);padding:22px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    '.top.plain{background:linear-gradient(135deg,#6B2D4E 0%,#4A1F38 100%)}' +
     '.brand{display:flex;align-items:center;gap:14px;min-width:0}' +
-    '.logo{height:52px;max-width:150px;object-fit:contain;background:#fff;border-radius:12px;padding:5px 9px}' +
+    '.logo{height:58px;width:auto;max-width:170px;object-fit:contain;display:block}' +
+    '.brand .txt{padding-left:26px}.top.plain .txt{padding-left:0}' +
     '.mono{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#F3D58F,#E9C77B);color:#4A1F38;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center}' +
-    '.gname{color:#fff;font-size:22px;font-weight:800;letter-spacing:.4px;line-height:1.15}' +
-    '.kind{color:#E9C77B;font-size:10.5px;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px}' +
+    '.gname{color:#E9C77B;font-size:23px;font-weight:800;letter-spacing:.5px;line-height:1.15;background:linear-gradient(90deg,#E9C77B 0%,#FFF6E0 22%,#E9C77B 45%,#E9C77B 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    '.kind{color:rgba(251,238,221,.78);font-size:10.5px;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px}' +
     '.no{text-align:right;color:rgba(251,238,221,.8);font-size:11px;white-space:nowrap}.no b{display:block;color:#fff;font-size:14px;font-family:ui-monospace,Menlo,monospace;margin-top:2px}' +
     '.body{padding:26px 30px 8px}' +
     '.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}' +
@@ -136,7 +141,7 @@ export function buildReceiptHtml(opts: {
     '@media print{body{background:#fff;padding:0}.rc{box-shadow:none;border:none;border-radius:0}.top{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
     '@media print{.wm{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
     '</style></head><body><div class="rc">' + wm +
-    '<div class="top"><div class="brand">' + logo + '<div><div class="gname">' + esc(group) + '</div><div class="kind">Payment receipt</div></div></div>' +
+    '<div class="top' + (hasLogo ? '' : ' plain') + '"><div class="brand">' + logo + '<div class="txt"><div class="gname">' + esc(group) + '</div><div class="kind">Payment receipt</div></div></div>' +
     (opts.receiptNo ? '<div class="no">Receipt no.<b>' + esc(opts.receiptNo) + '</b></div>' : '') + '</div>' +
     '<div class="body"><div class="head"><div class="date">Issued on <b>' + esc(prettyDate(issued)) + '</b></div>' +
     (opts.status ? '<div class="status">' + esc(opts.status) + '</div>' : '') + '</div>' +
