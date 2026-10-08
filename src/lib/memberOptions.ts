@@ -16,7 +16,7 @@ export const MEMBER_COUNTRIES: { value: string; code: string }[] = [
   { value: 'Cameroon', code: 'CM' },
   { value: 'Other', code: '' },
 ];
-export const MEMBER_GENDERS = ['Male', 'Female', 'Other'] as const;
+export const MEMBER_GENDERS = ['Male', 'Female'] as const;
 export const MEMBER_TYPES = ['Regular', 'Premium', 'VIP', 'Observer'] as const;
 export const MEMBER_ROLES = [
   { value: 'member', label: 'Member' },

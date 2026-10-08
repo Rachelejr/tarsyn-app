@@ -153,7 +153,6 @@ export default function ReferPage() {
                         <option value="">{t('notSpecified')}</option>
                         <option value="Male">{t('male')}</option>
                         <option value="Female">{t('female')}</option>
-                        <option value="Other">{t('genderOther')}</option>
                       </select>
                     </div>
                   </div>
