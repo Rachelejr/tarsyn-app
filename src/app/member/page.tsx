@@ -14,6 +14,7 @@ import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 import { authHeaders } from '@/lib/authFetch';
 import ReferralInviteButton from '@/components/referral/ReferralInviteButton';
+import { openDocument } from '@/lib/openDocument';
 import { rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
 import { buildGridPeriods, defaultPeriodKey, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
 import { tontineStatus, TONTINE_STATUS_LABEL, TONTINE_STATUS_ORDER } from '@/lib/tontineStatus';
@@ -826,10 +827,7 @@ function MemberContent() {
     }
   };
 
-  const handlePrint = (url: string) => {
-    const w = window.open(url, '_blank');
-    w?.addEventListener('load', () => w.print());
-  };
+  const handlePrint = (url: string) => openDocument(url, { print: true });
 
   // Documents this member removed from their own list (organizer copies stay).
   const hiddenIds = new Set<string>([...((activeMember?.hiddenDocIds as string[]) || []), ...hiddenNow]);
@@ -1356,7 +1354,7 @@ function MemberContent() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <a href={rebrandLegacyReceiptUrl(d.url, groupName)} target="_blank" rel="noreferrer" style={{ background: 'white', color: C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Preview</a>
+                        <button onClick={() => openDocument(rebrandLegacyReceiptUrl(d.url, groupName))} style={{ background: 'white', color: C.bordeaux, border: '1.5px solid ' + C.bordeaux, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Preview</button>
                         <a href={rebrandLegacyReceiptUrl(d.url, groupName)} download={d.name} style={{ background: C.bordeaux, color: 'white', padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, textDecoration: 'none' }}>Download</a>
                         <button onClick={() => handlePrint(rebrandLegacyReceiptUrl(d.url, groupName))} style={{ background: 'white', color: C.doreDark, border: '1.5px solid ' + C.dore, padding: '6px 11px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Print</button>
                         {d.uploadedBy === uid && (

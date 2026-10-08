@@ -12,6 +12,7 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import DocumentComments from '@/components/DocumentComments';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
+import { openDocument } from '@/lib/openDocument';
 import { rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
 
 const C = {
@@ -216,7 +217,7 @@ export default function DocumentsPage() {
 
   const handleDownload = async () => {
     if (!selectedDoc) return;
-    window.open(docUrl(selectedDoc), '_blank');
+    openDocument(docUrl(selectedDoc));
     try {
       await updateDoc(doc(db, 'documents', selectedDoc.id), { downloadCount: increment(1) });
       setDocs(prev => prev.map(d => d.id === selectedDoc.id ? { ...d, downloadCount: (d.downloadCount || 0) + 1 } : d));
@@ -226,8 +227,7 @@ export default function DocumentsPage() {
 
   const handlePrint = () => {
     if (!selectedDoc) return;
-    const w = window.open(docUrl(selectedDoc), '_blank');
-    w?.addEventListener('load', () => w.print());
+    openDocument(docUrl(selectedDoc), { print: true });
     logAction('Printed');
   };
 

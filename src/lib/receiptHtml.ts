@@ -34,22 +34,26 @@ export function buildReceiptHtml(opts: {
 }
 
 /**
- * Receipts created before group branding carry a "UNIMUNITY Payment
- * Receipt" title and a "Powered by UNIMUNITY" footer inside their data URL.
+ * Receipts created before group branding carry an app title
+ * ("UNIMUNITY Payment Receipt", or "TARSYN Payment Receipt" from before the
+ * rename) and a "Powered by UNIMUNITY/TARSYN" footer inside their data URL.
  * Rewrites such a receipt on the fly so it shows the group name instead.
  * Any other URL is returned unchanged.
  */
+const LEGACY_TITLE = /<h2[^>]*>\s*(?:UNIMUNITY|TARSYN)(?:\s*(?:\u2122|&trade;|\(TM\)))?\s+Payment Receipt\s*<\/h2>/i;
+const LEGACY_FOOTER = /<p[^>]*>\s*Powered by (?:UNIMUNITY|TARSYN)[^<]*<\/p>/gi;
+
 export function rebrandLegacyReceiptUrl(url: string, groupName: string): string {
   if (!url || !groupName || !url.startsWith('data:text/html')) return url;
   const comma = url.indexOf(',');
   if (comma < 0) return url;
   let html: string;
   try { html = decodeURIComponent(url.slice(comma + 1)); } catch { return url; }
-  if (!html.includes('UNIMUNITY Payment Receipt')) return url;
+  if (!LEGACY_TITLE.test(html) && !/Powered by (?:UNIMUNITY|TARSYN)/i.test(html)) return url;
   html = html
-    .replace(/<h2[^>]*>UNIMUNITY Payment Receipt<\/h2>/,
+    .replace(LEGACY_TITLE,
       '<h1 style="color:#4A1F38;font-size:22px;margin:0 0 2px;">' + esc(groupName) + '</h1>' +
       '<p style="color:#8A7B6C;font-size:13px;margin:0 0 18px;text-transform:uppercase;letter-spacing:1px;">Payment Receipt</p>')
-    .replace(/<p[^>]*>Powered by UNIMUNITY[^<]*<\/p>/g, '<p style="font-size:11px;color:#8A7B6C;margin:8px 0 0;">Issued by ' + esc(groupName) + '</p>');
+    .replace(LEGACY_FOOTER, '<p style="font-size:11px;color:#8A7B6C;margin:8px 0 0;">Issued by ' + esc(groupName) + '</p>');
   return url.slice(0, comma + 1) + encodeURIComponent(html);
 }

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, getDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { buildReceiptHtml } from '@/lib/receiptHtml';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 
@@ -29,6 +30,9 @@ export default function RecordContribution() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showModal, setShowModal] = useState(false);
+  // Payments already recorded for this member on the same date (possible duplicate).
+  const [sameDay, setSameDay] = useState<{ receiptNumber: string; amount: number; currency: string }[]>([]);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     // auth.currentUser is read synchronously here, but on a fresh page
@@ -56,13 +60,32 @@ export default function RecordContribution() {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError('');
+    setSuccess('');
     if (!validate()) return;
+    // Look for a payment already recorded for this member on this date, so the
+    // same payment is not entered twice by mistake.
+    setChecking(true);
+    let found: { receiptNumber: string; amount: number; currency: string }[] = [];
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const snap = await getDocs(query(collection(db, 'payments'),
+          where('organizerId', '==', user.uid), where('memberId', '==', selectedMember)));
+        found = snap.docs
+          .map(d => d.data() as { paymentDate?: string; status?: string; receiptNumber?: string; amount?: number; currency?: string })
+          .filter(p => p.paymentDate === paymentDate && p.status !== 'cancelled')
+          .map(p => ({ receiptNumber: p.receiptNumber || '-', amount: Number(p.amount || 0), currency: p.currency || '' }));
+      }
+    } catch (e) { console.error('duplicate check failed:', e); }
+    setChecking(false);
+    setSameDay(found);
     setShowModal(true);
   };
 
   const handleConfirm = async () => {
+    if (loading) return; // a second click never records twice
     setShowModal(false);
     setLoading(true);
     setError('');
@@ -70,11 +93,12 @@ export default function RecordContribution() {
       const user = auth.currentUser;
       if (!user) { router.push('/login'); return; }
       const member = members.find(m => m.id === selectedMember);
+      const memberName = member?.name || member?.fullName || ((member?.firstName || '') + ' ' + (member?.lastName || '')).trim() || '(no name)';
       const receiptNumber = 'REC-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-6);
       await addDoc(collection(db, 'payments'), {
         organizerId: user.uid,
         memberId: selectedMember,
-        memberName: member?.name || member?.fullName || '(no name)',
+        memberName,
         memberTynId: member?.tynId,
         amount: parseFloat(amount),
         currency,
@@ -89,17 +113,62 @@ export default function RecordContribution() {
         recordedBy: user.uid,
         createdAt: serverTimestamp(),
       });
+      // Receipt in the member's Documents (same as the grid's receipts), issued
+      // under the group's name. Only when the member has an account.
+      try {
+        if (member?.userId) {
+          let groupName = 'Group';
+          let logoUrl: string | undefined;
+          if (member.groupId) {
+            const g = await getDoc(doc(db, 'groups', member.groupId));
+            if (g.exists()) {
+              const gd = g.data() as { name?: string; groupBrand?: { enabled?: boolean; logo?: string } };
+              groupName = gd.name || groupName;
+              if (gd.groupBrand?.enabled !== false) logoUrl = gd.groupBrand?.logo;
+            }
+          }
+          const html = buildReceiptHtml({
+            groupName, logoUrl,
+            rows: [
+              ['Receipt number', receiptNumber],
+              ['Member', memberName + (member.tynId ? ' (' + member.tynId + ')' : '')],
+              ['Date', paymentDate],
+              ['Amount', currency + ' ' + parseFloat(amount).toFixed(2)],
+              ['Method', effectivePaymentMethod],
+              ['Cycle', cycle + ' - ' + contributionType],
+              ['Status', status.charAt(0).toUpperCase() + status.slice(1)],
+            ],
+          });
+          await addDoc(collection(db, 'documents'), {
+            name: 'Receipt - ' + receiptNumber + ' - ' + paymentDate,
+            type: 'text/html',
+            size: html.length,
+            url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),
+            storagePath: '',
+            category: 'Receipts',
+            organizerId: user.uid,
+            uploadedBy: 'system',
+            source: 'admin',
+            visibleTo: [member.userId],
+            groupId: member.groupId || '',
+            receiptNumber,
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (receiptErr) { console.error('member receipt not created:', receiptErr); }
+
       try {
         await addDoc(collection(db, 'audit_logs'), {
           organizerId: user.uid, category: 'Payment',
           action: 'Recorded payment',
           user: user.email || '',
-          details: (member?.name || 'Unknown member') + ' - ' + amount + ' ' + currency + ' (' + effectivePaymentMethod + ', ' + receiptNumber + ')',
+          details: memberName + ' - ' + amount + ' ' + currency + ' (' + effectivePaymentMethod + ', ' + receiptNumber + ')',
           createdAt: serverTimestamp(),
         });
       } catch (auditErr) { /* silent - audit logging must never block payment recording */ }
 
-      setSuccess('Payment recorded! Receipt: ' + receiptNumber);
+      setSuccess('Payment recorded! Receipt: ' + receiptNumber + (member?.userId ? ' - the member can see it in their space.' : ''));
+      setSameDay([]);
       setSelectedMember(''); setAmount(''); setPaymentDate(''); setNotes(''); setCustomPaymentMethod(''); setPaymentMethod('Cash');
     } catch(e) {
       console.error(e);
@@ -160,19 +229,28 @@ export default function RecordContribution() {
           <div style={{background:'white',borderRadius:'16px',padding:'24px',maxWidth:'380px',width:'90%'}}>
             <h3 style={{color:'#6B2D4E',fontSize:'18px',fontWeight:'800',margin:'0 0 12px'}}>Confirm Payment</h3>
             <div style={{background:'#FBEEDD',borderRadius:'10px',padding:'12px',marginBottom:'18px'}}>
-              <p style={{margin:'0 0 6px',color:'#4A1F38',fontWeight:'600'}}>{selectedMemberData?.name}</p>
+              <p style={{margin:'0 0 6px',color:'#4A1F38',fontWeight:'600'}}>{selectedMemberData?.name || selectedMemberData?.fullName}</p>
               <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{amount} {currency} — {effectivePaymentMethod}</p>
               <p style={{margin:'0 0 6px',color:'#6B2D4E',fontSize:'13px'}}>{cycle} — {contributionType}</p>
               <p style={{margin:'0',color:'#6B2D4E',fontSize:'13px'}}>{paymentDate}</p>
             </div>
+            {sameDay.length > 0 && (
+              <div style={{background:'#FDECEE',border:'1px solid #F2C4CB',borderRadius:'10px',padding:'10px 12px',marginBottom:'16px'}}>
+                <p style={{margin:'0 0 4px',color:'#B0525F',fontSize:'13px',fontWeight:800}}>{'\u26A0'} Already recorded on this date</p>
+                <p style={{margin:0,color:'#4A1F38',fontSize:'12.5px',lineHeight:1.5}}>
+                  {sameDay.map(p => p.receiptNumber + ' (' + p.amount + ' ' + p.currency + ')').join(', ')}.
+                  {' '}Confirming will record a second payment.
+                </p>
+              </div>
+            )}
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={() => setShowModal(false)}
                 style={{flex:1,background:'#FBEEDD',color:'#6B2D4E',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'600',cursor:'pointer'}}>
                 Cancel
               </button>
-              <button onClick={handleConfirm}
-                style={{flex:1,background:'#6B2D4E',color:'#FBEEDD',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'700',cursor:'pointer'}}>
-                Confirm
+              <button onClick={handleConfirm} disabled={loading}
+                style={{flex:1,background:sameDay.length > 0 ? '#B0525F' : '#6B2D4E',color:'#FBEEDD',padding:'10px',borderRadius:'9px',border:'none',fontSize:'13.5px',fontWeight:'700',cursor:'pointer'}}>
+                {sameDay.length > 0 ? 'Record anyway' : 'Confirm'}
               </button>
             </div>
           </div>
@@ -303,7 +381,7 @@ export default function RecordContribution() {
               </div>
             </div>
 
-            <button onClick={handleSubmit} disabled={loading} className="am-submit"
+            <button onClick={handleSubmit} disabled={loading || checking} className="am-submit"
               style={{width:'100%',background:loading?'#C4748E':'linear-gradient(135deg,#6B2D4E,#4A1F38)',color:'#FFFFFF',padding:'12px',borderRadius:'14px',border:'none',fontSize:'15px',fontWeight:800,cursor:loading?'not-allowed':'pointer',boxShadow:'0 8px 22px rgba(107,45,78,0.28)'}}>
               {loading ? 'Recording...' : '\ud83d\udcb0  Record Payment'}
             </button>
