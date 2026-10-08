@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, getDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, getDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { buildReceiptHtml } from '@/lib/receiptHtml';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
@@ -80,6 +80,12 @@ export default function RecordContribution() {
       }
     } catch (e) { console.error('duplicate check failed:', e); }
     setChecking(false);
+    // Same member, same date, same amount: this payment is already recorded.
+    const exact = found.find(p => Math.abs(p.amount - parseFloat(amount)) < 0.005 && (!p.currency || p.currency === currency));
+    if (exact) {
+      setError('This payment is already recorded: ' + exact.receiptNumber + ' (' + exact.amount + ' ' + exact.currency + ' on ' + paymentDate + '). It was not recorded again.');
+      return;
+    }
     setSameDay(found);
     setShowModal(true);
   };
@@ -119,27 +125,43 @@ export default function RecordContribution() {
         if (member?.userId) {
           let groupName = 'Group';
           let logoUrl: string | undefined;
+          let signature: { name: string; style?: 'name' | 'initials' } | undefined;
           if (member.groupId) {
             const g = await getDoc(doc(db, 'groups', member.groupId));
             if (g.exists()) {
-              const gd = g.data() as { name?: string; groupBrand?: { enabled?: boolean; logo?: string } };
+              const gd = g.data() as { name?: string; groupBrand?: { enabled?: boolean; logo?: string }; receiptSignature?: { name?: string; style?: 'name' | 'initials' } };
               groupName = gd.name || groupName;
               if (gd.groupBrand?.enabled !== false) logoUrl = gd.groupBrand?.logo;
+              const signer = (gd.receiptSignature?.name || user.displayName || '').trim();
+              if (signer) signature = { name: signer, style: gd.receiptSignature?.style || 'name' };
             }
           }
+          const hands = Math.max(1, parseInt(String(member.shares || 1), 10) || 1);
           const html = buildReceiptHtml({
             groupName, logoUrl,
-            rows: [
-              ['Receipt number', receiptNumber],
-              ['Member', memberName + (member.tynId ? ' (' + member.tynId + ')' : '')],
-              ['Date', paymentDate],
-              ['Amount', currency + ' ' + parseFloat(amount).toFixed(2)],
+            receiptNo: receiptNumber,
+            issuedOn: paymentDate,
+            memberName,
+            memberCode: member.tynId || '',
+            info: [
+              ['Payment date', paymentDate],
               ['Method', effectivePaymentMethod],
-              ['Cycle', cycle + ' - ' + contributionType],
-              ['Status', status.charAt(0).toUpperCase() + status.slice(1)],
+              ['Cycle', cycle],
+              ['Type', contributionType],
+              ...(hands > 1 ? [['Hands in this group', String(hands)] as [string, string]] : []),
+              ...(notes.trim() ? [['Notes', notes.trim()] as [string, string]] : []),
             ],
+            lines: [{
+              label: contributionType + ' contribution' + (hands > 1 ? ' \u00b7 ' + hands + ' hands' : ''),
+              sub: cycle + ' \u00b7 ' + effectivePaymentMethod,
+              amount: parseFloat(amount),
+            }],
+            currency,
+            status: status === 'confirmed' ? 'Paid' : status.charAt(0).toUpperCase() + status.slice(1),
+            signature,
           });
-          await addDoc(collection(db, 'documents'), {
+          // Fixed id per receipt number: the same receipt is never stored twice.
+          await setDoc(doc(db, 'documents', 'rcpt_' + receiptNumber), {
             name: 'Receipt - ' + receiptNumber + ' - ' + paymentDate,
             type: 'text/html',
             size: html.length,

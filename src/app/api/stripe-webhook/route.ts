@@ -244,17 +244,22 @@ export async function POST(req: NextRequest) {
             const receiptGroupSnap = memberData.groupId ? await adminDb.collection('groups').doc(memberData.groupId).get() : null;
             const receiptGroup = receiptGroupSnap && receiptGroupSnap.exists ? receiptGroupSnap.data() as any : {};
             const receiptBrand = receiptGroup.groupBrand || {};
+            const sigName = String(receiptGroup.receiptSignature?.name || '').trim();
             const receiptHtml = buildReceiptHtml({
               groupName: receiptGroup.name || '',
               logoUrl: receiptBrand.enabled !== false ? receiptBrand.logo : undefined,
-              showBadge: !(receiptBrand.enabled !== false && receiptBrand.showUNIMUNITYBadge === false),
-              rows: [
-                ['Member', memberData.fullName || memberData.name || ''],
+              receiptNo: 'CARD-' + String(pi.id || Date.now()).slice(-8).toUpperCase(),
+              issuedOn: new Date().toISOString().slice(0, 10),
+              memberName: memberData.fullName || memberData.name || '',
+              memberCode: memberData.tynId || '',
+              info: [
                 ['Weeks', weeksLabel],
-                ['Amount', currencyLabel + ' ' + contributionAmount.toFixed(2)],
-                ['Payment method', 'Card (via Stripe)'],
-                ['Status', 'Paid'],
+                ['Method', 'Card (via Stripe)'],
               ],
+              lines: [{ label: 'Contribution', sub: weeksLabel, amount: contributionAmount }],
+              currency: currencyLabel,
+              status: 'Paid',
+              signature: sigName ? { name: sigName, style: receiptGroup.receiptSignature?.style === 'initials' ? 'initials' : 'name' } : undefined,
             });
             const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
 

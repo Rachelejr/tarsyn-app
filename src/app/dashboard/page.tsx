@@ -92,6 +92,9 @@ function OverviewContent() {
   const [groupEditStatus, setGroupEditStatus] = useState('active');
   const [groupEditDescription, setGroupEditDescription] = useState('');
   const [groupEditVisible, setGroupEditVisible] = useState(true);
+  // Organizer's signature printed on this group's receipts.
+  const [groupEditSigName, setGroupEditSigName] = useState('');
+  const [groupEditSigStyle, setGroupEditSigStyle] = useState<'name' | 'initials'>('name');
   const [savingGroup, setSavingGroup] = useState(false);
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
@@ -171,6 +174,7 @@ function OverviewContent() {
         description: groupEditDescription.trim(),
         // Members only see the group in their space when this is false.
         hiddenFromMembers: !groupEditVisible,
+        receiptSignature: { name: groupEditSigName.trim().slice(0, 80), style: groupEditSigStyle },
       };
       await updateDoc(doc(db, 'groups', editingGroup.id), updates);
       setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, ...updates } : g));
@@ -490,6 +494,35 @@ function OverviewContent() {
               onChange={e => setGroupEditStartDate(e.target.value)}
               style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px' }}
             />
+
+            <div style={{ background: '#FDF6EC', border: '1px solid #F3E6D8', borderRadius: '12px', padding: '12px 14px', marginBottom: '14px' }}>
+              <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Signature on receipts</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                <input
+                  value={groupEditSigName}
+                  onChange={e => setGroupEditSigName(e.target.value)}
+                  placeholder="Your full name"
+                  maxLength={80}
+                  style={{ width: '100%', padding: '11px 13px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                />
+                <select
+                  value={groupEditSigStyle}
+                  onChange={e => setGroupEditSigStyle(e.target.value === 'initials' ? 'initials' : 'name')}
+                  style={{ width: '100%', padding: '11px 10px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                >
+                  <option value="name">Full name</option>
+                  <option value="initials">Initials</option>
+                </select>
+              </div>
+              {groupEditSigName.trim() && (
+                <p style={{ margin: '10px 0 0', fontFamily: '"Great Vibes", "Brush Script MT", cursive', fontSize: '26px', color: '#4A1F38', lineHeight: 1.1 }}>
+                  {groupEditSigStyle === 'initials'
+                    ? groupEditSigName.trim().split(/\s+/).map(w => w[0].toUpperCase() + '.').join('')
+                    : groupEditSigName.trim()}
+                </p>
+              )}
+              <p style={{ margin: '6px 0 0', fontSize: '11.5px', color: '#8A7B6C' }}>Printed at the bottom of every new receipt of this group, signed electronically.</p>
+            </div>
 
             <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Description</label>
             <textarea
@@ -949,6 +982,8 @@ function OverviewContent() {
                     setGroupEditStatus(g.status || 'active');
                     setGroupEditDescription(g.description || '');
                     setGroupEditVisible(g.hiddenFromMembers !== true);
+                    setGroupEditSigName(g.receiptSignature?.name || auth.currentUser?.displayName || '');
+                    setGroupEditSigStyle(g.receiptSignature?.style === 'initials' ? 'initials' : 'name');
                   }} className="btn-action"
                     style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                     {'\u270f\ufe0f'} Edit

@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, addDoc, updateDoc, writeBatch, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, deleteDoc, updateDoc, writeBatch, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
@@ -157,6 +157,8 @@ export default function PaymentGridPage() {
   const [memberMeta, setMemberMeta] = useState<Record<string, MemberMeta>>({});
   const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
   const [memberAmounts, setMemberAmounts] = useState<Record<string, number>>({});
+  const [memberInfo, setMemberInfo] = useState<Record<string, { name: string; tynId: string }>>({});
+  const [receiptSignature, setReceiptSignature] = useState<{ name?: string; style?: 'name' | 'initials' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
   const [showStartDateEditor, setShowStartDateEditor] = useState(false);
@@ -211,6 +213,7 @@ export default function PaymentGridPage() {
       if (groupSnap.exists()) {
         setGroupName(groupSnap.data().name || 'Group');
         setGroupBrand(groupSnap.data().groupBrand || null);
+        setReceiptSignature(groupSnap.data().receiptSignature || null);
         setGroupFrequency(groupSnap.data().frequency || groupSnap.data().paymentFrequency || '');
         setGroupCurrency(String(groupSnap.data().currency || 'USD').toUpperCase());
         // Group contribution per period (same lookup as everywhere else).
@@ -326,6 +329,7 @@ export default function PaymentGridPage() {
 
       const refreshedSlots: Record<string, Slot> = {};
       const collectedUserIds: Record<string, string> = {};
+      const collectedInfo: Record<string, { name: string; tynId: string }> = {};
       const collectedAmounts: Record<string, number> = {};
       const collectedMeta: Record<string, MemberMeta> = {};
       const collectedSince: Record<string, unknown> = {};
@@ -339,6 +343,7 @@ export default function PaymentGridPage() {
               const d = memberSnap.data();
               displayName = d.fullName || d.name || '(no name)';
               if (d.userId) collectedUserIds[slot.memberId] = d.userId;
+              collectedInfo[slot.memberId] = { name: d.fullName || d.name || '', tynId: d.tynId || '' };
               if (typeof d.expectedAmount === 'number' && d.expectedAmount > 0) collectedAmounts[slot.memberId] = d.expectedAmount;
               // Latest payout date among members = suggested end of the cycle.
               const payoutList: string[] = [
@@ -373,6 +378,7 @@ export default function PaymentGridPage() {
       );
       loadedGrid = { ...loadedGrid, slots: refreshedSlots };
       setMemberUserIds(collectedUserIds);
+      setMemberInfo(collectedInfo);
       setMemberAmounts(collectedAmounts);
       setMemberMeta(collectedMeta);
       setMemberSince(collectedSince);
@@ -496,61 +502,97 @@ export default function PaymentGridPage() {
     );
   }
 
+  // One receipt per member and per week, kept in step with the grid:
+  // a member with several hands gets ONE receipt listing each hand paid that
+  // week; unticking every hand removes it. The document id is fixed
+  // (grid + member + week), so saving again never creates a duplicate.
   async function generateReceiptsForNewlyPaid(
     previousPayments: Record<string, Record<string, boolean>>,
     newPayments: Record<string, Record<string, boolean>>
   ) {
     if (!grid) return;
+    const writes: { path: string; run: Promise<unknown> }[] = [];
 
-    const receiptPromises: { path: string; run: Promise<unknown> }[] = [];
-
+    const slotsByMember: Record<string, string[]> = {};
     Object.entries(grid.slots).forEach(([slotNum, slot]) => {
-      const weekEntriesLocal = Object.entries(grid.weeks);
-      weekEntriesLocal.forEach(([weekIdx, weekDate]) => {
-        const wasPaid = previousPayments[slotNum]?.[weekIdx] || false;
-        const isNowPaid = newPayments[slotNum]?.[weekIdx] || false;
-        if (!wasPaid && isNowPaid) {
-          const userId = memberUserIds[slot.memberId];
-          if (!userId) return;
+      (slotsByMember[slot.memberId] = slotsByMember[slot.memberId] || []).push(slotNum);
+    });
+    Object.values(slotsByMember).forEach((list) => list.sort((x, y) => Number(x) - Number(y)));
 
-          const memberAmount = memberAmounts[slot.memberId] ?? weeklyAmount;
-          const amountLabel = memberAmount ? groupCurrency + ' ' + memberAmount.toFixed(2) : 'Amount not set';
-          // Receipt issued under the group's own name (UNIMUNITY is only the tool).
-          const receiptHtml = buildReceiptHtml({
-            groupName,
-            logoUrl: groupBrand?.enabled !== false ? groupBrand?.logo : undefined,
-            showBadge: !(groupBrand?.enabled !== false && groupBrand?.showUNIMUNITYBadge === false),
-            rows: [
-              ['Member', slot.memberName],
-              ['Week', 'W' + weekIdx + ' (' + weekDate + ')'],
-              ['Amount', amountLabel],
-              ['Status', 'Paid'],
-            ],
-          });
-          const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(receiptHtml);
-
-          receiptPromises.push({ path: 'documents (receipt W' + weekIdx + ', slot ' + slotNum + ')', run:
-            addDoc(collection(db, 'documents'), {
-              name: 'Receipt - W' + weekIdx + ' - ' + weekDate,
-              type: 'text/html',
-              size: receiptHtml.length,
-              url: dataUrl,
-              storagePath: '',
-              category: 'Receipts',
-              organizerId: grid.organizerId,
-              uploadedBy: 'system',
-              source: 'admin',
-              visibleTo: [userId],
-              groupId: grid.groupId,
-              tontineCycleId: grid.cycleId,
-              tontineCycleNumber: grid.cycleNumber || 1,
-              createdAt: serverTimestamp(),
-            }) });
-        }
+    // Member + week pairs where at least one hand changed.
+    const affected = new Set<string>();
+    Object.entries(grid.slots).forEach(([slotNum, slot]) => {
+      Object.keys(grid.weeks).forEach((w) => {
+        if (!!previousPayments[slotNum]?.[w] !== !!newPayments[slotNum]?.[w]) affected.add(slot.memberId + '|' + w);
       });
     });
 
-    return settleWrites(receiptPromises);
+    const signerName = (receiptSignature?.name || auth.currentUser?.displayName || '').trim();
+    const logoUrl = groupBrand?.enabled !== false ? groupBrand?.logo : undefined;
+    const today = new Date().toISOString().slice(0, 10);
+
+    affected.forEach((key) => {
+      const [memberId, w] = key.split('|');
+      const userId = memberUserIds[memberId];
+      if (!userId) return;
+      const hands = slotsByMember[memberId] || [];
+      const paid = hands.filter((n) => newPayments[n]?.[w]);
+      const docId = 'rcpt_' + gridId + '_' + memberId + '_W' + w;
+      const ref = doc(db, 'documents', docId);
+      const weekDate = grid.weeks[w] || '';
+
+      if (paid.length === 0) {
+        // Every hand unticked: remove this week's receipt if it exists.
+        writes.push({ path: 'documents/' + docId + ' (remove)', run: getDoc(ref).then((snap) => (snap.exists() ? deleteDoc(ref) : undefined)) });
+        return;
+      }
+
+      const info = memberInfo[memberId] || { name: grid.slots[hands[0]]?.memberName || '', tynId: '' };
+      const amount = (memberAmounts[memberId] ?? weeklyAmount) || 0;
+      const receiptNo = (info.tynId || 'MBR') + '-C' + (grid.cycleNumber || 1) + '-W' + w;
+      const html = buildReceiptHtml({
+        groupName,
+        logoUrl,
+        receiptNo,
+        issuedOn: today,
+        memberName: info.name,
+        memberCode: info.tynId,
+        info: [
+          ['Cycle', 'Cycle ' + (grid.cycleNumber || 1)],
+          ['Week', 'W' + w + ' \u00b7 ' + weekDate],
+          ...(hands.length > 1 ? [['Hands in this group', String(hands.length)] as [string, string]] : []),
+          ['Recorded in', 'Payment grid'],
+        ],
+        lines: paid.map((n) => ({
+          label: hands.length > 1 ? 'Hand ' + (hands.indexOf(n) + 1) + ' of ' + hands.length : 'Contribution',
+          sub: 'Position #' + n + ' \u00b7 week of ' + weekDate,
+          amount,
+        })),
+        currency: groupCurrency,
+        status: 'Paid',
+        signature: signerName ? { name: signerName, style: receiptSignature?.style || 'name' } : undefined,
+      });
+      writes.push({ path: 'documents/' + docId, run: setDoc(ref, {
+        name: 'Receipt - W' + w + ' - ' + weekDate,
+        type: 'text/html',
+        size: html.length,
+        url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),
+        storagePath: '',
+        category: 'Receipts',
+        organizerId: grid.organizerId,
+        uploadedBy: 'system',
+        source: 'admin',
+        visibleTo: [userId],
+        groupId: grid.groupId,
+        memberId,
+        receiptNumber: receiptNo,
+        tontineCycleId: grid.cycleId,
+        tontineCycleNumber: grid.cycleNumber || 1,
+        createdAt: serverTimestamp(),
+      }) });
+    });
+
+    return settleWrites(writes);
   }
 
   async function syncRegisterCycles(
