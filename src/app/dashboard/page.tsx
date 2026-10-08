@@ -95,6 +95,8 @@ function OverviewContent() {
   // Organizer's signature printed on this group's receipts.
   const [groupEditSigName, setGroupEditSigName] = useState('');
   const [groupEditSigStyle, setGroupEditSigStyle] = useState<'name' | 'initials'>('name');
+  // How members' documents are grouped in their space.
+  const [groupEditDocGrouping, setGroupEditDocGrouping] = useState<'year' | 'half' | 'quarter'>('quarter');
   const [savingGroup, setSavingGroup] = useState(false);
   const [deletingMember, setDeletingMember] = useState<string | null>(null);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
@@ -175,6 +177,7 @@ function OverviewContent() {
         // Members only see the group in their space when this is false.
         hiddenFromMembers: !groupEditVisible,
         receiptSignature: { name: groupEditSigName.trim().slice(0, 80), style: groupEditSigStyle },
+        docGrouping: groupEditDocGrouping,
       };
       await updateDoc(doc(db, 'groups', editingGroup.id), updates);
       setGroups(groups.map(g => g.id === editingGroup.id ? { ...g, ...updates } : g));
@@ -523,6 +526,17 @@ function OverviewContent() {
               )}
               <p style={{ margin: '6px 0 0', fontSize: '11.5px', color: '#8A7B6C' }}>Printed at the bottom of every new receipt of this group, signed electronically.</p>
             </div>
+
+            <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Members&apos; documents grouped by</label>
+            <select
+              value={groupEditDocGrouping}
+              onChange={e => setGroupEditDocGrouping(e.target.value === 'year' ? 'year' : e.target.value === 'half' ? 'half' : 'quarter')}
+              style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #EAD9BE', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '14px', background: 'white' }}
+            >
+              <option value="quarter">Every 3 months</option>
+              <option value="half">Every 6 months</option>
+              <option value="year">Every year</option>
+            </select>
 
             <label style={{ display: 'block', color: '#C4748E', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 6px' }}>Description</label>
             <textarea
@@ -984,6 +998,7 @@ function OverviewContent() {
                     setGroupEditVisible(g.hiddenFromMembers !== true);
                     setGroupEditSigName(g.receiptSignature?.name || auth.currentUser?.displayName || '');
                     setGroupEditSigStyle(g.receiptSignature?.style === 'initials' ? 'initials' : 'name');
+                    setGroupEditDocGrouping(g.docGrouping === 'year' || g.docGrouping === 'half' ? g.docGrouping : 'quarter');
                   }} className="btn-action"
                     style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                     {'\u270f\ufe0f'} Edit

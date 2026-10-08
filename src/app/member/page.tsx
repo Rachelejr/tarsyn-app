@@ -77,6 +77,16 @@ function MemberContent() {
   const [filterCat, setFilterCat] = useState('All');
   const [gridPeriod, setGridPeriod] = useState('');
   const [hiddenNow, setHiddenNow] = useState<string[]>([]);
+  // Documents: grouped by period (set by the organizer), archive, multi-select.
+  const [docGrouping, setDocGrouping] = useState<'year' | 'half' | 'quarter'>('quarter');
+  const [docPeriod, setDocPeriod] = useState('all');
+  const [showArchive, setShowArchive] = useState(false);
+  const [archivedNow, setArchivedNow] = useState<string[]>([]);
+  const [unarchivedNow, setUnarchivedNow] = useState<string[]>([]);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [openPeriods, setOpenPeriods] = useState<Record<string, boolean>>({});
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('General');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -447,6 +457,7 @@ function MemberContent() {
           const gData = groupDoc.data() as any;
           setGroupName(gData.name || membership.groupName || 'Your Group');
           setBranding(gData.groupBrand || null);
+          setDocGrouping(gData.docGrouping === 'year' || gData.docGrouping === 'half' ? gData.docGrouping : 'quarter');
           const { tiers, currency } = await fetchCommissionTiers(membership.groupId);
           setGroupCommissionTiers(tiers);
           setGroupCurrency(currency || gData.currency || '');
@@ -831,12 +842,92 @@ function MemberContent() {
 
   // Documents this member removed from their own list (organizer copies stay).
   const hiddenIds = new Set<string>([...((activeMember?.hiddenDocIds as string[]) || []), ...hiddenNow]);
-  const filteredDocs = docs.filter(d => {
-    if (hiddenIds.has(d.id)) return false;
+  const archivedIds = new Set<string>([...((activeMember?.archivedDocIds as string[]) || []), ...archivedNow].filter(id => !unarchivedNow.includes(id)));
+  const docDate = (d: any): Date => {
+    const t = d.createdAt;
+    const dt = t?.toDate ? t.toDate() : t?.seconds ? new Date(t.seconds * 1000) : t ? new Date(t) : new Date(0);
+    return isNaN(dt.getTime()) ? new Date(0) : dt;
+  };
+  // Period key/label for a date, following the organizer's choice.
+  const periodOf = (dt: Date): { key: string; label: string } => {
+    const y = dt.getFullYear();
+    if (dt.getTime() === 0) return { key: '0000', label: 'Undated' };
+    if (docGrouping === 'year') return { key: String(y), label: String(y) };
+    const m = dt.getMonth();
+    if (docGrouping === 'half') {
+      const h = m < 6 ? 1 : 2;
+      return { key: y + '-H' + h, label: (h === 1 ? 'Jan - Jun ' : 'Jul - Dec ') + y };
+    }
+    const q = Math.floor(m / 3) + 1;
+    const names = ['Jan - Mar', 'Apr - Jun', 'Jul - Sep', 'Oct - Dec'];
+    return { key: y + '-Q' + q, label: names[q - 1] + ' ' + y };
+  };
+  const visibleDocs = docs.filter(d => !hiddenIds.has(d.id) && (showArchive ? archivedIds.has(d.id) : !archivedIds.has(d.id)));
+  const filteredDocs = visibleDocs.filter(d => {
     const matchSearch = d.name?.toLowerCase().includes(search.toLowerCase());
     const matchCat = filterCat === 'All' || d.category === filterCat;
-    return matchSearch && matchCat;
+    const matchPeriod = docPeriod === 'all' || periodOf(docDate(d)).key === docPeriod;
+    return matchSearch && matchCat && matchPeriod;
   });
+  // Periods present in the current list (newest first) for the date filter.
+  const docPeriods = Array.from(new Map(visibleDocs.map(d => { const p = periodOf(docDate(d)); return [p.key, p.label] as [string, string]; })).entries())
+    .sort((a, b) => b[0].localeCompare(a[0]));
+  const groupedDocs = Array.from(
+    filteredDocs.reduce((m, d) => { const p = periodOf(docDate(d)); const g = m.get(p.key) || { label: p.label, items: [] as any[] }; g.items.push(d); m.set(p.key, g); return m; }, new Map<string, { label: string; items: any[] }>())
+      .entries()
+  ).sort((a, b) => b[0].localeCompare(a[0]));
+  const isPeriodOpen = (key: string, index: number) => (key in openPeriods ? openPeriods[key] : index === 0 || docPeriod !== 'all' || !!search);
+  const toggleSelected = (id: string) => setSelectedDocs(sel => (sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]));
+
+  // Bulk actions on the selected documents.
+  const bulkUpdate = async (action: 'archive' | 'unarchive' | 'hide') => {
+    if (!activeMember?.id || selectedDocs.length === 0) return;
+    const chosen = docs.filter(d => selectedDocs.includes(d.id));
+    const own = chosen.filter(d => d.uploadedBy === uid);
+    const issued = chosen.filter(d => d.uploadedBy !== uid);
+    if (action === 'hide') {
+      const msg = 'Remove ' + chosen.length + ' document(s) from your list?' +
+        (own.length ? '\n' + own.length + ' file(s) you uploaded will be deleted.' : '') +
+        (issued.length ? '\nYour organizer keeps a copy of the ' + issued.length + ' issued by the group.' : '');
+      if (!confirm(msg)) return;
+    }
+    setBulkBusy(true);
+    setError('');
+    try {
+      const ids = action === 'hide' ? issued.map(d => d.id) : chosen.map(d => d.id);
+      if (ids.length) {
+        const res = await fetch('/api/member-hide-document', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders('member')) },
+          body: JSON.stringify({ memberId: activeMember.id, documentIds: ids, action }),
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed (' + res.status + ')');
+      }
+      if (action === 'hide') {
+        // Files the member uploaded are really deleted (same as Delete).
+        for (const d of own) {
+          if (d.storagePath) {
+            try { await deleteObject(ref(storage, d.storagePath)); } catch { /* already gone */ }
+          }
+          await deleteDoc(doc(db, 'documents', d.id));
+          setDocs(prev => prev.filter(x => x.id !== d.id));
+        }
+        setHiddenNow(h => [...h, ...issued.map(d => d.id)]);
+      } else if (action === 'archive') {
+        setArchivedNow(a => [...a, ...ids]);
+        setUnarchivedNow(u => u.filter(x => !ids.includes(x)));
+      } else {
+        setUnarchivedNow(u => [...u, ...ids]);
+        setArchivedNow(a => a.filter(x => !ids.includes(x)));
+      }
+      setSelectedDocs([]);
+      setSelectMode(false);
+    } catch (e: any) {
+      setError('Could not update your documents: ' + (e?.message || 'unknown error'));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const receiptDocs = docs.filter(d => d.category === 'Receipts');
   const recentUploads = docs.slice(0, 5);
@@ -1155,13 +1246,6 @@ function MemberContent() {
             )}
           </div>
 
-          <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>Filter documents</p>
-          <select value={filterCat} onChange={e => { setFilterCat(e.target.value); setSearch(''); documentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-            style={{ width: '100%', padding: '8px 10px', borderRadius: '10px', border: '1.5px solid ' + C.border, background: 'white', color: C.bordeaux, fontSize: '13px', fontWeight: 700, outline: 'none', cursor: 'pointer' }}>
-            {CATEGORIES.map(c => (
-              <option key={c} value={c}>{c === 'All' ? 'All documents' : c} ({c === 'All' ? docs.filter(d => !hiddenIds.has(d.id)).length : docs.filter(d => d.category === c && !hiddenIds.has(d.id)).length})</option>
-            ))}
-          </select>
         </div>
 
         {/* CENTER - Documents (main) */}
@@ -1317,22 +1401,83 @@ function MemberContent() {
             <input ref={fileInputRef} type="file" multiple onChange={handleFileSelected} style={{ display: 'none' }} />
           </div>
 
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by file name..."
-            style={{ width: '100%', padding: '8px 12px', border: '1.5px solid ' + C.border, borderRadius: '10px', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }} />
+          {/* Toolbar: search, type, period, archive, select */}
+          <style>{`
+            .dt-bar { display: grid; grid-template-columns: 1fr 150px 170px auto auto; gap: 8px; margin-bottom: 10px; align-items: center; }
+            .dt-in { width: 100%; height: 36px; padding: 0 11px; border: 1.5px solid ${C.border}; border-radius: 10px; font-size: 12.5px; outline: none; box-sizing: border-box; background: white; color: ${C.texteFonce}; font-family: inherit; }
+            .dt-btn { height: 36px; padding: 0 12px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+            @media (max-width: 900px) { .dt-bar { grid-template-columns: 1fr 1fr; } }
+          `}</style>
+          <div className="dt-bar">
+            <input className="dt-in" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by file name..." />
+            <select className="dt-in" value={filterCat} onChange={e => setFilterCat(e.target.value)} aria-label="Type">
+              {CATEGORIES.map(c => (
+                <option key={c} value={c}>{c === 'All' ? 'All types' : c} ({c === 'All' ? visibleDocs.length : visibleDocs.filter(d => d.category === c).length})</option>
+              ))}
+            </select>
+            <select className="dt-in" value={docPeriod} onChange={e => { setDocPeriod(e.target.value); setOpenPeriods({}); }} aria-label="Period">
+              <option value="all">All periods</option>
+              {docPeriods.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+            </select>
+            <button className="dt-btn" onClick={() => { setShowArchive(v => !v); setSelectedDocs([]); setSelectMode(false); setDocPeriod('all'); setOpenPeriods({}); }}
+              style={{ background: showArchive ? C.bordeaux : 'white', color: showArchive ? 'white' : C.bordeaux, border: '1.5px solid ' + C.bordeaux }}>
+              {showArchive ? '\u2190 Back to documents' : '\u{1F5C4} Archive (' + docs.filter(d => !hiddenIds.has(d.id) && archivedIds.has(d.id)).length + ')'}
+            </button>
+            <button className="dt-btn" onClick={() => { setSelectMode(v => !v); setSelectedDocs([]); }}
+              style={{ background: selectMode ? C.creme : 'white', color: C.texteFonce, border: '1.5px solid ' + C.border }}>
+              {selectMode ? 'Cancel' : '\u2611 Select'}
+            </button>
+          </div>
+
+          {selectMode && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: '#FDF6EC', border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 12px', marginBottom: 10 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: C.texteFonce }}>{selectedDocs.length} selected</span>
+              <button onClick={() => setSelectedDocs(selectedDocs.length === filteredDocs.length ? [] : filteredDocs.map(d => d.id))}
+                style={{ background: 'none', border: 'none', color: C.bordeaux, fontSize: 12, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}>
+                {selectedDocs.length === filteredDocs.length && filteredDocs.length > 0 ? 'Unselect all' : 'Select all shown (' + filteredDocs.length + ')'}
+              </button>
+              <span style={{ flex: 1 }} />
+              <button disabled={!selectedDocs.length || bulkBusy} onClick={() => bulkUpdate(showArchive ? 'unarchive' : 'archive')}
+                style={{ height: 32, padding: '0 12px', borderRadius: 9, border: '1.5px solid ' + C.bordeaux, background: 'white', color: C.bordeaux, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: selectedDocs.length ? 1 : 0.5 }}>
+                {showArchive ? 'Restore' : 'Archive'}
+              </button>
+              <button disabled={!selectedDocs.length || bulkBusy} onClick={() => bulkUpdate('hide')}
+                style={{ height: 32, padding: '0 12px', borderRadius: 9, border: 'none', background: '#FFEBEE', color: '#C62828', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: selectedDocs.length ? 1 : 0.5 }}>
+                {bulkBusy ? '...' : 'Remove'}
+              </button>
+            </div>
+          )}
 
           {filteredDocs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
               <div style={{ fontSize: '24px', marginBottom: '6px' }}>{'\ud83d\udcc1'}</div>
               <p style={{ color: C.texteGris, fontSize: '13px' }}>
-                {filterCat !== 'All' ? `No documents in "${filterCat}" yet.` : search ? 'No documents match your search.' : 'No documents yet.'}
+                {showArchive ? 'Your archive is empty.' : filterCat !== 'All' ? `No documents in "${filterCat}" for this period.` : search ? 'No documents match your search.' : docPeriod !== 'all' ? 'No documents in this period.' : 'No documents yet.'}
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {filteredDocs.map((d: any) => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {groupedDocs.map(([pKey, group], gi) => {
+                const open = isPeriodOpen(pKey, gi);
+                return (
+                  <div key={pKey}>
+                    <button onClick={() => setOpenPeriods(o => ({ ...o, [pKey]: !open }))}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', borderBottom: '1px solid ' + C.border, padding: '6px 2px', cursor: 'pointer', marginBottom: open ? 10 : 0 }}>
+                      <span style={{ fontSize: 11, color: C.bordeaux, width: 12 }}>{open ? '\u25BE' : '\u25B8'}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: C.bordeaux }}>{group.label}</span>
+                      <span style={{ fontSize: 11, color: C.texteGris, fontWeight: 600 }}>{group.items.length} file{group.items.length !== 1 ? 's' : ''}</span>
+                    </button>
+                    {open && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {group.items.map((d: any) => {
                 const icon = getFileIcon(d.type);
                 return (
-                  <div key={d.id}>
+                  <div key={d.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    {selectMode && (
+                      <input type="checkbox" checked={selectedDocs.includes(d.id)} onChange={() => toggleSelected(d.id)}
+                        aria-label={'Select ' + d.name} style={{ width: 17, height: 17, marginTop: 14, accentColor: C.bordeaux, cursor: 'pointer', flexShrink: 0 }} />
+                    )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="doc-row" style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: '12px', padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '200px' }}>
                         <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: icon.color, border: '1px solid ' + C.border, flexShrink: 0 }}>
@@ -1378,6 +1523,12 @@ function MemberContent() {
                     {expandedDocId === d.id && (
                       <div style={{ background: 'white', border: '1px solid ' + C.border, borderRadius: '0 0 14px 14px', padding: '18px', marginTop: '-4px' }}>
                         <DocumentComments documentId={d.id} currentUserName={activeMember?.fullName || ''} currentUserRole='member' />
+                      </div>
+                    )}
+                  </div>
+                  </div>
+                );
+              })}
                       </div>
                     )}
                   </div>
