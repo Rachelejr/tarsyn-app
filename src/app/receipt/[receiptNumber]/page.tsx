@@ -15,7 +15,9 @@
 // stored in the `documents` collection) - a different, already-working
 // mechanism that this page does not touch or replace.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { buildReceiptHtml, receiptBranding, rebrandLegacyReceiptUrl } from '@/lib/receiptHtml';
+import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
 import { useRouter, useParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -77,6 +79,10 @@ export default function ReceiptPage() {
   const [payment, setPayment] = useState<PaymentRecord | null>(null);
   const [groupName, setGroupName] = useState('');
   const [groupLogo, setGroupLogo] = useState('');
+  // The receipt shown here is the SAME one the member has in their space.
+  const [receiptHtml, setReceiptHtml] = useState('');
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [frameHeight, setFrameHeight] = useState(820);
   // Tab title (also printed in the page header by browsers): the group, not the app.
   useEffect(() => {
     if (groupName) document.title = groupName + ' - Payment Receipt';
@@ -122,16 +128,20 @@ export default function ReceiptPage() {
         let isPayingMember = false;
         let resolvedGroupName = '';
         let resolvedLogo = '';
+        let memberInfo: any = null;
+        let groupInfo: any = null;
 
         if (data.memberId) {
           const memberSnap = await getDoc(doc(db, 'members', data.memberId));
           if (memberSnap.exists()) {
             const memberData: any = memberSnap.data();
+            memberInfo = memberData;
             isPayingMember = memberData.userId === uid;
             if (memberData.groupId) {
               const groupSnap = await getDoc(doc(db, 'groups', memberData.groupId));
               if (groupSnap.exists()) {
                 const g = groupSnap.data() as any;
+                groupInfo = g;
                 resolvedGroupName = g.name || '';
                 const brand = g.groupBrand || {};
                 if (brand.enabled !== false && typeof brand.logo === 'string' && /^https:\/\//.test(brand.logo)) resolvedLogo = brand.logo;
@@ -145,7 +155,52 @@ export default function ReceiptPage() {
           return;
         }
 
+        // 1) The member's copy (Record Payment stores it as rcpt_<number>).
+        let html = '';
+        try {
+          const copy = await getDoc(doc(db, 'documents', 'rcpt_' + receiptNumber));
+          const url = copy.exists() ? String((copy.data() as any).url || '') : '';
+          if (url.startsWith('data:text/html')) {
+            const fixed = rebrandLegacyReceiptUrl(url, resolvedGroupName);
+            html = decodeURIComponent(fixed.slice(fixed.indexOf(',') + 1));
+          }
+        } catch { /* fall back below */ }
+        // 2) Older payments without a copy: build it the same way.
+        if (!html) {
+          let planWL = false;
+          try { planWL = getPlanLimits(await getOrganizerPlanTier(db, data.organizerId || '')).whiteLabel; } catch { planWL = false; }
+          const brand = receiptBranding(planWL, groupInfo?.groupBrand);
+          const hands = Math.max(1, parseInt(String(memberInfo?.shares || 1), 10) || 1);
+          const signer = String(groupInfo?.receiptSignature?.name || '').trim();
+          html = buildReceiptHtml({
+            groupName: resolvedGroupName || 'Group',
+            logoUrl: brand.logoUrl,
+            watermark: brand.watermark,
+            receiptNo: data.receiptNumber,
+            issuedOn: data.paymentDate,
+            memberName: data.memberName || memberInfo?.fullName || '',
+            memberCode: data.memberTynId || memberInfo?.tynId || '',
+            info: [
+              ['Payment date', data.paymentDate || ''],
+              ['Method', data.paymentMethod || ''],
+              ['Cycle', data.cycle || ''],
+              ['Type', data.contributionType || ''],
+              ...(hands > 1 ? [['Hands in this group', String(hands)] as [string, string]] : []),
+              ...(data.notes ? [['Notes', data.notes] as [string, string]] : []),
+            ],
+            lines: [{
+              label: (data.contributionType || 'Regular') + ' contribution' + (hands > 1 ? ' \u00b7 ' + hands + ' hands' : ''),
+              sub: (data.cycle || '') + ' \u00b7 ' + (data.paymentMethod || ''),
+              amount: Number(data.amount || 0),
+            }],
+            currency: data.currency || '',
+            status: data.status === 'confirmed' ? 'Paid' : String(data.status || '').charAt(0).toUpperCase() + String(data.status || '').slice(1),
+            signature: signer ? { name: signer, style: groupInfo?.receiptSignature?.style === 'initials' ? 'initials' : 'name' } : undefined,
+          });
+        }
+
         if (!cancelled) {
+          setReceiptHtml(html);
           setPayment(data);
           setGroupName(resolvedGroupName || 'Group');
           setGroupLogo(resolvedLogo);
@@ -174,118 +229,40 @@ export default function ReceiptPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.creme, fontFamily: 'Inter, sans-serif' }}>
-      <style>{`@media print { nav, .receipt-no-print { display: none !important; } }`}</style>
-      <nav style={{ background: C.bordeaux, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div
-          onClick={() => router.push(backHref)}
-          style={{ color: C.dore, fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}
-        >
+      <nav style={{ background: C.bordeaux, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div onClick={() => router.push(backHref)} style={{ color: C.dore, fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
           {backLabel}
         </div>
-        {/* The group's logo, or its name - never the app's. */}
-        {groupLogo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={groupLogo} alt={groupName} style={{ height: '44px', width: 'auto', maxWidth: '180px', display: 'block', objectFit: 'contain', background: 'white', borderRadius: '8px', padding: '3px 6px' }} />
-        ) : (
-          <span style={{ color: C.creme, fontWeight: 800, fontSize: '17px', letterSpacing: '1px', textTransform: 'uppercase' as const }}>{groupName}</span>
+        {payment && receiptHtml && (
+          <button onClick={() => frameRef.current?.contentWindow?.print()}
+            style={{ padding: '8px 16px', background: C.dore, color: C.bordeauxDark, border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>
+            Print / Save as PDF
+          </button>
         )}
       </nav>
 
-      <div style={{ maxWidth: '560px', margin: '0 auto', padding: '28px 20px' }}>
-        {notFound || !payment ? (
+      {notFound || !payment ? (
+        <div style={{ maxWidth: '560px', margin: '28px auto', padding: '0 20px' }}>
           <div style={{ background: 'white', borderRadius: '16px', padding: '32px', textAlign: 'center', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
             <p style={{ color: C.texteFonce, fontWeight: 700, margin: '0 0 6px' }}>Receipt not found</p>
             <p style={{ color: C.texteGris, fontSize: '13px', margin: 0 }}>
               This receipt may not exist, or you may not have permission to view it.
             </p>
           </div>
-        ) : (
-          <>
-            <div style={{ background: 'white', borderRadius: '18px', padding: '28px', boxShadow: '0 8px 32px rgba(107,45,78,0.12)' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
-                <div>
-                  <h1 style={{ color: C.bordeaux, fontSize: '20px', fontWeight: 800, margin: '0 0 4px' }}>{groupName || 'Payment Receipt'}</h1>
-                  <p style={{ color: C.texteGris, fontSize: '12px', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Payment Receipt</p>
-                </div>
-                {(() => {
-                  const sc = statusColors(payment.status);
-                  return (
-                    <span style={{ background: sc.bg, color: sc.fg, fontSize: '11.5px', fontWeight: 800, padding: '6px 12px', borderRadius: '20px', textTransform: 'capitalize' as const, whiteSpace: 'nowrap' as const }}>
-                      {payment.status}
-                    </span>
-                  );
-                })()}
-              </div>
-
-              <div style={{ background: C.creme, border: '1px solid ' + C.border, borderRadius: '12px', padding: '14px 16px', marginBottom: '18px' }}>
-                <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Receipt Number</p>
-                <p style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: C.bordeaux, fontFamily: 'monospace' }}>{payment.receiptNumber}</p>
-              </div>
-
-              <div style={{ marginBottom: '18px' }}>
-                <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Amount</p>
-                <p style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: C.texteFonce }}>
-                  {payment.amount?.toLocaleString()} <span style={{ fontSize: '15px', fontWeight: 700, color: C.texteGris }}>{payment.currency}</span>
-                </p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '18px' }}>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Member</p>
-                  <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: C.texteFonce }}>{payment.memberName}</p>
-                  {payment.memberTynId && <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: C.texteGris }}>{payment.memberTynId}</p>}
-                </div>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Payment Date</p>
-                  <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: C.texteFonce }}>{payment.paymentDate}</p>
-                </div>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Payment Method</p>
-                  <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: C.texteFonce }}>{payment.paymentMethod}</p>
-                </div>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Cycle</p>
-                  <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: C.texteFonce }}>{payment.cycle}</p>
-                </div>
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Type</p>
-                  <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: C.texteFonce }}>{payment.contributionType}</p>
-                </div>
-                {payment.createdAt?.toDate && (
-                  <div>
-                    <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Recorded</p>
-                    <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: C.texteFonce }}>{payment.createdAt.toDate().toLocaleDateString()}</p>
-                  </div>
-                )}
-              </div>
-
-              {payment.notes && (
-                <div style={{ marginBottom: '18px' }}>
-                  <p style={{ margin: '0 0 2px', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.5px', color: C.texteGris, textTransform: 'uppercase' as const }}>Notes</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: C.texteFonce }}>{payment.notes}</p>
-                </div>
-              )}
-
-              <div style={{ borderTop: '1px solid ' + C.border, paddingTop: '12px', marginTop: '6px' }}>
-                <p style={{ margin: 0, fontSize: '10.5px', color: '#8A7B6C' }}>
-                  Issued by {groupName}
-                </p>
-              </div>
-            </div>
-
-            <button
-              className="receipt-no-print"
-              onClick={() => window.print()}
-              style={{
-                marginTop: '16px', width: '100%', padding: '11px', background: C.bordeaux, color: C.creme,
-                border: 'none', borderRadius: '10px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer',
-              }}
-            >
-              Print / Save as PDF
-            </button>
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        // Same receipt as in the member's Documents (same design and content).
+        <iframe
+          ref={frameRef}
+          title={groupName + ' receipt ' + (payment.receiptNumber || '')}
+          srcDoc={receiptHtml}
+          onLoad={() => {
+            const h = frameRef.current?.contentDocument?.documentElement?.scrollHeight;
+            if (h) setFrameHeight(h + 10);
+          }}
+          style={{ display: 'block', width: '100%', height: frameHeight, border: 'none', background: C.creme }}
+        />
+      )}
     </div>
   );
 }

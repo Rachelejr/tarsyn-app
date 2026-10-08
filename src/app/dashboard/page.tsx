@@ -703,8 +703,10 @@ function OverviewContent() {
           <StatCard label="Confirmed Payments" value={confirmedPayments} icon={'\u2714\ufe0f'} gradient="linear-gradient(135deg,#1E88E5,#1565C0)" glow="rgba(21,101,192,0.3)" delay={150} />
           <StatCard label="Pending Payments" value={pendingPayments} icon={'\u23f3'} gradient="linear-gradient(135deg,#FB8C00,#E65100)" glow="rgba(230,81,0,0.3)" delay={200} />
         </div>
-        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 340px', gap: '20px', alignItems: 'start' }}>
+        {/* Order on screen: main panels | Quick Actions | My Groups, Join Requests, Next Cycle Answers */}
+        <div className="UNIMUNITY-ov-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 230px 340px', gap: '20px', alignItems: 'start' }}>
         <div className="UNIMUNITY-ov-sidebar" style={{
+          order: 2,
           background: '#FFFFFF',
           borderRadius: '16px',
           padding: '18px 20px',
@@ -762,7 +764,7 @@ function OverviewContent() {
             ))}
           </div>
         </div>
-        <div>
+        <div style={{ order: 1, minWidth: 0 }}>
 
 
         <div className="panel-card fade-up" style={{ background: 'white', borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)', marginBottom: '14px' }}>
@@ -944,7 +946,7 @@ function OverviewContent() {
 
         </div>
 
-        <div className="UNIMUNITY-ov-right" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '14px' }}>
+        <div className="UNIMUNITY-ov-right" style={{ order: 3, display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '14px' }}>
           {/* My Groups */}
           <div className="panel-card fade-up rc-card" style={{ background: 'white', borderRadius: '16px', padding: '18px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
             <div className="rc-head">
