@@ -7,7 +7,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useParams, useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
 import DateTimeWeather from '@/components/DateTimeWeather';
-import { buildReceiptHtml } from '@/lib/receiptHtml';
+import { buildReceiptHtml, receiptBranding } from '@/lib/receiptHtml';
+import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
 import { buildGridPeriods, PERIOD_STATUS_LABEL } from '@/lib/gridPeriods';
 import { computeDues, contributionPerPeriod, paidPeriodsInCycle } from '@/lib/dues';
 import { analyzeGrid, gridNeedsRepair } from '@/lib/gridHealth';
@@ -158,6 +159,7 @@ export default function PaymentGridPage() {
   const [memberUserIds, setMemberUserIds] = useState<Record<string, string>>({});
   const [memberAmounts, setMemberAmounts] = useState<Record<string, number>>({});
   const [memberInfo, setMemberInfo] = useState<Record<string, { name: string; tynId: string }>>({});
+  const [planWhiteLabel, setPlanWhiteLabel] = useState(false);
   const [receiptSignature, setReceiptSignature] = useState<{ name?: string; style?: 'name' | 'initials' } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [weeklyAmount, setWeeklyAmount] = useState<number | null>(null);
@@ -214,6 +216,8 @@ export default function PaymentGridPage() {
         setGroupName(groupSnap.data().name || 'Group');
         setGroupBrand(groupSnap.data().groupBrand || null);
         setReceiptSignature(groupSnap.data().receiptSignature || null);
+        const orgId = groupSnap.data().organizerId || auth.currentUser?.uid || '';
+        if (orgId) getOrganizerPlanTier(db, orgId).then((t) => setPlanWhiteLabel(getPlanLimits(t).whiteLabel)).catch(() => setPlanWhiteLabel(false));
         setGroupFrequency(groupSnap.data().frequency || groupSnap.data().paymentFrequency || '');
         setGroupCurrency(String(groupSnap.data().currency || 'USD').toUpperCase());
         // Group contribution per period (same lookup as everywhere else).
@@ -528,7 +532,7 @@ export default function PaymentGridPage() {
     });
 
     const signerName = (receiptSignature?.name || auth.currentUser?.displayName || '').trim();
-    const logoUrl = groupBrand?.enabled !== false ? groupBrand?.logo : undefined;
+    const brand = receiptBranding(planWhiteLabel, groupBrand);
     const today = new Date().toISOString().slice(0, 10);
 
     affected.forEach((key) => {
@@ -552,7 +556,8 @@ export default function PaymentGridPage() {
       const receiptNo = (info.tynId || 'MBR') + '-C' + (grid.cycleNumber || 1) + '-W' + w;
       const html = buildReceiptHtml({
         groupName,
-        logoUrl,
+        logoUrl: brand.logoUrl,
+        watermark: brand.watermark,
         receiptNo,
         issuedOn: today,
         memberName: info.name,
@@ -573,7 +578,8 @@ export default function PaymentGridPage() {
         signature: signerName ? { name: signerName, style: receiptSignature?.style || 'name' } : undefined,
       });
       writes.push({ path: 'documents/' + docId, run: setDoc(ref, {
-        name: 'Receipt - W' + w + ' - ' + weekDate,
+        // Member name in the title so the organizer can tell receipts apart.
+        name: 'Receipt - W' + w + ' - ' + weekDate + (info.name ? ' - ' + info.name : ''),
         type: 'text/html',
         size: html.length,
         url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
-import { buildReceiptHtml } from '@/lib/receiptHtml';
+import { buildReceiptHtml, receiptBranding } from '@/lib/receiptHtml';
+import { getPlanLimits, getPlanTierFromPriceId } from '@/lib/planLimits';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -245,9 +246,18 @@ export async function POST(req: NextRequest) {
             const receiptGroup = receiptGroupSnap && receiptGroupSnap.exists ? receiptGroupSnap.data() as any : {};
             const receiptBrand = receiptGroup.groupBrand || {};
             const sigName = String(receiptGroup.receiptSignature?.name || '').trim();
+            // Organizer's plan: White Label decides logo vs. watermark.
+            let planWL = false;
+            try {
+              const orgSnap = organizerId ? await adminDb.collection('users').doc(organizerId).get() : null;
+              const sub = orgSnap && orgSnap.exists ? (orgSnap.data() as any)?.subscription : null;
+              if (sub?.status === 'active' || sub?.status === 'trialing') planWL = getPlanLimits(getPlanTierFromPriceId(sub?.plan)).whiteLabel;
+            } catch { planWL = false; }
+            const brand = receiptBranding(planWL, receiptBrand);
             const receiptHtml = buildReceiptHtml({
               groupName: receiptGroup.name || '',
-              logoUrl: receiptBrand.enabled !== false ? receiptBrand.logo : undefined,
+              logoUrl: brand.logoUrl,
+              watermark: brand.watermark,
               receiptNo: 'CARD-' + String(pi.id || Date.now()).slice(-8).toUpperCase(),
               issuedOn: new Date().toISOString().slice(0, 10),
               memberName: memberData.fullName || memberData.name || '',

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, getDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { buildReceiptHtml } from '@/lib/receiptHtml';
+import { buildReceiptHtml, receiptBranding } from '@/lib/receiptHtml';
+import { getOrganizerPlanTier, getPlanLimits } from '@/lib/planLimits';
 import DateTimeWeather from '@/components/DateTimeWeather';
 import Footer from '@/components/Footer';
 
@@ -125,20 +126,24 @@ export default function RecordContribution() {
         if (member?.userId) {
           let groupName = 'Group';
           let logoUrl: string | undefined;
+          let watermark = true;
           let signature: { name: string; style?: 'name' | 'initials' } | undefined;
           if (member.groupId) {
             const g = await getDoc(doc(db, 'groups', member.groupId));
             if (g.exists()) {
               const gd = g.data() as { name?: string; groupBrand?: { enabled?: boolean; logo?: string }; receiptSignature?: { name?: string; style?: 'name' | 'initials' } };
               groupName = gd.name || groupName;
-              if (gd.groupBrand?.enabled !== false) logoUrl = gd.groupBrand?.logo;
+              const planWL = getPlanLimits(await getOrganizerPlanTier(db, user.uid)).whiteLabel;
+              const brand = receiptBranding(planWL, gd.groupBrand);
+              logoUrl = brand.logoUrl;
+              watermark = brand.watermark;
               const signer = (gd.receiptSignature?.name || user.displayName || '').trim();
               if (signer) signature = { name: signer, style: gd.receiptSignature?.style || 'name' };
             }
           }
           const hands = Math.max(1, parseInt(String(member.shares || 1), 10) || 1);
           const html = buildReceiptHtml({
-            groupName, logoUrl,
+            groupName, logoUrl, watermark,
             receiptNo: receiptNumber,
             issuedOn: paymentDate,
             memberName,
@@ -162,7 +167,7 @@ export default function RecordContribution() {
           });
           // Fixed id per receipt number: the same receipt is never stored twice.
           await setDoc(doc(db, 'documents', 'rcpt_' + receiptNumber), {
-            name: 'Receipt - ' + receiptNumber + ' - ' + paymentDate,
+            name: 'Receipt - ' + receiptNumber + ' - ' + paymentDate + ' - ' + memberName,
             type: 'text/html',
             size: html.length,
             url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),
