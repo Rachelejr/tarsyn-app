@@ -404,6 +404,14 @@ function OverviewContent() {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
           .UNIMUNITY-ov-sidebar { position: static !important; }
         }
+        /* Wide screens: the three columns end at the same height. The last
+           block of each column stretches to fill the remaining space. */
+        @media (min-width: 1201px) {
+          .UNIMUNITY-ov-grid { align-items: stretch !important; }
+          .UNIMUNITY-ov-grid > div { display: flex; flex-direction: column; }
+          .UNIMUNITY-ov-grid > div > :last-child { flex: 1 1 auto; }
+          .UNIMUNITY-ov-sidebar > :last-child { justify-content: space-between; }
+        }
         @media (max-width: 1200px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
           .UNIMUNITY-ov-sidebar .action-card { padding: 9px 10px !important; }
