@@ -404,13 +404,20 @@ function OverviewContent() {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
           .UNIMUNITY-ov-sidebar { position: static !important; }
         }
-        /* Wide screens: the three columns end at the same height. The last
-           block of each column stretches to fill the remaining space. */
+        /* Wide screens: the three columns fit the window (no page scroll) and
+           end at the same line. Anything longer scrolls inside its card. */
         @media (min-width: 1201px) {
-          .UNIMUNITY-ov-grid { align-items: stretch !important; }
-          .UNIMUNITY-ov-grid > div { display: flex; flex-direction: column; }
-          .UNIMUNITY-ov-grid > div > :last-child { flex: 1 1 auto; }
-          .UNIMUNITY-ov-sidebar > :last-child { justify-content: space-between; }
+          .UNIMUNITY-ov-grid { align-items: stretch !important; height: calc(100vh - 228px); min-height: 520px; }
+          .UNIMUNITY-ov-grid > div { display: flex; flex-direction: column; min-height: 0; }
+          .UNIMUNITY-ov-grid > div > * { flex-shrink: 0; }
+          /* Left: Member Management keeps its size; Recent Contributions fills the rest and scrolls. */
+          .UNIMUNITY-ov-grid > div:not(.UNIMUNITY-ov-sidebar):not(.UNIMUNITY-ov-right) > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 0 !important; }
+          /* Middle: Quick Actions fills the height; its list scrolls if the window is small. */
+          .UNIMUNITY-ov-sidebar { margin-bottom: 0 !important; }
+          .UNIMUNITY-ov-sidebar > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+          /* Right: compact cards; Next Cycle Answers takes the rest and scrolls inside. */
+          .UNIMUNITY-ov-right { gap: 12px !important; margin-bottom: 0 !important; }
+          .UNIMUNITY-ov-right > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
         }
         @media (max-width: 1200px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
@@ -955,9 +962,9 @@ function OverviewContent() {
         </div>
 
         <div className="UNIMUNITY-ov-right" style={{ order: 3, display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '14px' }}>
-          {/* My Groups */}
-          <div className="panel-card fade-up rc-card" style={{ background: 'white', borderRadius: '16px', padding: '18px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
-            <div className="rc-head">
+          {/* My Groups (compact) */}
+          <div className="panel-card fade-up rc-card" style={{ background: 'white', borderRadius: '16px', padding: '12px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+            <div className="rc-head" style={{ marginBottom: '10px', paddingBottom: '9px' }}>
               <span className="rc-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)', boxShadow: '0 4px 10px rgba(201,151,77,0.35)' }}>{'\ud83c\udfd8\ufe0f'}</span>
               <div>
                 <h3 style={{ color: '#4A1F38', fontSize: '15px', fontWeight: 800, margin: 0 }}>My Groups</h3>
@@ -971,9 +978,9 @@ function OverviewContent() {
               const list = groups.filter(g => tontineStatus({ status: g.status, startDate: gridCycles[g.id]?.startDate || g.startDate, endDate: gridCycles[g.id]?.endDate }) === st);
               return list.map((g, idx) => ({ g, st, first: idx === 0 }));
             }).map(({ g, st, first }, i) => (
-              <div key={g.id || i} style={{ marginBottom: '10px' }}>
+              <div key={g.id || i} style={{ marginBottom: '6px' }}>
               {first && (
-                <p style={{ margin: i === 0 ? '0 0 8px' : '14px 0 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: st === 'current' ? '#2E7D32' : st === 'upcoming' ? '#9C7A2E' : '#8A7B6C' }}>
+                <p style={{ margin: i === 0 ? '0 0 5px' : '10px 0 5px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: st === 'current' ? '#2E7D32' : st === 'upcoming' ? '#9C7A2E' : '#8A7B6C' }}>
                   {TONTINE_STATUS_LABEL[st]}
                 </p>
               )}
@@ -987,12 +994,12 @@ function OverviewContent() {
                     <span className="pill" title="Members do not see this group in their member space. Change it with Edit." style={{ background: '#FBF0D9', color: '#9C7A2E', padding: '3px 9px', fontSize: '10px' }}>Hidden from members</span>
                   )}
                 </div>
-                <p style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 10px' }}>
+                <p style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 7px' }}>
                   {g.frequency || 'Weekly'}{(g.contribution || g.amountPerMember) ? ' \u00b7 ' + (g.contribution || g.amountPerMember) + ' ' + (g.currency || 'USD') : ''}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' }}>
                   <button onClick={() => router.push(`/admin/payment-grid/${g.id}`)} className="btn-action"
-                    style={{ background: 'linear-gradient(135deg,#E9C77B,#D9AE5E)', color: '#4A1F38', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ background: 'linear-gradient(135deg,#E9C77B,#D9AE5E)', color: '#4A1F38', border: 'none', borderRadius: '9px', padding: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                     {'\ud83d\udcca'} Payment Grid
                   </button>
                   <button onClick={() => {
@@ -1010,7 +1017,7 @@ function OverviewContent() {
                     setGroupEditSigStyle(g.receiptSignature?.style === 'initials' ? 'initials' : 'name');
                     setGroupEditDocGrouping(g.docGrouping === 'year' || g.docGrouping === 'half' ? g.docGrouping : 'quarter');
                   }} className="btn-action"
-                    style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '8px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', border: 'none', borderRadius: '9px', padding: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                     {'\u270f\ufe0f'} Edit
                   </button>
                 </div>
