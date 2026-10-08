@@ -77,7 +77,7 @@ export function buildReceiptHtml(opts: {
   const hasLogo = !!(opts.logoUrl && /^https:\/\//.test(opts.logoUrl));
   const logo = hasLogo
     ? '<img class="logo" src="' + esc(opts.logoUrl) + '" alt=""/>'
-    : '<div class="mono">' + esc(group.trim().charAt(0).toUpperCase() || 'R') + '</div>';
+    : '';
 
   const infoHtml = info.length
     ? '<div class="info">' + info.map(([k, v]) =>
@@ -115,7 +115,7 @@ export function buildReceiptHtml(opts: {
     '*{box-sizing:border-box}body{margin:0;background:#FBEEDD;font-family:Inter,Arial,sans-serif;color:#3A2F1F;padding:36px 16px}' +
     '.rc{position:relative;max-width:640px;margin:0 auto;background:#fff;border:1px solid #F0E4D6;border-radius:22px;overflow:hidden;box-shadow:0 14px 44px rgba(107,45,78,.13)}' +
     '.top{background:linear-gradient(110deg,#FBEEDD 0%,#FBEEDD 30%,#9A5A78 46%,#6B2D4E 58%,#4A1F38 100%);padding:22px 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
-    '.top.plain{background:linear-gradient(135deg,#6B2D4E 0%,#4A1F38 100%)}' +
+    '.top.plain{background:linear-gradient(135deg,#6B2D4E 0%,#4A1F38 100%)}.top.plain .brand{gap:0}' +
     '.brand{display:flex;align-items:center;gap:14px;min-width:0}' +
     '.logo{height:58px;width:auto;max-width:170px;object-fit:contain;display:block}' +
     '.brand .txt{padding-left:26px}.top.plain .txt{padding-left:0}' +

@@ -1100,7 +1100,7 @@ function MemberContent() {
       <nav className="UNIMUNITY-mem-nav" style={{ flexShrink: 0, background: 'linear-gradient(115deg, #FBEEDD 0%, #FBEEDD 16%, #6B2D4E 40%, #4A1F38 100%)', padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 16px rgba(0,0,0,0.18)', position: 'relative', zIndex: 3 }}>
         <div onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: '0 0 auto' }}>
           {effectiveBranding?.logo ? (
-            <img src={effectiveBranding.logo} alt="Logo" style={{ maxHeight: '30px', maxWidth: '140px' }} />
+            <img src={effectiveBranding.logo} alt="Logo" style={{ height: '48px', width: 'auto', maxWidth: '170px', objectFit: 'contain' }} />
           ) : (
             <img src="/unimunity-logo-color.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto' }} />
           )}
@@ -1108,7 +1108,7 @@ function MemberContent() {
         <div style={{ flex: 1, textAlign: 'center', padding: '0 12px' }}>
           <div className="UNIMUNITY-group-name" style={{ fontWeight: 800, fontSize: '17px', lineHeight: 1, display: 'inline-block' }}>{groupName || 'UNIMUNITY'}</div>
           {effectiveBranding?.slogan && (
-            <div style={{ color: 'rgba(233,199,123,0.7)', fontSize: '10px', letterSpacing: '0.05em', marginTop: '2px' }}>{effectiveBranding.slogan}</div>
+            <div style={{ color: 'rgba(233,199,123,0.85)', fontSize: '12.5px', fontStyle: 'italic', letterSpacing: '0.04em', marginTop: '5px' }}>{effectiveBranding.slogan}</div>
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '0 0 auto' }}>
