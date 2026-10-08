@@ -431,15 +431,18 @@ function OverviewContent() {
           .mg-card .rc-group { padding: 8px 10px; margin-bottom: 6px; }
           .mg-card .mg-label { margin: 0 0 4px !important; font-size: 10px !important; }
           .mg-card .mg-freq { margin: 0 0 6px !important; font-size: 11px !important; }
-          .mg-card .btn-action { padding: 4px 9px !important; font-size: 11px !important; white-space: nowrap; }
+          .mg-card .btn-action { padding: 6px 12px !important; font-size: 11.5px !important; white-space: nowrap; }
           /* My Groups even smaller: one line per group (name and details on
              the left, Payment Grid / Edit stacked on the right). */
-          .UNIMUNITY-ov-right .mg-card { padding: 8px 12px !important; }
+          .UNIMUNITY-ov-right .mg-card { padding: 10px 14px !important; }
           .UNIMUNITY-ov-right .mg-card .rc-head { margin-bottom: 5px !important; padding-bottom: 5px !important; }
           .mg-card .rc-head h3 { font-size: 14px !important; }
           .mg-card .rc-ico { width: 26px; height: 26px; font-size: 13px; border-radius: 8px; }
-          .mg-card .mg-label { display: none; }
-          .mg-card .rc-group { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; padding: 6px 9px; margin-bottom: 5px; }
+          .mg-card .mg-label { display: block; margin: 0 0 5px !important; font-size: 10px !important; }
+          .mg-card .rc-group { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; padding: 8px 10px; margin-bottom: 5px; }
+          /* Next Cycle Answers a little tighter. */
+          .UNIMUNITY-ov-right > :last-child { padding: 12px 14px !important; }
+          .UNIMUNITY-ov-right > :last-child .rc-head { margin-bottom: 8px !important; padding-bottom: 7px !important; }
           .mg-card .rc-group > :nth-child(1) { grid-column: 1; margin-bottom: 0 !important; }
           .mg-card .rc-group > :nth-child(2) { grid-column: 1; margin: 1px 0 0 !important; }
           .mg-card .rc-group > :nth-child(3) { grid-column: 2; grid-row: 1 / span 2; display: flex !important; flex-direction: column; gap: 4px !important; }
