@@ -414,7 +414,10 @@ function OverviewContent() {
           .UNIMUNITY-ov-grid > div:not(.UNIMUNITY-ov-sidebar):not(.UNIMUNITY-ov-right) > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 0 !important; }
           /* Middle: Quick Actions fills the height; its list scrolls if the window is small. */
           .UNIMUNITY-ov-sidebar { margin-bottom: 0 !important; }
-          .UNIMUNITY-ov-sidebar > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; justify-content: space-between; gap: 6px; }
+          .UNIMUNITY-ov-sidebar > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; justify-content: space-between; gap: 6px; padding: 2px; }
+          /* Hover on ONE action only: no movement or scaling inside this
+             scrolling list (it made the whole list shake). */
+          .UNIMUNITY-ov-sidebar .action-card:hover { transform: none !important; border-color: #E9C77B !important; box-shadow: 0 0 0 2px rgba(233,199,123,0.45) !important; background: linear-gradient(135deg, #FFF6E6 0%, #F7E7D2 100%) !important; }
           /* Right: compact cards; Next Cycle Answers takes the rest and scrolls inside. */
           .UNIMUNITY-ov-right { gap: 12px !important; margin-bottom: 0 !important; }
           .UNIMUNITY-ov-right > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
@@ -428,7 +431,18 @@ function OverviewContent() {
           .mg-card .rc-group { padding: 8px 10px; margin-bottom: 6px; }
           .mg-card .mg-label { margin: 0 0 4px !important; font-size: 10px !important; }
           .mg-card .mg-freq { margin: 0 0 6px !important; font-size: 11px !important; }
-          .mg-card .btn-action { padding: 5px !important; }
+          .mg-card .btn-action { padding: 4px 9px !important; font-size: 11px !important; white-space: nowrap; }
+          /* My Groups even smaller: one line per group (name and details on
+             the left, Payment Grid / Edit stacked on the right). */
+          .UNIMUNITY-ov-right .mg-card { padding: 8px 12px !important; }
+          .UNIMUNITY-ov-right .mg-card .rc-head { margin-bottom: 5px !important; padding-bottom: 5px !important; }
+          .mg-card .rc-head h3 { font-size: 14px !important; }
+          .mg-card .rc-ico { width: 26px; height: 26px; font-size: 13px; border-radius: 8px; }
+          .mg-card .mg-label { display: none; }
+          .mg-card .rc-group { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; padding: 6px 9px; margin-bottom: 5px; }
+          .mg-card .rc-group > :nth-child(1) { grid-column: 1; margin-bottom: 0 !important; }
+          .mg-card .rc-group > :nth-child(2) { grid-column: 1; margin: 1px 0 0 !important; }
+          .mg-card .rc-group > :nth-child(3) { grid-column: 2; grid-row: 1 / span 2; display: flex !important; flex-direction: column; gap: 4px !important; }
         }
         @media (max-width: 1200px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
