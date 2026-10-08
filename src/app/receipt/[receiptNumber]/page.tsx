@@ -1,6 +1,6 @@
 'use client';
 
-// UNIMUNITY - Payment Receipt
+// Payment receipt - issued under the GROUP's name only (no app branding).
 // Looks up a real payment by its receiptNumber (written by
 // dashboard/record-contribution/page.tsx into the `payments` collection)
 // and renders it as a receipt. Access is restricted to the organizer who
@@ -76,6 +76,11 @@ export default function ReceiptPage() {
   const [isOrganizerView, setIsOrganizerView] = useState(false);
   const [payment, setPayment] = useState<PaymentRecord | null>(null);
   const [groupName, setGroupName] = useState('');
+  const [groupLogo, setGroupLogo] = useState('');
+  // Tab title (also printed in the page header by browsers): the group, not the app.
+  useEffect(() => {
+    if (groupName) document.title = groupName + ' - Payment Receipt';
+  }, [groupName]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -116,6 +121,7 @@ export default function ReceiptPage() {
         const isOwner = data.organizerId === uid;
         let isPayingMember = false;
         let resolvedGroupName = '';
+        let resolvedLogo = '';
 
         if (data.memberId) {
           const memberSnap = await getDoc(doc(db, 'members', data.memberId));
@@ -125,7 +131,10 @@ export default function ReceiptPage() {
             if (memberData.groupId) {
               const groupSnap = await getDoc(doc(db, 'groups', memberData.groupId));
               if (groupSnap.exists()) {
-                resolvedGroupName = (groupSnap.data() as any).name || '';
+                const g = groupSnap.data() as any;
+                resolvedGroupName = g.name || '';
+                const brand = g.groupBrand || {};
+                if (brand.enabled !== false && typeof brand.logo === 'string' && /^https:\/\//.test(brand.logo)) resolvedLogo = brand.logo;
               }
             }
           }
@@ -139,6 +148,7 @@ export default function ReceiptPage() {
         if (!cancelled) {
           setPayment(data);
           setGroupName(resolvedGroupName || 'Group');
+          setGroupLogo(resolvedLogo);
           setIsOrganizerView(isOwner);
           setLoading(false);
         }
@@ -172,7 +182,13 @@ export default function ReceiptPage() {
         >
           {backLabel}
         </div>
-        <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}><img src="/unimunity-logo-white.png" alt="UNIMUNITY" style={{ height: '48px', width: 'auto', display: 'block' }} /></a>
+        {/* The group's logo, or its name - never the app's. */}
+        {groupLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={groupLogo} alt={groupName} style={{ height: '44px', width: 'auto', maxWidth: '180px', display: 'block', objectFit: 'contain', background: 'white', borderRadius: '8px', padding: '3px 6px' }} />
+        ) : (
+          <span style={{ color: C.creme, fontWeight: 800, fontSize: '17px', letterSpacing: '1px', textTransform: 'uppercase' as const }}>{groupName}</span>
+        )}
       </nav>
 
       <div style={{ maxWidth: '560px', margin: '0 auto', padding: '28px 20px' }}>
@@ -252,7 +268,7 @@ export default function ReceiptPage() {
 
               <div style={{ borderTop: '1px solid ' + C.border, paddingTop: '12px', marginTop: '6px' }}>
                 <p style={{ margin: 0, fontSize: '10.5px', color: '#8A7B6C' }}>
-                  Powered by UNIMUNITY™ — A product of Ma Production Luxenn Zara LLC
+                  Issued by {groupName}
                 </p>
               </div>
             </div>
