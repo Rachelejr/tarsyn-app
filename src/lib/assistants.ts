@@ -1,8 +1,9 @@
 // Organizer assistants - shared rules (used by the API and the pages).
 //
 // An organizer may invite 0, 1 or 2 assistants. An assistant has their own
-// account and helps the organizer in ALL of the organizer's groups, within
-// fixed limits. Two rights are optional and set by the organizer.
+// account and works ONLY in the groups the organizer assigns to them. A group
+// belongs to one assistant at most, so two assistants never share a group
+// (Sara never sees Josianne's groups). Two rights are optional.
 
 export const MAX_ASSISTANTS = 2;
 export const INVITE_VALID_DAYS = 7;
@@ -18,7 +19,7 @@ export const ASSISTANT_LANGS = [
 
 /** Always included - shown to the organizer, cannot be turned off. */
 export const ALWAYS_ALLOWED = [
-  'View the dashboard, members, payment grids, documents and receipts',
+  'View the dashboard, members, payment grids, documents and receipts of their groups',
   'Tick payments in the grid and use Record Payment',
   'Send reminders',
   'Comment on documents',
@@ -43,6 +44,8 @@ export const NEVER_ALLOWED = [
   'Repair Members (platform tool)',
 ];
 
+export type OrganizerGroup = { id: string; name: string; assistantId: string | null; assistantName: string | null };
+
 export type AssistantStatus = 'invited' | 'active' | 'suspended' | 'expired' | 'removed';
 
 export type AssistantPublic = {
@@ -56,6 +59,7 @@ export type AssistantPublic = {
   title: string;
   lang: string;
   rights: AssistantRights;
+  groupIds: string[];           // the only groups this assistant can work in
   accessUntil: string | null;   // YYYY-MM-DD or null (no end)
   status: AssistantStatus;
   invitedAt: number | null;

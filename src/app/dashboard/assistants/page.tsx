@@ -7,7 +7,8 @@ import { auth } from '@/lib/firebase';
 import { authHeaders } from '@/lib/authFetch';
 import AppPage from '@/components/assistants/AppPage';
 import RightsLists from '@/components/assistants/RightsLists';
-import { MAX_ASSISTANTS, OPTIONAL_RIGHTS, STATUS_LABEL, type AssistantPublic, type AssistantRights, type AssistantStatus } from '@/lib/assistants';
+import { MAX_ASSISTANTS, OPTIONAL_RIGHTS, STATUS_LABEL, type AssistantPublic, type AssistantRights, type AssistantStatus, type OrganizerGroup } from '@/lib/assistants';
+import GroupPicker from '@/components/assistants/GroupPicker';
 
 const STATUS_STYLE: Record<AssistantStatus, { bg: string; fg: string }> = {
   invited: { bg: '#FBF2DC', fg: '#9C7A2E' },
@@ -31,6 +32,8 @@ export default function MyAssistantsPage() {
   const [editing, setEditing] = useState<AssistantPublic | null>(null);
   const [editRights, setEditRights] = useState<AssistantRights>({ manageMembers: false, referrals: false });
   const [editUntil, setEditUntil] = useState('');
+  const [editGroups, setEditGroups] = useState<string[]>([]);
+  const [groups, setGroups] = useState<OrganizerGroup[]>([]);
   const [tomorrow] = useState(() => new Date(Date.now() + 864e5).toISOString().slice(0, 10));
 
   const load = useCallback(async () => {
@@ -39,6 +42,7 @@ export default function MyAssistantsPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Could not load your assistants.');
       setList(data.assistants || []);
+      setGroups(data.groups || []);
       setError('');
     } catch (e) {
       setError((e as Error).message);
@@ -88,7 +92,7 @@ export default function MyAssistantsPage() {
             <span className="ap-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)', width: 42, height: 42, fontSize: 20 }}>{'\u{1F465}'}</span>
             <div style={{ flex: 1, minWidth: 220 }}>
               <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#4A1F38' }}>{places.length} of {MAX_ASSISTANTS} places used</p>
-              <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#8A7B6C' }}>Assistants are optional. Each one helps you in all your groups, within the limits shown on the right.</p>
+              <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#8A7B6C' }}>Assistants are optional. Each one works only in the groups you give them, and a group has one assistant at most.</p>
             </div>
             {free > 0 && (
               <button className="ap-btn ap-primary" onClick={() => router.push('/dashboard/assistants/invite')}>+ Invite an assistant</button>
@@ -128,7 +132,13 @@ export default function MyAssistantsPage() {
                     </div>
                     <span style={{ background: st.bg, color: st.fg, fontSize: 11, fontWeight: 800, padding: '4px 11px', borderRadius: 999, textTransform: 'uppercase', letterSpacing: 0.6 }}>{STATUS_LABEL[a.status]}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0 0' }}>
+                  <div style={{ margin: '12px 0 0', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#A08B7D', textTransform: 'uppercase', letterSpacing: 0.7 }}>Groups ({a.groupIds.length})</span>
+                    {groups.filter(g => a.groupIds.includes(g.id)).map(g => (
+                      <span key={g.id} style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#F8EEF3', color: '#6B2D4E', border: '1px solid #E8CFDC' }}>{g.name}</span>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '8px 0 0' }}>
                     {OPTIONAL_RIGHTS.map(r => (
                       <span key={r.key} style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: a.rights[r.key] ? '#E9F3EC' : '#F5F0EA', color: a.rights[r.key] ? '#3F7D5C' : '#A08B7D' }}>
                         {a.rights[r.key] ? '\u2713' : '\u2715'} {r.label}
@@ -143,7 +153,7 @@ export default function MyAssistantsPage() {
                   </p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12, paddingTop: 12, borderTop: '1px solid #F3E6D8' }}>
                     <button className="ap-btn ap-soft" style={{ height: 34, fontSize: 12.5 }} disabled={!!busy}
-                      onClick={() => { setEditing(a); setEditRights({ ...a.rights }); setEditUntil(a.accessUntil || ''); }}>Edit rights</button>
+                      onClick={() => { setEditing(a); setEditRights({ ...a.rights }); setEditUntil(a.accessUntil || ''); setEditGroups([...a.groupIds]); }}>Edit groups &amp; rights</button>
                     {(a.status === 'invited' || a.status === 'expired') && !a.acceptedAt && (
                       <button className="ap-btn ap-soft" style={{ height: 34, fontSize: 12.5 }} disabled={!!busy} onClick={() => act(a, 'resend')}>
                         {busy === a.id + 'resend' ? 'Sending...' : 'Resend invitation'}
@@ -175,12 +185,17 @@ export default function MyAssistantsPage() {
 
       {editing && (
         <div onClick={() => setEditing(null)} style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(44,16,32,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} className="ap-card" style={{ width: '100%', maxWidth: 460, padding: 0, overflow: 'hidden' }}>
+          <div onClick={e => e.stopPropagation()} className="ap-card" style={{ width: '100%', maxWidth: 560, padding: 0, overflow: 'hidden' }}>
             <div style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', padding: '16px 22px' }}>
-              <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, color: '#E9C77B', letterSpacing: 1.4, textTransform: 'uppercase' }}>Edit rights</p>
+              <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, color: '#E9C77B', letterSpacing: 1.4, textTransform: 'uppercase' }}>Edit groups &amp; rights</p>
               <p style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 800, color: '#fff' }}>{editing.firstName} {editing.lastName}</p>
             </div>
-            <div style={{ padding: '16px 22px' }}>
+            <div style={{ padding: '16px 22px', maxHeight: '62vh', overflowY: 'auto' }}>
+              <p className="ap-label">Groups</p>
+              <div style={{ marginBottom: 14 }}>
+                <GroupPicker groups={groups} value={editGroups} onChange={setEditGroups} currentAssistantId={editing.id} />
+              </div>
+              <p className="ap-label">Optional rights</p>
               {OPTIONAL_RIGHTS.map(r => (
                 <label key={r.key} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', border: '1px solid #F0E4D6', borderRadius: 12, marginBottom: 8, cursor: 'pointer', background: editRights[r.key] ? '#F4F9F5' : '#FFFDF9' }}>
                   <input type="checkbox" checked={editRights[r.key]} onChange={e => setEditRights(x => ({ ...x, [r.key]: e.target.checked }))} style={{ width: 17, height: 17, accentColor: '#6B2D4E', marginTop: 1 }} />
@@ -193,7 +208,10 @@ export default function MyAssistantsPage() {
             </div>
             <div style={{ display: 'flex', gap: 10, padding: '12px 22px 18px' }}>
               <button className="ap-btn ap-soft" style={{ flex: 1 }} onClick={() => setEditing(null)}>Cancel</button>
-              <button className="ap-btn ap-primary" style={{ flex: 1 }} disabled={!!busy} onClick={() => act(editing, 'update', { rights: editRights, accessUntil: editUntil || null })}>Save</button>
+              <button className="ap-btn ap-primary" style={{ flex: 1 }} disabled={!!busy} onClick={() => {
+                if (editGroups.length === 0) { alert('Choose at least one group for this assistant.'); return; }
+                act(editing, 'update', { rights: editRights, accessUntil: editUntil || null, groupIds: editGroups });
+              }}>Save</button>
             </div>
           </div>
         </div>

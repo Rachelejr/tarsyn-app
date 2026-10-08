@@ -4,7 +4,7 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 import { INVITE_VALID_DAYS } from '@/lib/assistants';
-import { cleanRights, newInviteToken, organizerIdentity, ORGANIZER_ROLES, toPublic } from '@/lib/assistantsServer';
+import { checkGroupIds, cleanRights, newInviteToken, organizerIdentity, ORGANIZER_ROLES, toPublic } from '@/lib/assistantsServer';
 import { sendAssistantInviteEmail } from '@/lib/assistantEmails';
 
 // POST - the organizer manages one of their assistants:
@@ -34,15 +34,18 @@ export async function POST(req: NextRequest) {
     if (action === 'suspend') { updates.status = 'suspended'; label = 'Suspended an assistant'; }
     if (action === 'resume') { updates.status = a.userId ? 'active' : 'invited'; label = 'Restored an assistant'; }
     if (action === 'remove') {
-      updates.status = 'removed'; updates.tokenHash = FieldValue.delete(); updates.removedAt = FieldValue.serverTimestamp();
+      updates.status = 'removed'; updates.groupIds = []; updates.tokenHash = FieldValue.delete(); updates.removedAt = FieldValue.serverTimestamp();
       label = 'Removed an assistant';
       if (a.userId) await adminDb.collection('users').doc(a.userId).set({ assistantOf: FieldValue.delete() }, { merge: true }).catch(() => undefined);
     }
     if (action === 'update') {
+      const groupCheck = await checkGroupIds(uid, b.groupIds, id);
+      if ('error' in groupCheck) return NextResponse.json({ error: groupCheck.error }, { status: 400 });
+      updates.groupIds = groupCheck.ids;
       updates.rights = cleanRights(b.rights);
       const until = /^\d{4}-\d{2}-\d{2}$/.test(String(b.accessUntil || '')) ? String(b.accessUntil) : null;
       updates.accessUntil = until;
-      label = 'Updated an assistant\u2019s rights';
+      label = 'Updated an assistant\u2019s groups and rights';
     }
     if (action === 'resend') {
       if (a.userId) return NextResponse.json({ error: 'This assistant already accepted the invitation.' }, { status: 409 });

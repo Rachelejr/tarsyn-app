@@ -6,24 +6,27 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { authHeaders } from '@/lib/authFetch';
 import AppPage from '@/components/assistants/AppPage';
-import { ALWAYS_ALLOWED, ASSISTANT_LANGS, ASSISTANT_TITLES, INVITE_VALID_DAYS, NEVER_ALLOWED, OPTIONAL_RIGHTS, type AssistantRights } from '@/lib/assistants';
+import { ALWAYS_ALLOWED, ASSISTANT_LANGS, ASSISTANT_TITLES, INVITE_VALID_DAYS, NEVER_ALLOWED, OPTIONAL_RIGHTS, type AssistantRights, type OrganizerGroup } from '@/lib/assistants';
+import GroupPicker from '@/components/assistants/GroupPicker';
 import { MEMBER_COUNTRIES } from '@/lib/memberOptions';
 
 type Form = {
   firstName: string; lastName: string; gender: string; email: string; phone: string; country: string;
   title: string; titleOther: string; lang: string;
+  groupIds: string[];
   rights: AssistantRights; durationMode: 'none' | 'until'; accessUntil: string;
   message: string; confirmed: boolean;
 };
 const EMPTY: Form = {
   firstName: '', lastName: '', gender: '', email: '', phone: '', country: '',
   title: 'Assistant', titleOther: '', lang: 'en',
+  groupIds: [],
   rights: { manageMembers: false, referrals: false }, durationMode: 'none', accessUntil: '',
   message: '', confirmed: false,
 };
 const FIELD_LABEL: Record<string, string> = {
   firstName: 'First name', lastName: 'Last name', gender: 'Sex', email: 'Email', phone: 'Phone', country: 'Country',
-  title: 'Title', accessUntil: 'End date', confirmed: 'Confirmation',
+  title: 'Title', groups: 'Groups', accessUntil: 'End date', confirmed: 'Confirmation',
 };
 
 export default function InviteAssistantPage() {
@@ -35,6 +38,7 @@ export default function InviteAssistantPage() {
   const [done, setDone] = useState<{ email: string; emailSent: boolean; link: string } | null>(null);
   const [placesLeft, setPlacesLeft] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [groups, setGroups] = useState<OrganizerGroup[]>([]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -42,7 +46,7 @@ export default function InviteAssistantPage() {
       try {
         const res = await fetch('/api/assistants', { headers: await authHeaders('admin') });
         const data = await res.json();
-        if (res.ok) setPlacesLeft(Math.max(0, (data.max || 2) - (data.assistants || []).length));
+        if (res.ok) { setPlacesLeft(Math.max(0, (data.max || 2) - (data.assistants || []).length)); setGroups(data.groups || []); }
         else setError(data.error || 'Could not load your assistants.');
       } catch { setPlacesLeft(null); }
     });
@@ -61,6 +65,7 @@ export default function InviteAssistantPage() {
     if (!/^\+?[0-9 ()-]{7,20}$/.test(f.phone.trim())) b.push('phone');
     if (!f.country) b.push('country');
     if (!f.title || (f.title === 'Other' && f.titleOther.trim().length < 2)) b.push('title');
+    if (f.groupIds.length === 0) b.push('groups');
     if (f.durationMode === 'until' && (!f.accessUntil || f.accessUntil < tomorrow)) b.push('accessUntil');
     if (!f.confirmed) b.push('confirmed');
     return b;
@@ -75,12 +80,12 @@ export default function InviteAssistantPage() {
       const res = await fetch('/api/assistants/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeaders('admin')) },
-        body: JSON.stringify({ ...f, email: f.email.trim(), phone: f.phone.trim(), accessUntil: f.durationMode === 'until' ? f.accessUntil : null }),
+        body: JSON.stringify({ ...f, groupIds: f.groupIds, email: f.email.trim(), phone: f.phone.trim(), accessUntil: f.durationMode === 'until' ? f.accessUntil : null }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data.error === 'invalid-fields') { setBad(data.fields || []); setError('Please check: ' + (data.fields || []).map((x: string) => FIELD_LABEL[x] || x).join(', ') + '.'); }
-        else setError(data.error || 'Could not send the invitation.');
+        else { setError(data.error || 'Could not send the invitation.'); if (data.fields) setBad(data.fields); }
       } else {
         setDone({ email: f.email.trim(), emailSent: !!data.emailSent, link: data.link || '' });
       }
@@ -184,9 +189,18 @@ export default function InviteAssistantPage() {
             </div>
           </div>
 
-          {/* 3. Rights */}
+          {/* 3. Groups */}
+          <div className="ap-card" style={{ borderColor: bad.includes('groups') ? '#C62828' : '#F0E4D6' }}>
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#6B2D4E)' }}>{'\u{1F3D8}'}</span><h2 className="ap-title">3. Groups *</h2></div>
+            <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#8A7B6C', lineHeight: 1.5 }}>
+              This assistant will work <b>only</b> in the groups you select. A group can have only one assistant: groups already given to your other assistant are locked.
+            </p>
+            <GroupPicker groups={groups} value={f.groupIds} onChange={ids => set('groupIds', ids)} currentAssistantId={null} invalid={bad.includes('groups')} />
+          </div>
+
+          {/* 4. Rights */}
           <div className="ap-card">
-            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F511}'}</span><h2 className="ap-title">3. Rights</h2></div>
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F511}'}</span><h2 className="ap-title">4. Rights</h2></div>
             <div className="iv-two" style={{ alignItems: 'start' }}>
               <div>
                 <p className="ap-label" style={{ color: '#3F7D5C' }}>Always included</p>
@@ -210,9 +224,9 @@ export default function InviteAssistantPage() {
             </div>
           </div>
 
-          {/* 4. Duration */}
+          {/* 5. Duration */}
           <div className="ap-card">
-            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#64B5F6,#1565C0)' }}>{'\u{1F4C5}'}</span><h2 className="ap-title">4. Duration</h2></div>
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#64B5F6,#1565C0)' }}>{'\u{1F4C5}'}</span><h2 className="ap-title">5. Duration</h2></div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <label className={'iv-radio' + (f.durationMode === 'none' ? ' on' : '')}><input type="radio" checked={f.durationMode === 'none'} onChange={() => set('durationMode', 'none')} style={{ accentColor: '#6B2D4E' }} /> No end date</label>
               <label className={'iv-radio' + (f.durationMode === 'until' ? ' on' : '')}><input type="radio" checked={f.durationMode === 'until'} onChange={() => set('durationMode', 'until')} style={{ accentColor: '#6B2D4E' }} /> Until a date</label>
@@ -223,18 +237,18 @@ export default function InviteAssistantPage() {
             <p style={{ margin: '8px 0 0', fontSize: 11.5, color: '#A08B7D' }}>After the end date, access stops automatically. You can also suspend or remove an assistant at any time.</p>
           </div>
 
-          {/* 5. Message */}
+          {/* 6. Message */}
           <div className="ap-card">
-            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u{1F4AC}'}</span><h2 className="ap-title">5. Personal message <span style={{ fontWeight: 500, fontSize: 12, color: '#A08B7D' }}>(optional)</span></h2></div>
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u{1F4AC}'}</span><h2 className="ap-title">6. Personal message <span style={{ fontWeight: 500, fontSize: 12, color: '#A08B7D' }}>(optional)</span></h2></div>
             <textarea className="ap-in" rows={3} maxLength={500} value={f.message} onChange={e => set('message', e.target.value)} placeholder="e.g. Thank you for helping me with the group payments." />
             <p style={{ margin: '4px 0 0', fontSize: 11, color: '#A08B7D', textAlign: 'right' }}>{f.message.length}/500</p>
           </div>
 
-          {/* 6. Confirmation */}
+          {/* 7. Confirmation */}
           <label className="ap-card" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', cursor: 'pointer', borderColor: bad.includes('confirmed') ? '#C62828' : '#F0E4D6' }}>
             <input type="checkbox" checked={f.confirmed} onChange={e => set('confirmed', e.target.checked)} style={{ width: 18, height: 18, accentColor: '#6B2D4E', marginTop: 2 }} />
             <span style={{ fontSize: 13, color: '#3A2F1F', lineHeight: 1.55 }}>
-              <b>I confirm that this person acts on my behalf</b> in my groups and that I am responsible for the actions they take with this access. *
+              <b>I confirm that this person acts on my behalf</b> in the groups selected above and that I am responsible for the actions they take with this access. *
             </span>
           </label>
         </div>
@@ -253,7 +267,7 @@ export default function InviteAssistantPage() {
           </div>
           {[
             ['Email', f.email || '\u2014'], ['Phone', f.phone || '\u2014'], ['Country', f.country || '\u2014'], ['Sex', f.gender || '\u2014'],
-            ['Groups', 'All your groups'],
+            ['Groups', f.groupIds.length ? groups.filter(g => f.groupIds.includes(g.id)).map(g => g.name).join(', ') : '\u2014'],
             ['Members', f.rights.manageMembers ? 'Can add and edit' : 'View only'],
             ['Join requests', f.rights.referrals ? 'Can accept / decline' : 'View only'],
             ['Access', f.durationMode === 'until' && f.accessUntil ? 'Until ' + f.accessUntil : 'No end date'],

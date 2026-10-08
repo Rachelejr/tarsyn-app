@@ -4,7 +4,7 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { getAuthedUid, forbidden } from '@/lib/apiAuth';
 import { ASSISTANT_LANGS, ASSISTANT_TITLES, INVITE_VALID_DAYS, MAX_ASSISTANTS } from '@/lib/assistants';
-import { cleanRights, listAssistants, newInviteToken, organizerIdentity, ORGANIZER_ROLES, toPublic } from '@/lib/assistantsServer';
+import { checkGroupIds, cleanRights, listAssistants, newInviteToken, organizerIdentity, ORGANIZER_ROLES, toPublic } from '@/lib/assistantsServer';
 import { sendAssistantInviteEmail } from '@/lib/assistantEmails';
 import { isCountry, MEMBER_GENDERS } from '@/lib/memberOptions';
 
@@ -66,6 +66,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `You already have ${MAX_ASSISTANTS} assistants. Remove one to invite someone else.` }, { status: 409 });
     }
 
+    const groupCheck = await checkGroupIds(uid, b.groupIds, null);
+    if ('error' in groupCheck) return NextResponse.json({ error: groupCheck.error, fields: ['groups'] }, { status: 400 });
+
     const { token, hash } = newInviteToken();
     const ref = adminDb.collection('assistants').doc();
     const title = v.title === 'Other' ? v.titleOther : v.title;
@@ -75,6 +78,7 @@ export async function POST(req: NextRequest) {
       firstName: v.firstName, lastName: v.lastName, gender: v.gender,
       email: v.email, phone: v.phone, country: v.country,
       title, lang: v.lang, rights: v.rights, accessUntil: v.accessUntil,
+      groupIds: groupCheck.ids,
       message: v.message,
       status: 'invited',
       tokenHash: hash,
@@ -92,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     await adminDb.collection('audit_logs').add({
       organizerId: uid, category: 'Assistant', action: 'Invited an assistant',
-      user: me.email, details: `${v.firstName} ${v.lastName} (${title}) - ${v.email}`,
+      user: me.email, details: `${v.firstName} ${v.lastName} (${title}) - ${v.email} - ${groupCheck.ids.length} group(s)`,
       createdAt: FieldValue.serverTimestamp(),
     }).catch(() => undefined);
 
