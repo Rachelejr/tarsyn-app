@@ -87,6 +87,9 @@ function MemberContent() {
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
   const [openPeriods, setOpenPeriods] = useState<Record<string, boolean>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
+  // "Find a document" box (left column): by name and/or date.
+  const [findName, setFindName] = useState('');
+  const [findDate, setFindDate] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('General');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -929,6 +932,13 @@ function MemberContent() {
     }
   };
 
+  const ymd = (dt: Date) => dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  const findActive = !!(findName.trim() || findDate);
+  const findResults = docs
+    .filter(d => !hiddenIds.has(d.id))
+    .filter(d => !findName.trim() || (d.name || '').toLowerCase().includes(findName.trim().toLowerCase()))
+    .filter(d => !findDate || ymd(docDate(d)) === findDate || (d.name || '').includes(findDate))
+    .slice(0, findActive ? 30 : 5);
   const receiptDocs = docs.filter(d => d.category === 'Receipts');
   const recentUploads = docs.slice(0, 5);
   const effectiveBranding = branding && branding.enabled !== false ? branding : null;
@@ -1159,11 +1169,11 @@ function MemberContent() {
       </div>
 
       {/* 3-column grid */}
-      <div className="UNIMUNITY-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 280px' }}>
+      <div className="UNIMUNITY-mem-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr' }}>
 
         {/* LEFT - Group Info */}
         <div className="UNIMUNITY-mem-left" style={{ borderRight: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto' }}>
-          <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '16px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
+          <div style={{ background: 'linear-gradient(135deg, ' + (effectiveBranding?.primaryColor || C.bordeaux) + ' 0%, #4A1F38 100%)', borderRadius: '16px', padding: '20px 18px', marginBottom: '28px', boxShadow: '0 6px 18px rgba(107,45,78,0.18)' }}>
             <div style={{ textAlign: 'center', margin: '0 0 14px' }}>
               <h1 className="UNIMUNITY-group-name" style={{ fontSize: '18px', fontWeight: 800, margin: 0, wordBreak: 'break-word' }}>MEMBRE</h1>
             </div>
@@ -1243,6 +1253,37 @@ function MemberContent() {
                 </p>
 
               </>
+            )}
+          </div>
+
+          {/* Find a document: by name or by date (replaces the old right column). */}
+          <div style={{ background: 'white', border: '1px solid ' + C.border, borderRadius: '14px', padding: '14px', marginTop: '22px' }}>
+            <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>Find a document</p>
+            <input value={findName} onChange={e => setFindName(e.target.value)} placeholder="Name (e.g. W12, REC-...)"
+              style={{ width: '100%', height: '34px', padding: '0 10px', border: '1.5px solid ' + C.border, borderRadius: '9px', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box', marginBottom: '8px' }} />
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+              <input type="date" value={findDate} onChange={e => setFindDate(e.target.value)} aria-label="Date"
+                style={{ flex: 1, height: '34px', padding: '0 8px', border: '1.5px solid ' + C.border, borderRadius: '9px', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box', color: C.texteFonce }} />
+              {findActive && (
+                <button onClick={() => { setFindName(''); setFindDate(''); }}
+                  style={{ height: '34px', padding: '0 10px', border: 'none', borderRadius: '9px', background: C.creme, color: C.bordeaux, fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>Clear</button>
+              )}
+            </div>
+            <p style={{ color: C.texteGris, fontSize: '10.5px', fontWeight: 700, margin: '0 0 6px' }}>
+              {findActive ? findResults.length + ' result' + (findResults.length !== 1 ? 's' : '') : 'Recent'}
+            </p>
+            {findResults.length === 0 ? (
+              <p style={{ color: C.muted, fontSize: '12px', margin: 0 }}>{findActive ? 'No document found.' : 'No documents yet.'}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '260px', overflowY: 'auto' }}>
+                {findResults.map((d: any) => (
+                  <button key={d.id} onClick={() => openDocument(rebrandLegacyReceiptUrl(d.url, groupName))} title="Open"
+                    style={{ textAlign: 'left', background: C.creme, border: '1px solid ' + C.border, borderRadius: '9px', padding: '7px 10px', cursor: 'pointer' }}>
+                    <span style={{ display: 'block', color: C.texteFonce, fontSize: '11.5px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</span>
+                    <span style={{ display: 'block', color: C.muted, fontSize: '10.5px', marginTop: '1px' }}>{formatDate(d.createdAt)}{archivedIds.has(d.id) ? ' \u00b7 archived' : ''}</span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -1540,35 +1581,6 @@ function MemberContent() {
         </div>
 
         {/* RIGHT - Activity / Insights */}
-        <div className="UNIMUNITY-mem-right" style={{ borderLeft: `1px solid ${C.border}`, padding: '24px 22px', overflowY: 'auto', background: C.creme }}>
-          <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>Recent uploads</p>
-          {recentUploads.length === 0 ? (
-            <p style={{ color: C.muted, fontSize: '12px', marginBottom: '20px' }}>No documents yet.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              {recentUploads.map((d: any) => (
-                <div key={d.id} style={{ background: 'white', borderRadius: '10px', padding: '9px 12px' }}>
-                  <p style={{ color: C.texteFonce, fontSize: '11.5px', fontWeight: 700, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</p>
-                  <p style={{ color: C.muted, fontSize: '10.5px', margin: '2px 0 0' }}>{formatDate(d.createdAt)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <p style={{ color: C.muted, fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>Activity log</p>
-          {activity.length === 0 ? (
-            <p style={{ color: C.muted, fontSize: '12px' }}>No recent activity.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {activity.map((a: any) => (
-                <div key={a.id} style={{ background: 'white', borderRadius: '10px', padding: '9px 12px' }}>
-                  <p style={{ color: C.texteFonce, fontSize: '11px', fontWeight: 600, margin: 0 }}>{a.action}</p>
-                  <p style={{ color: C.muted, fontSize: '10px', margin: '2px 0 0' }}>{formatDateTime(a.createdAt)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {(!effectiveBranding?.logo || effectiveBranding?.showUNIMUNITYBadge !== false) && <Footer />}
