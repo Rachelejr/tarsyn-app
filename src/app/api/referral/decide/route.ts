@@ -7,6 +7,13 @@ import {
   buildTynId, generateUniqueInviteCode, groupContributionAmount, memberLimitError, nextPositionForGroup,
 } from '@/lib/memberCreate';
 import { sendAcceptedInviteEmail } from '@/lib/referralEmails';
+import {
+  MAX_PARTS, MEMBER_COLOR_TAGS, MEMBER_ROLES, MEMBER_STATUSES, MEMBER_TYPES,
+} from '@/lib/memberOptions';
+
+const pick = <T extends string>(v: unknown, allowed: readonly T[], fallback: T): T =>
+  (allowed as readonly string[]).includes(String(v)) ? (String(v) as T) : fallback;
+const isoDateOrEmpty = (v: unknown) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v ?? '')) ? String(v) : '');
 
 // Organizer accepts or declines a join request on one of their groups.
 // Accept creates the member exactly like Add Member (same fields, TYN-ID,
@@ -72,6 +79,17 @@ export async function POST(req: NextRequest) {
     const expectedAmount = Number.isFinite(amountIn) && amountIn >= 0 ? amountIn : defaultAmount;
     const currency = String(body.currency || group.currency || 'USD').slice(0, 8).toUpperCase();
 
+    // The organizer's settings from the Accept window - the same ones as the
+    // "Contribution & Rotation" part of Add Member.
+    const shares = Math.min(MAX_PARTS, Math.max(1, parseInt(String(body.shares ?? '1'), 10) || 1));
+    const datesIn: unknown[] = Array.isArray(body.payoutDates) ? body.payoutDates : [];
+    const payoutDates = Array.from({ length: shares }, (_, i) => isoDateOrEmpty(datesIn[i]));
+    const status = pick(body.status, MEMBER_STATUSES.map(x => x.value), 'pending');
+    const memberType = pick(body.memberType, MEMBER_TYPES, 'Regular');
+    const role = pick(body.role, MEMBER_ROLES.map(x => x.value), 'member');
+    const colorTag = pick(body.colorTag, ['', ...MEMBER_COLOR_TAGS], '');
+    const notes = String(body.notes ?? '').slice(0, 500);
+
     const firstName = String(jr.firstName || '');
     const lastName = String(jr.lastName || '');
     const fullName = `${firstName} ${lastName}`.trim();
@@ -86,8 +104,9 @@ export async function POST(req: NextRequest) {
       tx.set(memberRef, {
         // Same fields as the Add Member form.
         firstName, lastName, address: jr.address || '', phone: jr.phone || '', email: jr.email || '',
-        country: '', nationality: '', memberType: 'Regular', gender: '', colorTag: '', role: 'member',
-        position, payoutDate: '', payoutDates: [''], expectedAmount, currency, status: 'pending', notes: '', shares: 1,
+        country: jr.country || '', nationality: jr.nationality || '', gender: jr.gender || '',
+        memberType, colorTag, role,
+        position, payoutDate: payoutDates[0] || '', payoutDates, expectedAmount, currency, status, notes, shares,
         fullName, tynId, groupId: jr.groupId, organizerId: uid, inviteCode,
         referredBy: jr.referrerMemberId || '', referredByName: jr.referrerName || '',
         source: 'join-request', joinRequestId: requestId,

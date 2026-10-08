@@ -4,6 +4,7 @@ import { createHash } from 'crypto';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { sendJoinRequestEmailToOrganizer } from '@/lib/referralEmails';
+import { isCountry, MEMBER_GENDERS } from '@/lib/memberOptions';
 
 // Public: a person proposed by a member asks to join the group.
 // It only files a pending request - it never creates a member and never
@@ -25,6 +26,10 @@ function validate(body: Record<string, unknown>) {
   const address = clean(body.address, 200);
   const phone = clean(body.phone, 20);
   const message = cleanMessage(body.message);
+  const country = clean(body.country, 60);
+  const nationality = clean(body.nationality, 60);
+  const genderIn = clean(body.gender, 20);
+  const gender = (MEMBER_GENDERS as readonly string[]).includes(genderIn) ? genderIn : '';
   const lang = LANGS.includes(String(body.lang)) ? String(body.lang) : 'en';
   const errors: string[] = [];
   if (firstName.length < 2) errors.push('firstName');
@@ -32,7 +37,8 @@ function validate(body: Record<string, unknown>) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errors.push('email');
   if (address.length < 5) errors.push('address');
   if (!/^\+?[0-9 ]{7,20}$/.test(phone)) errors.push('phone');
-  return { firstName, lastName, email, address, phone, message, lang, errors };
+  if (!isCountry(country)) errors.push('country');
+  return { firstName, lastName, email, address, phone, country, nationality, gender, message, lang, errors };
 }
 
 /** Counts this IP for the current hour; true when the limit is passed. */
@@ -98,6 +104,9 @@ export async function POST(req: NextRequest) {
       email: v.email,
       address: v.address,
       phone: v.phone,
+      country: v.country,
+      nationality: v.nationality,
+      gender: v.gender,
       message: v.message,
       lang: v.lang,
       status: 'pending',

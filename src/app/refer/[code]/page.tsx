@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Footer from '@/components/Footer';
 import { detectQrLang, QR_LANGS, type QrLang } from '@/components/qr/qrI18n';
 import { refT, type RefKey } from '@/components/referral/referralI18n';
+import { MEMBER_COUNTRIES } from '@/lib/memberOptions';
 
 // Public page reached from a member's referral link or QR code.
 // It only files a join request: nothing about the group is shown except
@@ -13,12 +14,17 @@ import { refT, type RefKey } from '@/components/referral/referralI18n';
 type Lookup = { found: boolean; groupName?: string; referrerFirstName?: string };
 type FieldName = 'firstName' | 'lastName' | 'email' | 'address' | 'phone';
 
+// Country names in the visitor's language; the stored value stays English.
+function countryLabel(code: string, lang: string): string {
+  try { return new Intl.DisplayNames([lang], { type: 'region' }).of(code) || code; } catch { return code; }
+}
+
 export default function ReferPage() {
   const params = useParams();
   const code = String(params?.code || '');
   const [lang, setLang] = useState<QrLang>(() => detectQrLang());
   const [lookup, setLookup] = useState<Lookup | null>(null);
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', address: '', phone: '', message: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', address: '', phone: '', country: '', nationality: '', gender: '', message: '' });
   const [badFields, setBadFields] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
@@ -42,12 +48,13 @@ export default function ReferPage() {
 
   const submit = async () => {
     // Same rules as the server, checked here first for quick feedback.
-    const bad: FieldName[] = [];
+    const bad: string[] = [];
     if (form.firstName.trim().length < 2) bad.push('firstName');
     if (form.lastName.trim().length < 2) bad.push('lastName');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) bad.push('email');
     if (form.address.trim().length < 5) bad.push('address');
     if (!/^\+?[0-9 ]{7,20}$/.test(form.phone.trim())) bad.push('phone');
+    if (!form.country) bad.push('country');
     if (bad.length) { setBadFields(bad); setError(t('errFields')); return; }
     setError('');
     setSending(true);
@@ -70,6 +77,9 @@ export default function ReferPage() {
     setSending(false);
   };
 
+  const labelCss: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 700, color: '#A08B7D', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.8 };
+  const inputCss: React.CSSProperties = { width: '100%', padding: '9px 11px', borderRadius: 10, fontSize: 14, color: '#3A2F1F', background: '#FFFDF9', outline: 'none', boxSizing: 'border-box', fontFamily: 'Inter, sans-serif' };
+
   const field = (k: FieldName, type = 'text', autoComplete?: string) => (
     <div>
       <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#A08B7D', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.8 }}>{t(k)} *</label>
@@ -82,7 +92,7 @@ export default function ReferPage() {
   return (
     <div dir={rtl ? 'rtl' : 'ltr'} style={{ minHeight: '100vh', background: '#FBEEDD', fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       <style>{`
-        @media (max-width: 560px) { .rf-two { grid-template-columns: 1fr !important; } }
+        @media (max-width: 560px) { .rf-two, .rf-three { grid-template-columns: 1fr !important; } }
         .rf-btn { transition: transform 0.15s ease, filter 0.15s ease; }
         .rf-btn:not(:disabled):hover { filter: brightness(1.06); transform: translateY(-1px); }
       `}</style>
@@ -123,6 +133,30 @@ export default function ReferPage() {
                     {field('phone', 'tel', 'tel')}
                   </div>
                   <div style={{ marginBottom: 12 }}>{field('address', 'text', 'street-address')}</div>
+                  <div className="rf-three" style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <label style={labelCss}>{t('country')} *</label>
+                      <select value={form.country} onChange={e => set('country', e.target.value)} style={{ ...inputCss, border: '1.5px solid ' + (badFields.includes('country') ? '#C62828' : '#EAD9BE') }}>
+                        <option value="">{t('selectCountry')}</option>
+                        {MEMBER_COUNTRIES.map(c => (
+                          <option key={c.value} value={c.value}>{c.code ? countryLabel(c.code, lang) : t('otherCountry')}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelCss}>{t('nationality')} <span style={{ textTransform: 'none', fontWeight: 500, letterSpacing: 0 }}>({t('optional')})</span></label>
+                      <input value={form.nationality} onChange={e => set('nationality', e.target.value)} placeholder={t('nationalityHint')} maxLength={60} style={{ ...inputCss, border: '1.5px solid #EAD9BE' }} />
+                    </div>
+                    <div>
+                      <label style={labelCss}>{t('gender')} <span style={{ textTransform: 'none', fontWeight: 500, letterSpacing: 0 }}>({t('optional')})</span></label>
+                      <select value={form.gender} onChange={e => set('gender', e.target.value)} style={{ ...inputCss, border: '1.5px solid #EAD9BE' }}>
+                        <option value="">{t('notSpecified')}</option>
+                        <option value="Male">{t('male')}</option>
+                        <option value="Female">{t('female')}</option>
+                        <option value="Other">{t('genderOther')}</option>
+                      </select>
+                    </div>
+                  </div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#A08B7D', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.8 }}>
                     {t('message')} <span style={{ textTransform: 'none', fontWeight: 500, letterSpacing: 0 }}>({t('optional')})</span>
                   </label>
