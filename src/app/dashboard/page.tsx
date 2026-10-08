@@ -414,10 +414,21 @@ function OverviewContent() {
           .UNIMUNITY-ov-grid > div:not(.UNIMUNITY-ov-sidebar):not(.UNIMUNITY-ov-right) > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 0 !important; }
           /* Middle: Quick Actions fills the height; its list scrolls if the window is small. */
           .UNIMUNITY-ov-sidebar { margin-bottom: 0 !important; }
-          .UNIMUNITY-ov-sidebar > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+          .UNIMUNITY-ov-sidebar > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; justify-content: space-between; gap: 6px; }
           /* Right: compact cards; Next Cycle Answers takes the rest and scrolls inside. */
           .UNIMUNITY-ov-right { gap: 12px !important; margin-bottom: 0 !important; }
           .UNIMUNITY-ov-right > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+          /* Slightly tighter right-hand cards. */
+          .UNIMUNITY-ov-right .rc-card { padding: 14px 16px !important; }
+          .UNIMUNITY-ov-right .rc-head { margin-bottom: 9px; padding-bottom: 8px; }
+          /* Compact My Groups so the two cards below show in full. */
+          .UNIMUNITY-ov-right .mg-card { padding: 10px 14px !important; }
+          .UNIMUNITY-ov-right .mg-card .rc-head { margin-bottom: 7px !important; padding-bottom: 7px !important; }
+          .mg-card .rc-ico { width: 30px; height: 30px; font-size: 15px; border-radius: 9px; }
+          .mg-card .rc-group { padding: 8px 10px; margin-bottom: 6px; }
+          .mg-card .mg-label { margin: 0 0 4px !important; font-size: 10px !important; }
+          .mg-card .mg-freq { margin: 0 0 6px !important; font-size: 11px !important; }
+          .mg-card .btn-action { padding: 5px !important; }
         }
         @media (max-width: 1200px) {
           .UNIMUNITY-ov-grid { grid-template-columns: 1fr !important; }
@@ -963,7 +974,7 @@ function OverviewContent() {
 
         <div className="UNIMUNITY-ov-right" style={{ order: 3, display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '14px' }}>
           {/* My Groups (compact) */}
-          <div className="panel-card fade-up rc-card" style={{ background: 'white', borderRadius: '16px', padding: '12px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+          <div className="panel-card fade-up rc-card mg-card" style={{ background: 'white', borderRadius: '16px', padding: '12px 16px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
             <div className="rc-head" style={{ marginBottom: '10px', paddingBottom: '9px' }}>
               <span className="rc-ico" style={{ background: 'linear-gradient(135deg,#E9C77B,#C9974D)', boxShadow: '0 4px 10px rgba(201,151,77,0.35)' }}>{'\ud83c\udfd8\ufe0f'}</span>
               <div>
@@ -980,7 +991,7 @@ function OverviewContent() {
             }).map(({ g, st, first }, i) => (
               <div key={g.id || i} style={{ marginBottom: '6px' }}>
               {first && (
-                <p style={{ margin: i === 0 ? '0 0 5px' : '10px 0 5px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: st === 'current' ? '#2E7D32' : st === 'upcoming' ? '#9C7A2E' : '#8A7B6C' }}>
+                <p className="mg-label" style={{ margin: i === 0 ? '0 0 5px' : '10px 0 5px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: st === 'current' ? '#2E7D32' : st === 'upcoming' ? '#9C7A2E' : '#8A7B6C' }}>
                   {TONTINE_STATUS_LABEL[st]}
                 </p>
               )}
@@ -994,7 +1005,7 @@ function OverviewContent() {
                     <span className="pill" title="Members do not see this group in their member space. Change it with Edit." style={{ background: '#FBF0D9', color: '#9C7A2E', padding: '3px 9px', fontSize: '10px' }}>Hidden from members</span>
                   )}
                 </div>
-                <p style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 7px' }}>
+                <p className="mg-freq" style={{ color: '#A08B7D', fontSize: '11.5px', margin: '0 0 7px' }}>
                   {g.frequency || 'Weekly'}{(g.contribution || g.amountPerMember) ? ' \u00b7 ' + (g.contribution || g.amountPerMember) + ' ' + (g.currency || 'USD') : ''}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' }}>
