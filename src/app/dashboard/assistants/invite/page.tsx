@@ -126,7 +126,10 @@ export default function InviteAssistantPage() {
   return (
     <AppPage wide title="Invite an Assistant" subtitle="Someone you trust who helps you manage your groups with their own account." back={{ label: 'Back to My Assistants', href: '/dashboard/assistants' }}>
       <style>{`
-        .iv-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 290px; gap: 14px; align-items: start; }
+        .iv-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 290px; gap: 14px; align-items: stretch; }
+        .iv-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .iv-col > :last-child { flex: 1 1 auto; }
+        .iv-sum { display: flex; flex-direction: column; }
         .iv-grid .ap-card { padding: 14px 18px; }
         .iv-grid .ap-head { margin-bottom: 10px; padding-bottom: 8px; }
         .iv-grid .ap-ico { width: 28px; height: 28px; font-size: 14px; border-radius: 9px; }
@@ -152,7 +155,7 @@ export default function InviteAssistantPage() {
       ) : (
       <div className="iv-grid">
         {/* Column 1 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+        <div className="iv-col">
           {/* 1. Identity */}
           <div className="ap-card">
             <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#F4B6C7,#B0525F)' }}>{'\u{1F464}'}</span><h2 className="ap-title">1. Identity</h2></div>
@@ -204,13 +207,20 @@ export default function InviteAssistantPage() {
             </p>
             <GroupPicker groups={groups} value={f.groupIds} onChange={ids => set('groupIds', ids)} currentAssistantId={null} invalid={bad.includes('groups')} />
           </div>
+
+          {/* 6. Message */}
+          <div className="ap-card">
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u{1F4AC}'}</span><h2 className="ap-title">4. Personal message <span style={{ fontWeight: 500, fontSize: 12, color: '#A08B7D' }}>(optional)</span></h2></div>
+            <textarea className="ap-in" rows={2} maxLength={500} value={f.message} onChange={e => set('message', e.target.value)} placeholder="e.g. Thank you for helping me with the group payments." />
+            <p style={{ margin: '4px 0 0', fontSize: 11, color: '#A08B7D', textAlign: 'right' }}>{f.message.length}/500</p>
+          </div>
         </div>
 
         {/* Column 2 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+        <div className="iv-col">
           {/* 4. Rights */}
           <div className="ap-card">
-            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F511}'}</span><h2 className="ap-title">4. Rights</h2></div>
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#66BB6A,#2E7D32)' }}>{'\u{1F511}'}</span><h2 className="ap-title">5. Rights</h2></div>
             <div className="iv-rights" style={{ alignItems: 'start' }}>
               <div>
                 <p className="ap-label" style={{ color: '#3F7D5C' }}>Always included</p>
@@ -236,7 +246,7 @@ export default function InviteAssistantPage() {
 
           {/* 5. Duration */}
           <div className="ap-card">
-            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#64B5F6,#1565C0)' }}>{'\u{1F4C5}'}</span><h2 className="ap-title">5. Duration</h2></div>
+            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#64B5F6,#1565C0)' }}>{'\u{1F4C5}'}</span><h2 className="ap-title">6. Duration</h2></div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <label className={'iv-radio' + (f.durationMode === 'none' ? ' on' : '')}><input type="radio" checked={f.durationMode === 'none'} onChange={() => set('durationMode', 'none')} style={{ accentColor: '#6B2D4E' }} /> No end date</label>
               <label className={'iv-radio' + (f.durationMode === 'until' ? ' on' : '')}><input type="radio" checked={f.durationMode === 'until'} onChange={() => set('durationMode', 'until')} style={{ accentColor: '#6B2D4E' }} /> Until a date</label>
@@ -245,13 +255,6 @@ export default function InviteAssistantPage() {
               )}
             </div>
             <p style={{ margin: '8px 0 0', fontSize: 11.5, color: '#A08B7D' }}>After the end date, access stops automatically. You can also suspend or remove an assistant at any time.</p>
-          </div>
-
-          {/* 6. Message */}
-          <div className="ap-card">
-            <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#B39DDB,#6B2D4E)' }}>{'\u{1F4AC}'}</span><h2 className="ap-title">6. Personal message <span style={{ fontWeight: 500, fontSize: 12, color: '#A08B7D' }}>(optional)</span></h2></div>
-            <textarea className="ap-in" rows={2} maxLength={500} value={f.message} onChange={e => set('message', e.target.value)} placeholder="e.g. Thank you for helping me with the group payments." />
-            <p style={{ margin: '4px 0 0', fontSize: 11, color: '#A08B7D', textAlign: 'right' }}>{f.message.length}/500</p>
           </div>
 
           {/* 7. Confirmation */}
@@ -264,12 +267,14 @@ export default function InviteAssistantPage() {
         </div>
 
         {/* Summary */}
-        <div className="ap-card" style={{ position: 'sticky', top: 16 }}>
+        <div className="ap-card iv-sum">
           <div className="ap-head"><span className="ap-ico" style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)' }}>{'\u{1F4CB}'}</span><h2 className="ap-title">Summary</h2></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-            <span style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#E9C77B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-              {((f.firstName[0] || '?') + (f.lastName[0] || '')).toUpperCase()}
-            </span>
+            {(f.firstName.trim() || f.lastName.trim()) && (
+              <span style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#E9C77B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, flexShrink: 0 }}>
+                {((f.firstName.trim()[0] || '') + (f.lastName.trim()[0] || '')).toUpperCase()}
+              </span>
+            )}
             <div style={{ minWidth: 0 }}>
               <p style={{ margin: 0, fontWeight: 800, color: '#4A1F38', fontSize: 14 }}>{(f.firstName + ' ' + f.lastName).trim() || 'New assistant'}</p>
               <p style={{ margin: 0, fontSize: 12, color: '#C9974D', fontWeight: 700 }}>{titleShown}</p>
@@ -286,6 +291,7 @@ export default function InviteAssistantPage() {
               <span style={{ color: '#A08B7D' }}>{k}</span><span style={{ color: '#3A2F1F', fontWeight: 600, textAlign: 'right', wordBreak: 'break-word' }}>{v}</span>
             </div>
           ))}
+          <div style={{ flex: 1 }} />
           {error && <p style={{ margin: '12px 0 0', fontSize: 12.5, color: '#C62828', fontWeight: 600 }}>{error}</p>}
           <button className="ap-btn ap-primary" style={{ width: '100%', marginTop: 14 }} disabled={sending || placesLeft === 0} onClick={submit}>
             {sending ? 'Sending...' : '\u2709 Send invitation'}

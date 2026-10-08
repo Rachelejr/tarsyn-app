@@ -105,20 +105,12 @@ export default function MyAssistantsPage() {
           {!ready ? (
             <div className="ap-card"><p style={{ margin: 0, color: '#8A7B6C', fontSize: 13 }}>Loading...</p></div>
           ) : (
-            Array.from({ length: MAX_ASSISTANTS }).map((_, i) => {
-              const a = places[i];
-              if (!a) {
-                return (
-                  <div key={'free' + i} className="ap-card" style={{ borderStyle: 'dashed', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: '#FFFDF9' }}>
-                    <span style={{ width: 46, height: 46, borderRadius: '50%', border: '2px dashed #EAD9BE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C9974D', fontSize: 20, fontWeight: 800 }}>+</span>
-                    <div style={{ flex: 1, minWidth: 200 }}>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#4A1F38' }}>Assistant {i + 1} - place available</p>
-                      <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#8A7B6C' }}>Invite an assistant (optional).</p>
-                    </div>
-                    <button className="ap-btn ap-soft" onClick={() => router.push('/dashboard/assistants/invite')}>Invite</button>
-                  </div>
-                );
-              }
+            places.length === 0 ? (
+              <div className="ap-card" style={{ textAlign: 'center', padding: '28px 22px', background: '#FFFDF9', borderStyle: 'dashed' }}>
+                <p style={{ margin: '0 0 4px', fontSize: 14.5, fontWeight: 800, color: '#4A1F38' }}>No assistant yet</p>
+                <p style={{ margin: 0, fontSize: 12.5, color: '#8A7B6C' }}>Use <b>+ Invite an assistant</b> above when you need help. This is optional.</p>
+              </div>
+            ) : places.map((a) => {
               const st = STATUS_STYLE[a.status];
               return (
                 <div key={a.id} className="ap-card">
