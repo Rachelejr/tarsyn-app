@@ -1166,6 +1166,16 @@ function MemberContent() {
           style={{ background: C.creme, color: C.bordeaux, border: '1.5px solid ' + C.border, padding: '8px 16px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}>
           Leave a Review
         </button>
+        {myPayments && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, background: C.creme, border: '1.5px solid ' + C.border, borderRadius: 10, padding: '6px 14px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: C.bordeaux, whiteSpace: 'nowrap' }}>
+              {myPayments.paid}/{myPayments.total} contributions paid
+            </span>
+            <span style={{ width: 90, height: 6, borderRadius: 99, background: '#EADBC8', overflow: 'hidden', display: 'inline-block' }}>
+              <span style={{ display: 'block', height: '100%', width: (myPayments.total ? Math.round(myPayments.paid / myPayments.total * 100) : 0) + '%', background: 'linear-gradient(90deg,#3F7D5C,#66BB6A)' }} />
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 3-column grid */}
@@ -1315,12 +1325,20 @@ function MemberContent() {
             const myAnswer = activeMember && cycleMeta && activeMember.nextCycleFor === cycleMeta.cycleNumber + 1
               ? activeMember.nextCycleResponse : null;
             return (
-            <div style={{ marginBottom: '28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: '22px', background: 'white', border: '1px solid ' + C.border, borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid #F3E6D8', gap: 10, flexWrap: 'wrap' }}>
                 <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>My Payment Grid</h2>
-                <span style={{ fontSize: '16px', color: C.bordeaux, fontWeight: 800 }}>
-                  {shown.paid}/{shown.total} contributions paid
-                </span>
+                {periods.length > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: C.texteGris, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Period</span>
+                    <select value={activePeriodKey} onChange={e => setGridPeriod(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: 8, border: '1.5px solid ' + C.border, fontSize: 12.5, fontWeight: 700, color: C.bordeaux, background: 'white', cursor: 'pointer' }}>
+                      {periods.map(p => (
+                        <option key={p.key} value={p.key}>{p.label} - {PERIOD_STATUS_LABEL[p.status]} ({p.weekIdxs.length} weeks)</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               {cycleMeta && (
@@ -1369,17 +1387,6 @@ function MemberContent() {
                   onSubmit={answerNextCycle}
                 />
               )}
-              {periods.length > 1 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: C.texteGris, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Period</span>
-                  <select value={activePeriodKey} onChange={e => setGridPeriod(e.target.value)}
-                    style={{ padding: '6px 10px', borderRadius: 8, border: '1.5px solid ' + C.border, fontSize: 12.5, fontWeight: 700, color: C.bordeaux, background: 'white', cursor: 'pointer' }}>
-                    {periods.map(p => (
-                      <option key={p.key} value={p.key}>{p.label} - {PERIOD_STATUS_LABEL[p.status]} ({p.weekIdxs.length} weeks)</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               <div style={{ background: C.ivoire, borderRadius: '14px', border: '1px solid ' + C.border, padding: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 {shown.slots.map((slotNum, i) => (
                   <div key={slotNum} style={{ marginBottom: i < shown.slots.length - 1 ? '16px' : 0 }}>
@@ -1423,8 +1430,9 @@ function MemberContent() {
             );
           })()}
 
-          <div ref={documentsSectionRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <h2 style={{ color: C.bordeaux, fontSize: '16px', fontWeight: 800, margin: 0 }}>Documents</h2>
+          <div style={{ background: 'white', border: '1px solid ' + C.border, borderRadius: '16px', padding: '18px 20px', boxShadow: '0 2px 14px rgba(107,45,78,0.06)' }}>
+          <div ref={documentsSectionRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid #F3E6D8' }}>
+            <h2 style={{ color: C.bordeaux, fontSize: '19px', fontWeight: 800, margin: 0 }}>Documents</h2>
             <span style={{ fontSize: '11px', color: C.texteGris, fontWeight: 600 }}>{filteredDocs.length} file{filteredDocs.length !== 1 ? 's' : ''}</span>
           </div>
 
@@ -1577,6 +1585,7 @@ function MemberContent() {
               })}
             </div>
           )}
+          </div>
 
         </div>
 
