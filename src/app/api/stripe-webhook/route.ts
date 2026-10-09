@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { weekLabel } from '@/lib/weekLabel';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
@@ -240,7 +241,7 @@ export async function POST(req: NextRequest) {
             const memberData = memberSnap.exists ? memberSnap.data() as any : {};
             const contributionAmount = meta.contributionCents ? (parseInt(meta.contributionCents) / 100) : 0;
             const currencyLabel = (meta.currency || 'usd').toUpperCase();
-            const weeksLabel = weekIdxList.map((w: string) => 'W' + w).join(', ');
+            const weeksLabel = weekIdxList.map((w: string) => weekLabel(w)).join(', ');
             // Receipt issued under the group's own name (UNIMUNITY is only the tool).
             const receiptGroupSnap = memberData.groupId ? await adminDb.collection('groups').doc(memberData.groupId).get() : null;
             const receiptGroup = receiptGroupSnap && receiptGroupSnap.exists ? receiptGroupSnap.data() as any : {};

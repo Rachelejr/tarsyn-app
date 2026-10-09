@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { weekLabel } from '@/lib/weekLabel';
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, addDoc, deleteDoc, updateDoc, writeBatch, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
@@ -553,7 +554,7 @@ export default function PaymentGridPage() {
 
       const info = memberInfo[memberId] || { name: grid.slots[hands[0]]?.memberName || '', tynId: '' };
       const amount = (memberAmounts[memberId] ?? weeklyAmount) || 0;
-      const receiptNo = (info.tynId || 'MBR') + '-C' + (grid.cycleNumber || 1) + '-W' + w;
+      const receiptNo = (info.tynId || 'MBR') + '-C' + (grid.cycleNumber || 1) + '-' + weekLabel(w);
       const html = buildReceiptHtml({
         groupName,
         logoUrl: brand.logoUrl,
@@ -564,7 +565,7 @@ export default function PaymentGridPage() {
         memberCode: info.tynId,
         info: [
           ['Cycle', 'Cycle ' + (grid.cycleNumber || 1)],
-          ['Week', 'W' + w + ' \u00b7 ' + weekDate],
+          ['Week', weekLabel(w) + ' \u00b7 ' + weekDate],
           ...(hands.length > 1 ? [['Hands in this group', String(hands.length)] as [string, string]] : []),
           ['Recorded in', 'Payment grid'],
         ],
@@ -579,7 +580,7 @@ export default function PaymentGridPage() {
       });
       writes.push({ path: 'documents/' + docId, run: setDoc(ref, {
         // Member name in the title so the organizer can tell receipts apart.
-        name: 'Receipt - W' + w + ' - ' + weekDate + (info.name ? ' - ' + info.name : ''),
+        name: 'Receipt - ' + weekLabel(w) + ' - ' + weekDate + (info.name ? ' - ' + info.name : ''),
         type: 'text/html',
         size: html.length,
         url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html),
@@ -1263,7 +1264,7 @@ export default function PaymentGridPage() {
 
   function handleExportWeek(weekIdx: string) {
     const dateForWeek = grid?.weeks[weekIdx] || '';
-    const rows: string[][] = [['Member', 'W' + weekIdx + ' (' + dateForWeek + ')']];
+    const rows: string[][] = [['Member', weekLabel(weekIdx) + ' (' + dateForWeek + ')']];
     allSlotEntries.forEach(([slotNum, slot]) => {
       rows.push([slot.memberName, pendingPayments[slotNum]?.[weekIdx] ? 'Paid' : 'Missing']);
     });
@@ -1271,7 +1272,7 @@ export default function PaymentGridPage() {
   }
 
   function handleExportAll() {
-    const weekCols = weekEntries.map(([idx]) => 'W' + idx);
+    const weekCols = weekEntries.map(([idx]) => weekLabel(idx));
     const rows: string[][] = [['Member', ...weekCols]];
     slotEntries.forEach(([slotNum, slot]) => {
       const row = [slot.memberName];
@@ -1772,7 +1773,7 @@ export default function PaymentGridPage() {
                 return (
                   <button key={idx} onClick={() => setSelectedWeek(idx)} title={date}
                     style={{ border: 'none', borderRadius: 8, padding: '4px 11px', cursor: 'pointer', background: active ? '#FFFFFF' : 'transparent', boxShadow: active ? '0 1px 4px rgba(74,31,56,0.14)' : 'none', textAlign: 'center' }}>
-                    <span style={{ display: 'block', fontSize: 12, fontWeight: 800, color: active ? C.bordeaux : C.texteGris }}>W{idx}</span>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 800, color: active ? C.bordeaux : C.texteGris }}>{weekLabel(idx)}</span>
                     <span style={{ display: 'block', fontSize: 9.5, color: active ? C.bordeaux : '#A08B7D' }}>{String(date).slice(5)}</span>
                   </button>
                 );
@@ -1791,7 +1792,7 @@ export default function PaymentGridPage() {
           {/* Row 2: focus week summary + actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 12, borderRight: '1px solid #F3E6D8' }}>
-              <span style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', fontSize: 12.5, fontWeight: 800, padding: '5px 11px', borderRadius: 9 }}>W{focusWeekIdx}</span>
+              <span style={{ background: 'linear-gradient(135deg,#6B2D4E,#4A1F38)', color: '#FBEEDD', fontSize: 12.5, fontWeight: 800, padding: '5px 11px', borderRadius: 9 }}>{weekLabel(focusWeekIdx)}</span>
               <span style={{ fontSize: 12, color: C.texteGris }}>{grid.weeks[focusWeekIdx] || ''}</span>
             </div>
             {[
@@ -1869,7 +1870,7 @@ export default function PaymentGridPage() {
                       zIndex: 2,
                     }}
                   >
-                    W{idx}
+                    {weekLabel(idx)}
                     <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 10.5 }}>
                       {date}
                     </div>

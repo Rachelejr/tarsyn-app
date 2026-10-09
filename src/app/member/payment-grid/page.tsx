@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { weekLabel } from '@/lib/weekLabel';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
@@ -194,7 +195,7 @@ function MyPaymentGridContent() {
                       .sort((a, b) => Number(a[0]) - Number(b[0]))
                       .map(([idx, date]) => (
                         <th key={idx} style={{ background: C.bordeaux, color: C.dore, padding: '8px 10px', fontSize: 11, minWidth: 78, textAlign: 'center' }}>
-                          W{idx}
+                          {weekLabel(idx)}
                           <div style={{ color: C.ivoire, fontWeight: 400, fontSize: 9.5 }}>{date}</div>
                         </th>
                       ))}

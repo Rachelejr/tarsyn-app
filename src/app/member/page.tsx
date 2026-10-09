@@ -1,5 +1,6 @@
 'use client';
 
+import { weekLabel } from '@/lib/weekLabel';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { memberAuth as auth, memberDb as db, memberStorage as storage } from '@/lib/firebase';
@@ -1411,7 +1412,7 @@ function MemberContent() {
                             border: '1.5px solid ' + (isPaid ? weekColor : C.border),
                           }}>
                             <div style={{ color: isPaid ? C.dore : isOverdue ? C.danger : C.muted, fontWeight: 800, fontSize: 11.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-                              W{wIdx}{isPaid && <span>{'\u2713'}</span>}
+                              {weekLabel(wIdx)}{isPaid && <span>{'\u2713'}</span>}
                             </div>
                             <div style={{ color: isPaid ? 'rgba(255,255,255,0.85)' : C.muted, fontSize: 9, marginTop: 2 }}>
                               {shown.weeks[wIdx]}
