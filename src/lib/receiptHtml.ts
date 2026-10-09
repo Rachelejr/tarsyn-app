@@ -103,21 +103,20 @@ export function buildReceiptHtml(opts: {
 
   // Faint watermark behind the content: the group's logo if it has one,
   // otherwise the group's name in script.
-  // Same look as the UNIMUNITY logo: a large script initial followed by the
-  // rest of the name in serif capitals ("A" + "VANCON", "B" + "LESSED HANDS").
-  const wmName = group.trim().toUpperCase();
-  const wmInitial = wmName.charAt(0);
-  const wmRest = wmName.slice(1);
-  const wmSize = wmName.length <= 8 ? 46 : wmName.length <= 14 ? 36 : wmName.length <= 22 ? 28 : 22;
+  // Faint watermark behind the content: the group's logo if it has one,
+  // otherwise the group's name written in script (title case reads better:
+  // "BLESSED HANDS" -> "Blessed Hands").
+  const wmName = group.trim().toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (_m, p1: string, p2: string) => p1 + p2.toUpperCase());
+  const wmSize = wmName.length <= 8 ? 96 : wmName.length <= 14 ? 72 : wmName.length <= 22 ? 54 : 40;
   const wm = !opts.watermark
     ? ''
     : hasLogo
       ? '<img class="wm" src="' + esc(opts.logoUrl) + '" alt=""/>'
-      : '<div class="wmt" style="font-size:' + wmSize + 'px"><span class="wmi">' + esc(wmInitial) + '</span><span class="wmr">' + esc(wmRest) + '</span></div>';
+      : '<div class="wmt" style="font-size:' + wmSize + 'px">' + esc(wmName) + '</div>';
 
   return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + esc(group) + ' - Receipt' + (opts.receiptNo ? ' ' + esc(opts.receiptNo) : '') + '</title>' +
-    '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pinyon+Script&family=Playfair+Display:wght@600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">' +
     '<style>' +
     '*{box-sizing:border-box}body{margin:0;background:#FBEEDD;font-family:Inter,Arial,sans-serif;color:#3A2F1F;padding:36px 16px}' +
     '.rc{position:relative;max-width:640px;margin:0 auto;background:#fff;border:1px solid #F0E4D6;border-radius:22px;overflow:hidden;box-shadow:0 14px 44px rgba(107,45,78,.13)}' +
@@ -142,9 +141,7 @@ export function buildReceiptHtml(opts: {
     '.sig{margin:30px 0 6px auto;width:290px;max-width:100%;text-align:center}.mark{font-family:"Great Vibes","Segoe Script","Brush Script MT",cursive;font-size:32px;white-space:nowrap;color:#4A1F38;line-height:1.1;min-height:38px}' +
     '.line{height:1px;background:#4A1F38;opacity:.5;margin:4px 0 6px}.who{font-size:12px;font-weight:700;color:#4A1F38}.when{font-size:10.5px;color:#A08B7D;margin-top:2px}' +
     '.wm{position:absolute;left:50%;top:58%;width:62%;max-height:55%;object-fit:contain;transform:translate(-50%,-50%) rotate(-18deg);opacity:.07;pointer-events:none;z-index:0}' +
-    '.wmt{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%) rotate(-18deg);color:#6B2D4E;opacity:.09;white-space:nowrap;pointer-events:none;z-index:0;line-height:1;display:flex;align-items:flex-end}' +
-    '.wmi{font-family:"Pinyon Script","Great Vibes","Segoe Script",cursive;font-size:3.3em;line-height:.8;margin-right:-.12em;position:relative;top:.12em}' +
-    '.wmr{font-family:"Playfair Display",Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:.04em;padding-bottom:.08em}' +
+    '.wmt{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%) rotate(-18deg);font-family:"Great Vibes","Segoe Script","Brush Script MT",cursive;color:#6B2D4E;opacity:.085;white-space:nowrap;pointer-events:none;z-index:0;line-height:1}' +
     '.body,.foot{position:relative;z-index:1}' +
     '.foot{text-align:center;font-size:11px;color:#A08B7D;padding:16px 30px 22px;border-top:1px dashed #EAD9BE;margin-top:18px}' +
     '@media (max-width:520px){.top,.head{flex-direction:column;align-items:flex-start}.no{text-align:left}.info{grid-template-columns:1fr}.body{padding:20px}.sig{width:100%}}' +
