@@ -5,6 +5,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 import { buildReceiptHtml, receiptBranding } from '@/lib/receiptHtml';
 import { getPlanLimits, getPlanTierFromPriceId } from '@/lib/planLimits';
+import { createAppReceipt, userIdentity } from '@/lib/appReceipts';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -85,6 +86,42 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = (event.data.object as any)?.metadata?.userId;
+
+  // Paid plan invoices (first payment and every renewal): a receipt from
+  // UNIMUNITY for the organizer. Invoices carry the user id in the
+  // subscription's metadata, or we find the user by subscription id.
+  if (event.type === 'invoice.paid') {
+    try {
+      const inv = event.data.object as any;
+      const amount = Number(inv.amount_paid || 0);
+      const subId = typeof inv.subscription === 'string' ? inv.subscription : inv.subscription?.id || inv.parent?.subscription_details?.subscription || '';
+      let uid = String(inv.subscription_details?.metadata?.userId || inv.parent?.subscription_details?.metadata?.userId || inv.metadata?.userId || '');
+      if (!uid && subId) {
+        const u = await adminDb.collection('users').where('subscription.stripeSubscriptionId', '==', subId).limit(1).get();
+        if (!u.empty) uid = u.docs[0].id;
+      }
+      if (uid && amount > 0) {
+        const who = await userIdentity(uid);
+        const line = inv.lines?.data?.[0];
+        const priceId = line?.price?.id || line?.pricing?.price_details?.price || null;
+        const tier = getPlanTierFromPriceId(priceId);
+        const planName = tier === 'free' ? 'UNIMUNITY plan' : 'UNIMUNITY ' + tier.charAt(0).toUpperCase() + tier.slice(1) + ' plan';
+        const start = line?.period?.start ? new Date(line.period.start * 1000).toISOString().slice(0, 10) : '';
+        const end = line?.period?.end ? new Date(line.period.end * 1000).toISOString().slice(0, 10) : '';
+        await createAppReceipt({
+          docId: 'rcpt_uni_' + inv.id, receiptNo: inv.number || 'UNI-' + String(inv.id).slice(-10).toUpperCase(),
+          payerUid: uid, organizerId: uid,
+          payerName: who.name, payerEmail: who.email || inv.customer_email || '',
+          description: planName, sub: start && end ? 'Period ' + start + ' to ' + end : 'Subscription',
+          amountCents: amount, currency: inv.currency || 'usd',
+          paidOn: new Date((inv.status_transitions?.paid_at || inv.created || Date.now() / 1000) * 1000).toISOString().slice(0, 10),
+        });
+      }
+    } catch (invErr) {
+      console.error('[webhook] app receipt (invoice) failed:', invErr);
+    }
+    return NextResponse.json({ received: true });
+  }
 
   console.log('[webhook] Event type:', event.type);
   console.log('[webhook] Extracted userId from metadata:', userId);
@@ -176,6 +213,32 @@ export async function POST(req: NextRequest) {
               }
             } catch (feeErr) {
               console.error('[webhook] access fee update failed:', feeErr);
+            }
+            // Receipt from UNIMUNITY for this one-time fee (never blocks the webhook).
+            try {
+              const paidOn = new Date((pi.created || Date.now() / 1000) * 1000).toISOString().slice(0, 10);
+              if (meta.type === 'orgAccessFee' && meta.userId) {
+                const who = await userIdentity(meta.userId);
+                await createAppReceipt({
+                  docId: 'rcpt_uni_' + pi.id, receiptNo: 'UNI-' + pi.id.slice(-10).toUpperCase(),
+                  payerUid: meta.userId, organizerId: meta.userId,
+                  payerName: who.name, payerEmail: who.email,
+                  description: 'Organizer lifetime access', sub: 'One-time payment - UNIMUNITY organizer account',
+                  amountCents: pi.amount_received || pi.amount, currency: pi.currency, paidOn,
+                });
+              } else if (meta.type === 'memberAccessFee' && meta.memberId && meta.userId) {
+                const m = (await adminDb.collection('members').doc(meta.memberId).get()).data() as any || {};
+                const who = await userIdentity(meta.userId);
+                await createAppReceipt({
+                  docId: 'rcpt_uni_' + pi.id, receiptNo: 'UNI-' + pi.id.slice(-10).toUpperCase(),
+                  payerUid: meta.userId, organizerId: String(m.organizerId || ''), groupId: String(m.groupId || ''),
+                  payerName: String(m.fullName || m.name || who.name), payerEmail: who.email || String(m.email || ''),
+                  description: 'Member lifetime access', sub: 'One-time payment - valid in all your groups',
+                  amountCents: pi.amount_received || pi.amount, currency: pi.currency, paidOn,
+                });
+              }
+            } catch (rcptErr) {
+              console.error('[webhook] app receipt (access fee) failed:', rcptErr);
             }
             break;
           }

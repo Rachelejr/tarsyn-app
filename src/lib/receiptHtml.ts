@@ -140,7 +140,7 @@ export function buildReceiptHtml(opts: {
     'tfoot td{border:none;padding-top:14px;font-weight:800;color:#4A1F38;font-size:15px}tfoot td.r{font-size:19px}' +
     '.sig{margin:30px 0 6px auto;width:290px;max-width:100%;text-align:center}.mark{font-family:"Great Vibes","Segoe Script","Brush Script MT",cursive;font-size:32px;white-space:nowrap;color:#4A1F38;line-height:1.1;min-height:38px}' +
     '.line{height:1px;background:#4A1F38;opacity:.5;margin:4px 0 6px}.who{font-size:12px;font-weight:700;color:#4A1F38}.when{font-size:10.5px;color:#A08B7D;margin-top:2px}' +
-    '.wm{position:absolute;left:50%;top:58%;width:62%;max-height:55%;object-fit:contain;transform:translate(-50%,-50%) rotate(-18deg);opacity:.07;pointer-events:none;z-index:0}' +
+    '.wm{position:absolute;left:50%;top:68%;width:62%;max-height:55%;object-fit:contain;transform:translate(-50%,-50%) rotate(-18deg);opacity:.07;pointer-events:none;z-index:0}' +
     '.wmt{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%) rotate(-18deg);font-family:"Great Vibes","Segoe Script","Brush Script MT",cursive;color:#6B2D4E;opacity:.085;white-space:nowrap;pointer-events:none;z-index:0;line-height:1}' +
     '.body,.foot{position:relative;z-index:1}' +
     '.foot{text-align:center;font-size:11px;color:#A08B7D;padding:16px 30px 22px;border-top:1px dashed #EAD9BE;margin-top:18px}' +

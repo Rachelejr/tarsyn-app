@@ -84,6 +84,8 @@ export default function DocumentsPage() {
     const q = query(collection(db, 'documents'), where('organizerId', '==', uid));
     const snap = await getDocs(q);
     const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      // A member's receipt from UNIMUNITY (their access fee) is private to them.
+      .filter((d: any) => !(d.appReceipt && !(d.visibleTo || []).includes(uid)))
       .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     setDocs(list);
     if (list.length > 0 && !selectedId) setSelectedId(list[0].id);
