@@ -11,7 +11,7 @@ async function requireAdmin(req: Request): Promise<NextResponse | null> {
     const { uid } = await adminAuth.verifyIdToken(idToken);
     const userDoc = await adminDb.collection('users').doc(uid).get();
     const role = userDoc.exists ? userDoc.data()?.role : null;
-    if (role !== 'admin' && role !== 'superadmin') {
+    if (role !== 'superadmin') {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
     return null;

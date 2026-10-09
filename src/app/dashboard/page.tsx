@@ -129,7 +129,7 @@ function OverviewContent() {
         ]);
 
         const role = userSnap.exists() ? userSnap.data().role : null;
-        setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
+        setIsPlatformAdmin(role === 'superadmin'); // platform admin only, not every organizer
 
         setGroups(gsnap.docs.map(d => ({ id: d.id, ...d.data() })));
         // Cycle info per group, for the members' next-cycle answers.

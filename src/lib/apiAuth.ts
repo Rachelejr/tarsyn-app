@@ -24,7 +24,9 @@ export async function isPlatformAdmin(uid: string): Promise<boolean> {
   try {
     const snap = await adminDb.collection('users').doc(uid).get();
     const role = snap.exists ? snap.data()?.role : null;
-    return role === 'admin' || role === 'superadmin';
+    // Platform administrator = 'superadmin' ONLY. Every organizer has the
+    // role 'admin' (set at sign-up), so 'admin' must never open platform tools.
+    return role === 'superadmin';
   } catch {
     return false;
   }

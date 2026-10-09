@@ -101,7 +101,7 @@ function OverviewContent() {
       try {
         const userSnap = await getDoc(doc(db, 'users', u.uid));
         const role = userSnap.exists() ? userSnap.data().role : null;
-        setIsPlatformAdmin(role === 'admin' || role === 'superadmin');
+        setIsPlatformAdmin(role === 'superadmin'); // platform admin only, not every organizer
 
         const gq = query(collection(db, 'groups'), where('organizerId', '==', u.uid));
         const gsnap = await getDocs(gq);

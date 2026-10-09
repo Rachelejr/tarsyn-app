@@ -26,7 +26,7 @@ export async function buildContext(idToken: string, lang: string = 'en'): Promis
       const userDoc = await adminDb.collection('users').doc(uid).get();
       if (userDoc.exists) {
         const data = userDoc.data() as any;
-        if (data?.role === 'admin') userRole = 'admin';
+        if (data?.role === 'admin' || data?.role === 'superadmin') userRole = 'admin';
       }
     } catch {
       // If we can't confirm admin status, fall back to the least-privileged

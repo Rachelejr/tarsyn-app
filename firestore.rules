@@ -20,7 +20,19 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // Sign-up: a user may only create THEIR OWN document, as an organizer
+      // ('admin'), never as a platform admin, and never with a paid plan,
+      // a paid access fee or an assistant link already set.
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.get('role', 'admin') == 'admin'
+        && request.resource.data.get('orgAccessFeePaid', false) == false
+        && !request.resource.data.keys().hasAny(['subscription', 'orgAccessFeePaidAt', 'assistantOf', 'assistantId']);
+      // Later changes by the user: protected fields (role, plan, access fee,
+      // trial end, assistant link) can only be changed by the server.
+      allow update: if request.auth != null && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['role', 'subscription', 'orgAccessFeePaid', 'orgAccessFeePaidAt', 'trialEndsAt', 'assistantOf', 'assistantId']);
+      allow delete: if false;
     }
     match /workspaces/{workspaceId} {
       allow read: if request.auth != null && request.auth.uid in resource.data.members;
@@ -233,7 +245,8 @@ service cloud.firestore {
     }
     match /paymentGrids/{gridId} {
       function isPlatformAdmin() {
-        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
+        // Platform admin = 'superadmin' only ('admin' is every organizer).
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'superadmin';
       }
       function isOrganizerOfGroup(gId) {
         let g = get(/databases/$(database)/documents/groups/$(gId)).data;

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     let allowed = uid === group.organizerId || uid === group.adminId;
     if (!allowed) {
       const userSnap = await adminDb.collection("users").doc(uid).get();
-      allowed = ["admin", "superadmin"].includes(String(userSnap.data()?.role || ""));
+      allowed = String(userSnap.data()?.role || "") === "superadmin"; // platform admin only
     }
     if (!allowed) return NextResponse.json({ error: "Only the organizer of this group can do this." }, { status: 403 });
 

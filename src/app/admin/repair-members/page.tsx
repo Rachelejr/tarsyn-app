@@ -32,7 +32,7 @@ export default function RepairMembersPage() {
       }
       const snap = await getDoc(doc(db, 'users', u.uid));
       const role = snap.exists() ? snap.data().role : null;
-      return role === 'admin' || role === 'superadmin';
+      return role === 'superadmin';
     } catch (e) {
       return false;
     }

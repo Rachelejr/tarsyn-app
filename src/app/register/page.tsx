@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import DateTimeWeather from '@/components/DateTimeWeather';
 
 export default function RegisterPage() {
@@ -68,14 +68,19 @@ export default function RegisterPage() {
       // gated (creationTime === lastSignInTime is Firebase's own signal for
       // "this account was just created").
       const isNewGoogleAccount = result.user.metadata.creationTime === result.user.metadata.lastSignInTime;
-      await setDoc(doc(db, 'users', result.user.uid), {
-        name: result.user.displayName || '',
-        email: result.user.email || '',
-        role: 'admin',
-        createdAt: new Date().toISOString(),
-        trialEndsAt: trialEndsAt.toISOString(),
-        ...(isNewGoogleAccount ? { orgAccessFeeRequired: true, orgAccessFeePaid: false } : {}),
-      }, { merge: true });
+      // An existing account keeps its document untouched: signing in again
+      // with Google must never reset the role or restart the free trial.
+      const existing = await getDoc(doc(db, 'users', result.user.uid));
+      if (!existing.exists()) {
+        await setDoc(doc(db, 'users', result.user.uid), {
+          name: result.user.displayName || '',
+          email: result.user.email || '',
+          role: 'admin',
+          createdAt: new Date().toISOString(),
+          trialEndsAt: trialEndsAt.toISOString(),
+          ...(isNewGoogleAccount ? { orgAccessFeeRequired: true, orgAccessFeePaid: false } : {}),
+        });
+      }
       window.location.href = '/workspace/select-module';
     } catch {
       setError('Google sign-up failed. Please try again.');
