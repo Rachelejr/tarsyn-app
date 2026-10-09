@@ -19,6 +19,7 @@ export default function RepairMembersPage() {
   const [authorized, setAuthorized] = useState(false);
   const [checking, setChecking] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [lastScanAt, setLastScanAt] = useState('');
   const [repairing, setRepairing] = useState(false);
   const [broken, setBroken] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -66,15 +67,20 @@ export default function RepairMembersPage() {
   const scan = async () => {
     setScanning(true);
     setResult(null);
+    const started = Date.now();
     try {
       const res = await fetch('/api/repair-members', { headers: await authHeaders() });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Scan failed.');
       setBroken(data.broken || []);
       setTotal(data.total || 0);
+      setLastScanAt(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' }));
     } catch (e) {
-      alert('Scan failed.');
+      alert((e as Error).message || 'Scan failed.');
     } finally {
-      setScanning(false);
+      // Keep "Scanning..." visible a moment, so a fast scan is still noticeable.
+      const wait = Math.max(0, 700 - (Date.now() - started));
+      setTimeout(() => setScanning(false), wait);
     }
   };
 
@@ -306,6 +312,9 @@ export default function RepairMembersPage() {
             <button onClick={scan} disabled={scanning} style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', color: '#6B2D4E', fontSize: 12.5, fontWeight: 700, cursor: scanning ? 'not-allowed' : 'pointer', textDecoration: 'underline' }}>
               {scanning ? 'Scanning...' : 'Scan again'}
             </button>
+            {lastScanAt && !scanning && (
+              <p style={{ margin: '4px 0 0', textAlign: 'center', fontSize: 11, color: '#8A7B6C' }}>{'\u2713'} Last checked at {lastScanAt}</p>
+            )}
           </div>
         </div>
       </div>
