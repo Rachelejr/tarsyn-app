@@ -845,7 +845,23 @@ function MemberContent() {
   const handlePrint = (url: string) => openDocument(url, { print: true });
 
   // Documents this member removed from their own list (organizer copies stay).
-  const hiddenIds = new Set<string>([...((activeMember?.hiddenDocIds as string[]) || []), ...hiddenNow]);
+  // A receipt the member removed comes back if the organizer issues it again
+  // later (a receipt re-created from the grid keeps the same id). Removals
+  // are dated (hiddenDocAt); for older undated removals of grid receipts we
+  // show the receipt again rather than hide a new one by mistake.
+  const docCreatedMs = (d: any): number => {
+    const t = d?.createdAt;
+    return t?.toMillis ? t.toMillis() : t?.seconds ? t.seconds * 1000 : 0;
+  };
+  const docById = new Map(docs.map((d: any) => [d.id, d]));
+  const hiddenAt: Record<string, number> = (activeMember?.hiddenDocAt as Record<string, number>) || {};
+  const stillHidden = (id: string): boolean => {
+    const d = docById.get(id);
+    if (!d) return true;
+    if (hiddenAt[id]) return docCreatedMs(d) <= hiddenAt[id];
+    return !id.startsWith('rcpt_');
+  };
+  const hiddenIds = new Set<string>([...(((activeMember?.hiddenDocIds as string[]) || []).filter(stillHidden)), ...hiddenNow]);
   const archivedIds = new Set<string>([...((activeMember?.archivedDocIds as string[]) || []), ...archivedNow].filter(id => !unarchivedNow.includes(id)));
   const docDate = (d: any): Date => {
     const t = d.createdAt;

@@ -31,7 +31,11 @@ export async function POST(req: NextRequest) {
     if (!memberSnap.exists || memberSnap.data()?.userId !== uid) return forbidden();
 
     if (action === 'hide') {
-      await memberRef.update({ hiddenDocIds: FieldValue.arrayUnion(...ids), archivedDocIds: FieldValue.arrayRemove(...ids) });
+      // Dated, so a receipt issued again later shows up again.
+      const now = Date.now();
+      const dated: Record<string, number> = {};
+      ids.forEach(id => { dated['hiddenDocAt.' + id] = now; });
+      await memberRef.update({ hiddenDocIds: FieldValue.arrayUnion(...ids), archivedDocIds: FieldValue.arrayRemove(...ids), ...dated });
     } else if (action === 'archive') {
       await memberRef.update({ archivedDocIds: FieldValue.arrayUnion(...ids) });
     } else {
